@@ -1,0 +1,454 @@
+:root {
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  color: #202a38;
+  background: #f5f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+a {
+  color: #3156c8;
+}
+
+button,
+.button {
+  display: inline-block;
+  border: 1px solid #3156c8;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  color: #fff;
+  background: #3156c8;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #9db4ff;
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.page {
+  width: min(100% - 2rem, 760px);
+  margin: 0 auto;
+  padding: 3rem 0;
+}
+
+.page-header {
+  margin: 1.5rem 0 2rem;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+.eyebrow {
+  margin-bottom: 0.5rem;
+  color: #5c6c85;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.level-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.curriculum-section {
+  margin-top: 2rem;
+}
+
+.curriculum-section > h3 {
+  margin-bottom: 0;
+  color: #394c69;
+}
+
+.text-button {
+  border: 0;
+  padding: 0.4rem;
+  color: #3156c8;
+  background: transparent;
+}
+
+.card,
+.certificate-card {
+  border: 1px solid #dce2ec;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: #fff;
+}
+
+.intro-card > p:not(.eyebrow) {
+  line-height: 1.6;
+}
+
+.code-example {
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  border: 1px solid #e5e9f0;
+  border-radius: 8px;
+  padding: 1rem;
+  color: #26344a;
+  background: #f5f7fa;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.level-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.level-card h3 {
+  margin-bottom: 0.5rem;
+}
+
+.level-card p:last-child {
+  margin-bottom: 0;
+}
+
+.level-status {
+  margin-bottom: 0.5rem;
+  color: #5c6c85;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.status-in-progress {
+  color: #9a5a12;
+}
+
+.status-completed {
+  color: #167344;
+}
+
+.level-lock {
+  margin-bottom: 0;
+  color: #5c6c85;
+  font-size: 0.85rem;
+}
+
+.level-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.certificate-link {
+  font-size: 0.9rem;
+}
+
+.back-link {
+  display: inline-block;
+}
+
+.progress {
+  margin-bottom: 1.5rem;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  color: #5c6c85;
+  font-size: 0.9rem;
+}
+
+.progress progress {
+  width: 100%;
+  height: 0.7rem;
+  accent-color: #3156c8;
+}
+
+.question-card h2 {
+  margin-bottom: 1.5rem;
+}
+
+.answer-options {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.answer-options button {
+  min-width: 6rem;
+  color: #3156c8;
+  background: #fff;
+}
+
+.answer-options button.option-correct {
+  border-color: #167344;
+  color: #167344;
+  background: #eef9f2;
+}
+
+.answer-options button.option-incorrect {
+  border-color: #a13b32;
+  color: #a13b32;
+  background: #fff2f0;
+}
+
+.answer-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.question-card input {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.9rem;
+  border: 1px solid #b9c4d5;
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+  color: inherit;
+  font: inherit;
+}
+
+.question-card input:focus-visible {
+  outline: 3px solid #9db4ff;
+  outline-offset: 2px;
+}
+
+.feedback {
+  margin: 1.25rem 0;
+}
+
+.feedback p:last-of-type {
+  margin-bottom: 1rem;
+}
+
+.correct {
+  color: #167344;
+}
+
+.incorrect,
+.notice {
+  color: #a13b32;
+}
+
+.certificate-card {
+  position: relative;
+  display: flex;
+  min-height: 480px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d4b65e;
+  padding: 4rem 2rem 3rem;
+  color: #342a18;
+  background: #fffdf7;
+  text-align: center;
+}
+
+.certificate-frame {
+  margin-top: 1.5rem;
+  border: 3px double #b6923e;
+  padding: 0.65rem;
+  background: #faf4e5;
+  box-shadow: 0 12px 32px rgb(73 54 15 / 10%);
+}
+
+.certificate-brand,
+.certificate-date {
+  color: #7a6330;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.certificate-card h1 {
+  margin: 0.6rem 0 1.5rem;
+  color: #55431d;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  font-weight: 500;
+}
+
+.certificate-intro {
+  margin-bottom: 0.5rem;
+  color: #655b47;
+}
+
+.certificate-learner {
+  margin: 0 0 1.2rem;
+  color: #806321;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 5vw, 2.7rem);
+  font-style: italic;
+}
+
+.certificate-message {
+  max-width: 34rem;
+  color: #534a3b;
+  line-height: 1.7;
+}
+
+.certificate-date {
+  margin: 1.2rem 0 0;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.certificate-seal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  width: 5rem;
+  height: 5rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 3px double #b6923e;
+  border-radius: 50%;
+  color: #8b6a1e;
+  background: #fff6dc;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.certificate-seal span:first-child,
+.certificate-seal span:last-child {
+  font-size: 0.65rem;
+}
+
+.seal-label {
+  margin: 0.2rem 0;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.print-button {
+  display: block;
+  margin: 1.25rem auto;
+}
+
+.certificate-back {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.name-prompt {
+  margin-top: 2rem;
+}
+
+.name-prompt input {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.9rem;
+  border: 1px solid #b9c4d5;
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+  color: inherit;
+  font: inherit;
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
+
+  body,
+  :root {
+    background: #fff;
+  }
+
+  .page {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  .no-print,
+  .print-button {
+    display: none !important;
+  }
+
+  .certificate-page {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+  }
+
+  .certificate-frame {
+    width: 100%;
+    margin: 0;
+    box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .certificate-card {
+    min-height: 17cm;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 2rem 0;
+  }
+
+  .level-card {
+    grid-template-columns: 1fr;
+  }
+
+  .level-card-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .certificate-card {
+    min-height: 420px;
+    padding: 5.5rem 1.25rem 2rem;
+  }
+
+  .certificate-seal {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 4rem;
+    height: 4rem;
+  }
+}
