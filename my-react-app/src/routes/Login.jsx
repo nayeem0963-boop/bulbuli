@@ -19,9 +19,14 @@ export default function Login() {
       return
     }
     setLoading(true)
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) alert(error.message)
-    else alert('Success! Check your email for confirmation, or try logging in.')
+    const { data, error } = await supabase.auth.signUp({ email, password })
+    if (error) {
+      alert(error.message)
+    } else if (data.session) {
+      navigate('/dashboard', { replace: true })
+    } else {
+      alert('Success! Check your email for confirmation, then log in to continue.')
+    }
     setLoading(false)
   }
 
@@ -37,7 +42,7 @@ export default function Login() {
     if (error) {
       alert(error.message)
     } else {
-      navigate('/') // Redirect to home page after login
+      navigate('/dashboard', { replace: true })
     }
     setLoading(false)
   }

@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient.js'
 import Certificate from './routes/Certificate.jsx'
+import Dashboard from './routes/Dashboard.jsx'
 import Home from './routes/Home.jsx'
 import Level from './routes/Level.jsx'
 import Login from './routes/Login.jsx'
@@ -84,10 +85,12 @@ function App() {
                 </>
               ) : (
                 <>
+                  <Route path="/dashboard" element={<Dashboard session={session} />} />
+                  <Route path="/login" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/" element={<Home />} />
                   <Route path="/level/:levelId" element={<Level />} />
                   <Route path="/certificate/:levelId" element={<Certificate />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </>
               )}
             </Routes>
