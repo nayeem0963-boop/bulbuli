@@ -40,41 +40,43 @@ export default function Login() {
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-      <h2>Login to Bulbuli Quiz</h2>
-      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: '10px', fontSize: '16px' }}
-        />
-        <input
-          type="password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ padding: '10px', fontSize: '16px' }}
-        />
-        <button 
-          type="submit"
-          disabled={loading}
-          style={{ padding: '10px', fontSize: '16px', background: '#4f46e5', color: 'white', border: 'none', cursor: 'pointer' }}
-        >
-          {loading ? 'Logging in...' : 'Log In'}
-        </button>
-        <button 
-          type="button"
-          onClick={handleSignUp} 
-          disabled={loading}
-          style={{ padding: '10px', fontSize: '16px', background: '#10b981', color: 'white', border: 'none', cursor: 'pointer' }}
-        >
-          Sign Up
-        </button>
-      </form>
-    </div>
+    <main className="page login-page">
+      <section className="card login-card">
+        <p className="eyebrow">Your next skill starts here</p>
+        <h1>Welcome to Bulbuli</h1>
+        <p>Log in or create an account to continue learning.</p>
+        <form onSubmit={handleLogin} className="login-form">
+          <input
+            type="email"
+            placeholder="Enter your email"
+            aria-label="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+          <input
+            type="password"
+            placeholder="Enter your password"
+            aria-label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? 'Logging in...' : 'Log In'}
+          </button>
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={handleSignUp}
+            disabled={loading}
+          >
+            Sign Up
+          </button>
+        </form>
+      </section>
+    </main>
   )
 }

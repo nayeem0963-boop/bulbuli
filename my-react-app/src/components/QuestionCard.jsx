@@ -17,7 +17,7 @@ function QuestionCard({ question, questionNumber, totalQuestions, onAnswer, onNe
   }
 
   return (
-    <section className="card question-card" aria-labelledby="question-prompt">
+    <section className={`card question-card${result === true ? ' is-correct' : ''}`} aria-labelledby="question-prompt">
       <p className="eyebrow">Question {questionNumber} of {totalQuestions}</p>
       <h2 id="question-prompt">{question.question}</h2>
       <form onSubmit={checkAnswer}>

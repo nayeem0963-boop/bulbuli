@@ -13,7 +13,7 @@ function QuizCard({ question, questionNumber, totalQuestions, onAnswer, onNext }
   const answeredCorrectly = selectedIndex === question.correctIndex
 
   return (
-    <section className="card question-card" aria-labelledby="quiz-prompt">
+    <section className={`card question-card${answeredCorrectly ? ' is-correct' : ''}`} aria-labelledby="quiz-prompt">
       <p className="eyebrow">Quiz {questionNumber} of {totalQuestions}</p>
       <h2 id="quiz-prompt">{question.question}</h2>
       <div className="answer-options">
