@@ -6,7 +6,10 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [authMode, setAuthMode] = useState('login')
   const navigate = useNavigate()
+  const submitLabel = authMode === 'login' ? 'Log In' : 'Create Account'
+  const loadingLabel = authMode === 'login' ? 'Logging in...' : 'Creating account...'
 
   // Handle Sign Up
   const handleSignUp = async (e) => {
@@ -44,8 +47,15 @@ export default function Login() {
       <section className="card login-card">
         <p className="eyebrow">Your next skill starts here</p>
         <h1>Welcome to Bulbuli</h1>
-        <p>Log in or create an account to continue learning.</p>
-        <form onSubmit={handleLogin} className="login-form">
+        <p>
+          {authMode === 'login'
+            ? 'Log in to continue learning, or create an account.'
+            : 'Create an account to start learning.'}
+        </p>
+        <form
+          onSubmit={authMode === 'login' ? handleLogin : handleSignUp}
+          className="login-form"
+        >
           <input
             type="email"
             placeholder="Enter your email"
@@ -62,20 +72,20 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            autoComplete="current-password"
+            autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
           />
           <button type="submit" disabled={loading}>
-            {loading ? 'Logging in...' : 'Log In'}
-          </button>
-          <button
-            className="button button-secondary"
-            type="button"
-            onClick={handleSignUp}
-            disabled={loading}
-          >
-            Sign Up
+            {loading ? loadingLabel : submitLabel}
           </button>
         </form>
+        <button
+          className="button button-secondary"
+          type="button"
+          onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+          disabled={loading}
+        >
+          {authMode === 'login' ? 'Sign Up' : 'Back to Log In'}
+        </button>
       </section>
     </main>
   )
