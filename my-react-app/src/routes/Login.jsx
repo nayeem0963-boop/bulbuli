@@ -1,17 +1,22 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient.js'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { getAuthRedirectPath } from '../utils/authRedirect.js'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [authStatus, setAuthStatus] = useState(null)
   const [authMode, setAuthMode] = useState('login')
   const [authView, setAuthView] = useState('login')
   const [resetEmail, setResetEmail] = useState('')
   const [resetStatus, setResetStatus] = useState(null)
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirectPath = getAuthRedirectPath(location.state?.from)
   const submitLabel = authMode === 'login' ? 'Log In' : 'Create Account'
   const loadingLabel = authMode === 'login' ? 'Logging in...' : 'Creating account...'
 
@@ -48,40 +53,86 @@ export default function Login() {
     }
   }
 
-  // Handle Sign Up
   const handleSignUp = async (e) => {
     e.preventDefault()
-    if (!email || !password) {
-      alert('Please enter both email and password.')
+
+    if (password.length < 6) {
+      setAuthStatus({ type: 'error', message: 'Password must be at least 6 characters long.' })
       return
     }
-    setLoading(true)
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    if (error) {
-      alert(error.message)
-    } else if (data.session) {
-      navigate('/dashboard', { replace: true })
-    } else {
-      alert('Success! Check your email for confirmation, then log in to continue.')
+
+    if (password !== confirmPassword) {
+      setAuthStatus({ type: 'error', message: 'Passwords do not match' })
+      return
     }
-    setLoading(false)
+
+    setLoading(true)
+    setAuthStatus(null)
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (error) throw error
+
+      if (data.session) {
+        navigate(redirectPath, { replace: true })
+      } else {
+        setAuthStatus({
+          type: 'success',
+          message: 'Please check your email to verify your account.',
+        })
+      }
+    } catch (error) {
+      console.error('Unable to create a Bulbuli account.', error)
+      setAuthStatus({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'We could not create your account. Please try again.',
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Handle Login
   const handleLogin = async (e) => {
     e.preventDefault()
-    if (!email || !password) {
-      alert('Please enter both email and password.')
-      return
-    }
+
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      alert(error.message)
-    } else {
-      navigate('/dashboard', { replace: true })
+    setAuthStatus(null)
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      navigate(redirectPath, { replace: true })
+    } catch (error) {
+      console.error('Unable to log in to Bulbuli.', error)
+      setAuthStatus({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'We could not log you in. Please try again.',
+      })
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
+  }
+
+  const handleGoogleSignUp = async () => {
+    setLoading(true)
+    setAuthStatus(null)
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://bulbuli.org/auth/callback',
+        },
+      })
+      if (error) throw error
+    } catch (error) {
+      console.error('Error logging in with Google:', error instanceof Error ? error.message : error)
+      setAuthStatus({
+        type: 'error',
+        message: error instanceof Error
+          ? error.message
+          : 'We could not sign in with Google. Please try again.',
+      })
+      setLoading(false)
+    }
   }
 
   return (
@@ -139,6 +190,11 @@ export default function Login() {
                 ? 'Log in to continue learning, or create an account.'
                 : 'Create an account to start learning.'}
             </p>
+            <p>
+              Learn HTML one bite-sized level at a time with short-answer questions
+              and multiple-choice quizzes. Track your progress, build a streak, and
+              earn a printable certificate for each completed level.
+            </p>
             <form
               onSubmit={authMode === 'login' ? handleLogin : handleSignUp}
               className="login-form"
@@ -148,18 +204,26 @@ export default function Login() {
                 placeholder="Enter your email"
                 aria-label="Email address"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setAuthStatus(null)
+                }}
                 required
                 autoComplete="email"
               />
+              <label className="auth-field-label" htmlFor="account-password">Password</label>
               <div className="password-input-wrap">
                 <input
+                  id="account-password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
-                  aria-label="Password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setAuthStatus(null)
+                  }}
                   required
+                  minLength={authMode === 'signup' ? 6 : undefined}
                   autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
                 />
                 <button
@@ -184,6 +248,31 @@ export default function Login() {
                   </svg>
                 </button>
               </div>
+              {authMode === 'signup' && (
+                <>
+                  <label className="auth-field-label" htmlFor="confirm-password">Confirm Password</label>
+                  <input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value)
+                      setAuthStatus(null)
+                    }}
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                    aria-describedby={authStatus?.message === 'Passwords do not match' ? 'password-match-error' : undefined}
+                    aria-invalid={authStatus?.message === 'Passwords do not match'}
+                  />
+                  {authStatus?.message === 'Passwords do not match' && (
+                    <p id="password-match-error" className="auth-message error" role="alert">
+                      Passwords do not match
+                    </p>
+                  )}
+                </>
+              )}
               {authMode === 'login' && (
                 <button
                   className="forgot-password-link"
@@ -197,14 +286,32 @@ export default function Login() {
                   Forgot Password?
                 </button>
               )}
+              {authStatus && authStatus.message !== 'Passwords do not match' && (
+                <p className={`auth-message ${authStatus.type}`} role={authStatus.type === 'error' ? 'alert' : 'status'}>
+                  {authStatus.message}
+                </p>
+              )}
               <button type="submit" disabled={loading}>
                 {loading ? loadingLabel : submitLabel}
               </button>
             </form>
+            <div className="oauth-divider" aria-hidden="true"><span>OR</span></div>
+            <button
+              className="google-sign-in button-secondary"
+              type="button"
+              onClick={handleGoogleSignUp}
+              disabled={loading}
+            >
+              Sign in with Google
+            </button>
             <button
               className="button button-secondary"
               type="button"
-              onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+              onClick={() => {
+                setAuthMode(authMode === 'login' ? 'signup' : 'login')
+                setConfirmPassword('')
+                setAuthStatus(null)
+              }}
               disabled={loading}
             >
               {authMode === 'login' ? 'Sign Up' : 'Back to Log In'}

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-function LevelCard({ level, unlocked, completed, inProgress, onStart }) {
+function LevelCard({ level, unlocked, completed, inProgress, onStart, isGuest = false }) {
   const status = completed ? 'Completed ✅' : inProgress ? 'In progress' : 'Not started'
 
   return (
@@ -8,17 +8,19 @@ function LevelCard({ level, unlocked, completed, inProgress, onStart }) {
       <div>
         <h3>{level.title}</h3>
         <p>{level.description}</p>
-        <p className={`level-status${completed ? ' status-completed' : inProgress ? ' status-in-progress' : ''}`}>
-          {status}
-        </p>
-        {!unlocked && <p className="level-lock">🔒 Locked</p>}
+        {!isGuest && (
+          <p className={`level-status${completed ? ' status-completed' : inProgress ? ' status-in-progress' : ''}`}>
+            {status}
+          </p>
+        )}
+        {!isGuest && !unlocked && <p className="level-lock">🔒 Locked</p>}
       </div>
       {unlocked ? (
         <div className="level-card-actions">
           <Link className="button" to={`/level/${level.id}`} onClick={onStart}>
-            {completed ? 'Review level' : 'Start'}
+            {isGuest ? 'Preview lesson' : completed ? 'Review level' : 'Start'}
           </Link>
-          {completed && (
+          {!isGuest && completed && (
             <Link className="certificate-link" to={`/certificate/${level.id}`}>
               View certificate
             </Link>

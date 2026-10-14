@@ -1,16 +1,63 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient.js'
+import { htmlLevels } from './data/htmlLevels.js'
+import { getAuthRedirectPath } from './utils/authRedirect.js'
 import Certificate from './routes/Certificate.jsx'
 import Dashboard from './routes/Dashboard.jsx'
 import Home from './routes/Home.jsx'
 import Level from './routes/Level.jsx'
 import Login from './routes/Login.jsx'
+import PublicLevelPreview from './routes/PublicLevelPreview.jsx'
 import { QuizProvider } from './context/QuizContext.jsx'
+
+function RouteTitle() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    const levelId = pathname.match(/^\/(?:level|certificate)\/([^/]+)$/)?.[1]
+    const level = htmlLevels.find((item) => item.id === levelId)
+    let title = 'Bulbuli | Learn HTML by Doing'
+
+    if (pathname === '/login') {
+      title = 'Sign in or Sign up | Bulbuli'
+    } else if (pathname === '/dashboard') {
+      title = 'Your Learning Dashboard | Bulbuli'
+    } else if (pathname === '/') {
+      title = 'Learn HTML by Doing | Bulbuli'
+    } else if (pathname.startsWith('/level/')) {
+      title = level ? `${level.title} | Bulbuli` : 'Level Not Found | Bulbuli'
+    } else if (pathname.startsWith('/certificate/')) {
+      title = level ? `${level.title} Certificate | Bulbuli` : 'Certificate Not Found | Bulbuli'
+    }
+
+    document.title = title
+  }, [pathname])
+
+  return null
+}
+
+function MemberRoute({ session, children }) {
+  const location = useLocation()
+
+  return session
+    ? children
+    : <Navigate to="/login" replace state={{ from: location }} />
+}
+
+function LoginRoute({ session }) {
+  const location = useLocation()
+
+  return session
+    ? <Navigate to={getAuthRedirectPath(location.state?.from)} replace />
+    : <Login />
+}
 
 function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState('')
+  const [authCheckAttempt, setAuthCheckAttempt] = useState(0)
   const [theme, setTheme] = useState(() => {
     try {
       const savedTheme = window.localStorage.getItem('bulbuli.theme')
@@ -34,17 +81,35 @@ function App() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setLoading(false)
-    })
-
+    let isActive = true
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
+      if (isActive) {
+        setSession(session)
+        setAuthError('')
+        setLoading(false)
+      }
     })
 
-    return () => subscription.unsubscribe()
-  }, [])
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) throw error
+        if (!isActive) return
+        setSession(session)
+        setAuthError('')
+        setLoading(false)
+      })
+      .catch((error) => {
+        console.error('Unable to check the Bulbuli authentication session.', error)
+        if (!isActive) return
+        setAuthError('We could not verify your sign-in status. Please try again.')
+        setLoading(false)
+      })
+
+    return () => {
+      isActive = false
+      subscription.unsubscribe()
+    }
+  }, [authCheckAttempt])
 
   useEffect(() => {
     const themeColor = document.querySelector('meta[name="theme-color"]')
@@ -74,25 +139,41 @@ function App() {
       </button>
       {loading ? (
         <main className="loading-state" role="status">Loading your learning space…</main>
+      ) : authError ? (
+        <main className="page">
+          <p className="notice" role="alert">{authError}</p>
+          <button
+            className="button"
+            type="button"
+            onClick={() => {
+              setLoading(true)
+              setAuthCheckAttempt((attempt) => attempt + 1)
+            }}
+          >
+            Try again
+          </button>
+        </main>
       ) : (
         <QuizProvider>
           <BrowserRouter>
+            <RouteTitle />
             <Routes>
-              {!session ? (
-                <>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="*" element={<Navigate to="/login" replace />} />
-                </>
-              ) : (
-                <>
-                  <Route path="/dashboard" element={<Dashboard session={session} />} />
-                  <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/" element={<Home />} />
-                  <Route path="/level/:levelId" element={<Level />} />
-                  <Route path="/certificate/:levelId" element={<Certificate />} />
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </>
-              )}
+              <Route path="/" element={<Home session={session} />} />
+              <Route path="/login" element={<LoginRoute session={session} />} />
+              <Route path="/level/:levelId" element={session
+                ? <Level />
+                : <PublicLevelPreview />} />
+              <Route path="/dashboard" element={
+                <MemberRoute session={session}>
+                  <Dashboard session={session} />
+                </MemberRoute>
+              } />
+              <Route path="/certificate/:levelId" element={
+                <MemberRoute session={session}>
+                  <Certificate />
+                </MemberRoute>
+              } />
+              <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />
             </Routes>
           </BrowserRouter>
         </QuizProvider>
