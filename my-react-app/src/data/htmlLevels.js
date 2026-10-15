@@ -4,7 +4,7 @@ export const htmlLevels = [
     section: 'Getting Started',
     title: 'HTML Tags Basics',
     description: 'Learn how tags give web content its structure and meaning.',
-    intro: 'HTML is the language used to describe the structure of a web page. Tags mark where elements begin and, for most elements, where they end. Browsers read this structure and turn it into the page you see.',
+    intro: 'HTML (HyperText Markup Language) describes the structure and meaning of page content. An opening tag marks the start of an element and its closing tag marks the end; the content sits between them, as “Hello” does in <p>Hello</p>. Nesting a paragraph inside a section groups related content and shows how page parts belong together. Most elements have opening and closing tags, but void elements such as <img> have no separate closing tag.',
     codeExample: '<h1>My page</h1>\n<p>This is a paragraph.</p>',
     qa: [
       { question: 'What is HTML used for on a web page?', answer: 'HTML describes the structure and meaning of page content.', keywords: ['structure', 'meaning', 'content', 'markup'] },
@@ -24,7 +24,7 @@ export const htmlLevels = [
     section: 'Getting Started',
     title: 'HTML Attributes',
     description: 'Add useful details to elements with attributes.',
-    intro: 'Attributes add extra information to an element and are written in its opening tag. An attribute usually has a name and a value, such as href for a link destination. Quote attribute values so spaces and special characters are handled clearly.',
+    intro: 'Attributes add extra information to an element and are written inside its opening tag as a name and value. The href attribute gives a link its destination; in href="about.html", the value is exactly about.html. For an image, src identifies the image file and alt provides its text description for people using screen readers or when the image cannot load, so useful image markup includes both attributes. Quote attribute values so spaces and special characters are handled clearly.',
     codeExample: '<a href="https://example.com">Visit the site</a>\n<img src="cat.jpg" alt="A gray cat">',
     qa: [
       { question: 'Where do you write an attribute in an HTML element?', answer: 'Write attributes inside the opening tag.', keywords: ['opening tag', 'start tag', 'inside the tag'] },
@@ -44,7 +44,7 @@ export const htmlLevels = [
     section: 'Getting Started',
     title: 'Text & Headings',
     description: 'Organize page content with meaningful heading levels.',
-    intro: 'Headings describe the outline of a page, from the main heading <h1> through smaller subheadings to <h6>. Choose a heading because of its place in the content, not just its visual size. Use paragraphs for ordinary blocks of text.',
+    intro: 'HTML provides six heading levels, from <h1> to <h6>. The <h1> usually names the page’s main topic, and an <h2> introduces a section beneath it; choose levels by the document’s heading hierarchy, not by the visual size you want (style size separately). Use a <p> element for a paragraph of ordinary text.',
     codeExample: '<h1>Our Garden</h1>\n<h2>Flowers</h2>\n<p>We grow flowers in many colors.</p>',
     qa: [
       { question: 'Which heading level usually names the main topic of a page?', answer: 'The h1 heading usually names the main topic.', keywords: ['h1', '<h1>', 'main heading', 'top-level'] },
@@ -64,7 +64,7 @@ export const htmlLevels = [
     section: 'Content & Structure',
     title: 'Paragraphs & Line Breaks',
     description: 'Use paragraphs for ideas and line breaks for meaningful breaks.',
-    intro: 'A paragraph element groups sentences into a readable block. Browsers add space around paragraphs by default, so do not use repeated breaks just to create page spacing. The br element creates a line break within text when the break itself is meaningful, such as in an address or poem.',
+    intro: 'Use a <p> element to wrap ordinary prose, and put separate ideas in separate paragraph elements. Browsers add space around paragraphs by default; use CSS spacing to create extra visual gaps between sections rather than repeated <br> elements. The <br> element creates one meaningful line break within text, such as in an address or poem. <br> is a void element and has no closing tag.',
     codeExample: '<p>HTML groups sentences into paragraphs.</p>\n<p>For an address, keep a line break:<br>12 Garden Lane</p>',
     qa: [
       { question: 'Which element should wrap a block of ordinary prose?', answer: 'Use a p element for a paragraph of prose.', keywords: ['p', '<p>', 'paragraph'] },
@@ -84,7 +84,7 @@ export const htmlLevels = [
     section: 'Content & Structure',
     title: 'Lists (ordered & unordered)',
     description: 'Represent grouped items as numbered or bulleted lists.',
-    intro: 'Use a list when several related items belong together. An unordered list uses bullets when order does not matter, while an ordered list numbers steps or items whose sequence matters. Each list item goes inside an li element.',
+    intro: 'Use a list to group related items. An unordered list (<ul>) displays bullets when order does not matter; an ordered list (<ol>) numbers steps or items whose sequence matters, such as recipe instructions. Each individual item goes in its own <li> element. Related navigation links can be grouped as list items inside a list within a <nav> region.',
     codeExample: '<ul>\n  <li>Apples</li>\n  <li>Pears</li>\n</ul>\n<ol>\n  <li>Mix ingredients</li>\n  <li>Bake</li>\n</ol>',
     qa: [
       { question: 'Which list should you use when the order of items does not matter?', answer: 'Use an unordered list, ul.', keywords: ['unordered', 'ul', 'bullet', 'bulleted'] },
@@ -104,7 +104,7 @@ export const htmlLevels = [
     section: 'Content & Structure',
     title: 'Links & Anchors',
     description: 'Connect pages and jump to places within a page.',
-    intro: 'The a element creates a link, and its href attribute says where the link goes. A URL can point to another page, an email address, or an element on the current page. Link text should describe the destination so it makes sense out of context.',
+    intro: 'The <a> element creates a hyperlink, and its href attribute supplies the destination. To jump to an element with id="contact" on the same page, use href="#contact"; the # fragment matches the target id. An href value beginning with mailto: opens an email link. Write descriptive link text that explains the destination or purpose, so it remains useful when read by itself or out of context.',
     codeExample: '<a href="about.html">About our club</a>\n<a href="#contact">Jump to contact</a>\n<h2 id="contact">Contact</h2>',
     qa: [
       { question: 'What makes text inside an a element into a working link?', answer: 'The href attribute supplies the link destination.', keywords: ['href', 'destination', 'url', 'address'] },
@@ -124,7 +124,7 @@ export const htmlLevels = [
     section: 'Content & Structure',
     title: 'Images',
     description: 'Add images with sources and useful text alternatives.',
-    intro: 'The img element embeds an image file and is a void element, so it has no closing tag. Its src attribute identifies the file, and alt provides a text alternative for people who cannot see the image or when it fails to load. If an image is purely decorative, an empty alt value keeps it from adding noise for screen reader users.',
+    intro: 'The <img> element embeds an image and is a void element with no closing tag. Its src attribute identifies the image file, while alt provides a brief text alternative describing the useful information in an informative image. Use alt="" for a purely decorative image so assistive technology can skip it. Avoid repeating a nearby caption in alt text, since repetition makes screen reader users hear the same information twice.',
     codeExample: '<img src="garden.jpg" alt="Purple flowers beside a garden path">',
     qa: [
       { question: 'Which attribute tells an img element which file to display?', answer: 'The src attribute points to the image file.', keywords: ['src', 'source', 'file'] },
@@ -144,7 +144,7 @@ export const htmlLevels = [
     section: 'Content & Structure',
     title: 'Tables',
     description: 'Present genuinely tabular data with rows and headers.',
-    intro: 'Tables are for data whose meaning depends on relationships between rows and columns, such as a timetable. Use tr for each row, th for header cells, and td for ordinary data cells. Do not use tables just to arrange a page layout.',
+    intro: 'Use an HTML table for data whose meaning depends on relationships between rows and columns, such as a weekly timetable, not to arrange page layout. Each <tr> represents a table row. A <th> is a header cell that labels a row or column and explains what its values represent; a <td> holds ordinary table data. These header labels help readers understand the values in their rows or columns.',
     codeExample: '<table>\n  <tr><th>Day</th><th>Class</th></tr>\n  <tr><td>Monday</td><td>Art</td></tr>\n</table>',
     qa: [
       { question: 'When is a table a good choice?', answer: 'Use a table when data is meaningfully organized in rows and columns.', keywords: ['data', 'rows and columns', 'tabular', 'relationships'] },
@@ -164,7 +164,7 @@ export const htmlLevels = [
     section: 'Interactivity',
     title: 'Forms: Inputs & Labels',
     description: 'Collect information with form controls and connected labels.',
-    intro: 'Forms let visitors provide information. An input element creates a control, and its type determines what kind of value it accepts. A label names a control; connect them with matching for and id values so the form is easier to use with a mouse, keyboard, or assistive technology.',
+    intro: 'Forms collect information from visitors. An <input> creates a control, and its type determines what value it accepts; type="email" identifies an email field and lets the browser offer email-aware validation and keyboards. Give the input a name so its value is identified in submitted form data. A label gives a control an accessible name and can be clicked to focus it: connect a label to id="email" with for="email". The required attribute means the field must be filled in before a valid submission.',
     codeExample: '<label for="email">Email address</label>\n<input id="email" name="email" type="email" required>',
     qa: [
       { question: 'How do you connect a label to an input with id="email"?', answer: 'Set the label for attribute to email.', keywords: ['for="email"', 'for=email', 'for attribute', 'matching id'] },
@@ -184,7 +184,7 @@ export const htmlLevels = [
     section: 'Interactivity',
     title: 'Forms: Buttons & Submission',
     description: 'Choose button behavior and submit forms accessibly.',
-    intro: 'A form groups controls and can send their named values to a destination. A button inside a form submits by default unless its type says otherwise. Use type="button" for an action that should not submit, and give submit buttons clear text so users know what will happen.',
+    intro: 'A form groups controls and sends their named values for processing. A button inside a form submits by default; type="submit" explicitly submits the form, while type="button" prevents a button used for another action from submitting it. The form action attribute identifies where submitted data is sent. method="post" sends the data in the request body rather than appending it to the URL. Use specific submit-button text, such as “Create account” instead of “Go,” to tell users the result of submitting.',
     codeExample: '<form action="/signup" method="post">\n  <label for="name">Name</label>\n  <input id="name" name="name" required>\n  <button type="submit">Sign up</button>\n</form>',
     qa: [
       { question: 'What does a submit button do inside a form?', answer: 'It submits the form values for processing.', keywords: ['submit', 'send', 'form values', 'form data'] },
@@ -204,7 +204,7 @@ export const htmlLevels = [
     section: 'Structure & Media',
     title: 'Semantic HTML (header, nav, main, section, footer)',
     description: 'Give page regions meaning with semantic layout elements.',
-    intro: 'Semantic elements describe the purpose of a region, not just how it looks. Header, nav, main, section, and footer help browsers, search tools, and assistive technology understand a page. Use one main region for the unique central content and give sections a meaningful heading.',
+    intro: 'Semantic HTML elements communicate the purpose and structure (content roles) of page regions, not just their visual styling; browsers, search tools, and assistive technology can use that meaning. Use one <main> for the page’s unique central content and <nav> for a major group of navigation links. A <section> groups related content and should have a meaningful heading that names its topic. A <header> can introduce either the whole page or an individual section.',
     codeExample: '<header><h1>Garden Club</h1></header>\n<nav><a href="#events">Events</a></nav>\n<main><section id="events"><h2>Events</h2></section></main>\n<footer>Contact the club</footer>',
     qa: [
       { question: 'What information does semantic HTML add beyond visual styling?', answer: 'It communicates the purpose and structure of page content.', keywords: ['purpose', 'meaning', 'structure', 'role'] },
@@ -224,7 +224,7 @@ export const htmlLevels = [
     section: 'Structure & Media',
     title: 'Divs, Spans & Grouping',
     description: 'Group content with generic block and inline containers.',
-    intro: 'Div and span are generic containers with no built-in meaning of their own. A div groups a block of content, while a span groups a small piece of text within a line. Use them when you need a hook for styling or scripting and a more meaningful element does not fit.',
+    intro: 'A <div> and a <span> are generic containers with no built-in semantic meaning of their own. A <div> groups block content; a <span> groups a small inline piece of text within a line. Use these containers when you need a hook for styling or scripting and no more meaningful element fits—for example, use a semantic heading element when the content is actually a heading. A class on a <div> gives CSS a selector hook for styling the grouped content.',
     codeExample: '<div class="profile">\n  <h2>Sam Lee</h2>\n  <p>Favorite color: <span class="color">blue</span></p>\n</div>',
     qa: [
       { question: 'What semantic meaning does a div add by itself?', answer: 'A div is a generic container and adds no specific semantic meaning.', keywords: ['generic', 'no specific meaning', 'container', 'none'] },
@@ -244,7 +244,7 @@ export const htmlLevels = [
     section: 'Structure & Media',
     title: 'Audio & Video',
     description: 'Embed media with controls and accessible alternatives.',
-    intro: 'HTML audio and video elements can play media directly in a page. Add controls so people can play, pause, and adjust the media, and use source elements when offering multiple file formats. Provide captions for video dialogue and meaningful fallback text if the media cannot play.',
+    intro: 'HTML <audio> and <video> elements play media in a page. Add the controls attribute to provide built-in playback controls so users can start, pause, and adjust playback. Put one or more <source> child elements inside the media element to offer files in different formats. Provide synchronized captions or subtitles for spoken video dialogue. Autoplay with sound can be a poor choice because unexpected sound can interrupt users and takes away their control. Text between the video tags provides fallback information if the browser cannot play the video.',
     codeExample: '<video controls width="480">\n  <source src="tour.mp4" type="video/mp4">\n  Your browser cannot play this video.\n</video>',
     qa: [
       { question: 'Why add controls to an audio or video element?', answer: 'Controls let users start, pause, and adjust playback.', keywords: ['play', 'pause', 'playback', 'control'] },
@@ -264,7 +264,7 @@ export const htmlLevels = [
     section: 'Structure & Media',
     title: 'Meta Tags & Document Structure',
     description: 'Build a complete HTML document with useful metadata.',
-    intro: 'A complete HTML document starts with a doctype and an html root element. The head contains metadata such as the page title, character encoding, and viewport settings; the body contains visible page content. A descriptive title helps people identify the page in tabs and search results.',
+    intro: 'A complete HTML document starts in this order: <!doctype html>, the <html> root element, <head>, then <body>. The doctype tells the browser to use modern HTML standards document mode. The <head> contains metadata, including the <title> (the text shown in the browser tab), character encoding, and viewport settings; the <body> contains visible page content. A descriptive title helps identify the page in tabs, bookmarks, and search results. A <meta charset="UTF-8"> tells the browser how text characters are encoded, and a viewport meta tag helps the page use the device width and scale correctly on mobile screens.',
     codeExample: '<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n    <title>My Page</title>\n  </head>\n  <body><h1>Hello!</h1></body>\n</html>',
     qa: [
       { question: 'What does <!doctype html> tell the browser?', answer: 'It tells the browser to use modern HTML document mode.', keywords: ['html', 'document mode', 'standards', 'modern'] },
@@ -284,7 +284,7 @@ export const htmlLevels = [
     section: 'Structure & Media',
     title: 'Putting It All Together (a small real page)',
     description: 'Combine document structure, semantic sections, links, and lists.',
-    intro: 'A real page combines the HTML patterns you have learned: document metadata, a clear heading hierarchy, semantic regions, and useful links. Build the page around its content first, then add lists, images, and forms where they help visitors. Meaningful structure makes the page easier to navigate and improve later.',
+    intro: 'A complete page starts with <!doctype html>, followed by <html>, <head>, and <body>; put a descriptive <title> in <head> to identify the page in tabs, bookmarks, and search results. Put the page’s unique central content in <main>, and choose elements such as headings, lists, or paragraphs to match the content’s meaning and structure. To make an in-page jump link, give the destination element an id (for example, id="visit") and link to it with href="#visit". Semantic elements explain the role of each content region. Once the HTML structure works, use CSS to style it and control visual spacing.',
     codeExample: '<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n    <title>Community Garden</title>\n  </head>\n  <body>\n    <header><h1>Community Garden</h1></header>\n    <nav><a href="#visit">Plan a visit</a></nav>\n    <main>\n      <section id="visit">\n        <h2>Visit us</h2>\n        <p>Everyone is welcome to explore.</p>\n        <ul><li>Open on Saturdays</li><li>Bring a water bottle</li></ul>\n      </section>\n    </main>\n    <footer>See you in the garden!</footer>\n  </body>\n</html>',
     qa: [
       { question: 'Why should a finished page include a descriptive title in head?', answer: 'The title identifies the page in browser tabs, bookmarks, and search results.', keywords: ['identify', 'tab', 'bookmark', 'search'] },

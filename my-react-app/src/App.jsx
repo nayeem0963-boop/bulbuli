@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient.js'
 import { htmlLevels } from './data/htmlLevels.js'
+import { tutorials } from './data/tutorials.js'
 import { getAuthRedirectPath } from './utils/authRedirect.js'
 import Certificate from './routes/Certificate.jsx'
 import Dashboard from './routes/Dashboard.jsx'
@@ -9,6 +10,7 @@ import Home from './routes/Home.jsx'
 import Level from './routes/Level.jsx'
 import Login from './routes/Login.jsx'
 import PublicLevelPreview from './routes/PublicLevelPreview.jsx'
+import Tutorial from './routes/Tutorial.jsx'
 import { QuizProvider } from './context/QuizContext.jsx'
 
 function RouteTitle() {
@@ -17,6 +19,8 @@ function RouteTitle() {
   useEffect(() => {
     const levelId = pathname.match(/^\/(?:level|certificate)\/([^/]+)$/)?.[1]
     const level = htmlLevels.find((item) => item.id === levelId)
+    const tutorialId = pathname.match(/^\/tutorial\/([^/]+)$/)?.[1]
+    const tutorial = tutorials.find((item) => item.id === tutorialId)
     let title = 'Bulbuli | Learn HTML by Doing'
 
     if (pathname === '/login') {
@@ -29,6 +33,8 @@ function RouteTitle() {
       title = level ? `${level.title} | Bulbuli` : 'Level Not Found | Bulbuli'
     } else if (pathname.startsWith('/certificate/')) {
       title = level ? `${level.title} Certificate | Bulbuli` : 'Certificate Not Found | Bulbuli'
+    } else if (pathname.startsWith('/tutorial/')) {
+      title = tutorial ? `${tutorial.title} | Bulbuli` : 'Tutorial Not Found | Bulbuli'
     }
 
     document.title = title
@@ -158,11 +164,14 @@ function App() {
           <BrowserRouter>
             <RouteTitle />
             <Routes>
-              <Route path="/" element={<Home session={session} />} />
+              <Route path="/" element={session
+                ? <Home session={session} />
+                : <Navigate to="/login" replace />} />
               <Route path="/login" element={<LoginRoute session={session} />} />
               <Route path="/level/:levelId" element={session
                 ? <Level />
                 : <PublicLevelPreview />} />
+              <Route path="/tutorial/:tutorialId" element={<Tutorial />} />
               <Route path="/dashboard" element={
                 <MemberRoute session={session}>
                   <Dashboard session={session} />

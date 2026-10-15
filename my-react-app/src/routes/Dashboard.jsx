@@ -4,6 +4,7 @@ import { useProgress } from '../hooks/useProgress.js'
 import { useQuiz } from '../hooks/useQuiz.js'
 import { supabase } from '../supabaseClient.js'
 import { htmlLevels } from '../data/htmlLevels.js'
+import { tutorials } from '../data/tutorials.js'
 
 function formatJoinedDate(createdAt) {
   if (!createdAt) return 'Not available'
@@ -206,6 +207,25 @@ function Dashboard({ session }) {
             <Link className="button" to={nextLevel ? `/level/${nextLevel.id}` : '/'}>
               {nextLevel ? 'Continue learning' : 'Review levels'}
             </Link>
+          </section>
+
+          <section aria-labelledby="tutorials-heading">
+            <div className="section-heading">
+              <h2 id="tutorials-heading">Tutorials</h2>
+            </div>
+            <div className="level-list">
+              {tutorials.map((tutorial) => (
+                <article className="card level-card" key={tutorial.id}>
+                  <div>
+                    <h3>{tutorial.title}</h3>
+                    <p>{tutorial.description}</p>
+                  </div>
+                  <div className="level-card-actions">
+                    <Link className="button" to={`/tutorial/${tutorial.id}`}>Open tutorial</Link>
+                  </div>
+                </article>
+              ))}
+            </div>
           </section>
         </main>
       </div>
