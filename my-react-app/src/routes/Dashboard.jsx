@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useProgress } from '../hooks/useProgress.js'
-import { useQuiz } from '../hooks/useQuiz.js'
 import { supabase } from '../supabaseClient.js'
-import { htmlLevels } from '../data/htmlLevels.js'
-import { tutorials } from '../data/tutorials.js'
+import TutorialCard from '../components/TutorialCard.jsx'
+import { tutorialCatalog } from '../data/tutorialCatalog.js'
+import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 
 function formatJoinedDate(createdAt) {
   if (!createdAt) return 'Not available'
@@ -24,8 +23,12 @@ function Dashboard({ session }) {
   const [signingOut, setSigningOut] = useState(false)
   const [refreshCount, setRefreshCount] = useState(0)
   const [avatarFailed, setAvatarFailed] = useState(false)
-  const { completedLevels, startedLevels, storageError: progressError } = useProgress()
-  const { highScores, storageError: scoresError } = useQuiz()
+  const {
+    completedTutorials,
+    quizProgress,
+    startedTutorialIds,
+    storageError: tutorialProgressError,
+  } = useTutorialProgress(session.user.id)
 
   useEffect(() => {
     let isMounted = true
@@ -87,13 +90,9 @@ function Dashboard({ session }) {
     .join('')
     .toUpperCase()
   const accountIsConfirmed = Boolean(user?.email_confirmed_at || user?.confirmed_at)
-  const completedCount = completedLevels.length
-  const inProgressCount = startedLevels.filter((id) => !completedLevels.includes(id)).length
-  const savedScoreCount = Object.keys(highScores).length
-  const nextLevelId = startedLevels.slice().reverse().find((id) => !completedLevels.includes(id))
-    || htmlLevels.find((level) => !completedLevels.includes(level.id))?.id
-    || htmlLevels[htmlLevels.length - 1]?.id
-  const nextLevel = htmlLevels.find((level) => level.id === nextLevelId)
+  const completedCount = Object.keys(completedTutorials).length
+  const inProgressCount = startedTutorialIds.filter((id) => !completedTutorials[id]).length
+  const nextTutorial = tutorialCatalog.find((tutorial) => !completedTutorials[tutorial.id])
 
   return (
     <div className="dashboard-page">
@@ -128,12 +127,12 @@ function Dashboard({ session }) {
           <header className="dashboard-heading" id="overview">
             <p className="eyebrow">Your learning space</p>
             <h1>Welcome back, {fullName}</h1>
-            <p>Here’s an overview of your Bulbuli account and learning progress.</p>
+            <p>Five small steps can take you a long way. Pick up where you left off.</p>
           </header>
 
-          {(profileError || logoutError || progressError || scoresError) && (
+          {(profileError || logoutError || tutorialProgressError) && (
             <div className="notice" role="alert">
-              {profileError || logoutError || progressError || scoresError}
+              {profileError || logoutError || tutorialProgressError}
               {profileError && (
                 <button
                   className="text-button dashboard-retry"
@@ -149,19 +148,19 @@ function Dashboard({ session }) {
 
           <section className="dashboard-metrics" aria-label="Learning overview">
             <article className="card dashboard-metric">
-              <span className="dashboard-metric-label">Completed levels</span>
-              <strong>{completedCount}</strong>
-              <span>Keep building your skills</span>
+              <span className="dashboard-metric-label">Tutorials completed</span>
+              <strong>{completedCount}<small> / {tutorialCatalog.length}</small></strong>
+              <span>Every question is a step forward</span>
             </article>
             <article className="card dashboard-metric">
               <span className="dashboard-metric-label">In progress</span>
               <strong>{inProgressCount}</strong>
-              <span>Pick up where you left off</span>
+              <span>Your next learning win</span>
             </article>
             <article className="card dashboard-metric">
-              <span className="dashboard-metric-label">Personal bests</span>
-              <strong>{savedScoreCount}</strong>
-              <span>Saved quiz records</span>
+              <span className="dashboard-metric-label">Topics to explore</span>
+              <strong>{tutorialCatalog.length - completedCount}</strong>
+              <span>HTML, CSS, JavaScript, GitHub &amp; React</span>
             </article>
           </section>
 
@@ -200,31 +199,51 @@ function Dashboard({ session }) {
 
           <section className="card dashboard-next-step" aria-labelledby="next-step-heading">
             <div>
-              <p className="eyebrow">Keep learning</p>
-              <h2 id="next-step-heading">{nextLevel ? nextLevel.title : 'All levels complete!'}</h2>
-              <p>{nextLevel ? nextLevel.description : 'You have completed every available level. Nice work!'}</p>
+              <p className="eyebrow">A good next step</p>
+              <h2 id="next-step-heading">{nextTutorial ? nextTutorial.title : 'You explored every topic!'}</h2>
+              <p>{nextTutorial ? nextTutorial.description : 'All five tutorials are complete. Take another quiz to improve a score.'}</p>
             </div>
-            <Link className="button" to={nextLevel ? `/level/${nextLevel.id}` : '/'}>
-              {nextLevel ? 'Continue learning' : 'Review levels'}
+            <Link className="button" to={nextTutorial ? `/tutorials/${nextTutorial.id}` : '/tutorials'}>
+              {nextTutorial ? 'Continue learning' : 'Review tutorials'}
             </Link>
           </section>
 
-          <section aria-labelledby="tutorials-heading">
-            <div className="section-heading">
-              <h2 id="tutorials-heading">Tutorials</h2>
+          <section className="dashboard-tutorials" aria-labelledby="tutorials-heading">
+            <div className="tutorial-section-heading">
+              <div>
+                <p className="eyebrow">Five guided paths</p>
+                <h2 id="tutorials-heading">Your tutorials</h2>
+              </div>
+              <Link className="tutorial-text-link" to="/tutorials">
+                View collection <span aria-hidden="true">→</span>
+              </Link>
             </div>
-            <div className="level-list">
-              {tutorials.map((tutorial) => (
-                <article className="card level-card" key={tutorial.id}>
-                  <div>
-                    <h3>{tutorial.title}</h3>
-                    <p>{tutorial.description}</p>
-                  </div>
-                  <div className="level-card-actions">
-                    <Link className="button" to={`/tutorial/${tutorial.id}`}>Open tutorial</Link>
-                  </div>
-                </article>
-              ))}
+            <div className="tutorial-card-grid dashboard-tutorial-grid">
+              {tutorialCatalog.map((tutorial) => {
+                const result = completedTutorials[tutorial.id]
+                const attempt = quizProgress[tutorial.id]
+                const started = startedTutorialIds.includes(tutorial.id)
+                const answered = attempt?.answers.filter((answer) => answer !== null).length ?? 0
+                const progress = result
+                  ? 100
+                  : attempt ? Math.round((answered / attempt.answers.length) * 100) : 0
+                const status = result
+                  ? 'Completed'
+                  : started ? answered ? `${answered} of ${attempt.answers.length} answered` : 'In progress'
+                    : 'Ready to start'
+
+                return (
+                  <TutorialCard
+                    key={tutorial.id}
+                    tutorial={tutorial}
+                    result={result}
+                    progress={progress}
+                    status={status}
+                    action={result ? 'Review' : started ? 'Continue' : 'Start learning'}
+                    to={`/tutorials/${tutorial.id}`}
+                  />
+                )
+              })}
             </div>
           </section>
         </main>

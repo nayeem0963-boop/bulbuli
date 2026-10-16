@@ -1,43 +1,46 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient.js'
-import { htmlLevels } from './data/htmlLevels.js'
-import { tutorials } from './data/tutorials.js'
 import { getAuthRedirectPath } from './utils/authRedirect.js'
-import Certificate from './routes/Certificate.jsx'
 import Dashboard from './routes/Dashboard.jsx'
 import Home from './routes/Home.jsx'
-import Level from './routes/Level.jsx'
 import Login from './routes/Login.jsx'
-import PublicLevelPreview from './routes/PublicLevelPreview.jsx'
-import Tutorial from './routes/Tutorial.jsx'
-import { QuizProvider } from './context/QuizContext.jsx'
+import TutorialCatalog from './routes/TutorialCatalog.jsx'
+import TutorialOverview from './routes/TutorialOverview.jsx'
+import TutorialQuiz from './routes/TutorialQuiz.jsx'
+import { tutorialCatalog } from './data/tutorialCatalog.js'
 
 function RouteTitle() {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    const levelId = pathname.match(/^\/(?:level|certificate)\/([^/]+)$/)?.[1]
-    const level = htmlLevels.find((item) => item.id === levelId)
-    const tutorialId = pathname.match(/^\/tutorial\/([^/]+)$/)?.[1]
-    const tutorial = tutorials.find((item) => item.id === tutorialId)
-    let title = 'Bulbuli | Learn HTML by Doing'
+    const catalogTutorialId = pathname.match(/^\/tutorials\/([^/]+)(?:\/quiz)?$/)?.[1]
+    const catalogTutorial = tutorialCatalog.find((item) => item.id === catalogTutorialId)
+    let title = 'Free Interactive Coding Quizzes | Bulbuli'
+    let description = 'Bulbuli is a free interactive quiz platform for learning HTML, CSS, JavaScript, GitHub, and React. Explore bite-sized tutorials, test your skills, and track your progress.'
 
     if (pathname === '/login') {
       title = 'Sign in or Sign up | Bulbuli'
+      description = 'Sign in or create a free Bulbuli account to learn HTML, CSS, JavaScript, GitHub, and React with interactive quizzes.'
     } else if (pathname === '/dashboard') {
       title = 'Your Learning Dashboard | Bulbuli'
+      description = 'Track your learning progress and continue your interactive HTML, CSS, JavaScript, GitHub, and React tutorials with Bulbuli.'
     } else if (pathname === '/') {
-      title = 'Learn HTML by Doing | Bulbuli'
-    } else if (pathname.startsWith('/level/')) {
-      title = level ? `${level.title} | Bulbuli` : 'Level Not Found | Bulbuli'
-    } else if (pathname.startsWith('/certificate/')) {
-      title = level ? `${level.title} Certificate | Bulbuli` : 'Certificate Not Found | Bulbuli'
-    } else if (pathname.startsWith('/tutorial/')) {
-      title = tutorial ? `${tutorial.title} | Bulbuli` : 'Tutorial Not Found | Bulbuli'
+      title = 'Free Interactive Coding Quizzes | Bulbuli'
+    } else if (pathname === '/tutorials') {
+      title = 'Free Coding Tutorials & Quizzes | Bulbuli'
+      description = 'Explore free interactive tutorials and quizzes covering HTML, CSS, JavaScript, GitHub, and React. Choose a topic and learn at your pace.'
+    } else if (pathname.startsWith('/tutorials/')) {
+      title = catalogTutorial
+        ? `${catalogTutorial.title}${pathname.endsWith('/quiz') ? ' Interactive Quiz' : ' Tutorial'} | Bulbuli`
+        : 'Tutorial Not Found | Bulbuli'
+      if (catalogTutorial) {
+        description = `Learn ${catalogTutorial.title} with a bite-sized tutorial and free interactive quiz. Practice key concepts and track your progress with Bulbuli.`
+      }
     }
 
     document.title = title
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description)
   }, [pathname])
 
   return null
@@ -160,32 +163,36 @@ function App() {
           </button>
         </main>
       ) : (
-        <QuizProvider>
-          <BrowserRouter>
-            <RouteTitle />
-            <Routes>
-              <Route path="/" element={session
-                ? <Home session={session} />
-                : <Navigate to="/login" replace />} />
-              <Route path="/login" element={<LoginRoute session={session} />} />
-              <Route path="/level/:levelId" element={session
-                ? <Level />
-                : <PublicLevelPreview />} />
-              <Route path="/tutorial/:tutorialId" element={<Tutorial />} />
-              <Route path="/dashboard" element={
-                <MemberRoute session={session}>
-                  <Dashboard session={session} />
-                </MemberRoute>
-              } />
-              <Route path="/certificate/:levelId" element={
-                <MemberRoute session={session}>
-                  <Certificate />
-                </MemberRoute>
-              } />
-              <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />
-            </Routes>
-          </BrowserRouter>
-        </QuizProvider>
+        <BrowserRouter>
+          <RouteTitle />
+          <Routes>
+            <Route path="/" element={session
+              ? <Home session={session} />
+              : <Navigate to="/login" replace />} />
+            <Route path="/login" element={<LoginRoute session={session} />} />
+            <Route path="/tutorials" element={
+              <MemberRoute session={session}>
+                <TutorialCatalog userId={session?.user?.id} />
+              </MemberRoute>
+            } />
+            <Route path="/tutorials/:tutorialId" element={
+              <MemberRoute session={session}>
+                <TutorialOverview userId={session?.user?.id} />
+              </MemberRoute>
+            } />
+            <Route path="/tutorials/:tutorialId/quiz" element={
+              <MemberRoute session={session}>
+                <TutorialQuiz userId={session?.user?.id} />
+              </MemberRoute>
+            } />
+            <Route path="/dashboard" element={
+              <MemberRoute session={session}>
+                <Dashboard session={session} />
+              </MemberRoute>
+            } />
+            <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />
+          </Routes>
+        </BrowserRouter>
       )}
     </div>
   )

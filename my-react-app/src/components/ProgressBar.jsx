@@ -1,13 +1,13 @@
-function ProgressBar({ value, max }) {
+function ProgressBar({ value, max, label = 'Quiz progress' }) {
   const percent = max > 0 ? Math.round((value / max) * 100) : 0
 
   return (
-    <div className="progress">
+    <div className="progress quiz-progress">
       <div className="progress-label">
-        <span>Progress</span>
-        <span>{value}/{max}</span>
+        <span>{label}</span>
+        <span>{Math.min(value, max)} <span aria-hidden="true">/</span> {max}</span>
       </div>
-      <progress value={value} max={max} aria-label="Level progress">
+      <progress value={value} max={max} aria-label={label}>
         {percent}%
       </progress>
     </div>

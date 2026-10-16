@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient.js'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getAuthRedirectPath } from '../utils/authRedirect.js'
 
 export default function Login() {
@@ -136,69 +136,97 @@ export default function Login() {
   }
 
   return (
-    <main className="page login-page">
-      <section className="card login-card">
-        {authView === 'reset' ? (
-          <>
-            <p className="eyebrow">Account recovery</p>
-            <h1>Reset your password</h1>
-            <p>Enter the email address associated with your account and we’ll send reset instructions.</p>
-            <form onSubmit={handlePasswordReset} className="login-form">
-              <label className="auth-field-label" htmlFor="reset-email">Email address</label>
-              <input
-                id="reset-email"
-                type="email"
-                placeholder="Enter your email"
-                value={resetEmail}
-                onChange={(e) => {
-                  setResetEmail(e.target.value)
+    <main className="page login-page auth-page">
+      <div className="auth-layout">
+        <aside className="auth-welcome-panel">
+          <Link className="dashboard-brand auth-brand" to="/" aria-label="Bulbuli home">
+            bulbuli<span>.</span>
+          </Link>
+          <div className="auth-welcome-copy">
+            <p className="eyebrow">A little progress goes a long way</p>
+            <h1>Make room for your next big idea.</h1>
+            <p>
+              Build practical skills with friendly tutorials in HTML, CSS,
+              JavaScript, GitHub, and React. Learn a little, try a quiz, and
+              keep your progress close.
+            </p>
+          </div>
+          <div className="auth-topic-list" aria-label="Five guided tutorials">
+            {[
+              ['</>', 'Introduction to HTML'],
+              ['#', 'Introduction to CSS'],
+              ['JS', 'Introduction to JavaScript'],
+              ['GH', 'GitHub'],
+              ['⚛', 'Introduction to React'],
+            ].map(([symbol, title]) => (
+              <span className="auth-topic-pill" key={title}>
+                <strong aria-hidden="true">{symbol}</strong>
+                {title}
+              </span>
+            ))}
+          </div>
+          <p className="auth-welcome-footnote">Five friendly paths. One step at a time.</p>
+        </aside>
+
+        <section className="card login-card auth-card">
+          {authView === 'reset' ? (
+            <>
+              <p className="eyebrow">Account recovery</p>
+              <h1>Reset your password</h1>
+              <p>Enter the email address associated with your account and we’ll send reset instructions.</p>
+              <form onSubmit={handlePasswordReset} className="login-form">
+                <label className="auth-field-label" htmlFor="reset-email">Email address</label>
+                <input
+                  id="reset-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={resetEmail}
+                  onChange={(e) => {
+                    setResetEmail(e.target.value)
+                    setResetStatus(null)
+                  }}
+                  required
+                  autoComplete="email"
+                />
+                {resetStatus && (
+                  <p
+                    className={`reset-message ${resetStatus.type}`}
+                    role={resetStatus.type === 'error' ? 'alert' : 'status'}
+                  >
+                    {resetStatus.message}
+                  </p>
+                )}
+                <button type="submit" disabled={loading}>
+                  {loading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              </form>
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={() => {
+                  setAuthView('login')
                   setResetStatus(null)
                 }}
-                required
-                autoComplete="email"
-              />
-              {resetStatus && (
-                <p
-                  className={`reset-message ${resetStatus.type}`}
-                  role={resetStatus.type === 'error' ? 'alert' : 'status'}
-                >
-                  {resetStatus.message}
-                </p>
-              )}
-              <button type="submit" disabled={loading}>
-                {loading ? 'Sending...' : 'Send Reset Link'}
+                disabled={loading}
+              >
+                Back to Log In
               </button>
-            </form>
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={() => {
-                setAuthView('login')
-                setResetStatus(null)
-              }}
-              disabled={loading}
-            >
-              Back to Log In
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="eyebrow">Your next skill starts here</p>
-            <h1>Welcome to Bulbuli</h1>
-            <p>
-              {authMode === 'login'
-                ? 'Log in to continue learning, or create an account.'
-                : 'Create an account to start learning.'}
-            </p>
-            <p>
-              Learn HTML one bite-sized level at a time with short-answer questions
-              and multiple-choice quizzes. Track your progress, build a streak, and
-              earn a printable certificate for each completed level.
-            </p>
-            <form
-              onSubmit={authMode === 'login' ? handleLogin : handleSignUp}
-              className="login-form"
-            >
+            </>
+          ) : (
+            <>
+              <p className="eyebrow">{authMode === 'login' ? 'Welcome back' : 'Start your learning journey'}</p>
+              <h2 className="auth-card-title">
+                {authMode === 'login' ? 'Good to see you again.' : 'Let’s get you started.'}
+              </h2>
+              <p className="auth-card-description">
+                {authMode === 'login'
+                  ? 'Log in to pick up where you left off across HTML, CSS, JavaScript, GitHub, and React.'
+                  : 'Create your account and explore five guided tutorials in HTML, CSS, JavaScript, GitHub, and React.'}
+              </p>
+              <form
+                onSubmit={authMode === 'login' ? handleLogin : handleSignUp}
+                className="login-form"
+              >
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -294,31 +322,32 @@ export default function Login() {
               <button type="submit" disabled={loading}>
                 {loading ? loadingLabel : submitLabel}
               </button>
-            </form>
-            <div className="oauth-divider" aria-hidden="true"><span>OR</span></div>
-            <button
-              className="google-sign-in button-secondary"
-              type="button"
-              onClick={handleGoogleSignUp}
-              disabled={loading}
-            >
-              Sign in with Google
-            </button>
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={() => {
-                setAuthMode(authMode === 'login' ? 'signup' : 'login')
-                setConfirmPassword('')
-                setAuthStatus(null)
-              }}
-              disabled={loading}
-            >
-              {authMode === 'login' ? 'Sign Up' : 'Back to Log In'}
-            </button>
-          </>
-        )}
-      </section>
+              </form>
+              <div className="oauth-divider" aria-hidden="true"><span>OR</span></div>
+              <button
+                className="google-sign-in button-secondary"
+                type="button"
+                onClick={handleGoogleSignUp}
+                disabled={loading}
+              >
+                Sign in with Google
+              </button>
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={() => {
+                  setAuthMode(authMode === 'login' ? 'signup' : 'login')
+                  setConfirmPassword('')
+                  setAuthStatus(null)
+                }}
+                disabled={loading}
+              >
+                {authMode === 'login' ? 'Sign Up' : 'Back to Log In'}
+              </button>
+            </>
+          )}
+        </section>
+      </div>
     </main>
   )
 }

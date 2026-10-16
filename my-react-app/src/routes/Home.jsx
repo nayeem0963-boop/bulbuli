@@ -1,106 +1,117 @@
-import LevelCard from '../components/LevelCard.jsx'
-import { htmlLevels } from '../data/htmlLevels.js'
-import { tutorials } from '../data/tutorials.js'
-import { useProgress } from '../hooks/useProgress.js'
 import { Link } from 'react-router-dom'
+import TutorialCard from '../components/TutorialCard.jsx'
+import { tutorialCatalog } from '../data/tutorialCatalog.js'
+import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
+
+function getProgress(tutorial, quizProgress, completedTutorials, startedTutorialIds) {
+  const result = completedTutorials[tutorial.id]
+  if (result) return { progress: 100, status: 'Completed', action: 'Review' }
+
+  const attempt = quizProgress[tutorial.id]
+  if (!attempt) {
+    const started = startedTutorialIds.includes(tutorial.id)
+    return {
+      progress: 0,
+      status: started ? 'In progress' : 'Ready to start',
+      action: started ? 'Continue' : 'Start learning',
+    }
+  }
+
+  const answered = attempt.answers.filter((answer) => answer !== null).length
+  return {
+    progress: Math.round((answered / attempt.answers.length) * 100),
+    status: answered ? `${answered} of ${attempt.answers.length} answered` : 'In progress',
+    action: 'Continue',
+  }
+}
 
 function Home({ session }) {
   const {
-    unlockedLevels,
-    completedLevels,
-    startedLevels,
-    markLevelStarted,
-    resetProgress,
+    completedTutorials,
+    quizProgress,
     storageError,
-  } = useProgress()
-  const sections = [...new Set(htmlLevels.map((level) => level.section))]
+    startedTutorialIds,
+  } = useTutorialProgress(session.user.id)
+  const completedCount = Object.keys(completedTutorials).length
+  const inProgressCount = startedTutorialIds.filter((id) => !completedTutorials[id]).length
+  const learnerName = session.user.user_metadata?.first_name
+    || session.user.user_metadata?.name?.split(' ')[0]
+    || session.user.email?.split('@')[0]
+    || 'learner'
 
   return (
-    <main className="page home-page">
-      <header className="page-header home-hero">
-        <p className="eyebrow">A little progress, every day</p>
-        <h1>Welcome to Bulbuli</h1>
-        <p>Explore HTML and CSS with clear introductions and hands-on lessons.</p>
+    <main className="page tutorial-hub">
+      <nav className="tutorial-home-nav" aria-label="Main navigation">
+        <Link className="dashboard-brand" to="/" aria-label="Bulbuli home">
+          bulbuli<span>.</span>
+        </Link>
+        <Link className="button button-secondary tutorial-dashboard-link" to="/dashboard">
+          Your dashboard <span aria-hidden="true">↗</span>
+        </Link>
+      </nav>
+      <header className="tutorial-hero">
+        <div className="tutorial-hero-copy">
+          <p className="eyebrow">Your learning space</p>
+          <h1>Small steps, {learnerName}.</h1>
+          <p>Pick up a new skill with five focused tutorials. Your progress stays saved on this device.</p>
+          <Link className="button tutorial-hero-action" to="/tutorials">
+            Explore all tutorials <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+        <div className="tutorial-hero-art" aria-hidden="true">
+          <span className="hero-art-orbit orbit-one" />
+          <span className="hero-art-orbit orbit-two" />
+          <span className="hero-art-star">✦</span>
+          <span className="hero-art-tag tag-markup">&lt;/&gt;</span>
+          <span className="hero-art-tag tag-script">JS</span>
+          <span className="hero-art-tag tag-react">⚛</span>
+        </div>
       </header>
-      {session ? (
-        storageError && <p className="notice" role="alert">{storageError}</p>
-      ) : (
-        <aside className="card home-guest-card" aria-label="Sign up for member features">
-          <div>
-            <p className="eyebrow">Your learning journey</p>
-            <h2>Learn at your own pace</h2>
-            <p>
-              Explore lessons for free. Create an account to take quizzes, save
-              your progress, and earn certificates.
-            </p>
-          </div>
-          <Link className="button" to="/login">Create your account</Link>
-        </aside>
-      )}
-      <section className="home-section" aria-labelledby="tutorials-heading">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">Quick starts</p>
-            <h2 id="tutorials-heading">Start with the fundamentals</h2>
-            <p className="home-section-description">Choose a topic and build a strong foundation.</p>
-          </div>
-        </div>
-        <div className="home-tutorial-grid">
-          {tutorials.map((tutorial) => (
-            <article className="card home-tutorial-card" key={tutorial.id}>
-              <div className="home-tutorial-mark" aria-hidden="true">
-                {tutorial.title.split(' ').at(-1)}
-              </div>
-              <div className="home-tutorial-copy">
-                <p className="home-card-kicker">Introduction</p>
-                <h3>{tutorial.title}</h3>
-                <p>{tutorial.description}</p>
-              </div>
-              <Link className="button home-action-button" to={`/tutorial/${tutorial.id}`}>
-                Open tutorial
-                <span aria-hidden="true">→</span>
-              </Link>
-            </article>
-          ))}
-        </div>
+
+      {storageError && <p className="notice" role="alert">{storageError}</p>}
+
+      <section className="tutorial-overview-stats" aria-label="Your tutorial progress">
+        <article className="card tutorial-stat">
+          <span className="tutorial-stat-icon" aria-hidden="true">✓</span>
+          <span className="tutorial-stat-label">Completed</span>
+          <strong>{completedCount}<small> / {tutorialCatalog.length}</small></strong>
+        </article>
+        <article className="card tutorial-stat">
+          <span className="tutorial-stat-icon is-active" aria-hidden="true">↗</span>
+          <span className="tutorial-stat-label">In progress</span>
+          <strong>{inProgressCount}</strong>
+        </article>
+        <article className="card tutorial-stat">
+          <span className="tutorial-stat-icon is-next" aria-hidden="true">✦</span>
+          <span className="tutorial-stat-label">Your next win</span>
+          <strong>{tutorialCatalog.length - completedCount}<small> to go</small></strong>
+        </article>
       </section>
-      <section className="home-section home-levels" aria-labelledby="levels-heading">
-        <div className="section-heading">
+
+      <section className="tutorial-section" aria-labelledby="home-tutorials-heading">
+        <div className="tutorial-section-heading">
           <div>
-            <p className="eyebrow">Learn by doing</p>
-            <h2 id="levels-heading">{session ? 'Your learning path' : 'Explore HTML lessons'}</h2>
-            <p className="home-section-description">
-              Short, hands-on lessons that turn concepts into skills.
-            </p>
+            <p className="eyebrow">Learn at your pace</p>
+            <h2 id="home-tutorials-heading">Choose your next tutorial</h2>
           </div>
-          {session && (
-            <button className="text-button" type="button" onClick={resetProgress}>
-              Reset progress
-            </button>
-          )}
+          <Link className="tutorial-text-link" to="/tutorials">
+            View all <span aria-hidden="true">→</span>
+          </Link>
         </div>
-        {sections.map((section) => (
-          <section
-            className="curriculum-section"
-            key={section}
-            aria-labelledby={`section-${section.toLowerCase().replaceAll(' ', '-')}`}
-          >
-            <h3 id={`section-${section.toLowerCase().replaceAll(' ', '-')}`}>{section}</h3>
-            <div className="level-list">
-              {htmlLevels.filter((level) => level.section === section).map((level) => (
-                <LevelCard
-                  key={level.id}
-                  level={level}
-                  unlocked={!session || unlockedLevels.includes(level.id)}
-                  completed={session && completedLevels.includes(level.id)}
-                  inProgress={session && startedLevels.includes(level.id)}
-                  onStart={session ? () => markLevelStarted(level.id) : undefined}
-                  isGuest={!session}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+        <div className="tutorial-card-grid">
+          {tutorialCatalog.map((tutorial) => {
+            const progress = getProgress(tutorial, quizProgress, completedTutorials, startedTutorialIds)
+            return (
+              <TutorialCard
+                key={tutorial.id}
+                tutorial={tutorial}
+                result={completedTutorials[tutorial.id]}
+                {...progress}
+                to={`/tutorials/${tutorial.id}`}
+              />
+            )
+          })}
+        </div>
       </section>
     </main>
   )
