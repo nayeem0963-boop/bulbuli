@@ -14,6 +14,21 @@ function formatJoinedDate(createdAt) {
     : date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+function getCurrentStreak(gamification) {
+  const formatDate = (date) => [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  return [formatDate(today), formatDate(yesterday)].includes(gamification.lastActivityDate)
+    ? gamification.currentStreak
+    : 0
+}
+
 function Dashboard({ session }) {
   const navigate = useNavigate()
   const [user, setUser] = useState(session.user)
@@ -25,6 +40,7 @@ function Dashboard({ session }) {
   const [avatarFailed, setAvatarFailed] = useState(false)
   const {
     completedTutorials,
+    gamification,
     quizProgress,
     startedTutorialIds,
     storageError: tutorialProgressError,
@@ -91,7 +107,7 @@ function Dashboard({ session }) {
     .toUpperCase()
   const accountIsConfirmed = Boolean(user?.email_confirmed_at || user?.confirmed_at)
   const completedCount = Object.keys(completedTutorials).length
-  const inProgressCount = startedTutorialIds.filter((id) => !completedTutorials[id]).length
+  const currentStreak = getCurrentStreak(gamification)
   const nextTutorial = tutorialCatalog.find((tutorial) => !completedTutorials[tutorial.id])
 
   return (
@@ -148,19 +164,28 @@ function Dashboard({ session }) {
 
           <section className="dashboard-metrics" aria-label="Learning overview">
             <article className="card dashboard-metric">
-              <span className="dashboard-metric-label">Tutorials completed</span>
+              <div className="dashboard-metric-top">
+                <span className="dashboard-metric-label">Total XP</span>
+                <span className="dashboard-metric-icon" aria-hidden="true">✦</span>
+              </div>
+              <strong>{gamification.totalXp}<small> XP</small></strong>
+              <span>Every correct answer adds up</span>
+            </article>
+            <article className="card dashboard-metric">
+              <div className="dashboard-metric-top">
+                <span className="dashboard-metric-label">Day streak</span>
+                <span className="dashboard-metric-icon is-streak" aria-hidden="true">🔥</span>
+              </div>
+              <strong>{currentStreak}<small> days</small></strong>
+              <span>Complete a quiz today to keep it alive</span>
+            </article>
+            <article className="card dashboard-metric">
+              <div className="dashboard-metric-top">
+                <span className="dashboard-metric-label">Courses completed</span>
+                <span className="dashboard-metric-icon is-complete" aria-hidden="true">✓</span>
+              </div>
               <strong>{completedCount}<small> / {tutorialCatalog.length}</small></strong>
-              <span>Every question is a step forward</span>
-            </article>
-            <article className="card dashboard-metric">
-              <span className="dashboard-metric-label">In progress</span>
-              <strong>{inProgressCount}</strong>
-              <span>Your next learning win</span>
-            </article>
-            <article className="card dashboard-metric">
-              <span className="dashboard-metric-label">Topics to explore</span>
-              <strong>{tutorialCatalog.length - completedCount}</strong>
-              <span>HTML, CSS, JavaScript, GitHub &amp; React</span>
+              <span>{gamification.completedQuizCount} quizzes completed</span>
             </article>
           </section>
 

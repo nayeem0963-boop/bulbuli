@@ -1,19 +1,31 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import ProgressBar from '../components/ProgressBar.jsx'
 import QuizCard from '../components/QuizCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 
+const QUIZ_DURATION_SECONDS = 15 * 60
+
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+}
+
 function TutorialQuizSession({ tutorial, userId, section }) {
   const {
+    gamification,
     markTutorialStarted,
     quizProgress,
-    recordTutorialResult,
+    quizSessionStartedAt,
+    recordQuizCompletion,
     saveQuizProgress,
     storageError,
+    startQuizSession,
   } = useTutorialProgress(userId)
   const savedAttempt = quizProgress[tutorial.id]
+  const sessionId = `${tutorial.id}:${section?.id ?? 'course'}`
   const quizQuestions = section
     ? tutorial.questions.flatMap((question, originalIndex) => (
       question.sectionId === section.id ? [{ question, originalIndex }] : []
@@ -38,6 +50,17 @@ function TutorialQuizSession({ tutorial, userId, section }) {
     },
   )
   const [complete, setComplete] = useState(false)
+  const [rewardSummary, setRewardSummary] = useState(null)
+  const [sessionStartedAt] = useState(
+    () => quizSessionStartedAt[sessionId] ?? new Date().toISOString(),
+  )
+  const completionRecorded = useRef(false)
+  const [timeRemaining, setTimeRemaining] = useState(
+    () => Math.max(
+      0,
+      Math.ceil((Date.parse(sessionStartedAt) + QUIZ_DURATION_SECONDS * 1000 - Date.now()) / 1000),
+    ),
+  )
   const totalQuestions = quizQuestions.length
   const question = quizQuestions[questionIndex].question
   const answeredCount = answers.filter((answer) => answer !== null).length
@@ -50,6 +73,10 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   useEffect(() => {
     markTutorialStarted(tutorial.id)
   }, [markTutorialStarted, tutorial.id])
+
+  useEffect(() => {
+    if (!complete) startQuizSession(sessionId, sessionStartedAt)
+  }, [complete, sessionId, sessionStartedAt, startQuizSession])
 
   const saveAnswers = (nextAnswers, nextIndex = questionIndex) => {
     setAnswers(nextAnswers)
@@ -68,10 +95,50 @@ function TutorialQuizSession({ tutorial, userId, section }) {
     saveAnswers(answers, nextIndex)
   }
 
-  const finishQuiz = () => {
-    if (!section) recordTutorialResult(tutorial.id, score, totalQuestions)
+  const finishQuiz = useCallback((timedOut = false) => {
+    if (completionRecorded.current) return
+    completionRecorded.current = true
+
+    const quizTimedOut = timedOut || timeRemaining === 0
+    const speedBonus = timeRemaining >= QUIZ_DURATION_SECONDS / 2 ? 5 : 0
+    const xpEarned = 10 + score * 5 + speedBonus
+    const completion = recordQuizCompletion(
+      tutorial.id,
+      sessionId,
+      score,
+      totalQuestions,
+      xpEarned,
+      !section && (!quizTimedOut || answeredCount === totalQuestions),
+    )
+    setRewardSummary({ xpEarned, ...completion })
     setComplete(true)
-  }
+  }, [
+    answeredCount,
+    recordQuizCompletion,
+    score,
+    section,
+    sessionId,
+    timeRemaining,
+    totalQuestions,
+    tutorial.id,
+  ])
+
+  useEffect(() => {
+    if (complete) return undefined
+    const timerId = window.setInterval(() => {
+      const deadline = Date.parse(sessionStartedAt) + QUIZ_DURATION_SECONDS * 1000
+      setTimeRemaining(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)))
+    }, 1000)
+    return () => window.clearInterval(timerId)
+  }, [complete, sessionStartedAt])
+
+  useEffect(() => {
+    if (!complete && timeRemaining === 0) {
+      finishQuiz(true)
+    }
+  }, [complete, finishQuiz, timeRemaining])
+
+  const timedOut = complete && timeRemaining === 0
 
   return (
     <main className="page tutorial-hub tutorial-quiz-page">
@@ -90,11 +157,21 @@ function TutorialQuizSession({ tutorial, userId, section }) {
 
       {!complete ? (
         <>
-          <ProgressBar
-            value={questionIndex + 1}
-            max={totalQuestions}
-            label={`${answeredCount} of ${totalQuestions} answered`}
-          />
+          <div className="quiz-session-toolbar">
+            <ProgressBar
+              value={questionIndex + 1}
+              max={totalQuestions}
+              label={`${answeredCount} of ${totalQuestions} answered`}
+            />
+            <div
+              className={`quiz-timer${timeRemaining <= 60 ? ' is-urgent' : ''}`}
+              role="timer"
+              aria-label={`${Math.floor(timeRemaining / 60)} minutes ${timeRemaining % 60} seconds remaining`}
+            >
+              <span className="quiz-timer-icon" aria-hidden="true">◷</span>
+              <span>{formatTime(timeRemaining)}</span>
+            </div>
+          </div>
           <div className="quiz-question-navigation">
             <nav
               id="quiz-question-list"
@@ -148,15 +225,30 @@ function TutorialQuizSession({ tutorial, userId, section }) {
         </>
       ) : (
         <section className="card tutorial-results" aria-live="polite">
+          {rewardSummary?.saved && (
+            <div className="quiz-reward-toast" role="status">
+              <span aria-hidden="true">✦</span>
+              <div>
+                <strong>+{rewardSummary.xpEarned} XP earned</strong>
+                <span>
+                  {rewardSummary.streakIncreased
+                    ? `Your ${rewardSummary.currentStreak}-day streak is growing!`
+                    : `${gamification.currentStreak || rewardSummary.currentStreak}-day streak. Keep it going!`}
+                </span>
+              </div>
+            </div>
+          )}
           <div className={`results-medallion${percentage >= 70 ? ' is-passing' : ''}`} aria-hidden="true">
             {percentage >= 70 ? '✦' : '↻'}
           </div>
-          <p className="eyebrow">Quiz complete</p>
+          <p className="eyebrow">{timedOut ? 'Time is up' : 'Quiz complete'}</p>
           <h2>{section
             ? `${section.title} quiz complete`
             : percentage >= 70 ? 'A little wiser already.' : 'Every try is progress.'}</h2>
           <p className="results-description">
-            {section
+            {timedOut
+              ? 'Your answers so far were submitted when the timer ran out.'
+              : section
               ? 'Your answers are saved with your course progress.'
               : percentage >= 70
               ? 'You have a lovely grasp of the essentials.'
