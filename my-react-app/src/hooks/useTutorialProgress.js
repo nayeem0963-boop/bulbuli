@@ -171,7 +171,9 @@ export function useTutorialProgress(userId) {
         completedTutorials: {
           ...current.completedTutorials,
           [tutorialId]: {
-            bestScore: Math.max(previous?.bestScore ?? 0, score),
+            bestScore: previous?.totalQuestions === totalQuestions
+              ? Math.max(previous.bestScore, score)
+              : score,
             totalQuestions,
             attempts: (previous?.attempts ?? 0) + 1,
             completedAt: new Date().toISOString(),

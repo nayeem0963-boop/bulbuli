@@ -43,9 +43,13 @@ function QuizCard({
         <div className={`feedback ${answeredCorrectly ? 'correct' : 'incorrect'}`} role="status">
           <div>
             <strong>{answeredCorrectly ? 'That’s right!' : 'Not quite yet'}</strong>
-            <span>{answeredCorrectly
-              ? 'You’ve got this concept.'
-              : `The answer is: ${question.options[question.correctIndex]}`}</span>
+            {question.explanation ? (
+              <span>{question.explanation}</span>
+            ) : (
+              <span>{answeredCorrectly
+                ? 'You’ve got this concept.'
+                : `The answer is: ${question.options[question.correctIndex]}`}</span>
+            )}
           </div>
         </div>
       )}

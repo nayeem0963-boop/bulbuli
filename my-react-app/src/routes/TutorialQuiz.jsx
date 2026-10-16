@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import ProgressBar from '../components/ProgressBar.jsx'
 import QuizCard from '../components/QuizCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 
-function TutorialQuizSession({ tutorial, userId }) {
+function TutorialQuizSession({ tutorial, userId, section }) {
   const {
     markTutorialStarted,
     quizProgress,
@@ -14,16 +14,35 @@ function TutorialQuizSession({ tutorial, userId }) {
     storageError,
   } = useTutorialProgress(userId)
   const savedAttempt = quizProgress[tutorial.id]
+  const quizQuestions = section
+    ? tutorial.questions.flatMap((question, originalIndex) => (
+      question.sectionId === section.id ? [{ question, originalIndex }] : []
+    ))
+    : tutorial.questions.map((question, originalIndex) => ({ question, originalIndex }))
   const [answers, setAnswers] = useState(
-    () => savedAttempt?.answers ?? Array(tutorial.questions.length).fill(null),
+    () => quizQuestions.map(({ originalIndex }) => savedAttempt?.answers[originalIndex] ?? null),
   )
-  const [questionIndex, setQuestionIndex] = useState(() => savedAttempt?.currentIndex ?? 0)
+  const [questionIndex, setQuestionIndex] = useState(
+    () => {
+      if (!section) return Math.min(savedAttempt?.currentIndex ?? 0, quizQuestions.length - 1)
+
+      const savedIndex = quizQuestions.findIndex(({ originalIndex }) => (
+        originalIndex === savedAttempt?.currentIndex
+      ))
+      if (savedIndex >= 0) return savedIndex
+
+      const firstUnanswered = quizQuestions.findIndex(({ originalIndex }) => (
+        savedAttempt?.answers[originalIndex] === null || savedAttempt?.answers[originalIndex] === undefined
+      ))
+      return firstUnanswered >= 0 ? firstUnanswered : 0
+    },
+  )
   const [complete, setComplete] = useState(false)
-  const totalQuestions = tutorial.questions.length
-  const question = tutorial.questions[questionIndex]
+  const totalQuestions = quizQuestions.length
+  const question = quizQuestions[questionIndex].question
   const answeredCount = answers.filter((answer) => answer !== null).length
   const score = answers.reduce(
-    (total, answer, index) => total + (answer === tutorial.questions[index].correctIndex ? 1 : 0),
+    (total, answer, index) => total + (answer === quizQuestions[index].question.correctIndex ? 1 : 0),
     0,
   )
   const percentage = Math.round((score / totalQuestions) * 100)
@@ -34,16 +53,23 @@ function TutorialQuizSession({ tutorial, userId }) {
 
   const saveAnswers = (nextAnswers, nextIndex = questionIndex) => {
     setAnswers(nextAnswers)
-    saveQuizProgress(tutorial.id, nextAnswers, nextIndex)
+    const fullAnswers = Array.from(
+      { length: tutorial.questions.length },
+      (_, index) => savedAttempt?.answers[index] ?? null,
+    )
+    quizQuestions.forEach(({ originalIndex }, index) => {
+      fullAnswers[originalIndex] = nextAnswers[index]
+    })
+    saveQuizProgress(tutorial.id, fullAnswers, quizQuestions[nextIndex].originalIndex)
   }
 
   const goToQuestion = (nextIndex) => {
     setQuestionIndex(nextIndex)
-    saveQuizProgress(tutorial.id, answers, nextIndex)
+    saveAnswers(answers, nextIndex)
   }
 
   const finishQuiz = () => {
-    recordTutorialResult(tutorial.id, score, totalQuestions)
+    if (!section) recordTutorialResult(tutorial.id, score, totalQuestions)
     setComplete(true)
   }
 
@@ -56,7 +82,7 @@ function TutorialQuizSession({ tutorial, userId }) {
         </div>
         <div>
           <p className="eyebrow">{tutorial.category} · Quick quiz</p>
-          <h1>{tutorial.title}</h1>
+          <h1>{section ? section.title : tutorial.title}</h1>
         </div>
       </header>
 
@@ -69,27 +95,35 @@ function TutorialQuizSession({ tutorial, userId }) {
             max={totalQuestions}
             label={`${answeredCount} of ${totalQuestions} answered`}
           />
-          <nav className="quiz-question-nav" aria-label="Jump to a question">
-            {tutorial.questions.map((item, index) => (
-              <button
-                key={item.question}
-                type="button"
-                className={[
-                  'quiz-question-dot',
-                  index === questionIndex ? 'is-current' : '',
-                  answers[index] !== null ? 'is-answered' : '',
-                ].filter(Boolean).join(' ')}
-                aria-label={`Question ${index + 1}${answers[index] !== null ? ', answered' : ''}`}
-                aria-current={index === questionIndex ? 'step' : undefined}
-                onClick={() => goToQuestion(index)}
-              >
-                {String(index + 1).padStart(2, '0')}
-              </button>
-            ))}
-            <span className="quiz-answered-count">{answeredCount} answered</span>
-          </nav>
+          <div className="quiz-question-navigation">
+            <nav
+              id="quiz-question-list"
+              className="quiz-question-nav"
+              aria-label="Jump to a question"
+            >
+              {quizQuestions.map(({ question: item }, index) => (
+                <button
+                  key={item.question}
+                  type="button"
+                  className={[
+                    'quiz-question-dot',
+                    index === questionIndex ? 'is-current' : '',
+                    answers[index] !== null ? 'is-answered' : '',
+                  ].filter(Boolean).join(' ')}
+                  aria-label={`Question ${index + 1}${answers[index] !== null ? ', answered' : ''}`}
+                  aria-current={index === questionIndex ? 'step' : undefined}
+                  onClick={() => goToQuestion(index)}
+                >
+                  {String(index + 1).padStart(2, '0')}
+                </button>
+              ))}
+            </nav>
+            <div className="quiz-question-nav-footer">
+              <span className="quiz-answered-count">{answeredCount} answered</span>
+            </div>
+          </div>
           <QuizCard
-            key={questionIndex}
+            key={question.question}
             question={question}
             questionNumber={questionIndex + 1}
             totalQuestions={totalQuestions}
@@ -118,9 +152,13 @@ function TutorialQuizSession({ tutorial, userId }) {
             {percentage >= 70 ? '✦' : '↻'}
           </div>
           <p className="eyebrow">Quiz complete</p>
-          <h2>{percentage >= 70 ? 'A little wiser already.' : 'Every try is progress.'}</h2>
+          <h2>{section
+            ? `${section.title} quiz complete`
+            : percentage >= 70 ? 'A little wiser already.' : 'Every try is progress.'}</h2>
           <p className="results-description">
-            {percentage >= 70
+            {section
+              ? 'Your answers are saved with your course progress.'
+              : percentage >= 70
               ? 'You have a lovely grasp of the essentials.'
               : 'Review the lesson, then give it another go.'}
           </p>
@@ -144,6 +182,8 @@ function TutorialQuizSession({ tutorial, userId }) {
 
 function TutorialQuiz({ userId }) {
   const { tutorialId } = useParams()
+  const [searchParams] = useSearchParams()
+  const sectionId = searchParams.get('section')
   const tutorial = tutorialCatalog.find((item) => item.id === tutorialId)
 
   if (!tutorial) {
@@ -155,7 +195,27 @@ function TutorialQuiz({ userId }) {
     )
   }
 
-  return <TutorialQuizSession key={tutorial.id} tutorial={tutorial} userId={userId} />
+  const section = sectionId
+    ? tutorial.sections?.find((item) => item.id === sectionId)
+    : null
+
+  if (sectionId && !section) {
+    return (
+      <main className="page tutorial-hub">
+        <h1>Course module not found</h1>
+        <Link to={`/tutorials/${tutorial.id}`}>Back to tutorial overview</Link>
+      </main>
+    )
+  }
+
+  return (
+    <TutorialQuizSession
+      key={`${tutorial.id}-${section?.id ?? 'course'}`}
+      tutorial={tutorial}
+      userId={userId}
+      section={section}
+    />
+  )
 }
 
 export default TutorialQuiz
