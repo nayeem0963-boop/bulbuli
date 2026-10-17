@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import TutorialCard from '../components/TutorialCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
+import { getCurrentStreak } from '../utils/gamification.js'
+import { getTutorialCardAction } from '../utils/tutorialCardAction.js'
 
 function getProgress(tutorial, quizProgress, completedTutorials, startedTutorialIds) {
   const result = completedTutorials[tutorial.id]
-  if (result) return { progress: 100, status: 'Completed', action: 'Review' }
+  if (result) return { progress: 100, status: 'Completed', action: 'Completed 🎉' }
 
   const attempt = quizProgress[tutorial.id]
   if (!attempt) {
@@ -13,7 +16,7 @@ function getProgress(tutorial, quizProgress, completedTutorials, startedTutorial
     return {
       progress: 0,
       status: started ? 'In progress' : 'Ready to start',
-      action: started ? 'Continue' : 'Start learning',
+      action: getTutorialCardAction(tutorial, result, started),
     }
   }
 
@@ -21,19 +24,22 @@ function getProgress(tutorial, quizProgress, completedTutorials, startedTutorial
   return {
     progress: Math.round((answered / attempt.answers.length) * 100),
     status: answered ? `${answered} of ${attempt.answers.length} answered` : 'In progress',
-    action: 'Continue',
+    action: getTutorialCardAction(tutorial, result, true, attempt.currentIndex),
   }
 }
 
 function Home({ session }) {
+  const [activeTechTip, setActiveTechTip] = useState(null)
   const {
     completedTutorials,
+    gamification,
     quizProgress,
     storageError,
     startedTutorialIds,
   } = useTutorialProgress(session.user.id)
   const completedCount = Object.keys(completedTutorials).length
   const inProgressCount = startedTutorialIds.filter((id) => !completedTutorials[id]).length
+  const currentStreak = getCurrentStreak(gamification)
   const learnerName = session.user.user_metadata?.first_name
     || session.user.user_metadata?.name?.split(' ')[0]
     || session.user.email?.split('@')[0]
@@ -53,18 +59,40 @@ function Home({ session }) {
         <div className="tutorial-hero-copy">
           <p className="eyebrow">Your learning space</p>
           <h1>Small steps, {learnerName}.</h1>
-          <p>Pick up a new skill with five focused tutorials. Your progress stays saved on this device.</p>
+          <p>{currentStreak
+            ? `🔥 ${currentStreak}-day streak active! Keep going, ${learnerName}.`
+            : 'Pick up a new skill with five focused tutorials. Your progress stays saved on this device.'}</p>
           <Link className="button tutorial-hero-action" to="/tutorials">
             Explore all tutorials <span aria-hidden="true">→</span>
           </Link>
         </div>
-        <div className="tutorial-hero-art" aria-hidden="true">
+        <div className="tutorial-hero-art" role="group" aria-label="Interactive web technology badges">
           <span className="hero-art-orbit orbit-one" />
           <span className="hero-art-orbit orbit-two" />
-          <span className="hero-art-star">✦</span>
-          <span className="hero-art-tag tag-markup">&lt;/&gt;</span>
-          <span className="hero-art-tag tag-script">JS</span>
-          <span className="hero-art-tag tag-react">⚛</span>
+          <span className="hero-art-star" aria-hidden="true">✦</span>
+          {[
+            { id: 'html', label: 'HTML', text: '</>', className: 'tag-markup' },
+            { id: 'css', label: 'CSS', text: 'CSS', className: 'tag-style' },
+            { id: 'javascript', label: 'JavaScript', text: 'JS', className: 'tag-script' },
+            { id: 'react', label: 'React', text: '⚛', className: 'tag-react' },
+          ].map((tech) => (
+            <button
+              key={tech.id}
+              className={`hero-art-tag ${tech.className}${activeTechTip === tech.id ? ' is-active is-bursting' : ''}`}
+              type="button"
+              aria-label={`${tech.label} badge`}
+              aria-expanded={activeTechTip === tech.id}
+              aria-describedby={activeTechTip === tech.id ? `hero-tip-${tech.id}` : undefined}
+              onClick={() => setActiveTechTip((current) => current === tech.id ? null : tech.id)}
+            >
+              <span aria-hidden="true">{tech.text}</span>
+              {activeTechTip === tech.id && (
+                <span className="hero-art-tooltip" id={`hero-tip-${tech.id}`} role="tooltip">
+                  {tech.label} powers the web
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </header>
 

@@ -97,16 +97,10 @@ function TutorialOverview({ userId }) {
 
               return (
                 <li key={section.id}>
-                  {tutorial.id === 'html-introduction' && (
-                    <section
-                      className="course-module-reading-preview"
-                      aria-labelledby={`module-reading-preview-${section.id}`}
-                    >
-                      <p className="eyebrow">Read before this module</p>
-                      <h3 id={`module-reading-preview-${section.id}`}>{section.title}</h3>
-                      <p>{section.readingMaterial.introduction}</p>
-                    </section>
-                  )}
+                  <ModuleReadingMaterial
+                    material={section.readingMaterial}
+                    id={`module-reading-${section.id}`}
+                  />
                   <div className={`course-module${expanded ? ' is-expanded' : ''}`}>
                     <button
                       className="course-module-summary"
@@ -145,11 +139,6 @@ function TutorialOverview({ userId }) {
                         <div className="course-module-expanded">
                           <div className="course-module-details">
                             <p>{sectionIndices.length} questions in this module.</p>
-                            <ModuleReadingMaterial
-                              material={section.readingMaterial}
-                              id={`module-reading-${section.id}`}
-                              tabIndex={expanded ? 0 : -1}
-                            />
                           </div>
                           <Link
                             className="button course-module-quiz-link"

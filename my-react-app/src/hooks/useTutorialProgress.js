@@ -264,6 +264,48 @@ export function useTutorialProgress(userId) {
     }))
   }, [saveProgress])
 
+  const resetModuleQuiz = useCallback((tutorialId, sessionId, questionIndices) => {
+    if (
+      typeof tutorialId !== 'string'
+      || !tutorialId
+      || typeof sessionId !== 'string'
+      || !sessionId
+      || !Array.isArray(questionIndices)
+      || questionIndices.length < 1
+      || !questionIndices.every((index) => Number.isInteger(index) && index >= 0)
+      || new Set(questionIndices).size !== questionIndices.length
+    ) {
+      throw new TypeError('Resetting a module quiz requires its tutorial, session, and question indexes.')
+    }
+
+    return saveProgress((current) => {
+      const attempt = current.quizProgress[tutorialId]
+      const answers = attempt?.answers.slice()
+        ?? Array.from({ length: Math.max(...questionIndices) + 1 }, () => null)
+
+      questionIndices.forEach((index) => {
+        if (index >= answers.length) {
+          throw new RangeError('A module quiz question index is outside the saved answers.')
+        }
+        answers[index] = null
+      })
+
+      return {
+        ...current,
+        quizProgress: {
+          ...current.quizProgress,
+          [tutorialId]: {
+            answers,
+            currentIndex: questionIndices[0],
+          },
+        },
+        quizSessionStartedAt: Object.fromEntries(
+          Object.entries(current.quizSessionStartedAt).filter(([id]) => id !== sessionId),
+        ),
+      }
+    })
+  }, [saveProgress])
+
   const startQuizSession = useCallback((sessionId, startedAt) => {
     if (
       typeof sessionId !== 'string'
@@ -407,6 +449,7 @@ export function useTutorialProgress(userId) {
     markUserActivity,
     markTutorialStarted,
     saveQuizProgress,
+    resetModuleQuiz,
     startQuizSession,
     recordQuizCompletion,
   }

@@ -3,16 +3,22 @@ function QuizCard({
   questionNumber,
   totalQuestions,
   selectedIndex,
+  isValidated,
   onAnswer,
+  onValidate,
   onPrevious,
   onNext,
   isLastQuestion,
   canFinish,
 }) {
-  const answeredCorrectly = selectedIndex === question.correctIndex
+  const answeredCorrectly = isValidated && selectedIndex === question.correctIndex
+  const answeredIncorrectly = isValidated && selectedIndex !== question.correctIndex
 
   return (
-    <section className="card question-card" aria-labelledby="quiz-prompt">
+    <section
+      className={`card question-card${answeredCorrectly ? ' has-correct-answer' : ''}${answeredIncorrectly ? ' has-incorrect-answer' : ''}`}
+      aria-labelledby="quiz-prompt"
+    >
       <div className="quiz-question-meta">
         <p className="eyebrow">Question {questionNumber}</p>
         <span>{String(questionNumber).padStart(2, '0')} <span aria-hidden="true">/</span> {String(totalQuestions).padStart(2, '0')}</span>
@@ -21,8 +27,8 @@ function QuizCard({
       <div className="answer-options" role="group" aria-label="Answer choices">
         {question.options.map((option, index) => {
           const isSelected = selectedIndex === index
-          const isCorrect = selectedIndex !== null && index === question.correctIndex
-          const isIncorrect = isSelected && !answeredCorrectly
+          const isCorrect = isValidated && index === question.correctIndex
+          const isIncorrect = isValidated && isSelected && !answeredCorrectly
 
           return (
             <button
@@ -39,7 +45,7 @@ function QuizCard({
           )
         })}
       </div>
-      {selectedIndex !== null && (
+      {isValidated && (
         <div className={`feedback ${answeredCorrectly ? 'correct' : 'incorrect'}`} role="status">
           <div>
             <strong>{answeredCorrectly ? 'That’s right!' : 'Not quite yet'}</strong>
@@ -62,17 +68,23 @@ function QuizCard({
         >
           <span aria-hidden="true">←</span> Previous
         </button>
-        <button
-          className="button"
-          type="button"
-          onClick={onNext}
-          disabled={selectedIndex === null || (isLastQuestion && !canFinish)}
-        >
-          {isLastQuestion ? 'See results' : 'Next question'}
-          <span aria-hidden="true">→</span>
-        </button>
+        {selectedIndex !== null && !isValidated ? (
+          <button className="button quiz-check-answer" type="button" onClick={onValidate}>
+            Check answer <span aria-hidden="true">✓</span>
+          </button>
+        ) : (
+          <button
+            className="button"
+            type="button"
+            onClick={onNext}
+            disabled={!isValidated || (isLastQuestion && !canFinish)}
+          >
+            {isLastQuestion ? 'See results' : 'Next question'}
+            <span aria-hidden="true">→</span>
+          </button>
+        )}
       </div>
-      {isLastQuestion && selectedIndex !== null && !canFinish && (
+      {isLastQuestion && isValidated && !canFinish && (
         <p className="quiz-completion-hint">Answer each question before viewing your results.</p>
       )}
     </section>

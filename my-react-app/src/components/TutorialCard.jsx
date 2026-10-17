@@ -26,7 +26,7 @@ function TutorialCard({ tutorial, result, progress, status, action, to }) {
         )}
       </div>
       <Link className="button tutorial-card-action" to={to}>
-        {action}<span aria-hidden="true">→</span>
+        {action}{result ? null : <span aria-hidden="true">→</span>}
       </Link>
     </article>
   )

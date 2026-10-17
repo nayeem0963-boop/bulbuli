@@ -4,6 +4,8 @@ import { supabase } from '../supabaseClient.js'
 import TutorialCard from '../components/TutorialCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
+import { getCurrentStreak } from '../utils/gamification.js'
+import { getTutorialCardAction } from '../utils/tutorialCardAction.js'
 
 function formatJoinedDate(createdAt) {
   if (!createdAt) return 'Not available'
@@ -12,21 +14,6 @@ function formatJoinedDate(createdAt) {
   return Number.isNaN(date.getTime())
     ? 'Not available'
     : date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
-}
-
-function getCurrentStreak(gamification) {
-  const formatDate = (date) => [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, '0'),
-    String(date.getDate()).padStart(2, '0'),
-  ].join('-')
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
-
-  return [formatDate(today), formatDate(yesterday)].includes(gamification.lastActivityDate)
-    ? gamification.currentStreak
-    : 0
 }
 
 function Dashboard({ session }) {
@@ -265,7 +252,7 @@ function Dashboard({ session }) {
                     result={result}
                     progress={progress}
                     status={status}
-                    action={result ? 'Review' : started ? 'Continue' : 'Start learning'}
+                    action={getTutorialCardAction(tutorial, result, started, attempt?.currentIndex)}
                     to={`/tutorials/${tutorial.id}`}
                   />
                 )

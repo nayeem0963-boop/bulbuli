@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import ModuleReadingMaterial from '../components/ModuleReadingMaterial.jsx'
 import ProgressBar from '../components/ProgressBar.jsx'
 import QuizCard from '../components/QuizCard.jsx'
@@ -16,6 +16,7 @@ function formatTime(seconds) {
 }
 
 function TutorialQuizSession({ tutorial, userId, section }) {
+  const navigate = useNavigate()
   const quizDurationSeconds = section
     ? MODULE_QUIZ_DURATION_SECONDS
     : TUTORIAL_QUIZ_DURATION_SECONDS
@@ -25,19 +26,35 @@ function TutorialQuizSession({ tutorial, userId, section }) {
     quizProgress,
     quizSessionStartedAt,
     recordQuizCompletion,
+    resetModuleQuiz,
     saveQuizProgress,
     storageError,
     startQuizSession,
   } = useTutorialProgress(userId)
   const savedAttempt = quizProgress[tutorial.id]
   const sessionId = `${tutorial.id}:${section?.id ?? 'course'}`
-  const quizQuestions = section
-    ? tutorial.questions.flatMap((question, originalIndex) => (
-      question.sectionId === section.id ? [{ question, originalIndex }] : []
-    ))
-    : tutorial.questions.map((question, originalIndex) => ({ question, originalIndex }))
+  const quizQuestions = useMemo(
+    () => section
+      ? tutorial.questions.flatMap((question, originalIndex) => (
+        question.sectionId === section.id ? [{ question, originalIndex }] : []
+      ))
+      : tutorial.questions.map((question, originalIndex) => ({ question, originalIndex })),
+    [section, tutorial.questions],
+  )
+  const moduleQuestionIndices = useMemo(
+    () => quizQuestions.map(({ originalIndex }) => originalIndex),
+    [quizQuestions],
+  )
   const [answers, setAnswers] = useState(
     () => quizQuestions.map(({ originalIndex }) => savedAttempt?.answers[originalIndex] ?? null),
+  )
+  const [validatedIndexes, setValidatedIndexes] = useState(
+    () => new Set(quizQuestions.flatMap(({ originalIndex }, index) => (
+      savedAttempt?.answers[originalIndex] !== null
+      && savedAttempt?.answers[originalIndex] !== undefined
+        ? [index]
+        : []
+    ))),
   )
   const [questionIndex, setQuestionIndex] = useState(
     () => {
@@ -70,12 +87,16 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   )
   const totalQuestions = quizQuestions.length
   const question = quizQuestions[questionIndex].question
-  const answeredCount = answers.filter((answer) => answer !== null).length
-  const score = answers.reduce(
-    (total, answer, index) => total + (answer === quizQuestions[index].question.correctIndex ? 1 : 0),
+  const answeredCount = answers.reduce(
+    (total, answer, index) => total + (answer !== null && validatedIndexes.has(index) ? 1 : 0),
     0,
   )
-  const percentage = Math.round((score / totalQuestions) * 100)
+  const score = answers.reduce(
+    (total, answer, index) => total + (
+      validatedIndexes.has(index) && answer === quizQuestions[index].question.correctIndex ? 1 : 0
+    ),
+    0,
+  )
 
   useEffect(() => {
     markTutorialStarted(tutorial.id)
@@ -124,12 +145,25 @@ function TutorialQuizSession({ tutorial, userId, section }) {
       !section && passed,
       section?.id ?? null,
     )
-    setRewardSummary({ xpEarned, passed, ...completion })
+    const timedOut = timeRemaining === 0
+    if (section && !passed) {
+      resetModuleQuiz(tutorial.id, sessionId, moduleQuestionIndices)
+    }
+    setRewardSummary({
+      xpEarned,
+      passed,
+      timedOut,
+      score,
+      answeredCount,
+      ...completion,
+    })
     setComplete(true)
   }, [
     answeredCount,
+    moduleQuestionIndices,
     recordQuizCompletion,
     quizDurationSeconds,
+    resetModuleQuiz,
     score,
     section,
     sessionId,
@@ -137,6 +171,25 @@ function TutorialQuizSession({ tutorial, userId, section }) {
     totalQuestions,
     tutorial.id,
   ])
+
+  const retakeModuleQuiz = () => {
+    const reset = resetModuleQuiz(tutorial.id, sessionId, moduleQuestionIndices)
+    if (!reset) return
+
+    completionRecorded.current = false
+    setAnswers(quizQuestions.map(() => null))
+    setValidatedIndexes(new Set())
+    setQuestionIndex(0)
+    setComplete(false)
+    setRewardSummary(null)
+    setSessionStartedAt(null)
+    setTimeRemaining(quizDurationSeconds)
+  }
+
+  const exitModuleQuiz = () => {
+    const reset = resetModuleQuiz(tutorial.id, sessionId, moduleQuestionIndices)
+    if (reset) navigate(`/tutorials/${tutorial.id}`)
+  }
 
   useEffect(() => {
     if (complete || !sessionStartedAt) return undefined
@@ -153,12 +206,21 @@ function TutorialQuizSession({ tutorial, userId, section }) {
     }
   }, [complete, finishQuiz, sessionStartedAt, timeRemaining])
 
-  const timedOut = complete && timeRemaining === 0
+  const timedOut = rewardSummary?.timedOut === true
   const passed = rewardSummary?.passed === true
+  const resultScore = rewardSummary?.score ?? score
+  const resultAnsweredCount = rewardSummary?.answeredCount ?? answeredCount
+  const resultPercentage = Math.round((resultScore / totalQuestions) * 100)
 
   return (
     <main className="page tutorial-hub tutorial-quiz-page">
-      <Link className="back-link" to={`/tutorials/${tutorial.id}`}>← Tutorial overview</Link>
+      {section ? (
+        <button className="back-link text-button module-quiz-exit-link" type="button" onClick={exitModuleQuiz}>
+          ← Quit module quiz
+        </button>
+      ) : (
+        <Link className="back-link" to={`/tutorials/${tutorial.id}`}>← Tutorial overview</Link>
+      )}
       <header className="quiz-page-heading">
         <div className={`tutorial-card-symbol tutorial-symbol-${tutorial.id}`} aria-hidden="true">
           {tutorial.symbol}
@@ -202,6 +264,15 @@ function TutorialQuizSession({ tutorial, userId, section }) {
                   <span className="quiz-timer-icon" aria-hidden="true">◷</span>
                   <span>{formatTime(timeRemaining)}</span>
                 </div>
+                {section && (
+                  <button
+                    className="button-secondary module-quiz-exit-button"
+                    type="button"
+                    onClick={exitModuleQuiz}
+                  >
+                    Quit quiz
+                  </button>
+                )}
               </div>
               <div className="quiz-question-navigation">
                 <nav
@@ -216,9 +287,9 @@ function TutorialQuizSession({ tutorial, userId, section }) {
                       className={[
                         'quiz-question-dot',
                         index === questionIndex ? 'is-current' : '',
-                        answers[index] !== null ? 'is-answered' : '',
+                        validatedIndexes.has(index) ? 'is-answered' : '',
                       ].filter(Boolean).join(' ')}
-                      aria-label={`Question ${index + 1}${answers[index] !== null ? ', answered' : ''}`}
+                      aria-label={`Question ${index + 1}${validatedIndexes.has(index) ? ', answered' : ''}`}
                       aria-current={index === questionIndex ? 'step' : undefined}
                       onClick={() => goToQuestion(index)}
                     >
@@ -236,11 +307,18 @@ function TutorialQuizSession({ tutorial, userId, section }) {
                 questionNumber={questionIndex + 1}
                 totalQuestions={totalQuestions}
                 selectedIndex={answers[questionIndex]}
+                isValidated={validatedIndexes.has(questionIndex)}
                 onAnswer={(answerIndex) => {
                   const nextAnswers = answers.slice()
                   nextAnswers[questionIndex] = answerIndex
                   saveAnswers(nextAnswers)
+                  setValidatedIndexes((current) => {
+                    const nextValidated = new Set(current)
+                    nextValidated.delete(questionIndex)
+                    return nextValidated
+                  })
                 }}
+                onValidate={() => setValidatedIndexes((current) => new Set(current).add(questionIndex))}
                 onPrevious={questionIndex > 0 ? () => goToQuestion(questionIndex - 1) : null}
                 onNext={() => {
                   if (questionIndex + 1 < totalQuestions) {
@@ -295,14 +373,19 @@ function TutorialQuizSession({ tutorial, userId, section }) {
                 : 'A tutorial is complete only when every question is answered correctly. Review your answers and retry.'}
           </p>
           <div className="results-score">
-            <strong>{score}<span>/{totalQuestions}</span></strong>
+            <strong>{resultScore}<span>/{totalQuestions}</span></strong>
             <span>correct answers</span>
           </div>
-          <div className="results-track" aria-label={`${percentage}% score`}>
-            <span style={{ width: `${percentage}%` }} />
+          <div className="results-track" aria-label={`${resultPercentage}% score`}>
+            <span style={{ width: `${resultPercentage}%` }} />
           </div>
-          <p className="results-percentage">{percentage}% score</p>
+          <p className="results-percentage">{resultPercentage}% score · {resultAnsweredCount}/{totalQuestions} answered</p>
           <div className="quiz-result-actions">
+            {section && !passed && (
+              <button className="button" type="button" onClick={retakeModuleQuiz}>
+                Retake module
+              </button>
+            )}
             <Link className="button" to={`/tutorials/${tutorial.id}`}>Review tutorial</Link>
             <Link className="button-secondary" to="/tutorials">All tutorials</Link>
           </div>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import TutorialCard from '../components/TutorialCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
+import { getTutorialCardAction } from '../utils/tutorialCardAction.js'
 
 function TutorialCatalog({ userId }) {
   const { quizProgress, completedTutorials, storageError, startedTutorialIds } = useTutorialProgress(userId)
@@ -45,7 +46,7 @@ function TutorialCatalog({ userId }) {
               result={result}
               progress={progress}
               status={status}
-              action={result ? 'Review' : started ? 'Continue' : 'Start learning'}
+              action={getTutorialCardAction(tutorial, result, started, attempt?.currentIndex)}
               to={`/tutorials/${tutorial.id}`}
             />
           )
