@@ -1,10 +1,12 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const EMPTY_PROGRESS = {
   startedTutorialIds: [],
   completedTutorials: {},
+  moduleResults: {},
   quizProgress: {},
   quizSessionStartedAt: {},
+  userActivity: false,
   gamification: {
     totalXp: 0,
     currentStreak: 0,
@@ -34,6 +36,12 @@ function normalizeProgress(progress) {
       || typeof progress.quizProgress !== 'object'
       || Array.isArray(progress.quizProgress)
     ))
+    || (progress.moduleResults !== undefined && (
+      !progress.moduleResults
+      || typeof progress.moduleResults !== 'object'
+      || Array.isArray(progress.moduleResults)
+    ))
+    || (progress.userActivity !== undefined && typeof progress.userActivity !== 'boolean')
     || (progress.gamification !== undefined && (
       !progress.gamification
       || typeof progress.gamification !== 'object'
@@ -60,7 +68,9 @@ function normalizeProgress(progress) {
       throw new Error('Saved tutorial progress has an invalid result.')
     }
 
-    completedTutorials[id] = result
+    if (result.bestScore === result.totalQuestions) {
+      completedTutorials[id] = result
+    }
   })
 
   const quizProgress = {}
@@ -80,6 +90,33 @@ function normalizeProgress(progress) {
     }
 
     quizProgress[id] = attempt
+  })
+
+  const moduleResults = {}
+  Object.entries(progress.moduleResults ?? {}).forEach(([id, result]) => {
+    if (
+      typeof id !== 'string'
+      || !result
+      || !['completed', 'failed'].includes(result.status)
+      || !Number.isInteger(result.score)
+      || result.score < 0
+      || result.score > result.totalQuestions
+      || !Number.isInteger(result.bestScore)
+      || !Number.isInteger(result.totalQuestions)
+      || result.totalQuestions < 1
+      || result.bestScore < 0
+      || result.bestScore > result.totalQuestions
+      || (result.status === 'completed' && result.score !== result.totalQuestions)
+      || (result.status === 'failed' && result.score === result.totalQuestions)
+      || !Number.isInteger(result.attempts)
+      || result.attempts < 1
+      || typeof result.completedAt !== 'string'
+      || Number.isNaN(Date.parse(result.completedAt))
+    ) {
+      throw new Error('Saved module progress has an invalid result.')
+    }
+
+    moduleResults[id] = result
   })
 
   const quizSessionStartedAt = progress.quizSessionStartedAt === undefined
@@ -122,9 +159,11 @@ function normalizeProgress(progress) {
   return {
     startedTutorialIds: [...new Set(progress.startedTutorialIds)],
     completedTutorials,
+    moduleResults,
     quizProgress,
     quizSessionStartedAt,
     gamification,
+    userActivity: progress.userActivity === true,
   }
 }
 
@@ -149,6 +188,19 @@ export function useTutorialProgress(userId) {
   const [state, setState] = useState(() => loadProgress(storageKey))
   const progressRef = useRef(state.progress)
 
+  useEffect(() => {
+    const handleProgressUpdate = (event) => {
+      if (event.detail?.storageKey !== storageKey) return
+
+      const progress = normalizeProgress(event.detail.progress)
+      progressRef.current = progress
+      setState({ progress, storageError: '' })
+    }
+
+    window.addEventListener('bulbuli:tutorial-progress', handleProgressUpdate)
+    return () => window.removeEventListener('bulbuli:tutorial-progress', handleProgressUpdate)
+  }, [storageKey])
+
   const saveProgress = useCallback((update) => {
     const nextProgress = update(progressRef.current)
 
@@ -156,6 +208,9 @@ export function useTutorialProgress(userId) {
       window.localStorage.setItem(storageKey, JSON.stringify(nextProgress))
       progressRef.current = nextProgress
       setState({ progress: nextProgress, storageError: '' })
+      window.dispatchEvent(new CustomEvent('bulbuli:tutorial-progress', {
+        detail: { storageKey, progress: nextProgress },
+      }))
       return true
     } catch (error) {
       console.error('Unable to save Bulbuli tutorial progress to localStorage.', error)
@@ -175,6 +230,12 @@ export function useTutorialProgress(userId) {
       startedTutorialIds: [...current.startedTutorialIds, tutorialId],
     }))
   }, [saveProgress, state.progress.startedTutorialIds])
+
+  const markUserActivity = useCallback(() => {
+    if (progressRef.current.userActivity) return true
+
+    return saveProgress((current) => ({ ...current, userActivity: true }))
+  }, [saveProgress])
 
   const saveQuizProgress = useCallback((tutorialId, answers, currentIndex) => {
     if (
@@ -234,6 +295,7 @@ export function useTutorialProgress(userId) {
     totalQuestions,
     xpEarned,
     recordTutorial,
+    moduleId = null,
   ) => {
     if (
       typeof tutorialId !== 'string'
@@ -246,6 +308,8 @@ export function useTutorialProgress(userId) {
       || !Number.isInteger(xpEarned)
       || xpEarned < 0
       || typeof recordTutorial !== 'boolean'
+      || (recordTutorial && score !== totalQuestions)
+      || (moduleId !== null && (typeof moduleId !== 'string' || !moduleId))
     ) {
       throw new RangeError('Quiz completion must contain valid results and rewards.')
     }
@@ -270,6 +334,8 @@ export function useTutorialProgress(userId) {
 
     const saved = saveProgress((current) => {
       const previous = current.completedTutorials[tutorialId]
+      const moduleKey = moduleId === null ? null : `${tutorialId}:${moduleId}`
+      const previousModule = moduleKey ? current.moduleResults[moduleKey] : null
       const previousGamification = current.gamification
       const streakIncreased = previousGamification.lastActivityDate !== todayKey
       const currentStreak = !streakIncreased
@@ -297,6 +363,19 @@ export function useTutorialProgress(userId) {
             },
           }
           : current.completedTutorials,
+        moduleResults: moduleKey
+          ? {
+            ...current.moduleResults,
+            [moduleKey]: {
+              status: score === totalQuestions ? 'completed' : 'failed',
+              score,
+              bestScore: Math.max(previousModule?.bestScore ?? 0, score),
+              totalQuestions,
+              attempts: (previousModule?.attempts ?? 0) + 1,
+              completedAt: today.toISOString(),
+            },
+          }
+          : current.moduleResults,
         quizProgress: recordTutorial
           ? Object.fromEntries(
             Object.entries(current.quizProgress).filter(([id]) => id !== tutorialId),
@@ -319,10 +398,13 @@ export function useTutorialProgress(userId) {
   return {
     startedTutorialIds: state.progress.startedTutorialIds,
     completedTutorials: state.progress.completedTutorials,
+    moduleResults: state.progress.moduleResults,
     quizProgress: state.progress.quizProgress,
     quizSessionStartedAt: state.progress.quizSessionStartedAt,
     gamification: state.progress.gamification,
     storageError: state.storageError,
+    userActivity: state.progress.userActivity,
+    markUserActivity,
     markTutorialStarted,
     saveQuizProgress,
     startQuizSession,

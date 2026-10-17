@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabaseClient.js'
 import { getAuthRedirectPath } from './utils/authRedirect.js'
 import Dashboard from './routes/Dashboard.jsx'
@@ -9,6 +9,7 @@ import TutorialCatalog from './routes/TutorialCatalog.jsx'
 import TutorialOverview from './routes/TutorialOverview.jsx'
 import TutorialQuiz from './routes/TutorialQuiz.jsx'
 import { tutorialCatalog } from './data/tutorialCatalog.js'
+import { useTutorialProgress } from './hooks/useTutorialProgress.js'
 
 function RouteTitle() {
   const { pathname } = useLocation()
@@ -44,6 +45,38 @@ function RouteTitle() {
   }, [pathname])
 
   return null
+}
+
+function UserActivityTracker({ userId }) {
+  const { markUserActivity, storageError } = useTutorialProgress(userId)
+  const { pathname } = useLocation()
+  const initialPathname = useRef(pathname)
+  const [activityAttempted, setActivityAttempted] = useState(false)
+
+  useEffect(() => {
+    const handleActivity = () => {
+      setActivityAttempted(true)
+      markUserActivity()
+    }
+
+    window.addEventListener('click', handleActivity, true)
+    window.addEventListener('keydown', handleActivity, true)
+    return () => {
+      window.removeEventListener('click', handleActivity, true)
+      window.removeEventListener('keydown', handleActivity, true)
+    }
+  }, [markUserActivity])
+
+  useEffect(() => {
+    if (initialPathname.current === pathname) return
+    initialPathname.current = pathname
+    setActivityAttempted(true)
+    markUserActivity()
+  }, [markUserActivity, pathname])
+
+  return activityAttempted && storageError
+    ? <p className="notice" role="alert">{storageError}</p>
+    : null
 }
 
 function MemberRoute({ session, children }) {
@@ -165,6 +198,7 @@ function App() {
       ) : (
         <BrowserRouter>
           <RouteTitle />
+          {session && <UserActivityTracker userId={session.user.id} />}
           <Routes>
             <Route path="/" element={session
               ? <Home session={session} />

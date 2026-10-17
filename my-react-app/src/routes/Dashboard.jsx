@@ -44,6 +44,7 @@ function Dashboard({ session }) {
     quizProgress,
     startedTutorialIds,
     storageError: tutorialProgressError,
+    userActivity,
   } = useTutorialProgress(session.user.id)
 
   useEffect(() => {
@@ -141,8 +142,8 @@ function Dashboard({ session }) {
 
         <main className="dashboard-main">
           <header className="dashboard-heading" id="overview">
-            <p className="eyebrow">Your learning space</p>
-            <h1>Welcome back, {fullName}</h1>
+            {!userActivity && <p className="eyebrow">Your learning space</p>}
+            <h1>{userActivity ? 'Your learning overview' : `Welcome back, ${fullName}`}</h1>
             <p>Five small steps can take you a long way. Pick up where you left off.</p>
           </header>
 

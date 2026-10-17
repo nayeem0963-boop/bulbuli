@@ -1,4 +1,4 @@
-export const tutorialCatalog = [
+const tutorialCatalogData = [
   {
     id: 'html-introduction',
     symbol: '</>',
@@ -457,3 +457,28 @@ export const tutorialCatalog = [
     ],
   },
 ]
+
+export const tutorialCatalog = tutorialCatalogData.map((tutorial) => {
+  const sections = tutorial.sections?.map((section) => ({
+    ...section,
+    readingMaterial: `${section.description} Review the related examples in this tutorial, compare the available approaches, and consider how this idea helps make a real project clearer and easier to maintain.`,
+  }))
+  const sectionIds = new Set(sections?.map((section) => section.id) ?? [])
+
+  tutorial.questions.forEach((question) => {
+    if (
+      !Array.isArray(question.options)
+      || question.options.length !== 4
+      || question.options.some((option) => typeof option !== 'string' || !option.trim())
+      || new Set(question.options.map((option) => option.trim())).size !== 4
+      || !Number.isInteger(question.correctIndex)
+      || question.correctIndex < 0
+      || question.correctIndex >= 4
+      || (sections && !sectionIds.has(question.sectionId))
+    ) {
+      throw new Error(`Invalid quiz question data in tutorial "${tutorial.id}".`)
+    }
+  })
+
+  return { ...tutorial, sections }
+})

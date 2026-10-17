@@ -5,7 +5,8 @@ import QuizCard from '../components/QuizCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 
-const QUIZ_DURATION_SECONDS = 15 * 60
+const MODULE_QUIZ_DURATION_SECONDS = 5 * 60
+const TUTORIAL_QUIZ_DURATION_SECONDS = 15 * 60
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -14,6 +15,9 @@ function formatTime(seconds) {
 }
 
 function TutorialQuizSession({ tutorial, userId, section }) {
+  const quizDurationSeconds = section
+    ? MODULE_QUIZ_DURATION_SECONDS
+    : TUTORIAL_QUIZ_DURATION_SECONDS
   const {
     gamification,
     markTutorialStarted,
@@ -58,7 +62,7 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   const [timeRemaining, setTimeRemaining] = useState(
     () => Math.max(
       0,
-      Math.ceil((Date.parse(sessionStartedAt) + QUIZ_DURATION_SECONDS * 1000 - Date.now()) / 1000),
+      Math.ceil((Date.parse(sessionStartedAt) + quizDurationSeconds * 1000 - Date.now()) / 1000),
     ),
   )
   const totalQuestions = quizQuestions.length
@@ -95,26 +99,28 @@ function TutorialQuizSession({ tutorial, userId, section }) {
     saveAnswers(answers, nextIndex)
   }
 
-  const finishQuiz = useCallback((timedOut = false) => {
+  const finishQuiz = useCallback(() => {
     if (completionRecorded.current) return
     completionRecorded.current = true
 
-    const quizTimedOut = timedOut || timeRemaining === 0
-    const speedBonus = timeRemaining >= QUIZ_DURATION_SECONDS / 2 ? 5 : 0
+    const speedBonus = timeRemaining >= quizDurationSeconds / 2 ? 5 : 0
     const xpEarned = 10 + score * 5 + speedBonus
+    const passed = answeredCount === totalQuestions && score === totalQuestions
     const completion = recordQuizCompletion(
       tutorial.id,
       sessionId,
       score,
       totalQuestions,
       xpEarned,
-      !section && (!quizTimedOut || answeredCount === totalQuestions),
+      !section && passed,
+      section?.id ?? null,
     )
-    setRewardSummary({ xpEarned, ...completion })
+    setRewardSummary({ xpEarned, passed, ...completion })
     setComplete(true)
   }, [
     answeredCount,
     recordQuizCompletion,
+    quizDurationSeconds,
     score,
     section,
     sessionId,
@@ -126,19 +132,20 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   useEffect(() => {
     if (complete) return undefined
     const timerId = window.setInterval(() => {
-      const deadline = Date.parse(sessionStartedAt) + QUIZ_DURATION_SECONDS * 1000
+      const deadline = Date.parse(sessionStartedAt) + quizDurationSeconds * 1000
       setTimeRemaining(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)))
     }, 1000)
     return () => window.clearInterval(timerId)
-  }, [complete, sessionStartedAt])
+  }, [complete, quizDurationSeconds, sessionStartedAt])
 
   useEffect(() => {
     if (!complete && timeRemaining === 0) {
-      finishQuiz(true)
+      finishQuiz()
     }
   }, [complete, finishQuiz, timeRemaining])
 
   const timedOut = complete && timeRemaining === 0
+  const passed = rewardSummary?.passed === true
 
   return (
     <main className="page tutorial-hub tutorial-quiz-page">
@@ -238,21 +245,28 @@ function TutorialQuizSession({ tutorial, userId, section }) {
               </div>
             </div>
           )}
-          <div className={`results-medallion${percentage >= 70 ? ' is-passing' : ''}`} aria-hidden="true">
-            {percentage >= 70 ? '✦' : '↻'}
+          <div className={`results-medallion${passed ? ' is-passing' : ''}`} aria-hidden="true">
+            {passed ? '✦' : '↻'}
           </div>
-          <p className="eyebrow">{timedOut ? 'Time is up' : 'Quiz complete'}</p>
-          <h2>{section
-            ? `${section.title} quiz complete`
-            : percentage >= 70 ? 'A little wiser already.' : 'Every try is progress.'}</h2>
-          <p className="results-description">
+          <p className="eyebrow">
             {timedOut
+              ? 'Time is up'
+              : passed ? section ? 'Module completed' : 'Tutorial completed'
+                : section ? 'Module failed / incomplete' : 'Quiz complete'}
+          </p>
+          <h2>{section
+            ? passed ? `${section.title} completed` : `Retry ${section.title} after a review`
+            : passed ? 'Every question correct. Lovely work.' : 'Review the lesson, then try again.'}</h2>
+          <p className="results-description">
+            {timedOut && !passed
               ? 'Your answers so far were submitted when the timer ran out.'
               : section
-              ? 'Your answers are saved with your course progress.'
-              : percentage >= 70
-              ? 'You have a lovely grasp of the essentials.'
-              : 'Review the lesson, then give it another go.'}
+              ? passed
+                ? 'You answered every question correctly. This module is complete.'
+                : 'A module is complete only when every question is answered correctly. Review the material and retry.'
+              : passed
+                ? 'You answered every question correctly and completed this tutorial.'
+                : 'A tutorial is complete only when every question is answered correctly. Review your answers and retry.'}
           </p>
           <div className="results-score">
             <strong>{score}<span>/{totalQuestions}</span></strong>

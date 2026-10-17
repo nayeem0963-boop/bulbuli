@@ -7,9 +7,11 @@ GitHub, and React.
 ## Guided tutorials
 
 Open **Tutorials** from the learning home page to browse the five topics. Each
-tutorial includes an overview and a five-question quiz. Quiz answers are saved
-as you go; attempts and best scores are stored in localStorage separately for
-each signed-in user on that device.
+tutorial is organized into modules with optional reading material and a
+five-minute module quiz (the full-tutorial quiz remains fifteen minutes). A
+module or tutorial is completed only after every question is answered
+correctly; incomplete attempts can be retried. Quiz answers and module results
+are saved in localStorage separately for each signed-in user on that device.
 
 ## Development
 

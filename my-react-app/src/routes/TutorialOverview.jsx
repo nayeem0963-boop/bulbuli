@@ -6,8 +6,15 @@ import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 function TutorialOverview({ userId }) {
   const { tutorialId } = useParams()
   const tutorial = tutorialCatalog.find((item) => item.id === tutorialId)
-  const { completedTutorials, quizProgress, storageError, startedTutorialIds } = useTutorialProgress(userId)
+  const {
+    completedTutorials,
+    moduleResults,
+    quizProgress,
+    storageError,
+    startedTutorialIds,
+  } = useTutorialProgress(userId)
   const [expandedSectionId, setExpandedSectionId] = useState(null)
+  const [expandedReadingSectionId, setExpandedReadingSectionId] = useState(null)
 
   if (!tutorial) {
     return (
@@ -86,6 +93,8 @@ function TutorialOverview({ userId }) {
                 )).length
               const sectionProgress = Math.round((sectionAnswered / sectionIndices.length) * 100)
               const expanded = expandedSectionId === section.id
+              const readingExpanded = expandedReadingSectionId === section.id
+              const moduleResult = moduleResults[`${tutorial.id}:${section.id}`]
 
               return (
                 <li key={section.id}>
@@ -95,13 +104,23 @@ function TutorialOverview({ userId }) {
                       type="button"
                       aria-expanded={expanded}
                       aria-controls={`module-panel-${section.id}`}
-                      onClick={() => setExpandedSectionId(expanded ? null : section.id)}
+                      onClick={() => {
+                        setExpandedSectionId(expanded ? null : section.id)
+                        setExpandedReadingSectionId(null)
+                      }}
                     >
                       <span className="course-module-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                       <div className="course-module-content">
                         <div className="course-module-copy">
                           <h3>{section.title}</h3>
                           <p>{section.description}</p>
+                          {moduleResult && (
+                            <p className={`course-module-summary-result is-${moduleResult.status}`}>
+                              {moduleResult.status === 'completed' ? 'Completed' : 'Failed / Incomplete'}
+                              {' · '}
+                              {moduleResult.score}/{moduleResult.totalQuestions} correct
+                            </p>
+                          )}
                         </div>
                         <div className="course-module-progress">
                           <span>{sectionAnswered} of {sectionIndices.length} answered</span>
@@ -118,13 +137,36 @@ function TutorialOverview({ userId }) {
                     >
                       <div className="course-module-panel-inner">
                         <div className="course-module-expanded">
-                          <p>{sectionIndices.length} questions in this module.</p>
+                          <div className="course-module-details">
+                            <p>{sectionIndices.length} questions in this module.</p>
+                            <button
+                              className="text-button course-module-reading-toggle"
+                              type="button"
+                              aria-expanded={readingExpanded}
+                              aria-controls={`module-reading-${section.id}`}
+                              tabIndex={expanded ? 0 : -1}
+                              onClick={() => setExpandedReadingSectionId(
+                                readingExpanded ? null : section.id,
+                              )}
+                            >
+                              {readingExpanded ? 'Hide Reading Material' : 'Show Reading Material'}
+                            </button>
+                            <div
+                              className={`course-module-reading${readingExpanded ? ' is-expanded' : ''}`}
+                              id={`module-reading-${section.id}`}
+                              aria-hidden={!readingExpanded}
+                            >
+                              <div className="course-module-reading-inner">
+                                <p>{section.readingMaterial}</p>
+                              </div>
+                            </div>
+                          </div>
                           <Link
                             className="button course-module-quiz-link"
                             to={`/tutorials/${tutorial.id}/quiz?section=${encodeURIComponent(section.id)}`}
                             tabIndex={expanded ? 0 : -1}
                           >
-                            Start {section.title} quiz <span aria-hidden="true">→</span>
+                            {moduleResult?.status === 'failed' ? 'Retry' : moduleResult?.status === 'completed' ? 'Review' : 'Start'} {section.title} quiz <span aria-hidden="true">→</span>
                           </Link>
                         </div>
                       </div>
