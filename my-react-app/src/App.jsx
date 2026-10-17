@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabaseClient.js'
 import { getAuthRedirectPath } from './utils/authRedirect.js'
 import Dashboard from './routes/Dashboard.jsx'
+import ComprehensiveExam from './routes/ComprehensiveExam.jsx'
 import Home from './routes/Home.jsx'
 import Login from './routes/Login.jsx'
 import TutorialCatalog from './routes/TutorialCatalog.jsx'
@@ -26,6 +27,9 @@ function RouteTitle() {
     } else if (pathname === '/dashboard') {
       title = 'Your Learning Dashboard | Bulbuli'
       description = 'Track your learning progress and continue your interactive HTML, CSS, JavaScript, GitHub, and React tutorials with Bulbuli.'
+    } else if (pathname === '/exam') {
+      title = 'Final Comprehensive Exam | Bulbuli'
+      description = 'Test your HTML, CSS, JavaScript, Git, and React skills in Bulbuli’s timed 50-question final exam.'
     } else if (pathname === '/') {
       title = 'Free Interactive Coding Quizzes | Bulbuli'
     } else if (pathname === '/tutorials') {
@@ -222,6 +226,11 @@ function App() {
             <Route path="/dashboard" element={
               <MemberRoute session={session}>
                 <Dashboard session={session} />
+              </MemberRoute>
+            } />
+            <Route path="/exam" element={
+              <MemberRoute session={session}>
+                <ComprehensiveExam userId={session?.user?.id} />
               </MemberRoute>
             } />
             <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />

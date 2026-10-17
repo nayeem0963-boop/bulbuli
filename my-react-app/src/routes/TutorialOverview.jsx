@@ -12,7 +12,6 @@ function TutorialOverview({ userId }) {
     moduleResults,
     quizProgress,
     storageError,
-    startedTutorialIds,
   } = useTutorialProgress(userId)
   const [expandedSectionId, setExpandedSectionId] = useState(null)
 
@@ -27,15 +26,8 @@ function TutorialOverview({ userId }) {
 
   const result = completedTutorials[tutorial.id]
   const attempt = quizProgress[tutorial.id]
-  const started = startedTutorialIds.includes(tutorial.id)
   const courseSubject = tutorial.title.replace(/^Introduction to /, '')
   const completedCurrentVersion = result?.totalQuestions === tutorial.questions.length
-  const answered = tutorial.questions.filter((_, index) => (
-    attempt?.answers[index] !== null && attempt?.answers[index] !== undefined
-  )).length
-  const progress = completedCurrentVersion
-    ? 100
-    : Math.round((answered / tutorial.questions.length) * 100)
 
   return (
     <main className="page tutorial-hub tutorial-overview-page">
@@ -158,20 +150,6 @@ function TutorialOverview({ userId }) {
         </section>
       )}
 
-      <section className="tutorial-start-panel" aria-label="Quiz progress">
-        <div>
-          <p className="eyebrow">{completedCurrentVersion ? 'Ready for another round?' : started ? 'Pick up where you left off' : 'Ready when you are'}</p>
-          <h2>{completedCurrentVersion ? 'Try for a new personal best.' : 'Make it stick with a quick quiz.'}</h2>
-          <div className="tutorial-inline-progress">
-            <span>{completedCurrentVersion ? 'Completed' : `${answered} of ${tutorial.questions.length} answered`}</span>
-            <progress value={progress} max="100" aria-label="Tutorial completion">{progress}%</progress>
-          </div>
-        </div>
-        <Link className="button tutorial-start-button" to={`/tutorials/${tutorial.id}/quiz`}>
-          {completedCurrentVersion || (result && !attempt) ? 'Take quiz again' : started ? 'Continue quiz' : 'Start quiz'}
-          <span aria-hidden="true">→</span>
-        </Link>
-      </section>
     </main>
   )
 }

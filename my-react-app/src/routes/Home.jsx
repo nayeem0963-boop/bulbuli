@@ -65,6 +65,9 @@ function Home({ session }) {
           <Link className="button tutorial-hero-action" to="/tutorials">
             Explore all tutorials <span aria-hidden="true">→</span>
           </Link>
+          <Link className="button-secondary home-exam-link" to="/exam">
+            Take the final exam <span aria-hidden="true">↗</span>
+          </Link>
         </div>
         <div className="tutorial-hero-art" role="group" aria-label="Interactive web technology badges">
           <span className="hero-art-orbit orbit-one" />

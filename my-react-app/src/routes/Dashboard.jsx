@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient.js'
 import TutorialCard from '../components/TutorialCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
+import { useComprehensiveExam } from '../hooks/useComprehensiveExam.js'
 import { getCurrentStreak } from '../utils/gamification.js'
 import { getTutorialCardAction } from '../utils/tutorialCardAction.js'
 
@@ -33,6 +34,7 @@ function Dashboard({ session }) {
     storageError: tutorialProgressError,
     userActivity,
   } = useTutorialProgress(session.user.id)
+  const examProgress = useComprehensiveExam(session.user.id)
 
   useEffect(() => {
     let isMounted = true
@@ -134,9 +136,9 @@ function Dashboard({ session }) {
             <p>Five small steps can take you a long way. Pick up where you left off.</p>
           </header>
 
-          {(profileError || logoutError || tutorialProgressError) && (
+          {(profileError || logoutError || tutorialProgressError || examProgress.storageError) && (
             <div className="notice" role="alert">
-              {profileError || logoutError || tutorialProgressError}
+              {profileError || logoutError || tutorialProgressError || examProgress.storageError}
               {profileError && (
                 <button
                   className="text-button dashboard-retry"
@@ -156,7 +158,7 @@ function Dashboard({ session }) {
                 <span className="dashboard-metric-label">Total XP</span>
                 <span className="dashboard-metric-icon" aria-hidden="true">✦</span>
               </div>
-              <strong>{gamification.totalXp}<small> XP</small></strong>
+              <strong>{gamification.totalXp + examProgress.totalXp}<small> XP</small></strong>
               <span>Every correct answer adds up</span>
             </article>
             <article className="card dashboard-metric">
@@ -218,6 +220,25 @@ function Dashboard({ session }) {
             </div>
             <Link className="button" to={nextTutorial ? `/tutorials/${nextTutorial.id}` : '/tutorials'}>
               {nextTutorial ? 'Continue learning' : 'Review tutorials'}
+            </Link>
+          </section>
+
+          <section className="card dashboard-exam-overview" aria-labelledby="dashboard-exam-heading">
+            <div className="dashboard-exam-copy">
+              <p className="eyebrow">Your final challenge</p>
+              <h2 id="dashboard-exam-heading">Final Comprehensive Exam</h2>
+              <p>
+                {examProgress.completed
+                  ? `Passed · personal best ${examProgress.highScore}/50. Keep your achievement shining.`
+                  : examProgress.attempts.length
+                    ? `${examProgress.attempts.length} ${examProgress.attempts.length === 1 ? 'attempt' : 'attempts'} · high score ${examProgress.highScore}/50 · 40 correct to pass.`
+                    : '50 questions across HTML, CSS, JavaScript, Git, and React. Can you reach 80%?'}
+              </p>
+            </div>
+            {examProgress.completed && <span className="dashboard-exam-badge" aria-label="Exam completed">🏆</span>}
+            <Link className="button" to="/exam">
+              {examProgress.completed ? 'View achievement' : examProgress.activeAttempt ? 'Resume exam' : 'Start final exam'}
+              <span aria-hidden="true">→</span>
             </Link>
           </section>
 
