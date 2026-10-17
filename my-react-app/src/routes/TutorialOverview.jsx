@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import ModuleReadingMaterial from '../components/ModuleReadingMaterial.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 
@@ -14,7 +15,6 @@ function TutorialOverview({ userId }) {
     startedTutorialIds,
   } = useTutorialProgress(userId)
   const [expandedSectionId, setExpandedSectionId] = useState(null)
-  const [expandedReadingSectionId, setExpandedReadingSectionId] = useState(null)
 
   if (!tutorial) {
     return (
@@ -93,21 +93,27 @@ function TutorialOverview({ userId }) {
                 )).length
               const sectionProgress = Math.round((sectionAnswered / sectionIndices.length) * 100)
               const expanded = expandedSectionId === section.id
-              const readingExpanded = expandedReadingSectionId === section.id
               const moduleResult = moduleResults[`${tutorial.id}:${section.id}`]
 
               return (
                 <li key={section.id}>
+                  {tutorial.id === 'html-introduction' && (
+                    <section
+                      className="course-module-reading-preview"
+                      aria-labelledby={`module-reading-preview-${section.id}`}
+                    >
+                      <p className="eyebrow">Read before this module</p>
+                      <h3 id={`module-reading-preview-${section.id}`}>{section.title}</h3>
+                      <p>{section.readingMaterial.introduction}</p>
+                    </section>
+                  )}
                   <div className={`course-module${expanded ? ' is-expanded' : ''}`}>
                     <button
                       className="course-module-summary"
                       type="button"
                       aria-expanded={expanded}
                       aria-controls={`module-panel-${section.id}`}
-                      onClick={() => {
-                        setExpandedSectionId(expanded ? null : section.id)
-                        setExpandedReadingSectionId(null)
-                      }}
+                      onClick={() => setExpandedSectionId(expanded ? null : section.id)}
                     >
                       <span className="course-module-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                       <div className="course-module-content">
@@ -139,27 +145,11 @@ function TutorialOverview({ userId }) {
                         <div className="course-module-expanded">
                           <div className="course-module-details">
                             <p>{sectionIndices.length} questions in this module.</p>
-                            <button
-                              className="text-button course-module-reading-toggle"
-                              type="button"
-                              aria-expanded={readingExpanded}
-                              aria-controls={`module-reading-${section.id}`}
-                              tabIndex={expanded ? 0 : -1}
-                              onClick={() => setExpandedReadingSectionId(
-                                readingExpanded ? null : section.id,
-                              )}
-                            >
-                              {readingExpanded ? 'Hide Reading Material' : 'Show Reading Material'}
-                            </button>
-                            <div
-                              className={`course-module-reading${readingExpanded ? ' is-expanded' : ''}`}
+                            <ModuleReadingMaterial
+                              material={section.readingMaterial}
                               id={`module-reading-${section.id}`}
-                              aria-hidden={!readingExpanded}
-                            >
-                              <div className="course-module-reading-inner">
-                                <p>{section.readingMaterial}</p>
-                              </div>
-                            </div>
+                              tabIndex={expanded ? 0 : -1}
+                            />
                           </div>
                           <Link
                             className="button course-module-quiz-link"

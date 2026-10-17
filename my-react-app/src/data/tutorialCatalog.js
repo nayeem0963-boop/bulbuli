@@ -8,17 +8,17 @@ const tutorialCatalogData = [
     intro: 'HTML (HyperText Markup Language) gives web content its structure and meaning. Work through these modules to build a well-structured page, add links and media, collect user input, and make your content accessible and discoverable.',
     codeExample: '<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="utf-8">\n    <title>My page</title>\n  </head>\n  <body>\n    <main>\n      <h1>My page</h1>\n      <p>A little introduction.</p>\n    </main>\n  </body>\n</html>',
     sections: [
-      { id: 'html-basics', title: 'HTML Basics & Document Structure', description: 'Understand elements, attributes, nesting, and the document skeleton.' },
-      { id: 'html-text', title: 'Text Content & Formatting', description: 'Use headings, paragraphs, and text-level elements according to meaning.' },
-      { id: 'html-links', title: 'Links and Navigation', description: 'Create useful links and navigation while considering destinations and context.' },
-      { id: 'html-media', title: 'Images and Media', description: 'Choose image, audio, and video markup with suitable alternatives and controls.' },
-      { id: 'html-lists', title: 'Lists', description: 'Represent ordered steps, unordered collections, and term-definition pairs.' },
-      { id: 'html-tables', title: 'Tables', description: 'Structure genuinely tabular data with headings and accessible relationships.' },
-      { id: 'html-forms', title: 'Forms and Input Elements', description: 'Collect and validate user input with labels, controls, and buttons.' },
-      { id: 'html-semantic', title: 'Semantic HTML5 Elements', description: 'Choose landmarks and content elements by the roles they communicate.' },
-      { id: 'html-meta', title: 'Meta Tags & Basic SEO', description: 'Set document metadata that supports browsers, sharing, and search results.' },
-      { id: 'html-accessibility', title: 'Accessibility Basics', description: 'Make content and controls perceivable and operable with appropriate names.' },
-      { id: 'html-best-practices', title: 'Best Practices & Common Mistakes', description: 'Write robust HTML by avoiding common structural and usability pitfalls.' },
+      { id: 'html-basics', title: 'HTML Basics & Document Structure', description: 'Understand elements, attributes, nesting, and the document skeleton.', readingIntro: 'HTML elements describe the structure and meaning of page content. A document starts with a doctype and an html root, then separates metadata in head from visible content in body. Nest elements in order and use attributes to add details such as language or an element ID.' },
+      { id: 'html-text', title: 'Text Content & Formatting', description: 'Use headings, paragraphs, and text-level elements according to meaning.', readingIntro: 'Give text a meaningful hierarchy: use one main heading followed by nested section headings, and use paragraphs for prose. Choose elements such as em and strong when their meaning matters; do not choose a heading level just to get a particular font size.' },
+      { id: 'html-links', title: 'Links and Navigation', description: 'Create useful links and navigation while considering destinations and context.', readingIntro: 'An anchor element with an href creates a link. Use a URL or a fragment such as #pricing to describe its destination, and write link text that makes sense out of context. Group major site navigation in a nav landmark; when opening a new tab, use rel="noopener" with target="_blank".' },
+      { id: 'html-media', title: 'Images and Media', description: 'Choose image, audio, and video markup with suitable alternatives and controls.', readingIntro: 'Use img for images and provide alt text that communicates the information an image contributes. Decorative images should not add redundant spoken content. Audio and video elements can expose native playback controls, captions, and fallback content.' },
+      { id: 'html-lists', title: 'Lists', description: 'Represent ordered steps, unordered collections, and term-definition pairs.', readingIntro: 'Use ol when sequence matters and ul when the items are a collection; each list item belongs in an li element. Use dl with dt and dd for terms and their descriptions. Choose a list based on the relationship between its items, not its default marker style.' },
+      { id: 'html-tables', title: 'Tables', description: 'Structure genuinely tabular data with headings and accessible relationships.', readingIntro: 'Tables are for data with meaningful row-and-column relationships, not for page layout. Mark header cells with th and data cells with td, and associate headers with their data. Add a caption when a short title helps explain what the table contains.' },
+      { id: 'html-forms', title: 'Forms and Input Elements', description: 'Collect and validate user input with labels, controls, and buttons.', readingIntro: 'A form groups controls for submitting related user input. Connect each visible label to its control with matching for and id values, then choose an input type that describes the expected value. Native types provide helpful browser behavior, but clear instructions and server-side validation remain important.' },
+      { id: 'html-semantic', title: 'Semantic HTML5 Elements', description: 'Choose landmarks and content elements by the roles they communicate.', readingIntro: 'Semantic elements communicate the purpose of page regions to browsers, developers, and assistive technology. Use main for the page’s primary content, article for self-contained content, and nav for major navigation. Prefer an element whose meaning matches the content over a generic container.' },
+      { id: 'html-meta', title: 'Meta Tags & Basic SEO', description: 'Set document metadata that supports browsers, sharing, and search results.', readingIntro: 'Metadata in head describes the document rather than appearing as page content. Set a useful title, declare UTF-8 character encoding, and include a viewport setting so mobile browsers size the page appropriately. A concise description can help search and sharing previews summarize the page.' },
+      { id: 'html-accessibility', title: 'Accessibility Basics', description: 'Make content and controls perceivable and operable with appropriate names.', readingIntro: 'Accessible HTML starts with native semantic elements, clear headings, and labels for controls. Alternative text should convey the purpose of informative images, while decorative images can use empty alt text. Ensure interactive controls have understandable names and can be used with a keyboard.' },
+      { id: 'html-best-practices', title: 'Best Practices & Common Mistakes', description: 'Write robust HTML by avoiding common structural and usability pitfalls.', readingIntro: 'Keep document structure valid and heading levels in a logical order. Use native buttons for actions and anchors for navigation instead of adding click handlers to generic divs. Semantic markup, useful names, and correctly nested elements make pages more reliable and easier to use.' },
     ],
     questions: [
       { sectionId: 'html-basics', question: 'What is HTML primarily used to describe?', options: ['The structure and meaning of page content', 'The colors in a design', 'The behavior of a server', 'The speed of a network'], correctIndex: 0 },
@@ -459,11 +459,32 @@ const tutorialCatalogData = [
 ]
 
 export const tutorialCatalog = tutorialCatalogData.map((tutorial) => {
-  const sections = tutorial.sections?.map((section) => ({
-    ...section,
-    readingMaterial: `${section.description} Review the related examples in this tutorial, compare the available approaches, and consider how this idea helps make a real project clearer and easier to maintain.`,
-  }))
+  const sections = tutorial.sections?.map((section) => {
+    const sectionQuestions = tutorial.questions.filter((question) => question.sectionId === section.id)
+    const keyIdeas = sectionQuestions
+      .map((question) => question.explanation)
+      .filter(Boolean)
+    const reviewPrompts = sectionQuestions
+      .filter((question) => !question.explanation)
+      .map((question) => question.question)
+
+    return {
+      ...section,
+      readingMaterial: {
+        introduction: section.readingIntro ?? section.description,
+        keyIdeas,
+        reviewPrompts,
+      },
+    }
+  })
   const sectionIds = new Set(sections?.map((section) => section.id) ?? [])
+
+  if (sections?.some((section) => (
+    !section.readingMaterial.introduction
+    || (!section.readingMaterial.keyIdeas.length && !section.readingMaterial.reviewPrompts.length)
+  ))) {
+    throw new Error(`Invalid module reading material in tutorial "${tutorial.id}".`)
+  }
 
   tutorial.questions.forEach((question) => {
     if (

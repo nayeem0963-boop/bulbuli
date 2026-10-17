@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import ModuleReadingMaterial from '../components/ModuleReadingMaterial.jsx'
 import ProgressBar from '../components/ProgressBar.jsx'
 import QuizCard from '../components/QuizCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
@@ -55,14 +56,16 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   )
   const [complete, setComplete] = useState(false)
   const [rewardSummary, setRewardSummary] = useState(null)
-  const [sessionStartedAt] = useState(
-    () => quizSessionStartedAt[sessionId] ?? new Date().toISOString(),
+  const [sessionStartedAt, setSessionStartedAt] = useState(
+    () => quizSessionStartedAt[sessionId] ?? (section ? null : new Date().toISOString()),
   )
   const completionRecorded = useRef(false)
   const [timeRemaining, setTimeRemaining] = useState(
     () => Math.max(
       0,
-      Math.ceil((Date.parse(sessionStartedAt) + quizDurationSeconds * 1000 - Date.now()) / 1000),
+      sessionStartedAt
+        ? Math.ceil((Date.parse(sessionStartedAt) + quizDurationSeconds * 1000 - Date.now()) / 1000)
+        : quizDurationSeconds,
     ),
   )
   const totalQuestions = quizQuestions.length
@@ -79,8 +82,14 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   }, [markTutorialStarted, tutorial.id])
 
   useEffect(() => {
-    if (!complete) startQuizSession(sessionId, sessionStartedAt)
+    if (!complete && sessionStartedAt) startQuizSession(sessionId, sessionStartedAt)
   }, [complete, sessionId, sessionStartedAt, startQuizSession])
+
+  const beginModuleQuiz = () => {
+    const startedAt = new Date().toISOString()
+    const persistedStartedAt = startQuizSession(sessionId, startedAt)
+    if (persistedStartedAt) setSessionStartedAt(persistedStartedAt)
+  }
 
   const saveAnswers = (nextAnswers, nextIndex = questionIndex) => {
     setAnswers(nextAnswers)
@@ -130,7 +139,7 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   ])
 
   useEffect(() => {
-    if (complete) return undefined
+    if (complete || !sessionStartedAt) return undefined
     const timerId = window.setInterval(() => {
       const deadline = Date.parse(sessionStartedAt) + quizDurationSeconds * 1000
       setTimeRemaining(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)))
@@ -139,10 +148,10 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   }, [complete, quizDurationSeconds, sessionStartedAt])
 
   useEffect(() => {
-    if (!complete && timeRemaining === 0) {
+    if (!complete && sessionStartedAt && timeRemaining === 0) {
       finishQuiz()
     }
-  }, [complete, finishQuiz, timeRemaining])
+  }, [complete, finishQuiz, sessionStartedAt, timeRemaining])
 
   const timedOut = complete && timeRemaining === 0
   const passed = rewardSummary?.passed === true
@@ -164,71 +173,88 @@ function TutorialQuizSession({ tutorial, userId, section }) {
 
       {!complete ? (
         <>
-          <div className="quiz-session-toolbar">
-            <ProgressBar
-              value={questionIndex + 1}
-              max={totalQuestions}
-              label={`${answeredCount} of ${totalQuestions} answered`}
+          {section && (
+            <ModuleReadingMaterial
+              material={section.readingMaterial}
+              id={`module-reading-${section.id}`}
             />
-            <div
-              className={`quiz-timer${timeRemaining <= 60 ? ' is-urgent' : ''}`}
-              role="timer"
-              aria-label={`${Math.floor(timeRemaining / 60)} minutes ${timeRemaining % 60} seconds remaining`}
-            >
-              <span className="quiz-timer-icon" aria-hidden="true">◷</span>
-              <span>{formatTime(timeRemaining)}</span>
+          )}
+          {section && !sessionStartedAt ? (
+            <div className="module-quiz-start">
+              <p>Take a moment to review the material, then begin the timed quiz.</p>
+              <button className="button" type="button" onClick={beginModuleQuiz}>
+                Start module quiz <span aria-hidden="true">→</span>
+              </button>
             </div>
-          </div>
-          <div className="quiz-question-navigation">
-            <nav
-              id="quiz-question-list"
-              className="quiz-question-nav"
-              aria-label="Jump to a question"
-            >
-              {quizQuestions.map(({ question: item }, index) => (
-                <button
-                  key={item.question}
-                  type="button"
-                  className={[
-                    'quiz-question-dot',
-                    index === questionIndex ? 'is-current' : '',
-                    answers[index] !== null ? 'is-answered' : '',
-                  ].filter(Boolean).join(' ')}
-                  aria-label={`Question ${index + 1}${answers[index] !== null ? ', answered' : ''}`}
-                  aria-current={index === questionIndex ? 'step' : undefined}
-                  onClick={() => goToQuestion(index)}
+          ) : (
+            <>
+              <div className="quiz-session-toolbar">
+                <ProgressBar
+                  value={questionIndex + 1}
+                  max={totalQuestions}
+                  label={`${answeredCount} of ${totalQuestions} answered`}
+                />
+                <div
+                  className={`quiz-timer${timeRemaining <= 60 ? ' is-urgent' : ''}`}
+                  role="timer"
+                  aria-label={`${Math.floor(timeRemaining / 60)} minutes ${timeRemaining % 60} seconds remaining`}
                 >
-                  {String(index + 1).padStart(2, '0')}
-                </button>
-              ))}
-            </nav>
-            <div className="quiz-question-nav-footer">
-              <span className="quiz-answered-count">{answeredCount} answered</span>
-            </div>
-          </div>
-          <QuizCard
-            key={question.question}
-            question={question}
-            questionNumber={questionIndex + 1}
-            totalQuestions={totalQuestions}
-            selectedIndex={answers[questionIndex]}
-            onAnswer={(answerIndex) => {
-              const nextAnswers = answers.slice()
-              nextAnswers[questionIndex] = answerIndex
-              saveAnswers(nextAnswers)
-            }}
-            onPrevious={questionIndex > 0 ? () => goToQuestion(questionIndex - 1) : null}
-            onNext={() => {
-              if (questionIndex + 1 < totalQuestions) {
-                goToQuestion(questionIndex + 1)
-              } else if (answeredCount === totalQuestions) {
-                finishQuiz()
-              }
-            }}
-            isLastQuestion={questionIndex === totalQuestions - 1}
-            canFinish={answeredCount === totalQuestions}
-          />
-          <p className="quiz-save-note">Your answers are saved automatically on this device.</p>
+                  <span className="quiz-timer-icon" aria-hidden="true">◷</span>
+                  <span>{formatTime(timeRemaining)}</span>
+                </div>
+              </div>
+              <div className="quiz-question-navigation">
+                <nav
+                  id="quiz-question-list"
+                  className="quiz-question-nav"
+                  aria-label="Jump to a question"
+                >
+                  {quizQuestions.map(({ question: item }, index) => (
+                    <button
+                      key={item.question}
+                      type="button"
+                      className={[
+                        'quiz-question-dot',
+                        index === questionIndex ? 'is-current' : '',
+                        answers[index] !== null ? 'is-answered' : '',
+                      ].filter(Boolean).join(' ')}
+                      aria-label={`Question ${index + 1}${answers[index] !== null ? ', answered' : ''}`}
+                      aria-current={index === questionIndex ? 'step' : undefined}
+                      onClick={() => goToQuestion(index)}
+                    >
+                      {String(index + 1).padStart(2, '0')}
+                    </button>
+                  ))}
+                </nav>
+                <div className="quiz-question-nav-footer">
+                  <span className="quiz-answered-count">{answeredCount} answered</span>
+                </div>
+              </div>
+              <QuizCard
+                key={question.question}
+                question={question}
+                questionNumber={questionIndex + 1}
+                totalQuestions={totalQuestions}
+                selectedIndex={answers[questionIndex]}
+                onAnswer={(answerIndex) => {
+                  const nextAnswers = answers.slice()
+                  nextAnswers[questionIndex] = answerIndex
+                  saveAnswers(nextAnswers)
+                }}
+                onPrevious={questionIndex > 0 ? () => goToQuestion(questionIndex - 1) : null}
+                onNext={() => {
+                  if (questionIndex + 1 < totalQuestions) {
+                    goToQuestion(questionIndex + 1)
+                  } else if (answeredCount === totalQuestions) {
+                    finishQuiz()
+                  }
+                }}
+                isLastQuestion={questionIndex === totalQuestions - 1}
+                canFinish={answeredCount === totalQuestions}
+              />
+              <p className="quiz-save-note">Your answers are saved automatically on this device.</p>
+            </>
+          )}
         </>
       ) : (
         <section className="card tutorial-results" aria-live="polite">
