@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom'
 import { useComprehensiveExam } from '../hooks/useComprehensiveExam.js'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import {
-  COMPREHENSIVE_EXAM_DURATION_SECONDS,
-  COMPREHENSIVE_EXAM_PASS_PERCENT,
-  COMPREHENSIVE_EXAM_SIZE,
+  EXAM_CONFIGS,
   createExamAttempt,
   sampleUniqueExamQuestions,
   scoreExam,
@@ -39,7 +37,7 @@ function ExamConfetti() {
   )
 }
 
-function ExamResults({ result, onRetake }) {
+function ExamResults({ result, onRetake, examConfig }) {
   const isPerfect = result.perfect
   const passed = result.passed
 
@@ -52,19 +50,19 @@ function ExamResults({ result, onRetake }) {
       {isPerfect ? (
         <div className="exam-perfect-banner">🏆 Perfect Score! Mastery Achieved!</div>
       ) : (
-        <p className="eyebrow">{passed ? 'Comprehensive exam passed' : 'Comprehensive exam result'}</p>
+        <p className="eyebrow">{passed ? `${examConfig.title} passed` : `${examConfig.title} result`}</p>
       )}
       <h1>{isPerfect ? 'Excellence!' : passed ? 'You passed!' : 'Not quite yet'}</h1>
       <p className="exam-result-message">
         {isPerfect
-          ? 'Every answer was correct. You’ve mastered the web development essentials.'
+          ? `Every answer was correct. You’ve mastered ${examConfig.title.replace(/ Exam$/, '')}.`
           : passed
-            ? 'Strong work across the web development topics. Your achievement and XP are saved.'
+            ? `Strong work. Your ${examConfig.title} achievement and XP are saved.`
             : 'A little more practice will get you there. Review your topics and take the exam again when you’re ready.'}
       </p>
       <div className="exam-score-summary" aria-label={`${result.percentage}% score`}>
-        <strong>{result.score}<span>/{COMPREHENSIVE_EXAM_SIZE}</span></strong>
-        <span>{result.percentage}% score · {result.score >= 40 ? 'Pass' : `${40 - result.score} more correct to pass`}</span>
+        <strong>{result.score}<span>/{result.totalQuestions}</span></strong>
+        <span>{result.percentage}% score · {passed ? 'Pass' : `${Math.ceil((examConfig.passPercent * result.totalQuestions / 100) - result.score)} more correct to pass`}</span>
       </div>
       <div className="exam-category-breakdown" aria-label="Score by topic">
         {Object.entries(result.categoryScores).map(([category, score]) => (
@@ -78,7 +76,7 @@ function ExamResults({ result, onRetake }) {
         <div className={`exam-certificate${isPerfect ? ' is-gold' : ''}`} role="status">
           <span aria-hidden="true">{isPerfect ? '🏆' : '🎖️'}</span>
           <div>
-            <strong>{isPerfect ? 'Web Development Mastery' : 'Comprehensive Exam Certified'}</strong>
+            <strong>{isPerfect ? `${examConfig.title.replace(/ Exam$/, '')} Excellence` : `${examConfig.title} Certified`}</strong>
             <span>{result.xpEarned} XP earned · saved to your learning record</span>
           </div>
         </div>
@@ -93,7 +91,7 @@ function ExamResults({ result, onRetake }) {
   )
 }
 
-function ComprehensiveExam({ userId }) {
+function ComprehensiveExam({ userId, examConfig = EXAM_CONFIGS.preparation }) {
   const {
     activeAttempt,
     attempts,
@@ -103,7 +101,7 @@ function ComprehensiveExam({ userId }) {
     saveActiveAttempt,
     completeAttempt,
     storageError,
-  } = useComprehensiveExam(userId)
+  } = useComprehensiveExam(userId, examConfig)
   const [questionIndex, setQuestionIndex] = useState(
     () => activeAttempt?.currentIndex ?? 0,
   )
@@ -115,7 +113,7 @@ function ComprehensiveExam({ userId }) {
   const submitExam = useCallback(() => {
     if (!activeAttempt || submittedAttemptId.current === activeAttempt.id) return
     submittedAttemptId.current = activeAttempt.id
-    const result = scoreExam(activeAttempt)
+    const result = scoreExam(activeAttempt, new Date().toISOString(), examConfig)
     const saved = completeAttempt(result)
     if (!saved) {
       setExamError('Your result is shown, but could not be saved. Check your browser storage settings.')
@@ -123,7 +121,7 @@ function ComprehensiveExam({ userId }) {
       setExamError('')
     }
     setShowSubmitConfirmation(false)
-  }, [activeAttempt, completeAttempt])
+  }, [activeAttempt, completeAttempt, examConfig])
 
   useEffect(() => {
     if (!activeAttempt) return undefined
@@ -140,16 +138,20 @@ function ComprehensiveExam({ userId }) {
 
   const startExam = () => {
     try {
+      const questionCatalog = examConfig.tutorialId
+        ? tutorialCatalog.filter((tutorial) => tutorial.id === examConfig.tutorialId)
+        : tutorialCatalog
       const attempt = createExamAttempt(sampleUniqueExamQuestions(
-        tutorialCatalog,
+        questionCatalog,
         attempts.map((record) => record.questionIds),
-      ))
+        examConfig.questionCount,
+      ), Date.now(), examConfig)
       const saved = saveActiveAttempt(attempt)
       submittedAttemptId.current = null
       setQuestionIndex(0)
       setExamError(saved ? '' : 'Your exam could not be saved. Progress is only temporary until browser storage is available.')
     } catch (error) {
-      console.error('Unable to start the Bulbuli comprehensive exam.', error)
+      console.error(`Unable to start the Bulbuli ${examConfig.title}.`, error)
       setExamError('The exam could not be started. Please try again.')
     }
   }
@@ -186,8 +188,8 @@ function ComprehensiveExam({ userId }) {
         <header className={`exam-sticky-header${secondsRemaining <= 60 ? ' is-urgent' : ''}`}>
           <div className="exam-sticky-header-inner">
             <div>
-              <p className="eyebrow">Bulbuli · Final assessment</p>
-              <h1>Final Comprehensive Exam</h1>
+              <p className="eyebrow">Bulbuli · Timed assessment</p>
+              <h1>{examConfig.title}</h1>
             </div>
             <div className="exam-timer" role="timer" aria-label={`${Math.floor(secondsRemaining / 60)} minutes ${secondsRemaining % 60} seconds remaining`}>
               <span aria-hidden="true">◷</span>
@@ -196,15 +198,15 @@ function ComprehensiveExam({ userId }) {
             </div>
           </div>
           <div className="exam-timer-track" aria-hidden="true">
-            <span style={{ width: `${(secondsRemaining / COMPREHENSIVE_EXAM_DURATION_SECONDS) * 100}%` }} />
+            <span style={{ width: `${(secondsRemaining / examConfig.durationSeconds) * 100}%` }} />
           </div>
         </header>
 
         {storageError && <p className="notice" role="alert">{storageError}</p>}
         {examError && <p className="notice" role="alert">{examError}</p>}
         <div className="exam-progress-row">
-          <p>50 questions · 15 minutes · pass at {COMPREHENSIVE_EXAM_PASS_PERCENT}%</p>
-          <strong>{answeredCount}/{COMPREHENSIVE_EXAM_SIZE} answered</strong>
+          <p>{examConfig.questionCount} questions · {Math.round(examConfig.durationSeconds / 60)} minutes · pass at {examConfig.passPercent}%</p>
+          <strong>{answeredCount}/{examConfig.questionCount} answered</strong>
         </div>
         <nav className="exam-question-nav" aria-label="Jump to an exam question">
           {activeAttempt.questions.map((item, index) => (
@@ -228,7 +230,7 @@ function ComprehensiveExam({ userId }) {
         <section className="card exam-question-card" aria-labelledby="exam-question-title">
           <div className="exam-question-meta">
             <p className="eyebrow">{question.category}</p>
-            <span>Question {questionIndex + 1} of {COMPREHENSIVE_EXAM_SIZE}</span>
+            <span>Question {questionIndex + 1} of {examConfig.questionCount}</span>
           </div>
           <h2 id="exam-question-title">{question.question}</h2>
           <div className="exam-answer-options" role="group" aria-label="Answer choices">
@@ -254,7 +256,7 @@ function ComprehensiveExam({ userId }) {
             >
               <span aria-hidden="true">←</span> Previous
             </button>
-            {questionIndex < COMPREHENSIVE_EXAM_SIZE - 1 ? (
+            {questionIndex < examConfig.questionCount - 1 ? (
               <button className="button" type="button" onClick={() => navigateQuestion(questionIndex + 1)}>
                 Next question <span aria-hidden="true">→</span>
               </button>
@@ -276,7 +278,7 @@ function ComprehensiveExam({ userId }) {
             <section className="card exam-submit-dialog" role="dialog" aria-modal="true" aria-labelledby="exam-submit-title">
               <p className="eyebrow">Ready to finish?</p>
               <h2 id="exam-submit-title">Submit your exam?</h2>
-              <p>{COMPREHENSIVE_EXAM_SIZE - answeredCount} unanswered {COMPREHENSIVE_EXAM_SIZE - answeredCount === 1 ? 'question will' : 'questions will'} count as incorrect. You can’t change answers after submitting.</p>
+              <p>{examConfig.questionCount - answeredCount} unanswered {examConfig.questionCount - answeredCount === 1 ? 'question will' : 'questions will'} count as incorrect. You can’t change answers after submitting.</p>
               <div>
                 <button className="button-secondary" type="button" onClick={() => setShowSubmitConfirmation(false)}>Keep going</button>
                 <button className="button" type="button" onClick={submitExam}>Submit now</button>
@@ -293,7 +295,7 @@ function ComprehensiveExam({ userId }) {
       <main className="page tutorial-hub comprehensive-exam-page">
         {storageError && <p className="notice" role="alert">{storageError}</p>}
         {examError && <p className="notice" role="alert">{examError}</p>}
-        <ExamResults result={latestAttempt} onRetake={startExam} />
+        <ExamResults result={latestAttempt} onRetake={startExam} examConfig={examConfig} />
       </main>
     )
   }
@@ -304,19 +306,19 @@ function ComprehensiveExam({ userId }) {
       {storageError && <p className="notice" role="alert">{storageError}</p>}
       {examError && <p className="notice" role="alert">{examError}</p>}
       <section className="card comprehensive-exam-intro">
-        <div className="exam-intro-icon" aria-hidden="true">✦</div>
-        <p className="eyebrow">The big picture</p>
-        <h1>Final Comprehensive Exam</h1>
-        <p>Bring your HTML, CSS, JavaScript, Git, and React skills together in one final challenge.</p>
+        <div className="exam-intro-icon" aria-hidden="true">{examConfig.symbol || '✦'}</div>
+        <p className="eyebrow">{examConfig.eyebrow}</p>
+        <h1>{examConfig.title}</h1>
+        <p>{examConfig.description}</p>
         <ul>
-          <li><strong>50</strong> randomly selected questions from all five subjects</li>
-          <li><strong>15 minutes</strong> with automatic submission when time runs out</li>
-          <li><strong>80%</strong> to pass and earn your completion badge</li>
+          <li><strong>{examConfig.questionCount}</strong> randomly selected questions{examConfig.tutorialId ? ' from this subject' : ' from all five subjects'}</li>
+          <li><strong>{Math.round(examConfig.durationSeconds / 60)} minutes</strong> with automatic submission when time runs out</li>
+          <li><strong>{examConfig.passPercent}%</strong> to pass and earn your completion badge</li>
         </ul>
         {attempts.length > 0 && (
           <div className="exam-record-summary">
             <span>{attempts.length} {attempts.length === 1 ? 'attempt' : 'attempts'}</span>
-            <span>High score <strong>{highScore}/50</strong></span>
+            <span>High score <strong>{highScore}/{examConfig.questionCount}</strong></span>
             {completed && <span className="exam-record-complete">✓ Passed</span>}
           </div>
         )}

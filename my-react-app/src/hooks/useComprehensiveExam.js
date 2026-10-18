@@ -1,44 +1,44 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  COMPREHENSIVE_EXAM_DURATION_SECONDS,
-  COMPREHENSIVE_EXAM_PASS_PERCENT,
-  COMPREHENSIVE_EXAM_SIZE,
-} from '../utils/comprehensiveExam.js'
+import { EXAM_CONFIGS } from '../utils/comprehensiveExam.js'
 
 const EMPTY_EXAM_PROGRESS = {
   attempts: [],
   highScore: 0,
+  totalXp: 0,
   completed: false,
   latestAttempt: null,
   activeAttempt: null,
 }
 
-function getStorageKey(userId) {
+function getStorageKey(userId, examConfig) {
   if (typeof userId !== 'string' || !userId.trim()) {
-    throw new TypeError('A signed-in user ID is required to track comprehensive exam progress.')
+    throw new TypeError('A signed-in user ID is required to track exam progress.')
   }
 
-  return `bulbuli.comprehensive-exam.v1.${encodeURIComponent(userId)}`
+  const userKey = encodeURIComponent(userId)
+  return examConfig.id === EXAM_CONFIGS.preparation.id
+    ? `bulbuli.comprehensive-exam.v1.${userKey}`
+    : `bulbuli.subject-exam.v1.${userKey}.${examConfig.id}`
 }
 
-function isValidAttempt(attempt) {
+function isValidAttempt(attempt, examConfig) {
   return Boolean(
     attempt
     && typeof attempt.id === 'string'
     && Array.isArray(attempt.questions)
-    && attempt.questions.length === COMPREHENSIVE_EXAM_SIZE
+    && attempt.questions.length === examConfig.questionCount
     && Array.isArray(attempt.answers)
-    && attempt.answers.length === COMPREHENSIVE_EXAM_SIZE
+    && attempt.answers.length === examConfig.questionCount
     && attempt.answers.every((answer) => answer === null || (
       Number.isInteger(answer) && answer >= 0 && answer <= 3
     ))
     && Number.isInteger(attempt.currentIndex)
     && attempt.currentIndex >= 0
-    && attempt.currentIndex < COMPREHENSIVE_EXAM_SIZE
+    && attempt.currentIndex < examConfig.questionCount
     && !Number.isNaN(Date.parse(attempt.startedAt))
     && !Number.isNaN(Date.parse(attempt.expiresAt))
     && Date.parse(attempt.expiresAt) - Date.parse(attempt.startedAt)
-      === COMPREHENSIVE_EXAM_DURATION_SECONDS * 1000
+      === examConfig.durationSeconds * 1000
     && attempt.questions.every((question) => (
       typeof question.id === 'string'
       && Array.isArray(question.options)
@@ -50,23 +50,23 @@ function isValidAttempt(attempt) {
   )
 }
 
-function isValidResult(result) {
+function isValidResult(result, examConfig) {
   return Boolean(
     result
     && typeof result.id === 'string'
     && Number.isInteger(result.score)
     && result.score >= 0
-    && result.score <= COMPREHENSIVE_EXAM_SIZE
-    && result.totalQuestions === COMPREHENSIVE_EXAM_SIZE
+    && result.score <= examConfig.questionCount
+    && result.totalQuestions === examConfig.questionCount
     && Array.isArray(result.questionIds)
-    && result.questionIds.length === COMPREHENSIVE_EXAM_SIZE
+    && result.questionIds.length === examConfig.questionCount
     && result.questionIds.every((id) => typeof id === 'string')
     && Number.isInteger(result.percentage)
     && result.percentage >= 0
     && result.percentage <= 100
-    && result.percentage === Math.round((result.score / COMPREHENSIVE_EXAM_SIZE) * 100)
+    && result.percentage === Math.round((result.score / examConfig.questionCount) * 100)
     && typeof result.passed === 'boolean'
-    && result.passed === (result.percentage >= COMPREHENSIVE_EXAM_PASS_PERCENT)
+    && result.passed === (result.percentage >= examConfig.passPercent)
     && typeof result.perfect === 'boolean'
     && result.perfect === (result.percentage === 100)
     && Number.isInteger(result.xpEarned)
@@ -75,19 +75,19 @@ function isValidResult(result) {
   )
 }
 
-function normalizeProgress(progress) {
+function normalizeProgress(progress, examConfig) {
   if (
     !progress
     || !Array.isArray(progress.attempts)
-    || !progress.attempts.every(isValidResult)
-    || (progress.latestAttempt !== null && !isValidResult(progress.latestAttempt))
-    || (progress.activeAttempt !== null && !isValidAttempt(progress.activeAttempt))
+    || !progress.attempts.every((attempt) => isValidResult(attempt, examConfig))
+    || (progress.latestAttempt !== null && !isValidResult(progress.latestAttempt, examConfig))
+    || (progress.activeAttempt !== null && !isValidAttempt(progress.activeAttempt, examConfig))
   ) {
     throw new Error('Saved comprehensive exam progress has an invalid format.')
   }
 
   const highScore = progress.attempts.reduce((highest, attempt) => Math.max(highest, attempt.score), 0)
-  const totalXp = progress.attempts.reduce((total, attempt) => total + (attempt.xpEarned ?? 0), 0)
+  const totalXp = progress.attempts.reduce((total, attempt) => total + (Number(attempt.xpEarned) || 0), 0)
   return {
     attempts: progress.attempts,
     highScore,
@@ -98,11 +98,11 @@ function normalizeProgress(progress) {
   }
 }
 
-function loadProgress(storageKey) {
+function loadProgress(storageKey, examConfig) {
   try {
     const saved = window.localStorage.getItem(storageKey)
     return {
-      progress: saved === null ? EMPTY_EXAM_PROGRESS : normalizeProgress(JSON.parse(saved)),
+      progress: saved === null ? EMPTY_EXAM_PROGRESS : normalizeProgress(JSON.parse(saved), examConfig),
       storageError: '',
     }
   } catch (error) {
@@ -114,14 +114,14 @@ function loadProgress(storageKey) {
   }
 }
 
-export function useComprehensiveExam(userId) {
-  const [storageKey] = useState(() => getStorageKey(userId))
-  const [state, setState] = useState(() => loadProgress(storageKey))
+export function useComprehensiveExam(userId, examConfig = EXAM_CONFIGS.preparation) {
+  const [storageKey] = useState(() => getStorageKey(userId, examConfig))
+  const [state, setState] = useState(() => loadProgress(storageKey, examConfig))
   const progressRef = useRef(state.progress)
 
   useEffect(() => {
     const syncProgress = (progress) => {
-      const normalized = normalizeProgress(progress)
+      const normalized = normalizeProgress(progress, examConfig)
       progressRef.current = normalized
       setState({ progress: normalized, storageError: '' })
     }
@@ -147,10 +147,10 @@ export function useComprehensiveExam(userId) {
       window.removeEventListener('storage', handleStorage)
       window.removeEventListener('bulbuli:comprehensive-exam-progress', handleLocalProgress)
     }
-  }, [storageKey])
+  }, [examConfig, storageKey])
 
   const saveProgress = useCallback((update) => {
-    const nextProgress = normalizeProgress(update(progressRef.current))
+    const nextProgress = normalizeProgress(update(progressRef.current), examConfig)
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(nextProgress))
       progressRef.current = nextProgress
@@ -169,18 +169,18 @@ export function useComprehensiveExam(userId) {
       }))
       return false
     }
-  }, [storageKey])
+  }, [examConfig, storageKey])
 
   const saveActiveAttempt = useCallback((attempt) => {
-    if (attempt !== null && !isValidAttempt(attempt)) {
-      throw new TypeError('A comprehensive exam attempt must contain 50 valid questions and answers.')
+    if (attempt !== null && !isValidAttempt(attempt, examConfig)) {
+      throw new TypeError(`An ${examConfig.title} attempt must contain ${examConfig.questionCount} valid questions and answers.`)
     }
     return saveProgress((current) => ({ ...current, activeAttempt: attempt }))
-  }, [saveProgress])
+  }, [examConfig, saveProgress])
 
   const completeAttempt = useCallback((result) => {
-    if (!isValidResult(result)) {
-      throw new TypeError('A comprehensive exam result must contain a valid score and submission time.')
+    if (!isValidResult(result, examConfig)) {
+      throw new TypeError(`An ${examConfig.title} result must contain a valid score and submission time.`)
     }
 
     return saveProgress((current) => ({
@@ -191,7 +191,7 @@ export function useComprehensiveExam(userId) {
       latestAttempt: result,
       activeAttempt: null,
     }))
-  }, [saveProgress])
+  }, [examConfig, saveProgress])
 
   return {
     ...state.progress,

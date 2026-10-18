@@ -5,8 +5,10 @@ import TutorialCard from '../components/TutorialCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 import { useComprehensiveExam } from '../hooks/useComprehensiveExam.js'
+import { EXAM_CONFIGS } from '../utils/comprehensiveExam.js'
 import { getCurrentStreak } from '../utils/gamification.js'
 import { getTutorialCardAction } from '../utils/tutorialCardAction.js'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 
 function formatJoinedDate(createdAt) {
   if (!createdAt) return 'Not available'
@@ -17,7 +19,41 @@ function formatJoinedDate(createdAt) {
     : date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
-function Dashboard({ session }) {
+function SubjectExamCard({ examConfig, progress }) {
+  const scorePercent = Math.round((progress.highScore / examConfig.questionCount) * 100)
+
+  return (
+    <article className={`card subject-exam-card subject-exam-${examConfig.id}`}>
+      <div className="subject-exam-card-top">
+        <span className="subject-exam-icon" aria-hidden="true">{examConfig.symbol}</span>
+        {progress.completed && <span className="subject-exam-complete" aria-label="Certification earned">✓</span>}
+      </div>
+      <p className="eyebrow">{examConfig.eyebrow}</p>
+      <h3>{examConfig.title}</h3>
+      <p className="subject-exam-meta">{examConfig.questionCount} questions · {Math.round(examConfig.durationSeconds / 60)} minutes · {examConfig.passPercent}% to pass</p>
+      <div
+        className="subject-exam-progress"
+        role="progressbar"
+        aria-label={`${examConfig.title} best score`}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={scorePercent}
+      >
+        <span style={{ width: `${scorePercent}%` }} />
+      </div>
+      <div className="subject-exam-card-footer">
+        <span>{progress.completed ? `Certified · ${scorePercent}% best` : progress.attempts.length ? `${scorePercent}% best score` : 'Not attempted'}</span>
+        <Link className="button-secondary" to={`/exams/${examConfig.id}`}>
+          {progress.activeAttempt ? 'Resume exam' : progress.completed ? 'View result' : 'Take Exam'}
+          <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+      {progress.storageError && <p className="notice" role="alert">{progress.storageError}</p>}
+    </article>
+  )
+}
+
+function Dashboard({ session, theme, onToggleTheme }) {
   const navigate = useNavigate()
   const [user, setUser] = useState(session.user)
   const [loading, setLoading] = useState(true)
@@ -35,6 +71,15 @@ function Dashboard({ session }) {
     userActivity,
   } = useTutorialProgress(session.user.id)
   const examProgress = useComprehensiveExam(session.user.id)
+  const subjectExamProgress = {
+    html: useComprehensiveExam(session.user.id, EXAM_CONFIGS.html),
+    css: useComprehensiveExam(session.user.id, EXAM_CONFIGS.css),
+    javascript: useComprehensiveExam(session.user.id, EXAM_CONFIGS.javascript),
+    github: useComprehensiveExam(session.user.id, EXAM_CONFIGS.github),
+    react: useComprehensiveExam(session.user.id, EXAM_CONFIGS.react),
+  }
+  const totalExamXp = Object.values({ preparation: examProgress, ...subjectExamProgress })
+    .reduce((total, progress) => total + (Number(progress.totalXp) || 0), 0)
 
   useEffect(() => {
     let isMounted = true
@@ -102,39 +147,61 @@ function Dashboard({ session }) {
 
   return (
     <div className="dashboard-page">
-      <header className="dashboard-topbar">
-        <Link className="dashboard-brand" to="/" aria-label="Bulbuli home">bulbuli<span>.</span></Link>
-        <button type="button" className="button-secondary dashboard-logout" onClick={handleLogout} disabled={signingOut}>
-          {signingOut ? 'Logging out…' : 'Logout'}
-        </button>
-      </header>
-
       <div className="dashboard-layout">
         <aside className="card dashboard-sidebar" aria-label="Dashboard navigation">
-          <div className="dashboard-sidebar-user">
-            <div className="dashboard-avatar dashboard-avatar-small" aria-hidden="true">
-              {avatarUrl && !avatarFailed
-                ? <img src={avatarUrl} alt="" onError={() => setAvatarFailed(true)} />
-                : initials}
-            </div>
-            <div>
-              <strong>{fullName}</strong>
-              <span>{email}</span>
-            </div>
-          </div>
-          <nav className="dashboard-nav">
-            <a className="dashboard-nav-link is-current" href="#overview" aria-current="page">Overview</a>
-            <Link className="dashboard-nav-link" to="/">Learning</Link>
-            <a className="dashboard-nav-link" href="#profile">Profile</a>
+          <Link className="dashboard-brand" to="/" aria-label="Bulbuli home">bulbuli<span>.</span></Link>
+          <nav className="dashboard-nav" aria-label="Primary navigation">
+            <a className="dashboard-nav-link is-current" href="#overview" aria-current="page">
+              <span className="dashboard-nav-icon" aria-hidden="true">⌂</span>Overview
+            </a>
+            <Link className="dashboard-nav-link" to="/">
+              <span className="dashboard-nav-icon" aria-hidden="true">▤</span>Learning
+            </Link>
+            <a className="dashboard-nav-link" href="#profile">
+              <span className="dashboard-nav-icon" aria-hidden="true">◉</span>Profile
+            </a>
           </nav>
+          <div className="dashboard-sidebar-footer">
+            <a className="dashboard-sidebar-user" href="#profile">
+              <div className="dashboard-avatar dashboard-avatar-small" aria-hidden="true">
+                {avatarUrl && !avatarFailed
+                  ? <img src={avatarUrl} alt="" onError={() => setAvatarFailed(true)} />
+                  : initials}
+              </div>
+              <div>
+                <strong>{fullName}</strong>
+                <span>{email}</span>
+              </div>
+            </a>
+            <span className="dashboard-sidebar-caption">Your learning account</span>
+          </div>
         </aside>
 
-        <main className="dashboard-main">
-          <header className="dashboard-heading" id="overview">
-            {!userActivity && <p className="eyebrow">Your learning space</p>}
-            <h1>{userActivity ? 'Your learning overview' : `Welcome back, ${fullName}`}</h1>
-            <p>Five small steps can take you a long way. Pick up where you left off.</p>
+        <div className="dashboard-workspace">
+          <header className="dashboard-workspace-header" id="overview">
+            <div className="dashboard-heading">
+              {!userActivity && <p className="eyebrow">Your learning space</p>}
+              <h1>{userActivity ? 'Your learning overview' : `Welcome back, ${fullName}`}</h1>
+              <p>Five small steps can take you a long way. Pick up where you left off.</p>
+            </div>
+            <div className="dashboard-header-actions" aria-label="Account controls">
+              <ThemeToggle
+                theme={theme}
+                onToggleTheme={onToggleTheme}
+                className="theme-toggle dashboard-theme-toggle"
+              />
+              <button
+                type="button"
+                className="button-secondary dashboard-logout"
+                onClick={handleLogout}
+                disabled={signingOut}
+              >
+                <span aria-hidden="true">↪</span>{signingOut ? 'Logging out…' : 'Logout'}
+              </button>
+            </div>
           </header>
+
+          <main className="dashboard-main">
 
           {(profileError || logoutError || tutorialProgressError || examProgress.storageError) && (
             <div className="notice" role="alert">
@@ -158,7 +225,7 @@ function Dashboard({ session }) {
                 <span className="dashboard-metric-label">Total XP</span>
                 <span className="dashboard-metric-icon" aria-hidden="true">✦</span>
               </div>
-              <strong>{gamification.totalXp + examProgress.totalXp}<small> XP</small></strong>
+              <strong>{(Number(gamification.totalXp) || 0) + totalExamXp}<small> XP</small></strong>
               <span>Every correct answer adds up</span>
             </article>
             <article className="card dashboard-metric">
@@ -225,21 +292,39 @@ function Dashboard({ session }) {
 
           <section className="card dashboard-exam-overview" aria-labelledby="dashboard-exam-heading">
             <div className="dashboard-exam-copy">
-              <p className="eyebrow">Your final challenge</p>
-              <h2 id="dashboard-exam-heading">Final Comprehensive Exam</h2>
+              <p className="eyebrow">Featured capstone · 15 minutes · 80% to pass</p>
+              <h2 id="dashboard-exam-heading">Frontend Developer Preparation</h2>
               <p>
                 {examProgress.completed
-                  ? `Passed · personal best ${examProgress.highScore}/50. Keep your achievement shining.`
+                  ? `Passed · personal best ${examProgress.highScore}/${EXAM_CONFIGS.preparation.questionCount}. Keep your achievement shining.`
                   : examProgress.attempts.length
-                    ? `${examProgress.attempts.length} ${examProgress.attempts.length === 1 ? 'attempt' : 'attempts'} · high score ${examProgress.highScore}/50 · 40 correct to pass.`
-                    : '50 questions across HTML, CSS, JavaScript, Git, and React. Can you reach 80%?'}
+                    ? `${examProgress.attempts.length} ${examProgress.attempts.length === 1 ? 'attempt' : 'attempts'} · high score ${examProgress.highScore}/${EXAM_CONFIGS.preparation.questionCount} · ${Math.ceil(EXAM_CONFIGS.preparation.questionCount * EXAM_CONFIGS.preparation.passPercent / 100)} correct to pass.`
+                    : '50 questions across HTML, CSS, JavaScript, GitHub, and React. Can you reach 80%?'}
               </p>
             </div>
             {examProgress.completed && <span className="dashboard-exam-badge" aria-label="Exam completed">🏆</span>}
             <Link className="button" to="/exam">
-              {examProgress.completed ? 'View achievement' : examProgress.activeAttempt ? 'Resume exam' : 'Start final exam'}
+              {examProgress.completed ? 'View achievement' : examProgress.activeAttempt ? 'Resume exam' : 'Start preparation'}
               <span aria-hidden="true">→</span>
             </Link>
+          </section>
+
+          <section className="dashboard-subject-exams" aria-labelledby="subject-exams-heading">
+            <div className="tutorial-section-heading">
+              <div>
+                <p className="eyebrow">Focused practice · individual credentials</p>
+                <h2 id="subject-exams-heading">🎯 Subject Exams &amp; Certifications</h2>
+              </div>
+            </div>
+            <div className="subject-exam-grid">
+              {Object.values(EXAM_CONFIGS).filter((examConfig) => examConfig.tutorialId).map((examConfig) => (
+                <SubjectExamCard
+                  key={examConfig.id}
+                  examConfig={examConfig}
+                  progress={subjectExamProgress[examConfig.id]}
+                />
+              ))}
+            </div>
           </section>
 
           <section className="dashboard-tutorials" aria-labelledby="tutorials-heading">
@@ -280,7 +365,8 @@ function Dashboard({ session }) {
               })}
             </div>
           </section>
-        </main>
+          </main>
+        </div>
       </div>
     </div>
   )

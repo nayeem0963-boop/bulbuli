@@ -2084,12 +2084,17 @@ button:active:not(:disabled),
 }
 
 .dashboard-exam-overview {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 1rem 0;
-  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
-  padding: 1.25rem 1.4rem;
+  margin: 1rem 0 2.5rem;
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  padding: clamp(1.35rem, 3vw, 2rem);
+  background:
+    radial-gradient(ellipse at 92% 10%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 18rem),
+    linear-gradient(120deg, var(--accent-soft), var(--surface) 78%);
+  box-shadow: var(--shadow);
 }
 
 .dashboard-exam-copy {
@@ -2119,6 +2124,139 @@ button:active:not(:disabled),
 
 .dashboard-exam-overview > .button {
   flex: 0 0 auto;
+}
+
+.dashboard-exam-copy h2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.65rem);
+}
+
+.dashboard-subject-exams {
+  margin: 0 0 2.6rem;
+}
+
+.dashboard-subject-exams .tutorial-section-heading {
+  margin-bottom: 1.15rem;
+}
+
+.dashboard-subject-exams h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  letter-spacing: -0.045em;
+}
+
+.subject-exam-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.subject-exam-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border-color: color-mix(in srgb, var(--exam-accent, var(--accent)) 20%, var(--border));
+  padding: 1.25rem;
+}
+
+.subject-exam-html { --exam-accent: #dc684f; }
+.subject-exam-css { --exam-accent: #527ed8; }
+.subject-exam-javascript { --exam-accent: #ae8b00; }
+.subject-exam-github { --exam-accent: #7b63bd; }
+.subject-exam-react { --exam-accent: #2795b7; }
+
+.subject-exam-card-top {
+  display: flex;
+  min-height: 2.8rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.subject-exam-icon {
+  display: grid;
+  min-width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--exam-accent, var(--accent)) 25%, var(--border));
+  border-radius: 12px;
+  color: var(--exam-accent, var(--accent));
+  background: color-mix(in srgb, var(--exam-accent, var(--accent)) 9%, var(--surface));
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.subject-exam-complete {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--success);
+  background: var(--success-soft);
+  font-weight: 800;
+}
+
+.subject-exam-card .eyebrow {
+  margin-bottom: 0.35rem;
+  color: var(--exam-accent, var(--accent));
+  font-size: 0.72rem;
+}
+
+.subject-exam-card h3 {
+  margin: 0 0 0.55rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.025em;
+}
+
+.subject-exam-meta {
+  min-height: 2.5rem;
+  margin: 0 0 1.1rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.subject-exam-progress {
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--surface-muted);
+}
+
+.subject-exam-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--exam-accent, var(--accent));
+  transition: width 220ms ease;
+}
+
+.subject-exam-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.subject-exam-card-footer .button-secondary {
+  min-height: 2.35rem;
+  gap: 0.45rem;
+  padding: 0.45rem 0.7rem;
+  color: var(--text);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.subject-exam-card-footer .button-secondary span {
+  color: var(--exam-accent, var(--accent));
+}
+
+.subject-exam-card .notice {
+  margin: 0.8rem 0 0;
+  font-size: 0.75rem;
 }
 
 .comprehensive-exam-page {
@@ -2683,6 +2821,12 @@ button:active:not(:disabled),
   box-shadow: 0 8px 22px rgb(0 0 0 / 25%);
 }
 
+@media (max-width: 900px) {
+  .subject-exam-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 600px) {
   .exam-sticky-header {
     margin-right: calc((100vw - min(100vw - 1.25rem, 1100px)) / -2);
@@ -2701,6 +2845,14 @@ button:active:not(:disabled),
   .dashboard-exam-overview > .button {
     width: 100%;
     justify-content: center;
+  }
+
+  .subject-exam-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .subject-exam-card-footer {
+    align-items: flex-start;
   }
 
   .exam-sticky-header-inner {

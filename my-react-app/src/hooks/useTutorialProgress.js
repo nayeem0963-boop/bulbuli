@@ -136,17 +136,16 @@ function normalizeProgress(progress) {
   }
 
   const savedGamification = progress.gamification ?? {}
+  const savedTotalXp = Number(savedGamification.totalXp)
   const gamification = {
-    totalXp: savedGamification.totalXp ?? 0,
+    totalXp: Number.isSafeInteger(savedTotalXp) && savedTotalXp >= 0 ? savedTotalXp : 0,
     currentStreak: savedGamification.currentStreak ?? 0,
     lastActivityDate: savedGamification.lastActivityDate ?? '',
     completedQuizCount: savedGamification.completedQuizCount
       ?? Object.keys(completedTutorials).length,
   }
   if (
-    !Number.isInteger(gamification.totalXp)
-    || gamification.totalXp < 0
-    || !Number.isInteger(gamification.currentStreak)
+    !Number.isInteger(gamification.currentStreak)
     || gamification.currentStreak < 0
     || !Number.isInteger(gamification.completedQuizCount)
     || gamification.completedQuizCount < 0
@@ -427,7 +426,7 @@ export function useTutorialProgress(userId) {
           Object.entries(current.quizSessionStartedAt).filter(([id]) => id !== sessionId),
         ),
         gamification: {
-          totalXp: previousGamification.totalXp + xpEarned,
+          totalXp: (Number(previousGamification.totalXp) || 0) + (Number(xpEarned) || 0),
           currentStreak,
           lastActivityDate: todayKey,
           completedQuizCount: previousGamification.completedQuizCount + 1,

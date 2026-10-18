@@ -2,6 +2,74 @@ export const COMPREHENSIVE_EXAM_SIZE = 50
 export const COMPREHENSIVE_EXAM_DURATION_SECONDS = 15 * 60
 export const COMPREHENSIVE_EXAM_PASS_PERCENT = 80
 
+export const EXAM_CONFIGS = {
+  preparation: {
+    id: 'preparation',
+    title: 'Frontend Developer Preparation',
+    description: 'Bring your HTML, CSS, JavaScript, GitHub, and React skills together in one final challenge.',
+    eyebrow: 'The big picture',
+    questionCount: COMPREHENSIVE_EXAM_SIZE,
+    durationSeconds: COMPREHENSIVE_EXAM_DURATION_SECONDS,
+    passPercent: COMPREHENSIVE_EXAM_PASS_PERCENT,
+    tutorialId: null,
+  },
+  html: {
+    id: 'html',
+    title: 'Introduction to HTML Exam',
+    description: 'Show your understanding of semantic structure, accessible content, forms, and modern HTML.',
+    eyebrow: 'HTML certification',
+    questionCount: 15,
+    durationSeconds: 10 * 60,
+    passPercent: COMPREHENSIVE_EXAM_PASS_PERCENT,
+    tutorialId: 'html-introduction',
+    symbol: '</>',
+  },
+  css: {
+    id: 'css',
+    title: 'Introduction to CSS Exam',
+    description: 'Test your skills in styling, layout, responsive design, and accessible visual presentation.',
+    eyebrow: 'CSS certification',
+    questionCount: 15,
+    durationSeconds: 10 * 60,
+    passPercent: COMPREHENSIVE_EXAM_PASS_PERCENT,
+    tutorialId: 'css-introduction',
+    symbol: '✦',
+  },
+  javascript: {
+    id: 'javascript',
+    title: 'Introduction to JavaScript Exam',
+    description: 'Demonstrate your knowledge of JavaScript fundamentals, data, functions, and browser behavior.',
+    eyebrow: 'JavaScript certification',
+    questionCount: 15,
+    durationSeconds: 10 * 60,
+    passPercent: COMPREHENSIVE_EXAM_PASS_PERCENT,
+    tutorialId: 'javascript-introduction',
+    symbol: 'JS',
+  },
+  github: {
+    id: 'github',
+    title: 'GitHub Exam',
+    description: 'Prove your skills with version control, GitHub collaboration, pull requests, and workflows.',
+    eyebrow: 'GitHub certification',
+    questionCount: 15,
+    durationSeconds: 10 * 60,
+    passPercent: COMPREHENSIVE_EXAM_PASS_PERCENT,
+    tutorialId: 'github-introduction',
+    symbol: '⌘',
+  },
+  react: {
+    id: 'react',
+    title: 'Introduction to React Exam',
+    description: 'Check your understanding of components, props, state, hooks, and React application patterns.',
+    eyebrow: 'React certification',
+    questionCount: 15,
+    durationSeconds: 10 * 60,
+    passPercent: COMPREHENSIVE_EXAM_PASS_PERCENT,
+    tutorialId: 'react-introduction',
+    symbol: '⚛',
+  },
+}
+
 export function shuffleArray(items, random = Math.random) {
   const shuffled = items.slice()
 
@@ -77,9 +145,9 @@ export function sampleUniqueExamQuestions(catalog, previousQuestionSets = [], si
   throw new Error('A unique question order could not be created for this exam attempt.')
 }
 
-export function createExamAttempt(questions, now = Date.now()) {
-  if (!Array.isArray(questions) || questions.length !== COMPREHENSIVE_EXAM_SIZE) {
-    throw new TypeError(`A comprehensive exam must contain exactly ${COMPREHENSIVE_EXAM_SIZE} questions.`)
+export function createExamAttempt(questions, now = Date.now(), examConfig = EXAM_CONFIGS.preparation) {
+  if (!Array.isArray(questions) || questions.length !== examConfig.questionCount) {
+    throw new TypeError(`${examConfig.title} must contain exactly ${examConfig.questionCount} questions.`)
   }
 
   return {
@@ -88,16 +156,16 @@ export function createExamAttempt(questions, now = Date.now()) {
     answers: Array(questions.length).fill(null),
     currentIndex: 0,
     startedAt: new Date(now).toISOString(),
-    expiresAt: new Date(now + COMPREHENSIVE_EXAM_DURATION_SECONDS * 1000).toISOString(),
+    expiresAt: new Date(now + examConfig.durationSeconds * 1000).toISOString(),
   }
 }
 
-export function scoreExam(attempt, submittedAt = new Date().toISOString()) {
+export function scoreExam(attempt, submittedAt = new Date().toISOString(), examConfig = EXAM_CONFIGS.preparation) {
   const correct = attempt.questions.reduce(
     (total, question, index) => total + (attempt.answers[index] === question.correctIndex ? 1 : 0),
     0,
   )
-  const percentage = Math.round((correct / COMPREHENSIVE_EXAM_SIZE) * 100)
+  const percentage = Math.round((correct / examConfig.questionCount) * 100)
   const categoryScores = attempt.questions.reduce((scores, question, index) => {
     const category = question.category || 'Other'
     const score = scores[category] ?? { correct: 0, total: 0 }
@@ -112,12 +180,12 @@ export function scoreExam(attempt, submittedAt = new Date().toISOString()) {
     startedAt: attempt.startedAt,
     submittedAt,
     score: correct,
-    totalQuestions: COMPREHENSIVE_EXAM_SIZE,
+    totalQuestions: examConfig.questionCount,
     percentage,
-    passed: percentage >= COMPREHENSIVE_EXAM_PASS_PERCENT,
+    passed: percentage >= examConfig.passPercent,
     perfect: percentage === 100,
     timedOut: Date.parse(submittedAt) >= Date.parse(attempt.expiresAt),
-    xpEarned: percentage === 100 ? 100 : percentage >= COMPREHENSIVE_EXAM_PASS_PERCENT ? 50 : 0,
+    xpEarned: percentage === 100 ? 100 : percentage >= examConfig.passPercent ? 50 : 0,
     questionIds: attempt.questions.map((question) => question.id),
     categoryScores,
   }

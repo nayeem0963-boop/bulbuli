@@ -66,7 +66,7 @@ function Home({ session }) {
             Explore all tutorials <span aria-hidden="true">→</span>
           </Link>
           <Link className="button-secondary home-exam-link" to="/exam">
-            Take the final exam <span aria-hidden="true">↗</span>
+            Frontend Developer Preparation <span aria-hidden="true">↗</span>
           </Link>
         </div>
         <div className="tutorial-hero-art" role="group" aria-label="Interactive web technology badges">

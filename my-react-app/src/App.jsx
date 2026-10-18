@@ -9,8 +9,10 @@ import Login from './routes/Login.jsx'
 import TutorialCatalog from './routes/TutorialCatalog.jsx'
 import TutorialOverview from './routes/TutorialOverview.jsx'
 import TutorialQuiz from './routes/TutorialQuiz.jsx'
+import ThemeToggle from './components/ThemeToggle.jsx'
 import { tutorialCatalog } from './data/tutorialCatalog.js'
 import { useTutorialProgress } from './hooks/useTutorialProgress.js'
+import { EXAM_CONFIGS } from './utils/comprehensiveExam.js'
 
 function RouteTitle() {
   const { pathname } = useLocation()
@@ -18,6 +20,8 @@ function RouteTitle() {
   useEffect(() => {
     const catalogTutorialId = pathname.match(/^\/tutorials\/([^/]+)(?:\/quiz)?$/)?.[1]
     const catalogTutorial = tutorialCatalog.find((item) => item.id === catalogTutorialId)
+    const subjectExamId = pathname.match(/^\/exams\/([^/]+)$/)?.[1]
+    const subjectExam = Object.values(EXAM_CONFIGS).find((exam) => exam.id === subjectExamId)
     let title = 'Free Interactive Coding Quizzes | Bulbuli'
     let description = 'Bulbuli is a free interactive quiz platform for learning HTML, CSS, JavaScript, GitHub, and React. Explore bite-sized tutorials, test your skills, and track your progress.'
 
@@ -28,8 +32,11 @@ function RouteTitle() {
       title = 'Your Learning Dashboard | Bulbuli'
       description = 'Track your learning progress and continue your interactive HTML, CSS, JavaScript, GitHub, and React tutorials with Bulbuli.'
     } else if (pathname === '/exam') {
-      title = 'Final Comprehensive Exam | Bulbuli'
-      description = 'Test your HTML, CSS, JavaScript, Git, and React skills in Bulbuli’s timed 50-question final exam.'
+      title = `${EXAM_CONFIGS.preparation.title} | Bulbuli`
+      description = 'Test your HTML, CSS, JavaScript, GitHub, and React skills in Bulbuli’s timed 50-question preparation exam.'
+    } else if (subjectExam) {
+      title = `${subjectExam.title} | Bulbuli`
+      description = `${subjectExam.description} Take Bulbuli’s timed subject exam and earn a certification.`
     } else if (pathname === '/') {
       title = 'Free Interactive Coding Quizzes | Bulbuli'
     } else if (pathname === '/tutorials') {
@@ -99,6 +106,13 @@ function LoginRoute({ session }) {
     : <Login />
 }
 
+function AppThemeToggle({ theme, onToggleTheme }) {
+  const { pathname } = useLocation()
+  if (pathname === '/dashboard') return null
+
+  return <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} className="theme-toggle app-theme-toggle" />
+}
+
 function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -164,25 +178,6 @@ function App() {
 
   return (
     <div className="app-shell" data-theme={theme}>
-      <button
-        className="theme-toggle"
-        type="button"
-        onClick={toggleTheme}
-        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-      >
-        {theme === 'light' ? (
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M20.2 15.6A8.5 8.5 0 0 1 8.4 3.8 8.5 8.5 0 1 0 20.2 15.6Z" />
-          </svg>
-        ) : (
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
-          </svg>
-        )}
-        <span>{theme === 'light' ? 'Dark' : 'Light'} mode</span>
-      </button>
       {loading ? (
         <main className="loading-state" role="status">Loading your learning space…</main>
       ) : authError ? (
@@ -201,6 +196,7 @@ function App() {
         </main>
       ) : (
         <BrowserRouter>
+          <AppThemeToggle theme={theme} onToggleTheme={toggleTheme} />
           <RouteTitle />
           {session && <UserActivityTracker userId={session.user.id} />}
           <Routes>
@@ -225,14 +221,25 @@ function App() {
             } />
             <Route path="/dashboard" element={
               <MemberRoute session={session}>
-                <Dashboard session={session} />
+                <Dashboard session={session} theme={theme} onToggleTheme={toggleTheme} />
               </MemberRoute>
             } />
             <Route path="/exam" element={
               <MemberRoute session={session}>
-                <ComprehensiveExam userId={session?.user?.id} />
+                <ComprehensiveExam userId={session?.user?.id} examConfig={EXAM_CONFIGS.preparation} />
               </MemberRoute>
             } />
+            {Object.values(EXAM_CONFIGS).filter((examConfig) => examConfig.tutorialId).map((examConfig) => (
+              <Route
+                key={examConfig.id}
+                path={`/exams/${examConfig.id}`}
+                element={
+                  <MemberRoute session={session}>
+                    <ComprehensiveExam userId={session?.user?.id} examConfig={examConfig} />
+                  </MemberRoute>
+                }
+              />
+            ))}
             <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />
           </Routes>
         </BrowserRouter>
