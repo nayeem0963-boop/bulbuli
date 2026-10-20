@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import mathHeroMascot from '../assets/math-hero-mascot.png'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 import {
   createMathHeroDeadline,
@@ -182,7 +183,7 @@ function MathHero({ userId }) {
     <main className="page tutorial-hub math-hero-page">
       <Link className="back-link" to="/">← Your learning space</Link>
       <header className="math-hero-heading">
-        <span className="math-hero-mascot" aria-hidden="true">🦸‍♀️</span>
+        <img className="math-hero-mascot" src={mathHeroMascot} alt="" />
         <div>
           <p className="eyebrow">A little math adventure</p>
           <h1>Math Hero</h1>

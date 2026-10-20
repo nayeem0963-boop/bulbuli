@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import mathHeroMascot from '../assets/math-hero-mascot.png'
 import TutorialCard from '../components/TutorialCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
@@ -120,7 +121,7 @@ function Home({ session }) {
       </section>
 
       <section className="math-hero-promo" aria-labelledby="math-hero-promo-heading">
-        <div className="math-hero-promo-icon" aria-hidden="true">🦸‍♀️</div>
+        <img className="math-hero-promo-icon" src={mathHeroMascot} alt="" />
         <div>
           <p className="eyebrow">A new kind of adventure</p>
           <h2 id="math-hero-promo-heading">Ready to be a Math Hero?</h2>

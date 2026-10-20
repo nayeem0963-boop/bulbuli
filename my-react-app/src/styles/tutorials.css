@@ -1696,13 +1696,10 @@
 }
 
 .math-hero-promo-icon {
-  display: grid;
   width: 4rem;
   height: 4rem;
-  place-items: center;
-  border-radius: 18px;
-  background: #ffe7a3;
-  font-size: 2.1rem;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 6px rgb(91 58 24 / 16%));
 }
 
 .math-hero-promo .eyebrow {
@@ -1744,10 +1741,6 @@
   background: linear-gradient(115deg, #3b321f, #272638 68%, var(--surface));
 }
 
-.app-shell[data-theme='dark'] .math-hero-promo-icon {
-  background: #554521;
-}
-
 .app-shell[data-theme='dark'] .math-hero-promo .eyebrow {
   color: #f0c66e;
 }
@@ -1770,16 +1763,11 @@
 }
 
 .math-hero-mascot {
-  display: grid;
   width: clamp(4.5rem, 16vw, 6.5rem);
   height: clamp(4.5rem, 16vw, 6.5rem);
   flex: 0 0 auto;
-  place-items: center;
-  border: 3px solid #f4d97b;
-  border-radius: 28px;
-  background: linear-gradient(145deg, #fff0b4, #ffd6d2);
-  font-size: clamp(2.5rem, 8vw, 4rem);
-  transform: rotate(-4deg);
+  object-fit: contain;
+  filter: drop-shadow(0 7px 8px rgb(91 58 24 / 18%));
 }
 
 .math-hero-heading .eyebrow {
@@ -2066,11 +2054,6 @@
   color: #f0c66e;
 }
 
-.app-shell[data-theme='dark'] .math-hero-mascot {
-  border-color: #65512b;
-  background: linear-gradient(145deg, #494021, #492f37);
-}
-
 .app-shell[data-theme='dark'] .math-hero-timer {
   border-color: #344968;
   color: #a9c8f3;
@@ -2122,8 +2105,6 @@
   .math-hero-promo-icon {
     width: 3.25rem;
     height: 3.25rem;
-    border-radius: 14px;
-    font-size: 1.7rem;
   }
 
   .math-hero-promo > .button {
