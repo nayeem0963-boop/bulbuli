@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import mathHeroMascot from '../assets/math-hero-mascot.png'
+import useSoundToggle from '../hooks/useSoundToggle.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
+import { playSound } from '../utils/sound.js'
 import {
   createMathHeroDeadline,
   createMathHeroFeedback,
@@ -25,6 +27,7 @@ function getRemainingSeconds(deadline) {
 }
 
 function MathHero({ userId }) {
+  const { muted, toggleMuted } = useSoundToggle()
   const {
     gamification,
     mathHeroProgress: savedProgress,
@@ -109,6 +112,7 @@ function MathHero({ userId }) {
 
   const selectAnswer = (answer) => {
     if (gameProgress.feedback || transitionInProgress.current) return
+    playSound('click')
     if (getRemainingSeconds(gameProgress.deadline) === 0) {
       setTimeRemaining(0)
       return
@@ -116,6 +120,10 @@ function MathHero({ userId }) {
 
     if (answer === gameProgress.question.answer) {
       transitionInProgress.current = true
+      playSound('correct')
+      if (gameProgress.questionNumber === MATH_HERO_QUESTIONS_PER_LEVEL) {
+        playSound('complete')
+      }
       const updated = createNextMathHeroProgress({
         ...gameProgress,
         totalXp: gameProgress.totalXp + 5,
@@ -129,6 +137,7 @@ function MathHero({ userId }) {
       return
     }
 
+    playSound('wrong')
     transitionInProgress.current = true
     const updated = {
       ...gameProgress,
@@ -198,11 +207,21 @@ function MathHero({ userId }) {
       <Link className="back-link" to="/">← Your learning space</Link>
       <header className="math-hero-heading">
         <img className="math-hero-mascot" src={mathHeroMascot} alt="" />
-        <div>
+        <div className="math-hero-heading-copy">
           <p className="eyebrow">A little math adventure</p>
           <h1>Math Hero</h1>
           <p>Every question makes you stronger. You’ve got this!</p>
         </div>
+        <button
+          className="math-hero-sound-toggle"
+          type="button"
+          onClick={toggleMuted}
+          aria-label={muted ? 'Turn sound on' : 'Turn sound off'}
+          aria-pressed={muted}
+          title={muted ? 'Turn sound on' : 'Turn sound off'}
+        >
+          {muted ? '🔇' : '🔊'}
+        </button>
       </header>
 
       {storageError && <p className="notice" role="alert">{storageError}</p>}
