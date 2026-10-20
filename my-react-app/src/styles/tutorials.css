@@ -2021,6 +2021,12 @@
   font-weight: 650;
 }
 
+.math-hero-game-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .math-hero-restart {
   min-height: 2.75rem;
   border: 0;
@@ -2033,6 +2039,58 @@
 
 .math-hero-restart:hover {
   background: var(--accent-soft);
+}
+
+.math-hero-reset {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.5rem 0.65rem;
+  color: var(--danger);
+  background: transparent;
+  cursor: pointer;
+}
+
+.math-hero-reset:hover {
+  background: var(--danger-soft);
+}
+
+.math-hero-reset-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--border));
+  border-radius: 14px;
+  padding: 0.85rem;
+  background: var(--danger-soft);
+}
+
+.math-hero-reset-confirm p {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.math-hero-reset-confirm button {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.8rem;
+  font-weight: 700;
+}
+
+.math-hero-reset-confirm-button {
+  border-color: var(--danger);
+  color: #fff;
+  background: var(--danger);
+}
+
+.math-hero-reset-confirm-button:hover:not(:disabled) {
+  border-color: #a23a42;
+  color: #fff;
+  background: #a23a42;
 }
 
 .math-hero-save-note {
@@ -2144,8 +2202,12 @@
   }
 
   .math-hero-footer {
-    align-items: flex-start;
+    align-items: center;
     flex-direction: column;
+  }
+
+  .math-hero-game-actions {
+    align-self: flex-end;
   }
 }
 

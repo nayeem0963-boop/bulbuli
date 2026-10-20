@@ -45,6 +45,7 @@ function MathHero({ userId }) {
     ),
   )
   const [celebrating, setCelebrating] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
   const transitionInProgress = useRef(false)
   const firstSavePending = useRef(!savedProgress)
 
@@ -174,6 +175,19 @@ function MathHero({ userId }) {
     transitionInProgress.current = false
   }
 
+  const resetGame = () => {
+    if (transitionInProgress.current) return
+    transitionInProgress.current = true
+    const updated = createInitialMathHeroProgress()
+    setGameProgress(updated)
+    saveMathHeroProgress(updated)
+    setTimeRemaining(getRemainingSeconds(updated.deadline))
+    setAnswerRevealVisible(false)
+    setCelebrating(false)
+    setConfirmReset(false)
+    transitionInProgress.current = false
+  }
+
   const { level, questionNumber, question, feedback } = gameProgress
   const showCorrectAnswer = feedback && !feedback.ready && answerRevealVisible
   const feedbackReady = feedback?.ready === true
@@ -276,10 +290,31 @@ function MathHero({ userId }) {
 
         <div className="math-hero-footer">
           <span>Get it right to earn 5 XP!</span>
-          <button className="text-button math-hero-restart" type="button" onClick={restartLevel}>
-            ↻ Restart level
-          </button>
+          <div className="math-hero-game-actions">
+            <button className="text-button math-hero-restart" type="button" onClick={restartLevel}>
+              ↻ Restart level
+            </button>
+            <button
+              className="text-button math-hero-reset"
+              type="button"
+              onClick={() => setConfirmReset(true)}
+              aria-label="Reset all Math Hero progress"
+            >
+              Reset
+            </button>
+          </div>
         </div>
+        {confirmReset && (
+          <div className="math-hero-reset-confirm" role="group" aria-label="Confirm reset">
+            <p>Reset Math Hero to Level 1 and clear its XP? Your total Bulbuli XP stays the same.</p>
+            <button className="button math-hero-reset-confirm-button" type="button" onClick={resetGame}>
+              Yes, reset game
+            </button>
+            <button className="button-secondary" type="button" onClick={() => setConfirmReset(false)}>
+              Keep playing
+            </button>
+          </div>
+        )}
       </section>
       <p className="math-hero-save-note">Your adventure is saved automatically on this device.</p>
     </main>
