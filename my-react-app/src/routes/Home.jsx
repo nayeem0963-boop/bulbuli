@@ -119,6 +119,18 @@ function Home({ session }) {
         </article>
       </section>
 
+      <section className="math-hero-promo" aria-labelledby="math-hero-promo-heading">
+        <div className="math-hero-promo-icon" aria-hidden="true">🦸‍♀️</div>
+        <div>
+          <p className="eyebrow">A new kind of adventure</p>
+          <h2 id="math-hero-promo-heading">Ready to be a Math Hero?</h2>
+          <p>Practice addition and subtraction, earn XP, and unlock new levels as you go.</p>
+        </div>
+        <Link className="button math-hero-primary" to="/math-hero">
+          Play Math Hero <span aria-hidden="true">→</span>
+        </Link>
+      </section>
+
       <section className="tutorial-section" aria-labelledby="home-tutorials-heading">
         <div className="tutorial-section-heading">
           <div>

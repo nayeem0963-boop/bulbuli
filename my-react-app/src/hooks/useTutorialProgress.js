@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { MATH_HERO_QUESTIONS_PER_LEVEL } from '../utils/mathHero.js'
 
 const EMPTY_PROGRESS = {
   startedTutorialIds: [],
@@ -6,6 +7,7 @@ const EMPTY_PROGRESS = {
   moduleResults: {},
   quizProgress: {},
   quizSessionStartedAt: {},
+  mathHeroProgress: null,
   userActivity: false,
   gamification: {
     totalXp: 0,
@@ -21,6 +23,41 @@ function getStorageKey(userId) {
   }
 
   return `bulbuli.tutorial-progress.v1.${encodeURIComponent(userId)}`
+}
+
+function isMathHeroProgress(progress) {
+  return Boolean(
+    progress
+    && Number.isInteger(progress.level)
+    && progress.level >= 1
+    && Number.isInteger(progress.questionNumber)
+    && progress.questionNumber >= 1
+    && progress.questionNumber <= MATH_HERO_QUESTIONS_PER_LEVEL
+    && Number.isSafeInteger(progress.totalXp)
+    && progress.totalXp >= 0
+    && progress.question
+    && Number.isInteger(progress.question.left)
+    && Number.isInteger(progress.question.right)
+    && ['+', '-'].includes(progress.question.operator)
+    && Number.isInteger(progress.question.answer)
+    && progress.question.answer >= 0
+    && Array.isArray(progress.question.options)
+    && progress.question.options.length === 4
+    && progress.question.options.every((option) => Number.isInteger(option) && option >= 0)
+    && new Set(progress.question.options).size === 4
+    && progress.question.options.includes(progress.question.answer)
+    && (progress.deadline === null || (
+      typeof progress.deadline === 'string'
+      && !Number.isNaN(Date.parse(progress.deadline))
+    ))
+    && (progress.feedback === null || (
+      progress.feedback
+      && ['incorrect', 'timeout'].includes(progress.feedback.type)
+      && typeof progress.feedback.ready === 'boolean'
+      && typeof progress.feedback.createdAt === 'string'
+      && !Number.isNaN(Date.parse(progress.feedback.createdAt))
+    )),
+  )
 }
 
 function normalizeProgress(progress) {
@@ -41,6 +78,9 @@ function normalizeProgress(progress) {
       || typeof progress.moduleResults !== 'object'
       || Array.isArray(progress.moduleResults)
     ))
+    || (progress.mathHeroProgress !== undefined
+      && progress.mathHeroProgress !== null
+      && !isMathHeroProgress(progress.mathHeroProgress))
     || (progress.userActivity !== undefined && typeof progress.userActivity !== 'boolean')
     || (progress.gamification !== undefined && (
       !progress.gamification
@@ -161,6 +201,7 @@ function normalizeProgress(progress) {
     moduleResults,
     quizProgress,
     quizSessionStartedAt,
+    mathHeroProgress: progress.mathHeroProgress ?? null,
     gamification,
     userActivity: progress.userActivity === true,
   }
@@ -436,12 +477,28 @@ export function useTutorialProgress(userId) {
     return { saved, ...completionStats }
   }, [saveProgress, state.progress.gamification])
 
+  const saveMathHeroProgress = useCallback((mathHeroProgress, xpEarned = 0) => {
+    if (!isMathHeroProgress(mathHeroProgress) || !Number.isSafeInteger(xpEarned) || xpEarned < 0) {
+      throw new TypeError('Math Hero progress and XP must contain valid game data.')
+    }
+
+    return saveProgress((current) => ({
+      ...current,
+      mathHeroProgress,
+      gamification: {
+        ...current.gamification,
+        totalXp: current.gamification.totalXp + xpEarned,
+      },
+    }))
+  }, [saveProgress])
+
   return {
     startedTutorialIds: state.progress.startedTutorialIds,
     completedTutorials: state.progress.completedTutorials,
     moduleResults: state.progress.moduleResults,
     quizProgress: state.progress.quizProgress,
     quizSessionStartedAt: state.progress.quizSessionStartedAt,
+    mathHeroProgress: state.progress.mathHeroProgress,
     gamification: state.progress.gamification,
     storageError: state.storageError,
     userActivity: state.progress.userActivity,
@@ -451,5 +508,6 @@ export function useTutorialProgress(userId) {
     resetModuleQuiz,
     startQuizSession,
     recordQuizCompletion,
+    saveMathHeroProgress,
   }
 }

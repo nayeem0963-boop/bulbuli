@@ -9,6 +9,7 @@ import Login from './routes/Login.jsx'
 import TutorialCatalog from './routes/TutorialCatalog.jsx'
 import TutorialOverview from './routes/TutorialOverview.jsx'
 import TutorialQuiz from './routes/TutorialQuiz.jsx'
+import MathHero from './routes/MathHero.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import { tutorialCatalog } from './data/tutorialCatalog.js'
 import { useTutorialProgress } from './hooks/useTutorialProgress.js'
@@ -31,6 +32,9 @@ function RouteTitle() {
     } else if (pathname === '/dashboard') {
       title = 'Your Learning Dashboard | Bulbuli'
       description = 'Track your learning progress and continue your interactive HTML, CSS, JavaScript, GitHub, and React tutorials with Bulbuli.'
+    } else if (pathname === '/math-hero') {
+      title = 'Math Hero | Bulbuli'
+      description = 'Play Math Hero, a friendly addition and subtraction game with timed multiple-choice questions, saved levels, and XP rewards.'
     } else if (pathname === '/exam') {
       title = `${EXAM_CONFIGS.preparation.title} | Bulbuli`
       description = 'Test your HTML, CSS, JavaScript, GitHub, and React skills in Bulbuli’s timed 50-question preparation exam.'
@@ -217,6 +221,11 @@ function App() {
             <Route path="/tutorials/:tutorialId/quiz" element={
               <MemberRoute session={session}>
                 <TutorialQuiz userId={session?.user?.id} />
+              </MemberRoute>
+            } />
+            <Route path="/math-hero" element={
+              <MemberRoute session={session}>
+                <MathHero userId={session?.user?.id} />
               </MemberRoute>
             } />
             <Route path="/dashboard" element={
