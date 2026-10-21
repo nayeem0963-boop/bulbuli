@@ -26,6 +26,17 @@ function getStorageKey(userId) {
 }
 
 function isMathHeroProgress(progress) {
+  const question = progress?.question
+  const expectedAnswer = question?.operator === '+'
+    ? question.left + question.right
+    : question?.operator === '-'
+      ? question.left - question.right
+      : question?.operator === '×'
+        ? question.left * question.right
+        : question?.operator === '÷' && question.right !== 0
+          ? question.left / question.right
+          : null
+
   return Boolean(
     progress
     && Number.isInteger(progress.level)
@@ -35,17 +46,24 @@ function isMathHeroProgress(progress) {
     && progress.questionNumber <= MATH_HERO_QUESTIONS_PER_LEVEL
     && Number.isSafeInteger(progress.totalXp)
     && progress.totalXp >= 0
-    && progress.question
-    && Number.isInteger(progress.question.left)
-    && Number.isInteger(progress.question.right)
-    && ['+', '-'].includes(progress.question.operator)
-    && Number.isInteger(progress.question.answer)
-    && progress.question.answer >= 0
-    && Array.isArray(progress.question.options)
-    && progress.question.options.length === 4
-    && progress.question.options.every((option) => Number.isInteger(option) && option >= 0)
-    && new Set(progress.question.options).size === 4
-    && progress.question.options.includes(progress.question.answer)
+    && Number.isInteger(progress.lives)
+    && progress.lives >= 0
+    && Number.isSafeInteger(progress.correctAnswers)
+    && progress.correctAnswers >= 0
+    && question
+    && Number.isInteger(question.left)
+    && question.left >= 0
+    && Number.isInteger(question.right)
+    && question.right >= 0
+    && ['+', '-', '×', '÷'].includes(question.operator)
+    && Number.isInteger(question.answer)
+    && question.answer >= 0
+    && question.answer === expectedAnswer
+    && Array.isArray(question.options)
+    && question.options.length === 4
+    && question.options.every((option) => Number.isInteger(option) && option >= 0)
+    && new Set(question.options).size === 4
+    && question.options.includes(question.answer)
     && (progress.deadline === null || (
       typeof progress.deadline === 'string'
       && !Number.isNaN(Date.parse(progress.deadline))
@@ -56,8 +74,35 @@ function isMathHeroProgress(progress) {
       && typeof progress.feedback.ready === 'boolean'
       && typeof progress.feedback.createdAt === 'string'
       && !Number.isNaN(Date.parse(progress.feedback.createdAt))
-    )),
+    ))
+    && (progress.gameOver === null || (
+      progress.gameOver
+      && Number.isSafeInteger(progress.gameOver.finalScore)
+      && progress.gameOver.finalScore >= 0
+      && Number.isInteger(progress.gameOver.finalLevel)
+      && progress.gameOver.finalLevel >= 1
+      && Number.isSafeInteger(progress.gameOver.correctAnswers)
+      && progress.gameOver.correctAnswers >= 0
+      && progress.level === 1
+      && progress.questionNumber === 1
+      && progress.lives === 1
+      && progress.totalXp === 0
+      && progress.deadline === null
+    ))
   )
+}
+
+function normalizeMathHeroProgress(progress) {
+  const normalized = {
+    ...progress,
+    lives: progress.lives ?? 1,
+    correctAnswers: progress.correctAnswers ?? Math.floor(progress.totalXp / 5),
+    gameOver: progress.gameOver ?? null,
+  }
+  if (!isMathHeroProgress(normalized)) {
+    throw new Error('Saved Math Hero progress has an invalid format.')
+  }
+  return normalized
 }
 
 function normalizeProgress(progress) {
@@ -80,7 +125,8 @@ function normalizeProgress(progress) {
     ))
     || (progress.mathHeroProgress !== undefined
       && progress.mathHeroProgress !== null
-      && !isMathHeroProgress(progress.mathHeroProgress))
+      && (!progress.mathHeroProgress || typeof progress.mathHeroProgress !== 'object'
+        || Array.isArray(progress.mathHeroProgress)))
     || (progress.userActivity !== undefined && typeof progress.userActivity !== 'boolean')
     || (progress.gamification !== undefined && (
       !progress.gamification
@@ -201,7 +247,9 @@ function normalizeProgress(progress) {
     moduleResults,
     quizProgress,
     quizSessionStartedAt,
-    mathHeroProgress: progress.mathHeroProgress ?? null,
+    mathHeroProgress: progress.mathHeroProgress
+      ? normalizeMathHeroProgress(progress.mathHeroProgress)
+      : null,
     gamification,
     userActivity: progress.userActivity === true,
   }

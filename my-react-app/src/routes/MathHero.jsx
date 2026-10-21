@@ -5,11 +5,10 @@ import useSoundToggle from '../hooks/useSoundToggle.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 import { playSound } from '../utils/sound.js'
 import {
-  createMathHeroDeadline,
-  createMathHeroFeedback,
+  applyMathHeroCorrectAnswer,
+  applyMathHeroMiss,
   createInitialMathHeroProgress,
-  createMathHeroQuestion,
-  createNextMathHeroProgress,
+  createMathHeroGameOverProgress,
   MATH_HERO_QUESTIONS_PER_LEVEL,
 } from '../utils/mathHero.js'
 
@@ -48,7 +47,7 @@ function MathHero({ userId }) {
     ),
   )
   const [celebrating, setCelebrating] = useState(false)
-  const [confirmReset, setConfirmReset] = useState(false)
+  const [bonusLifeAwarded, setBonusLifeAwarded] = useState(false)
   const transitionInProgress = useRef(false)
   const firstSavePending = useRef(!savedProgress)
 
@@ -69,35 +68,38 @@ function MathHero({ userId }) {
 
   useEffect(() => {
     const feedback = gameProgress.feedback
-    if (!feedback || feedback.ready) return undefined
+    if (!feedback) return undefined
 
-    const wait = Math.max(
-      0,
-      ANSWER_REVEAL_MILLISECONDS - (Date.now() - Date.parse(feedback.createdAt)),
-    )
+    const wait = feedback.ready
+      ? 0
+      : Math.max(
+        0,
+        ANSWER_REVEAL_MILLISECONDS - (Date.now() - Date.parse(feedback.createdAt)),
+      )
     const timeoutId = window.setTimeout(() => {
-      const updated = {
-        ...gameProgress,
-        feedback: { ...feedback, ready: true },
-      }
+      const updated = gameProgress.lives > 0
+        ? createNextMathHeroProgress(gameProgress)
+        : createMathHeroGameOverProgress(gameProgress)
+
+      if (updated.gameOver) playSound('complete')
       setGameProgress(updated)
       saveMathHeroProgress(updated)
+      setTimeRemaining(getRemainingSeconds(updated.deadline))
       setAnswerRevealVisible(false)
+      setCelebrating(false)
+      setBonusLifeAwarded(false)
       transitionInProgress.current = false
     }, wait)
     return () => window.clearTimeout(timeoutId)
   }, [gameProgress, saveMathHeroProgress])
 
   useEffect(() => {
-    if (timeRemaining > 0 || !gameProgress.deadline || gameProgress.feedback) return
+    if (timeRemaining > 0 || !gameProgress.deadline || gameProgress.feedback || gameProgress.gameOver) return
     if (transitionInProgress.current) return
 
     transitionInProgress.current = true
-    const updated = {
-      ...gameProgress,
-      deadline: null,
-      feedback: createMathHeroFeedback('timeout'),
-    }
+    const updated = applyMathHeroMiss(gameProgress, 'timeout')
+    playSound('wrong')
     setGameProgress(updated)
     saveMathHeroProgress(updated)
     setTimeRemaining(0)
@@ -111,7 +113,7 @@ function MathHero({ userId }) {
   }, [celebrating])
 
   const selectAnswer = (answer) => {
-    if (gameProgress.feedback || transitionInProgress.current) return
+    if (gameProgress.feedback || gameProgress.gameOver || transitionInProgress.current) return
     playSound('click')
     if (getRemainingSeconds(gameProgress.deadline) === 0) {
       setTimeRemaining(0)
@@ -121,85 +123,42 @@ function MathHero({ userId }) {
     if (answer === gameProgress.question.answer) {
       transitionInProgress.current = true
       playSound('correct')
-      if (gameProgress.questionNumber === MATH_HERO_QUESTIONS_PER_LEVEL) {
-        playSound('complete')
-      }
-      const updated = createNextMathHeroProgress({
-        ...gameProgress,
-        totalXp: gameProgress.totalXp + 5,
-      })
+      const { progress: updated, bonusLifeAwarded } = applyMathHeroCorrectAnswer(gameProgress)
       setGameProgress(updated)
       saveMathHeroProgress(updated, 5)
       setTimeRemaining(getRemainingSeconds(updated.deadline))
       setAnswerRevealVisible(false)
       setCelebrating(true)
+      setBonusLifeAwarded(bonusLifeAwarded)
       transitionInProgress.current = false
       return
     }
 
-    playSound('wrong')
     transitionInProgress.current = true
-    const updated = {
-      ...gameProgress,
-      deadline: null,
-      feedback: createMathHeroFeedback('incorrect'),
-    }
+    playSound('wrong')
+    const updated = applyMathHeroMiss(gameProgress, 'incorrect')
     setGameProgress(updated)
     saveMathHeroProgress(updated)
     setTimeRemaining(0)
     setAnswerRevealVisible(true)
   }
 
-  const continueAfterFeedback = (retry) => {
-    if (!gameProgress.feedback?.ready || transitionInProgress.current) return
-    transitionInProgress.current = true
-    const updated = retry
-      ? {
-        ...gameProgress,
-        deadline: createMathHeroDeadline(),
-        feedback: null,
-      }
-      : createNextMathHeroProgress(gameProgress)
-    setGameProgress(updated)
-    saveMathHeroProgress(updated)
-    setTimeRemaining(getRemainingSeconds(updated.deadline))
-    setAnswerRevealVisible(false)
-    transitionInProgress.current = false
-  }
-
-  const restartLevel = () => {
+  const startNewRun = () => {
     if (transitionInProgress.current) return
     transitionInProgress.current = true
-    const updated = {
-      ...gameProgress,
-      questionNumber: 1,
-      question: createMathHeroQuestion(level),
-      deadline: createMathHeroDeadline(),
-      feedback: null,
-    }
-    setGameProgress(updated)
-    saveMathHeroProgress(updated)
-    setTimeRemaining(getRemainingSeconds(updated.deadline))
-    setAnswerRevealVisible(false)
-    transitionInProgress.current = false
-  }
-
-  const resetGame = () => {
-    if (transitionInProgress.current) return
-    transitionInProgress.current = true
+    playSound('click')
     const updated = createInitialMathHeroProgress()
     setGameProgress(updated)
     saveMathHeroProgress(updated)
     setTimeRemaining(getRemainingSeconds(updated.deadline))
     setAnswerRevealVisible(false)
     setCelebrating(false)
-    setConfirmReset(false)
+    setBonusLifeAwarded(false)
     transitionInProgress.current = false
   }
 
-  const { level, questionNumber, question, feedback } = gameProgress
+  const { level, questionNumber, question, feedback, gameOver, lives } = gameProgress
   const showCorrectAnswer = feedback && !feedback.ready && answerRevealVisible
-  const feedbackReady = feedback?.ready === true
   const progressPercent = (questionNumber / MATH_HERO_QUESTIONS_PER_LEVEL) * 100
 
   return (
@@ -231,6 +190,11 @@ function MathHero({ userId }) {
           <span aria-hidden="true">⭐</span>
           <strong>{gameProgress.totalXp}</strong>
           <span>Math Hero XP</span>
+        </div>
+        <div className="math-hero-xp math-hero-lives" aria-label={`${lives} ${lives === 1 ? 'life' : 'lives'} remaining`}>
+          <span aria-hidden="true">❤️</span>
+          <strong>{lives}</strong>
+          <span>{lives === 1 ? 'Life' : 'Lives'}</span>
         </div>
         <div className="math-hero-xp math-hero-total-xp">
           <span aria-hidden="true">🏆</span>
@@ -272,13 +236,17 @@ function MathHero({ userId }) {
         </p>
 
         {celebrating && !feedback && (
-          <p className="math-hero-message is-correct" role="status">🌟 Great job! +5 XP — here comes the next one!</p>
+          <p className="math-hero-message is-correct" role="status">
+            {bonusLifeAwarded
+              ? '🌟 Amazing! +5 XP and a bonus life!'
+              : '🌟 Great job! +5 XP — here comes the next one!'}
+          </p>
         )}
         {feedback && (
           <div className={`math-hero-message ${feedback.type === 'timeout' ? 'is-timeout' : 'is-incorrect'}`} role="status">
             {showCorrectAnswer
               ? `${feedback.type === 'timeout' ? 'Time’s up!' : 'Almost!'} The answer is ${question.answer}.`
-              : feedback.type === 'timeout' ? 'That’s okay — every hero gets another try!' : 'You’re learning — keep going!'}
+              : 'Keep going — the next question is ready!'}
           </div>
         )}
 
@@ -288,7 +256,7 @@ function MathHero({ userId }) {
               className="math-hero-option"
               key={`${option}-${index}`}
               type="button"
-              disabled={Boolean(feedback) || timeRemaining === 0}
+              disabled={Boolean(feedback || gameOver) || timeRemaining === 0}
               onClick={() => selectAnswer(option)}
             >
               {option}
@@ -296,46 +264,36 @@ function MathHero({ userId }) {
           ))}
         </div>
 
-        {feedbackReady && (
-          <div className="math-hero-feedback-actions">
-            <button className="button math-hero-primary" type="button" onClick={() => continueAfterFeedback(true)}>
-              Try this one again
-            </button>
-            <button className="button-secondary" type="button" onClick={() => continueAfterFeedback(false)}>
-              Next question
-            </button>
-          </div>
-        )}
-
         <div className="math-hero-footer">
           <span>Get it right to earn 5 XP!</span>
-          <div className="math-hero-game-actions">
-            <button className="text-button math-hero-restart" type="button" onClick={restartLevel}>
-              ↻ Restart level
-            </button>
-            <button
-              className="text-button math-hero-reset"
-              type="button"
-              onClick={() => setConfirmReset(true)}
-              aria-label="Reset all Math Hero progress"
-            >
-              Reset
-            </button>
-          </div>
+          <span>Every 10 correct answers earns a bonus life.</span>
         </div>
-        {confirmReset && (
-          <div className="math-hero-reset-confirm" role="group" aria-label="Confirm reset">
-            <p>Reset Math Hero to Level 1 and clear its XP? Your total Bulbuli XP stays the same.</p>
-            <button className="button math-hero-reset-confirm-button" type="button" onClick={resetGame}>
-              Yes, reset game
-            </button>
-            <button className="button-secondary" type="button" onClick={() => setConfirmReset(false)}>
-              Keep playing
-            </button>
-          </div>
-        )}
       </section>
       <p className="math-hero-save-note">Your adventure is saved automatically on this device.</p>
+
+      {gameOver && (
+        <div className="math-hero-game-over-backdrop">
+          <section
+            className="math-hero-game-over"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="math-hero-game-over-title"
+          >
+            <span className="math-hero-game-over-icon" aria-hidden="true">💫</span>
+            <p className="eyebrow">Every hero can try again</p>
+            <h2 id="math-hero-game-over-title">Game Over</h2>
+            <p className="math-hero-game-over-message">You gave it your best. Ready for another adventure?</p>
+            <div className="math-hero-final-stats">
+              <span>Final score <strong>{gameOver.finalScore} XP</strong></span>
+              <span>Level reached <strong>{gameOver.finalLevel}</strong></span>
+              <span>Correct answers <strong>{gameOver.correctAnswers}</strong></span>
+            </div>
+            <button className="button math-hero-primary" type="button" onClick={startNewRun}>
+              Start a new run
+            </button>
+          </section>
+        </div>
+      )}
     </main>
   )
 }
