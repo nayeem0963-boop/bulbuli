@@ -4,6 +4,7 @@ import mathHeroMascot from '../assets/math-hero-mascot.png'
 import AnimatedAnswerOption from '../components/AnimatedAnswerOption.jsx'
 import AnimatedQuizCard from '../components/AnimatedQuizCard.jsx'
 import LifeCounter from '../components/LifeCounter.jsx'
+import MathHeroMascot from '../components/MathHeroMascot.jsx'
 import MilestoneBanner from '../components/MilestoneBanner.jsx'
 import useSoundToggle from '../hooks/useSoundToggle.js'
 import useQuizFeedback from '../hooks/useQuizFeedback.js'
@@ -14,8 +15,15 @@ import {
   applyMathHeroMiss,
   createInitialMathHeroProgress,
   createMathHeroGameOverProgress,
+  createNextMathHeroProgress,
   MATH_HERO_QUESTIONS_PER_LEVEL,
 } from '../utils/mathHero.js'
+import {
+  formatDigits,
+  loadMathHeroLanguage,
+  MATH_HERO_TEXT,
+  saveMathHeroLanguage,
+} from '../utils/mathHeroText.js'
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -30,6 +38,19 @@ function getRemainingSeconds(deadline) {
 
 function MathHero({ userId }) {
   const { muted, toggleMuted } = useSoundToggle()
+  const [language, setLanguage] = useState(loadMathHeroLanguage)
+  const text = MATH_HERO_TEXT[language]
+  const n = (value) => formatDigits(value, language)
+  // The level-up banner is created inside a memoised callback, so it reads the language from a ref.
+  const languageRef = useRef(language)
+  useEffect(() => {
+    languageRef.current = language
+  }, [language])
+  const toggleLanguage = () => {
+    const next = language === 'en' ? 'bn' : 'en'
+    setLanguage(next)
+    saveMathHeroLanguage(next)
+  }
   const {
     feedback,
     milestone,
@@ -85,7 +106,8 @@ function MathHero({ userId }) {
     scheduleAnimation(() => setLevelUp(0), FEEDBACK_TIMING.fast)
 
     if (nextLevel > 10 && nextLevel % 10 === 1) {
-      triggerLevelUp(`COMPLEXITY INCREASED! Level ${nextLevel}`)
+      const lang = languageRef.current
+      triggerLevelUp(MATH_HERO_TEXT[lang].complexity(formatDigits(nextLevel, lang)))
     } else {
       triggerLevelUp()
     }
@@ -259,22 +281,38 @@ function MathHero({ userId }) {
   const progressPercent = (questionNumber / MATH_HERO_QUESTIONS_PER_LEVEL) * 100
 
   return (
-    <main className="page tutorial-hub math-hero-page">
-      <Link className="back-link" to="/">← Your learning space</Link>
+    <main className="page tutorial-hub math-hero-page" lang={language}>
+      <Link className="back-link" to="/">{text.back}</Link>
       <header className="math-hero-heading">
-        <img className="math-hero-mascot" src={mathHeroMascot} alt="" />
+        <MathHeroMascot
+          src={mathHeroMascot}
+          question={question}
+          gameOver={gameOver}
+          muted={muted}
+          language={language}
+        />
         <div className="math-hero-heading-copy">
-          <p className="eyebrow">A little math adventure</p>
-          <h1>Math Hero</h1>
-          <p>Every question makes you stronger. You’ve got this!</p>
+          <p className="eyebrow">{text.eyebrow}</p>
+          <h1>{text.title}</h1>
+          <p>{text.subtitle}</p>
         </div>
+        <button
+          className="math-hero-language-toggle"
+          type="button"
+          onClick={toggleLanguage}
+          lang={language === 'en' ? 'bn' : 'en'}
+          aria-label={text.switchLanguageLabel}
+          title={text.switchLanguageLabel}
+        >
+          {text.switchLanguage}
+        </button>
         <button
           className="math-hero-sound-toggle"
           type="button"
           onClick={toggleMuted}
-          aria-label={muted ? 'Turn sound on' : 'Turn sound off'}
+          aria-label={muted ? text.soundOn : text.soundOff}
           aria-pressed={muted}
-          title={muted ? 'Turn sound on' : 'Turn sound off'}
+          title={muted ? text.soundOn : text.soundOff}
         >
           {muted ? '🔇' : '🔊'}
         </button>
@@ -282,11 +320,11 @@ function MathHero({ userId }) {
 
       {storageError && <p className="notice" role="alert">{storageError}</p>}
 
-      <section className="math-hero-stats" aria-label="Math Hero progress">
-        <div className="math-hero-xp" aria-label={`${gameProgress.totalXp} Math Hero XP`}>
+      <section className="math-hero-stats" aria-label={text.statsLabel}>
+        <div className="math-hero-xp" aria-label={text.mathHeroXpLabel(n(gameProgress.totalXp))}>
           <span aria-hidden="true">⭐</span>
-          <strong>{gameProgress.totalXp}</strong>
-          <span>Math Hero XP</span>
+          <strong>{n(gameProgress.totalXp)}</strong>
+          <span>{text.mathHeroXp}</span>
         </div>
         <LifeCounter
           lives={lives}
@@ -294,11 +332,12 @@ function MathHero({ userId }) {
             ? null
             : milestone?.type === 'bonus' ? milestone : feedback?.type === 'wrong' ? feedback : null}
           className="math-hero-xp math-hero-lives"
+          labels={{ ...text, formatNumber: n }}
         />
         <div className="math-hero-xp math-hero-total-xp">
           <span aria-hidden="true">🏆</span>
-          <strong>{gamification.totalXp}</strong>
-          <span>Total Bulbuli XP</span>
+          <strong>{n(gamification.totalXp)}</strong>
+          <span>{text.totalXp}</span>
         </div>
       </section>
 
@@ -314,17 +353,17 @@ function MathHero({ userId }) {
               className={`eyebrow feedback-level-badge${levelUp === level ? ' is-leveling-up' : ''}`}
               style={getFeedbackStyle()}
             >
-              Level {level}
+              {text.level(n(level))}
             </p>
-            <h2 id="math-hero-question">Question {questionNumber} of {MATH_HERO_QUESTIONS_PER_LEVEL}</h2>
+            <h2 id="math-hero-question">{text.question(n(questionNumber), n(MATH_HERO_QUESTIONS_PER_LEVEL))}</h2>
           </div>
           <div
             className={`math-hero-timer${timeRemaining <= 15 ? ' is-urgent' : ''}`}
             role="timer"
-            aria-label={`${formatTime(timeRemaining)} remaining`}
+            aria-label={text.timeRemaining(n(formatTime(timeRemaining)))}
           >
             <span aria-hidden="true">⏱</span>
-            {formatTime(timeRemaining)}
+            {n(formatTime(timeRemaining))}
           </div>
         </div>
 
@@ -336,35 +375,35 @@ function MathHero({ userId }) {
         <div
           className="math-hero-progress"
           role="progressbar"
-          aria-label={`Level ${level} progress`}
+          aria-label={text.levelProgressLabel(n(level))}
           aria-valuemin="1"
           aria-valuemax={MATH_HERO_QUESTIONS_PER_LEVEL}
           aria-valuenow={questionNumber}
         >
           <span style={{ width: `${progressPercent}%` }} />
         </div>
-        <p className="math-hero-progress-label">Level {level} · {questionNumber} of {MATH_HERO_QUESTIONS_PER_LEVEL}</p>
+        <p className="math-hero-progress-label">
+          {text.levelProgress(n(level), n(questionNumber), n(MATH_HERO_QUESTIONS_PER_LEVEL))}
+        </p>
 
         <p className="math-hero-problem" aria-live="polite">
-          {question.left} {question.operator} {question.right} <span>= ?</span>
+          {n(question.left)} {question.operator} {n(question.right)} <span>= ?</span>
         </p>
 
         {celebrating && !gameFeedback && (
           <p className="math-hero-message is-correct" role="status">
-            {bonusLifeAwarded
-              ? '🌟 Amazing! +5 XP and a bonus life!'
-              : '🌟 Great job! +5 XP — here comes the next one!'}
+            {bonusLifeAwarded ? text.greatWithBonus : text.great}
           </p>
         )}
         {gameFeedback && (
           <div className={`math-hero-message ${gameFeedback.type === 'timeout' ? 'is-timeout' : 'is-incorrect'}`} role="status">
             {showCorrectAnswer
-              ? `${gameFeedback.type === 'timeout' ? 'Time’s up!' : 'Almost!'} The answer is ${question.answer}.`
-              : 'Keep going — the next question is ready!'}
+              ? `${gameFeedback.type === 'timeout' ? text.timeUp : text.almost} ${text.theAnswerIs(n(question.answer))}`
+              : text.nextReady}
           </div>
         )}
 
-        <div className="math-hero-options" aria-label="Choose an answer">
+        <div className="math-hero-options" aria-label={text.chooseAnswer}>
           {question.options.map((option, index) => (
             <AnimatedAnswerOption
               key={`${option}-${index}`}
@@ -375,10 +414,10 @@ function MathHero({ userId }) {
               disabled={Boolean(gameFeedback || gameOver) || timeRemaining === 0}
               onClick={() => selectAnswer(option)}
             >
-              {option}
+              {n(option)}
               {feedback?.target === option && feedback.type === 'correct' && (
                 <span key={feedback.id} className="math-hero-answer-particle" aria-hidden="true">
-                  ✓ +5 XP
+                  {text.answerXp}
                 </span>
               )}
             </AnimatedAnswerOption>
@@ -386,11 +425,11 @@ function MathHero({ userId }) {
         </div>
 
         <div className="math-hero-footer">
-          <span>Get it right to earn 5 XP!</span>
-          <span>Every 10 correct answers earns a bonus life.</span>
+          <span>{text.earnXp}</span>
+          <span>{text.bonusRule}</span>
         </div>
       </AnimatedQuizCard>
-      <p className="math-hero-save-note">Your adventure is saved automatically on this device.</p>
+      <p className="math-hero-save-note">{text.saveNote}</p>
 
       {gameOver && (
         <div
@@ -405,16 +444,16 @@ function MathHero({ userId }) {
             aria-labelledby="math-hero-game-over-title"
           >
             <span className="math-hero-game-over-icon" aria-hidden="true">💫</span>
-            <p className="eyebrow">Every hero can try again</p>
-            <h2 id="math-hero-game-over-title">Game Over</h2>
-            <p className="math-hero-game-over-message">You gave it your best. Ready for another adventure?</p>
+            <p className="eyebrow">{text.gameOverEyebrow}</p>
+            <h2 id="math-hero-game-over-title">{text.gameOverTitle}</h2>
+            <p className="math-hero-game-over-message">{text.gameOverMessage}</p>
             <div className="math-hero-final-stats">
-              <span>Final score <strong>{gameOver.finalScore} XP</strong></span>
-              <span>Level reached <strong>{gameOver.finalLevel}</strong></span>
-              <span>Correct answers <strong>{gameOver.correctAnswers}</strong></span>
+              <span>{text.finalScore} <strong>{n(gameOver.finalScore)} XP</strong></span>
+              <span>{text.levelReached} <strong>{n(gameOver.finalLevel)}</strong></span>
+              <span>{text.correctAnswers} <strong>{n(gameOver.correctAnswers)}</strong></span>
             </div>
             <button className="button math-hero-primary" type="button" onClick={startNewRun}>
-              Start a new run
+              {text.newRun}
             </button>
           </section>
         </div>

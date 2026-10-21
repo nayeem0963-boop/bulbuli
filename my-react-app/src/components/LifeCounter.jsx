@@ -1,6 +1,13 @@
 import { getFeedbackStyle } from '../utils/feedbackConfig.js'
 
-function LifeCounter({ lives, event = null, className = '' }) {
+const DEFAULT_LABELS = {
+  life: (count) => (count === 1 ? 'Life' : 'Lives'),
+  livesLabel: (count, n) => `${n} ${count === 1 ? 'life' : 'lives'} remaining`,
+  extraLife: '+1 Extra Life!',
+  formatNumber: (value) => String(value),
+}
+
+function LifeCounter({ lives, event = null, className = '', labels = DEFAULT_LABELS }) {
   if (!Number.isInteger(lives) || lives < 0) {
     throw new RangeError('LifeCounter requires a non-negative integer life count.')
   }
@@ -17,7 +24,7 @@ function LifeCounter({ lives, event = null, className = '' }) {
     <div
       className={`feedback-life-counter ${className}`.trim()}
       style={getFeedbackStyle()}
-      aria-label={`${lives} ${lives === 1 ? 'life' : 'lives'} remaining`}
+      aria-label={labels.livesLabel(lives, labels.formatNumber(lives))}
       aria-live="polite"
     >
       <span className="feedback-life-hearts" aria-hidden="true">
@@ -25,11 +32,11 @@ function LifeCounter({ lives, event = null, className = '' }) {
           <span className={`feedback-life-heart ${heart.state}`} key={heart.key}>❤️</span>
         ))}
       </span>
-      <strong>{lives}</strong>
-      <span>{lives === 1 ? 'Life' : 'Lives'}</span>
+      <strong>{labels.formatNumber(lives)}</strong>
+      <span>{labels.life(lives)}</span>
       {event?.type === 'bonus' && (
         <span key={event.id} className="feedback-life-particle" aria-hidden="true">
-          +1 Extra Life!
+          {labels.extraLife}
         </span>
       )}
     </div>

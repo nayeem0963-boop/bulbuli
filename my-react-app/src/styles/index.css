@@ -1,0 +1,7 @@
+/* Cascade layers: later layers win regardless of selector specificity, so components never fight the base. */
+@layer reset, tokens, base, ui, pages;
+
+@import './tokens.css';
+@import './base.css';
+@import './motion.css';
+@import './ui.css';

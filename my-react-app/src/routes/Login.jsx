@@ -227,10 +227,11 @@ export default function Login() {
                 onSubmit={authMode === 'login' ? handleLogin : handleSignUp}
                 className="login-form"
               >
+              <label className="auth-field-label" htmlFor="account-email">Email</label>
               <input
+                id="account-email"
                 type="email"
                 placeholder="Enter your email"
-                aria-label="Email address"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value)

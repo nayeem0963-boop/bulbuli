@@ -1,0 +1,88 @@
+@layer pages {
+  .home {
+    flex: 1;
+    width: 100%;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    display: grid;
+    align-items: center;
+    grid-template-columns: minmax(260px, 5fr) minmax(0, 6fr);
+    gap: clamp(16px, 4vw, 64px);
+  }
+  .home__stage { display: grid; place-items: center; }
+  .home__panel { display: grid; gap: clamp(8px, 1.6dvh, 16px); min-width: 0; }
+  .home__section { display: grid; gap: 6px; }
+  .home__section .section-title { margin: 0; font-size: 1.05rem; }
+  .home__tag { margin-top: 6px; font-size: 1.2rem; }
+
+  /* sticker-style title; each word drops in */
+  .home__title {
+    font-size: clamp(2.6rem, 6vw, 5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    color: #fff;
+    -webkit-text-stroke: 8px var(--ink);
+    paint-order: stroke fill;
+    text-shadow: 0 6px 0 var(--ink);
+    & span { display: inline-block; margin-right: 0.22em; animation: word-in 0.8s var(--spring-bouncy) backwards; animation-delay: calc(0.1s + var(--i) * 0.16s); }
+  }
+  html[lang='bn'] .home__title { -webkit-text-stroke-width: 6px; line-height: 1.3; }
+
+  /* try-me puzzle */
+  .teaser {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+    width: 100%;
+    padding: 22px 14px 14px;
+    cursor: pointer;
+    background: #fff;
+    border: var(--border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--lift);
+    transition: transform 0.08s, box-shadow 0.08s;
+    &:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+  }
+  .teaser__row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+  .teaser__item { display: inline-flex; width: 38px; animation: tile-in 0.45s var(--spring-bouncy) backwards; animation-delay: calc(var(--i) * 60ms); }
+  .teaser .tile { min-width: 56px; height: 56px; }
+  .teaser .tile .shape { width: 38px; }
+  .teaser__hint { font-size: 0.95rem; opacity: 0.75; }
+
+  /* start button: a conic gradient ring that keeps turning */
+  /* sticky: the start button stays reachable even when the options push past the fold */
+  .home__cta {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    display: grid;
+    gap: 8px;
+    padding: 10px 0 calc(6px + env(safe-area-inset-bottom));
+  }
+  .home__meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .home__glow {
+    position: relative;
+    display: block;
+    border-radius: 20px;
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      z-index: -1;
+      border-radius: 24px;
+      background: conic-gradient(from var(--ring), var(--sun), var(--red), var(--sky), var(--sun));
+      filter: blur(6px);
+      opacity: 0.85;
+      animation: ring 4s linear infinite;
+    }
+  }
+  .home__start { width: 100%; }
+  .home__best { font-weight: 700; margin: 0; }
+  .home__lb { padding: 0.3rem 0.9rem; }
+
+  @media (max-width: 899px) {
+    .home { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 8px; }
+    .home .mascot--hero { --mascot-h: 30dvh; }
+    .home .mascot__bubble { right: -30%; }
+  }
+}

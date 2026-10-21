@@ -1,0 +1,103 @@
+@layer pages {
+  .game { flex: 1; width: 100%; max-width: var(--maxw); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); }
+  .game__main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+  .game__swap { flex: 1; }
+  .game__coach { display: none; }
+  .game__rules { margin: -8px 0 14px; font-size: 0.9rem; text-align: center; opacity: 0.8; }
+
+  /* HUD */
+  .hud { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .hud__quit { margin-right: auto; }
+  .hud__clockwrap { position: relative; display: inline-block; }
+  .pill--clock { font-size: 1.15rem; &.is-urgent { background: var(--bad-bg); animation: pulse 0.5s ease-in-out infinite alternate; } }
+  .hud__delta {
+    position: absolute; left: 50%; top: 100%; pointer-events: none; white-space: nowrap;
+    font: 800 1.2rem var(--font-display);
+    animation: drop 0.9s ease-out forwards;
+    &.is-good { color: var(--green); }
+    &.is-bad { color: var(--red); }
+  }
+
+  /* timer bar: scaleX is written by a rAF loop, not by React */
+  .timer { height: 16px; margin-bottom: 18px; overflow: hidden; background: #fff; border: var(--border); border-radius: 99px; }
+  .timer.is-urgent { animation: pulse 0.5s ease-in-out infinite alternate; }
+  .timer__fill { display: block; height: 100%; background: var(--green); transform-origin: left center; will-change: transform; }
+  .timer.is-urgent .timer__fill { background: var(--red); }
+
+  /* question */
+  .qcard {
+    flex: 1;
+    min-height: 28dvh;
+    display: grid;
+    gap: 16px;
+    align-content: center;
+    justify-items: center;
+    padding: clamp(18px, 3.5vw, 52px) 16px;
+    text-align: center;
+    background: #fff;
+    border: var(--border);
+    border-radius: var(--radius-m);
+  }
+  .qcard__prompt { font-size: clamp(1.5rem, 3vw, 2.4rem); }
+  .stem__expr { font: 800 clamp(2.6rem, 9vw, 6.5rem) / 1.1 var(--font-display); }
+  .stem__row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+  .stem__shape { display: inline-flex; width: clamp(42px, 7vw, 84px); animation: tile-in 0.45s var(--spring-bouncy) backwards; animation-delay: calc(var(--i, 0) * 55ms); }
+
+  /* answers */
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .answer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 14dvh, 150px);
+    padding: 12px;
+    cursor: pointer;
+    background: #fff;
+    border: var(--border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--lift);
+    transition: transform 0.08s, box-shadow 0.08s, background 0.15s, opacity 0.2s;
+    animation: tile-in 0.45s var(--spring-bouncy) backwards;
+    animation-delay: calc(var(--i, 0) * 60ms + 120ms);
+
+    &:hover:not(:disabled) { background: var(--hover); }
+    &:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+    &:disabled { cursor: default; }
+    &.is-right { background: var(--good-bg); animation: cheer 0.5s ease-out; }
+    &.is-wrong { background: var(--bad-bg); animation: shake 0.45s ease-in-out; }
+    &.is-dim { opacity: 0.55; }
+  }
+  .answer__value { font: 800 clamp(1.8rem, 4vw, 3rem) var(--font-display); }
+  .answer .shape { width: clamp(52px, 7vw, 84px); }
+  .answer__key {
+    position: absolute; top: 6px; left: 8px; width: 22px; height: 22px; display: grid; place-items: center;
+    color: #fff; background: var(--ink); border-radius: 50%; font: 800 0.8rem var(--font-display);
+  }
+  .answer__mark { position: absolute; top: 4px; right: 10px; font: 800 1.4rem var(--font-display); }
+
+  .feedback {
+    padding: 14px 16px; background: #fff; border: var(--border); border-left-width: 12px; border-radius: var(--radius-m);
+    animation: rise 0.3s var(--ease-out);
+    &.is-good { border-left-color: var(--green); }
+    &.is-bad { border-left-color: var(--red); }
+    & strong { font-size: 1.3rem; }
+    & .btn { margin-top: 12px; }
+  }
+
+  .game__over {
+    position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
+    background: rgba(234, 243, 250, 0.82);
+    font: 800 clamp(2.4rem, 12vw, 4.5rem) var(--font-display);
+    animation: slam 0.4s var(--spring-bouncy);
+  }
+
+  /* wide screens: mascot coaches from the side, answers in one row */
+  @media (min-width: 1000px) {
+    .game { grid-template-columns: minmax(0, 1fr) clamp(200px, 20vw, 300px); column-gap: 32px; }
+    .answers { grid-template-columns: repeat(4, 1fr); }
+    .game__coach { position: sticky; bottom: 0; align-self: end; display: flex; align-items: flex-end; justify-content: center; }
+    .game__coach .mascot { --mascot-h: min(46dvh, 440px); }
+    .game__coach .mascot__bubble { top: -2%; right: auto; left: -12%; }
+  }
+}

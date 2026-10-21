@@ -23,7 +23,7 @@
   align-items: center;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
-  border-radius: 26px;
+  border-radius: var(--radius-panel);
   padding: clamp(1.7rem, 5vw, 3.5rem);
   background:
     radial-gradient(ellipse at 84% 25%, rgb(255 255 255 / 74%), transparent 16rem),
@@ -33,7 +33,7 @@
 
 .app-shell[data-theme='dark'] .tutorial-hero {
   background:
-    radial-gradient(ellipse at 84% 25%, rgb(165 160 255 / 12%), transparent 16rem),
+    radial-gradient(ellipse at 84% 25%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 16rem),
     linear-gradient(120deg, var(--accent-soft), var(--surface) 68%);
 }
 
@@ -50,7 +50,7 @@
   margin-bottom: 0.7rem;
   font-size: clamp(2.25rem, 5.5vw, 3.65rem);
   font-weight: 780;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.01em;
   line-height: 1.04;
 }
 
@@ -66,7 +66,7 @@
 
 .tutorial-hero-action {
   gap: 1rem;
-  box-shadow: 0 8px 22px rgb(88 84 232 / 19%);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 19%, transparent);
 }
 
 .tutorial-hero-action span,
@@ -110,7 +110,7 @@
 .hero-art-star {
   color: var(--accent);
   font-size: 4.8rem;
-  filter: drop-shadow(0 10px 14px rgb(88 84 232 / 22%));
+  filter: drop-shadow(0 10px 14px color-mix(in srgb, var(--accent) 22%, transparent));
 }
 
 .hero-art-tag {
@@ -120,10 +120,10 @@
   height: 3.4rem;
   place-items: center;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   color: var(--text);
   background: var(--surface);
-  box-shadow: 0 8px 22px rgb(35 46 82 / 10%);
+  box-shadow: var(--edge);
   font-weight: 800;
 }
 
@@ -160,7 +160,7 @@
   column-gap: 0.8rem;
   row-gap: 0.2rem;
   padding: 1rem 1.2rem;
-  box-shadow: 0 5px 18px rgb(35 46 82 / 4%);
+  box-shadow: var(--edge);
 }
 
 .tutorial-stat-icon {
@@ -169,7 +169,7 @@
   height: 2.25rem;
   grid-row: span 2;
   place-items: center;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   color: var(--success);
   background: var(--success-soft);
   font-weight: 800;
@@ -198,7 +198,7 @@
 
 .tutorial-stat strong {
   font-size: 1.3rem;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
 }
 
 .tutorial-stat strong small {
@@ -222,7 +222,7 @@
 .tutorial-section-heading h2 {
   margin-bottom: 0;
   font-size: clamp(1.45rem, 3vw, 1.85rem);
-  letter-spacing: -0.045em;
+  letter-spacing: -0.01em;
 }
 
 .tutorial-text-link {
@@ -249,14 +249,14 @@
   align-items: flex-start;
   gap: 1rem;
   padding: 1.35rem;
-  box-shadow: 0 5px 18px rgb(35 46 82 / 4%);
+  box-shadow: var(--edge);
   transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .tutorial-card:hover {
   transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
-  box-shadow: 0 14px 32px rgb(35 46 82 / 10%);
+  box-shadow: var(--edge);
 }
 
 .app-shell[data-theme='dark'] .tutorial-card {
@@ -274,12 +274,12 @@
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--accent) 19%, var(--border));
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   color: var(--accent);
   background: var(--accent-soft);
   font-size: 0.9rem;
   font-weight: 850;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
 }
 
 .tutorial-symbol-css-introduction {
@@ -330,17 +330,15 @@
 .tutorial-card-category {
   margin-bottom: 0.3rem;
   color: var(--text-muted);
-  font-size: 0.69rem;
-  font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .tutorial-card h2 {
   margin-bottom: 0.45rem;
   font-size: 1.12rem;
   font-weight: 750;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.01em;
   line-height: 1.3;
 }
 
@@ -392,7 +390,7 @@
 .tutorial-card-progress progress::-webkit-progress-value,
 .tutorial-inline-progress progress::-webkit-progress-value {
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), #9d82ff);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   transition: width 350ms ease;
 }
 
@@ -448,7 +446,7 @@
 .tutorial-list-counter strong {
   color: var(--text);
   font-size: 1.8rem;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.01em;
 }
 
 .tutorial-list-counter strong span {
@@ -472,7 +470,7 @@
 .quiz-page-heading .tutorial-card-symbol {
   width: 4rem;
   height: 4rem;
-  border-radius: 17px;
+  border-radius: var(--radius-card);
   font-size: 1.12rem;
 }
 
@@ -527,7 +525,7 @@
 .course-modules {
   margin-top: 1.25rem;
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   padding: clamp(1.2rem, 4vw, 1.8rem);
   background: var(--surface);
 }
@@ -566,7 +564,7 @@
 
 .course-module {
   border: 1px solid var(--border);
-  border-radius: 13px;
+  border-radius: var(--radius-control);
   background: var(--surface-muted);
 }
 
@@ -586,7 +584,7 @@
 }
 
 .course-module-summary:focus-visible {
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   outline: 3px solid var(--accent);
   outline-offset: -3px;
 }
@@ -682,7 +680,7 @@
 
 .course-module-progress progress::-webkit-progress-value {
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), #9d82ff);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
 
 .course-module-progress progress::-moz-progress-bar {
@@ -835,7 +833,7 @@
   gap: 1rem;
   margin-top: 1rem;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   padding: 1rem 1.1rem;
   background: var(--surface);
 }
@@ -864,7 +862,7 @@
   gap: 0.65rem;
   margin-top: 1rem;
   border: 1px solid color-mix(in srgb, var(--success) 24%, var(--border));
-  border-radius: 11px;
+  border-radius: var(--radius-control);
   padding: 0.75rem 0.9rem;
   color: var(--text-muted);
   background: var(--success-soft);
@@ -894,7 +892,7 @@
   gap: 2rem;
   margin-top: 1rem;
   border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   padding: 1.3rem 1.5rem;
   background: linear-gradient(115deg, var(--accent-soft), var(--surface) 78%);
 }
@@ -902,7 +900,7 @@
 .tutorial-start-panel h2 {
   margin-bottom: 0.8rem;
   font-size: 1.15rem;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em;
 }
 
 .tutorial-start-panel .eyebrow {
@@ -942,7 +940,7 @@
 .quiz-progress {
   margin: 0 0 0.9rem;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   padding: 0.9rem 1rem;
   background: var(--surface);
 }
@@ -976,7 +974,7 @@
   align-items: center;
   gap: 0.5rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   padding: 0.55rem 0.8rem;
   color: var(--text);
   background: var(--surface);
@@ -1076,7 +1074,7 @@
 .tutorial-quiz-page .question-card {
   position: relative;
   z-index: 0;
-  border-radius: 20px;
+  border-radius: var(--radius-panel);
   padding: clamp(1.25rem, 4vw, 2rem);
 }
 
@@ -1107,7 +1105,7 @@
   max-width: 42rem;
   margin-bottom: 1.4rem;
   font-size: clamp(1.4rem, 4vw, 2rem);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
   line-height: 1.3;
 }
 
@@ -1119,7 +1117,7 @@
 .tutorial-quiz-page .answer-options button {
   min-height: 3.6rem;
   gap: 0.75rem;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   padding: 0.7rem 0.85rem;
   transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
 }
@@ -1218,7 +1216,7 @@
   display: grid;
   justify-items: center;
   margin-top: 1.5rem;
-  border-radius: 22px;
+  border-radius: var(--radius-panel);
   padding: clamp(1.6rem, 5vw, 3rem);
   text-align: center;
 }
@@ -1230,7 +1228,7 @@
   gap: 0.8rem;
   margin-bottom: 1.5rem;
   border: 1px solid color-mix(in srgb, var(--success) 28%, var(--border));
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   padding: 0.8rem 1rem;
   color: var(--success);
   background: var(--success-soft);
@@ -1287,7 +1285,7 @@
 .tutorial-results h2 {
   margin-bottom: 0.5rem;
   font-size: clamp(1.6rem, 4vw, 2.25rem);
-  letter-spacing: -0.05em;
+  letter-spacing: -0.01em;
 }
 
 .results-description {
@@ -1303,7 +1301,7 @@
 
 .results-score strong {
   font-size: 3rem;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.01em;
 }
 
 .results-score strong span {
@@ -1329,7 +1327,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), #9d82ff);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   transition: width 500ms ease;
 }
 
@@ -1360,8 +1358,8 @@
 
 .dashboard-page .dashboard-metric {
   min-height: 132px;
-  border-radius: 16px;
-  box-shadow: 0 5px 18px rgb(35 46 82 / 4%);
+  border-radius: var(--radius-card);
+  box-shadow: var(--edge);
 }
 
 .dashboard-metric-top {
@@ -1376,7 +1374,7 @@
   width: 2rem;
   height: 2rem;
   place-items: center;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   color: var(--accent);
   background: var(--accent-soft);
   font-size: 1rem;
@@ -1406,7 +1404,7 @@
 }
 
 .dashboard-profile {
-  border-radius: 18px;
+  border-radius: var(--radius-card);
 }
 
 .dashboard-tutorials {
@@ -1577,7 +1575,7 @@
   .tutorial-overview-hero .tutorial-card-symbol {
     width: 3.2rem;
     height: 3.2rem;
-    border-radius: 12px;
+    border-radius: var(--radius-control);
   }
 
   .tutorial-quiz-page .question-card {
@@ -1691,7 +1689,7 @@
   gap: 1.25rem;
   margin: 1.5rem 0 2.8rem;
   border: 1px solid #f2d58a;
-  border-radius: 22px;
+  border-radius: var(--radius-panel);
   padding: 1.35rem 1.5rem;
   background: linear-gradient(115deg, #fff5cf, #fffaf0 65%, var(--surface));
   box-shadow: var(--shadow);
@@ -1712,7 +1710,7 @@
 .math-hero-promo h2 {
   margin: 0;
   font-size: clamp(1.25rem, 3vw, 1.65rem);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
 }
 
 .math-hero-promo p:last-child {
@@ -1740,7 +1738,7 @@
 
 .app-shell[data-theme='dark'] .math-hero-promo {
   border-color: #65512b;
-  background: linear-gradient(115deg, #3b321f, #272638 68%, var(--surface));
+  background: linear-gradient(115deg, #3b321f, #25291f 68%, var(--surface));
 }
 
 .app-shell[data-theme='dark'] .math-hero-promo .eyebrow {
@@ -1776,10 +1774,10 @@
   place-items: center;
   margin-left: auto;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   color: var(--text);
   background: var(--surface);
-  box-shadow: 0 4px 12px rgb(35 46 82 / 8%);
+  box-shadow: var(--edge);
   font-size: 1.35rem;
   cursor: pointer;
   touch-action: manipulation;
@@ -1811,7 +1809,7 @@
 .math-hero-heading h1 {
   margin: 0;
   font-size: clamp(2.4rem, 8vw, 3.5rem);
-  letter-spacing: -0.065em;
+  letter-spacing: -0.01em;
   line-height: 1;
 }
 
@@ -1835,7 +1833,7 @@
   align-items: center;
   gap: 0.45rem;
   border: 1px solid #f3d987;
-  border-radius: 15px;
+  border-radius: var(--radius-card);
   padding: 0.55rem 0.85rem;
   color: #725012;
   background: #fff8dd;
@@ -1888,7 +1886,7 @@
 
 .math-hero-game {
   border: 1px solid #e8d9a8;
-  border-radius: 26px;
+  border-radius: var(--radius-panel);
   padding: clamp(1.2rem, 5vw, 2.25rem);
   background:
     radial-gradient(ellipse at 90% 3%, rgb(255 229 135 / 28%), transparent 15rem),
@@ -1911,7 +1909,7 @@
 .math-hero-game-top h2 {
   margin: 0;
   font-size: clamp(1.2rem, 4vw, 1.55rem);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
 }
 
 .math-hero-timer {
@@ -1921,11 +1919,11 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  border: 1px solid #d9e8ff;
-  border-radius: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   padding: 0.45rem 0.75rem;
-  color: #355f9b;
-  background: #eef5ff;
+  color: var(--accent);
+  background: var(--accent-soft);
   font-size: 1.2rem;
   font-variant-numeric: tabular-nums;
   font-weight: 800;
@@ -1966,7 +1964,7 @@
   font-size: clamp(3rem, 12vw, 5rem);
   font-variant-numeric: tabular-nums;
   font-weight: 850;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.01em;
   line-height: 1.15;
   text-align: center;
 }
@@ -1984,10 +1982,10 @@
 
 .math-hero-option {
   min-height: 4.25rem;
-  border: 2px solid #d9e4f3;
-  border-radius: 17px;
-  color: #314564;
-  background: #f5f8ff;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-card);
+  color: var(--text);
+  background: var(--surface-muted);
   font-size: clamp(1.35rem, 5vw, 1.8rem);
   font-weight: 800;
   cursor: pointer;
@@ -1997,8 +1995,8 @@
 
 .math-hero-option:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: #817dec;
-  background: #f0efff;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .math-hero-complexity-notice {
@@ -2007,7 +2005,7 @@
 
 .math-hero-option:focus-visible,
 .math-hero-primary:focus-visible {
-  outline: 3px solid #817dec;
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -2021,7 +2019,7 @@
   display: grid;
   place-items: center;
   margin: 0.9rem 0 0;
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   padding: 0.6rem 0.8rem;
   color: #725012;
   background: #fff6d9;
@@ -2077,7 +2075,7 @@
 .math-hero-game-over {
   width: min(100%, 430px);
   border: 1px solid #f2d58a;
-  border-radius: 26px;
+  border-radius: var(--radius-panel);
   padding: clamp(1.4rem, 5vw, 2rem);
   background:
     radial-gradient(ellipse at 50% 0%, rgb(255 229 135 / 30%), transparent 14rem),
@@ -2100,7 +2098,7 @@
 .math-hero-game-over h2 {
   margin: 0;
   font-size: clamp(2rem, 8vw, 2.7rem);
-  letter-spacing: -0.06em;
+  letter-spacing: -0.01em;
 }
 
 .math-hero-game-over-message {
@@ -2113,7 +2111,7 @@
   display: grid;
   gap: 0.55rem;
   margin-bottom: 1.4rem;
-  border-radius: 16px;
+  border-radius: var(--radius-card);
   padding: 0.9rem 1rem;
   background: var(--surface-muted);
   text-align: left;
@@ -2158,9 +2156,9 @@
 }
 
 .app-shell[data-theme='dark'] .math-hero-timer {
-  border-color: #344968;
-  color: #a9c8f3;
-  background: #1e2a3b;
+  border-color: var(--border);
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .app-shell[data-theme='dark'] .math-hero-progress {
@@ -2168,14 +2166,14 @@
 }
 
 .app-shell[data-theme='dark'] .math-hero-option {
-  border-color: #3a4961;
-  color: #e8eeff;
-  background: #202b3d;
+  border-color: var(--border-strong);
+  color: var(--text);
+  background: var(--surface-raised);
 }
 
 .app-shell[data-theme='dark'] .math-hero-option:hover:not(:disabled) {
-  border-color: #a5a0ff;
-  background: #292746;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .app-shell[data-theme='dark'] .math-hero-message {
@@ -2280,7 +2278,7 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
-  border-radius: 26px;
+  border-radius: var(--radius-panel);
   padding: clamp(1.5rem, 4vw, 2.75rem);
   background:
     radial-gradient(ellipse at 88% 12%, rgb(255 255 255 / 76%), transparent 18rem),
@@ -2290,7 +2288,7 @@
 
 .app-shell[data-theme='dark'] .auth-welcome-panel {
   background:
-    radial-gradient(ellipse at 88% 12%, rgb(165 160 255 / 13%), transparent 18rem),
+    radial-gradient(ellipse at 88% 12%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 18rem),
     linear-gradient(145deg, var(--accent-soft), var(--surface) 72%);
 }
 
@@ -2307,7 +2305,7 @@
   max-width: 22rem;
   margin-bottom: 0.9rem;
   font-size: clamp(2.4rem, 5vw, 3.7rem);
-  letter-spacing: -0.065em;
+  letter-spacing: -0.01em;
   line-height: 1.02;
 }
 
@@ -2331,7 +2329,7 @@
   align-items: center;
   gap: 0.6rem;
   border: 1px solid color-mix(in srgb, var(--accent) 13%, var(--border));
-  border-radius: 11px;
+  border-radius: var(--radius-control);
   padding: 0.45rem 0.65rem;
   color: var(--text-muted);
   background: color-mix(in srgb, var(--surface) 78%, transparent);
@@ -2369,7 +2367,7 @@
 .auth-card-title {
   margin-bottom: 0.65rem;
   font-size: clamp(1.8rem, 4vw, 2.3rem);
-  letter-spacing: -0.05em;
+  letter-spacing: -0.01em;
   line-height: 1.12;
 }
 
@@ -2484,7 +2482,7 @@ button:active:not(:disabled),
 .dashboard-profile:hover,
 .dashboard-next-step:hover {
   border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
-  box-shadow: 0 12px 30px rgb(35 46 82 / 8%);
+  box-shadow: var(--edge);
 }
 
 .hero-art-tag {
@@ -2517,7 +2515,7 @@ button:active:not(:disabled),
   z-index: 4;
   transform: translateY(-4px) scale(1.04);
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-  box-shadow: 0 12px 28px rgb(35 46 82 / 16%);
+  box-shadow: var(--edge);
 }
 
 .hero-art-tag:focus-visible {
@@ -2548,7 +2546,7 @@ button:active:not(:disabled),
 .hero-art-tag.is-bursting::after {
   position: absolute;
   inset: -0.4rem;
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   background:
     radial-gradient(circle at 10% 10%, var(--accent) 0 2px, transparent 3px),
     radial-gradient(circle at 95% 25%, #ffba55 0 2px, transparent 3px),
@@ -2605,11 +2603,11 @@ button:active:not(:disabled),
 .tutorial-card-progress progress::-moz-progress-bar,
 .tutorial-inline-progress progress::-moz-progress-bar,
 .progress progress::-moz-progress-bar {
-  background: linear-gradient(90deg, var(--accent), #9d82ff);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
 
 .progress progress::-webkit-progress-value {
-  background: linear-gradient(90deg, var(--accent), #9d82ff);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
 
 @keyframes hero-tag-float {
@@ -2686,7 +2684,7 @@ button:active:not(:disabled),
 .dashboard-exam-copy h2 {
   margin: 0 0 0.35rem;
   font-size: 1.08rem;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em;
 }
 
 .dashboard-exam-copy > p:last-child {
@@ -2719,7 +2717,7 @@ button:active:not(:disabled),
 .dashboard-subject-exams h2 {
   margin: 0;
   font-size: clamp(1.3rem, 3vw, 1.8rem);
-  letter-spacing: -0.045em;
+  letter-spacing: -0.01em;
 }
 
 .subject-exam-grid {
@@ -2756,7 +2754,7 @@ button:active:not(:disabled),
   height: 2.7rem;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--exam-accent, var(--accent)) 25%, var(--border));
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   color: var(--exam-accent, var(--accent));
   background: color-mix(in srgb, var(--exam-accent, var(--accent)) 9%, var(--surface));
   font-size: 1.05rem;
@@ -2777,7 +2775,7 @@ button:active:not(:disabled),
 .subject-exam-card .eyebrow {
   margin-bottom: 0.35rem;
   color: var(--exam-accent, var(--accent));
-  font-size: 0.72rem;
+  font-size: 0.8rem;
 }
 
 .subject-exam-card h3 {
@@ -2849,7 +2847,7 @@ button:active:not(:disabled),
   margin: -2rem calc((100vw - min(100vw - 2rem, 1100px)) / -2) 1.3rem;
   border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
   background: color-mix(in srgb, var(--surface) 94%, transparent);
-  box-shadow: 0 8px 22px rgb(35 46 82 / 7%);
+  box-shadow: var(--edge);
   backdrop-filter: blur(14px);
 }
 
@@ -2866,13 +2864,13 @@ button:active:not(:disabled),
 
 .exam-sticky-header .eyebrow {
   margin-bottom: 0.15rem;
-  font-size: 0.65rem;
+  font-size: 0.8rem;
 }
 
 .exam-sticky-header h1 {
   margin: 0;
   font-size: clamp(1rem, 3vw, 1.3rem);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
 }
 
 .exam-timer {
@@ -2882,7 +2880,7 @@ button:active:not(:disabled),
   align-items: center;
   column-gap: 0.4rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   padding: 0.5rem 0.7rem;
   color: var(--text);
   background: var(--surface);
@@ -2924,7 +2922,7 @@ button:active:not(:disabled),
 .exam-timer-track span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), #9d82ff);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   transition: width 250ms linear;
 }
 
@@ -2991,7 +2989,7 @@ button:active:not(:disabled),
 }
 
 .exam-question-card {
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   padding: clamp(1.2rem, 4vw, 2rem);
 }
 
@@ -3016,7 +3014,7 @@ button:active:not(:disabled),
 .exam-question-card h2 {
   margin-bottom: 1.4rem;
   font-size: clamp(1.3rem, 3vw, 1.8rem);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
   line-height: 1.35;
 }
 
@@ -3031,7 +3029,7 @@ button:active:not(:disabled),
   align-items: center;
   gap: 0.8rem;
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: var(--radius-control);
   padding: 0.65rem 0.8rem;
   color: var(--text);
   background: var(--surface-raised);
@@ -3067,7 +3065,7 @@ button:active:not(:disabled),
 
 .exam-answer-options button.is-selected > span {
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent);
 }
 
@@ -3127,7 +3125,7 @@ button:active:not(:disabled),
 .comprehensive-exam-intro {
   max-width: 720px;
   margin: 1rem auto;
-  border-radius: 22px;
+  border-radius: var(--radius-panel);
   padding: clamp(1.5rem, 5vw, 3rem);
   text-align: center;
 }
@@ -3138,7 +3136,7 @@ button:active:not(:disabled),
   height: 4rem;
   place-items: center;
   margin: 0 auto 1.2rem;
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   color: var(--accent);
   background: var(--accent-soft);
   font-size: 2.1rem;
@@ -3147,7 +3145,7 @@ button:active:not(:disabled),
 .comprehensive-exam-intro h1 {
   margin-bottom: 0.7rem;
   font-size: clamp(2rem, 5vw, 3rem);
-  letter-spacing: -0.06em;
+  letter-spacing: -0.01em;
 }
 
 .comprehensive-exam-intro > p:not(.eyebrow) {
@@ -3169,7 +3167,7 @@ button:active:not(:disabled),
 
 .comprehensive-exam-intro li {
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   padding: 0.75rem 0.85rem;
   color: var(--text-muted);
   background: var(--surface-raised);
@@ -3210,7 +3208,7 @@ button:active:not(:disabled),
   max-width: 760px;
   margin: 2rem auto;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: var(--radius-panel);
   padding: clamp(1.5rem, 5vw, 3rem);
   text-align: center;
 }
@@ -3257,7 +3255,7 @@ button:active:not(:disabled),
 .comprehensive-result h1 {
   margin: 0;
   font-size: clamp(2rem, 5vw, 2.8rem);
-  letter-spacing: -0.06em;
+  letter-spacing: -0.01em;
 }
 
 .exam-result-message {
@@ -3277,14 +3275,14 @@ button:active:not(:disabled),
 .exam-score-summary > strong {
   color: var(--accent);
   font-size: 3.2rem;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.01em;
   line-height: 1;
 }
 
 .exam-score-summary > strong span {
   color: var(--text-muted);
   font-size: 1.5rem;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
 }
 
 .exam-score-summary > span {
@@ -3322,7 +3320,7 @@ button:active:not(:disabled),
   align-items: center;
   gap: 0.8rem;
   border: 1px solid color-mix(in srgb, var(--success) 35%, var(--border));
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   padding: 0.9rem 1rem;
   color: var(--success);
   background: var(--success-soft);
@@ -3557,5 +3555,355 @@ button:active:not(:disabled),
   100% {
     opacity: 1;
     transform: scale(1) rotate(0);
+  }
+}
+
+/* ------------------------------------------------------------------
+   Bulbuli look-and-feel refresh
+   The home hero is the one bold surface: a deep canopy-green panel with
+   the crimson of the bulbul's under-tail as its only bright note.
+   ------------------------------------------------------------------ */
+
+.tutorial-hero,
+.auth-welcome-panel {
+  --text: #f2f6ef;
+  --text-muted: #bcd0c4;
+  --accent: #9be3a6;
+  --accent-hover: #b9edc1;
+  --on-accent: #10362c;
+  --surface: #f7faf5;
+  --border: rgb(255 255 255 / 18%);
+  --accent-soft: rgb(255 255 255 / 10%);
+  color: var(--text);
+  border: 0;
+  background: #14473a;
+  box-shadow: 0 1px 0 #0c2d24, 0 24px 48px -28px rgb(12 45 36 / 70%);
+}
+
+.app-shell[data-theme='dark'] .tutorial-hero,
+.app-shell[data-theme='dark'] .auth-welcome-panel {
+  background: #173b31;
+  box-shadow: 0 1px 0 #0b1f19;
+}
+
+.tutorial-hero-copy h1 {
+  color: var(--text);
+  font-size: clamp(2.5rem, 6.4vw, 4.4rem);
+  line-height: 1;
+}
+
+.auth-welcome-panel .auth-topic-pill {
+  border-color: rgb(255 255 255 / 14%);
+  background: rgb(255 255 255 / 6%);
+}
+
+.auth-welcome-panel .auth-topic-pill strong {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.auth-welcome-copy h1 {
+  color: var(--text);
+}
+
+.tutorial-hero .eyebrow,
+.auth-welcome-panel .eyebrow {
+  color: var(--accent);
+}
+
+.tutorial-hero-action {
+  box-shadow: none;
+}
+
+.tutorial-hero .hero-art-star {
+  color: #ff6b7a;
+  filter: none;
+}
+
+.tutorial-hero .hero-art-orbit {
+  border-color: rgb(255 255 255 / 22%);
+}
+
+.tutorial-hero .hero-art-tag {
+  border-color: transparent;
+  background: var(--surface);
+  box-shadow: 0 2px 0 rgb(0 0 0 / 20%);
+}
+
+.tutorial-hero .hero-art-tooltip {
+  color: #10362c;
+}
+
+.home-exam-link {
+  min-height: 2.8rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.7rem 1.2rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.home-exam-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tutorial-hero .home-exam-link {
+  border-color: rgb(255 255 255 / 32%);
+  color: var(--text);
+  background: transparent;
+  box-shadow: none;
+}
+
+.tutorial-hero .home-exam-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgb(255 255 255 / 6%);
+}
+
+/* Numbers set in the serif: it gives the counters weight, and avoids the body face's slashed zero. */
+.tutorial-stat strong,
+.tutorial-list-counter strong,
+.dashboard-metric strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.tutorial-stat strong {
+  font-size: 1.6rem;
+}
+
+.tutorial-card-action {
+  border-radius: 999px;
+  padding-inline: 1.1rem;
+}
+
+.tutorial-card-symbol {
+  border-radius: var(--radius-control);
+}
+
+@media (max-width: 760px) {
+  .tutorial-hero,
+  .auth-welcome-panel {
+    background: #14473a;
+  }
+
+  .app-shell[data-theme='dark'] .tutorial-hero,
+  .app-shell[data-theme='dark'] .auth-welcome-panel {
+    background: #173b31;
+  }
+
+  .home-exam-link {
+    margin: 0.6rem 0 0;
+  }
+
+  /* The badge cluster is decoration; on small screens it would sit on top of the hero buttons. */
+  .tutorial-hero .tutorial-hero-art {
+    display: none;
+  }
+}
+
+/* Math Hero mascot: tap to make it grow and talk */
+.math-hero-mascot-wrap {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+}
+
+.math-hero-mascot-button,
+.math-hero-mascot-button:hover:not(:disabled),
+.math-hero-mascot-button:active:not(:disabled) {
+  display: block;
+  min-height: 0;
+  border: 0;
+  border-radius: var(--radius-card);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.math-hero-mascot-button .math-hero-mascot {
+  transform-origin: 50% 85%;
+  transition: transform 420ms var(--spring, cubic-bezier(0.3, 1.5, 0.5, 1));
+}
+
+.math-hero-mascot-button:hover .math-hero-mascot {
+  transform: scale(1.06) rotate(-2deg);
+}
+
+.is-talking .math-hero-mascot-button .math-hero-mascot {
+  transform: scale(1.45) rotate(-2deg);
+  animation: mascot-pop 620ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+@keyframes mascot-pop {
+  0% { transform: scale(1) rotate(0); }
+  30% { transform: scale(1.62) rotate(-7deg); }
+  55% { transform: scale(1.36) rotate(4deg); }
+  75% { transform: scale(1.5) rotate(-3deg); }
+  100% { transform: scale(1.45) rotate(-2deg); }
+}
+
+.math-hero-speech {
+  position: absolute;
+  top: calc(100% + 1.5rem);
+  left: 0;
+  width: max-content;
+  max-width: min(20rem, calc(100vw - 2.5rem));
+  margin: 0;
+  pointer-events: none;
+}
+
+.math-hero-speech > span {
+  position: relative;
+  display: block;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.45;
+  transform-origin: 2.4rem -0.6rem;
+  animation: speech-in 360ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+/* The tail points up at the mascot. */
+.math-hero-speech > span::before {
+  position: absolute;
+  top: -0.5rem;
+  left: 2rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-top: 1px solid var(--border-strong);
+  border-left: 1px solid var(--border-strong);
+  background: inherit;
+  transform: rotate(45deg);
+  content: '';
+}
+
+@keyframes speech-in {
+  from { opacity: 0; transform: scale(0.8) translateY(-0.4rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-talking .math-hero-mascot-button .math-hero-mascot {
+    transform: scale(1.3);
+  }
+}
+
+/* Math Hero language switch */
+.math-hero-language-toggle,
+.math-hero-language-toggle:hover:not(:disabled) {
+  min-height: 3rem;
+  flex: 0 0 auto;
+  margin-left: auto;
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: var(--edge);
+  font-weight: 600;
+}
+
+.math-hero-language-toggle:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.math-hero-language-toggle:lang(bn) {
+  font-family: 'Hind Siliguri', var(--font-body);
+  font-size: 1.05rem;
+}
+
+/* The sound button sits right next to the language switch now. */
+.math-hero-language-toggle + .math-hero-sound-toggle {
+  margin-left: 0;
+}
+
+/* Bangla mode: Bengali script needs its own fonts and taller lines for its vowel signs. */
+.math-hero-page:lang(bn) {
+  --font-display: 'Baloo Da 2', 'Hind Siliguri', var(--font-body);
+  font-family: 'Hind Siliguri', var(--font-body);
+}
+
+.math-hero-page:lang(bn) .math-hero-heading h1 {
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.math-hero-page:lang(bn) :is(p, span, strong, button, h2) {
+  line-height: 1.55;
+}
+
+.math-hero-page:lang(bn) .math-hero-language-toggle:lang(en) {
+  font-family: var(--font-body);
+}
+
+/* Bengali letters look smaller than Latin at the same size, so the small labels step up a little. */
+.math-hero-page:lang(bn) .eyebrow,
+.math-hero-page:lang(bn) .math-hero-xp span:not([aria-hidden]),
+.math-hero-page:lang(bn) .feedback-life-counter span:not([aria-hidden]),
+.math-hero-page:lang(bn) .math-hero-footer,
+.math-hero-page:lang(bn) .math-hero-progress-label {
+  font-size: 0.98rem;
+}
+
+.math-hero-page:lang(bn) .math-hero-save-note,
+.math-hero-page:lang(bn) .math-hero-heading p:last-child {
+  font-size: 1.05rem;
+}
+
+.math-hero-page:lang(bn) .math-hero-game-top h2 {
+  font-size: clamp(1.35rem, 4.5vw, 1.7rem);
+}
+
+.math-hero-page:lang(bn) .math-hero-speech > span {
+  font-size: 1.08rem;
+}
+
+@media (max-width: 560px) {
+  /* On phones the language and sound buttons form a small toolbar above the mascot and title. */
+  .math-hero-heading {
+    position: relative;
+    flex-wrap: nowrap;
+    padding-top: 3.4rem;
+  }
+
+  .math-hero-heading-copy {
+    flex: 1 1 0;
+  }
+
+  .math-hero-language-toggle,
+  .math-hero-language-toggle:hover:not(:disabled),
+  .math-hero-heading .math-hero-sound-toggle {
+    position: absolute;
+    top: 0;
+    margin: 0;
+  }
+
+  .math-hero-heading .math-hero-sound-toggle {
+    right: 0;
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+
+  .math-hero-language-toggle,
+  .math-hero-language-toggle:hover:not(:disabled) {
+    right: 3.2rem;
+  }
+
+  .math-hero-language-toggle,
+  .math-hero-language-toggle:hover:not(:disabled) {
+    min-height: 2.6rem;
+    padding: 0.4rem 0.85rem;
   }
 }
