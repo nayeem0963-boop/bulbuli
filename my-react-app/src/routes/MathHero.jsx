@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import mathHeroMascot from '../assets/math-hero-mascot.png'
 import useSoundToggle from '../hooks/useSoundToggle.js'
@@ -12,7 +12,7 @@ import {
   MATH_HERO_QUESTIONS_PER_LEVEL,
 } from '../utils/mathHero.js'
 
-const ANSWER_REVEAL_MILLISECONDS = 2200
+const GAMEPLAY_ANIMATION_MILLISECONDS = 300
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -43,19 +43,90 @@ function MathHero({ userId }) {
     () => Boolean(
       gameProgress.feedback
       && !gameProgress.feedback.ready
-      && Date.now() - Date.parse(gameProgress.feedback.createdAt) < ANSWER_REVEAL_MILLISECONDS,
+      && Date.now() - Date.parse(gameProgress.feedback.createdAt) < WRONG_ANSWER_FEEDBACK_MILLISECONDS,
     ),
   )
   const [celebrating, setCelebrating] = useState(false)
   const [bonusLifeAwarded, setBonusLifeAwarded] = useState(false)
+  const [answerAnimation, setAnswerAnimation] = useState(null)
+  const [lifeAnimation, setLifeAnimation] = useState(null)
+  const [levelUp, setLevelUp] = useState(0)
+  const [complexityNotice, setComplexityNotice] = useState(null)
   const transitionInProgress = useRef(false)
   const firstSavePending = useRef(!savedProgress)
+  const pendingExitReset = useRef(null)
+  const answerTransitionTimer = useRef(null)
+  const animationTimers = useRef([])
+  const animationId = useRef(0)
+  const previousLevel = useRef(gameProgress.level)
+  const scheduleAnimation = useCallback((callback, delay) => {
+    const timerId = window.setTimeout(() => {
+      animationTimers.current = animationTimers.current.filter((activeId) => activeId !== timerId)
+      callback()
+    }, delay)
+    animationTimers.current.push(timerId)
+    return timerId
+  }, [])
+  const animateLevelChange = useCallback((nextLevel) => {
+    if (nextLevel === previousLevel.current) return
+    previousLevel.current = nextLevel
+    setLevelUp(nextLevel)
+    scheduleAnimation(() => setLevelUp(0), GAMEPLAY_ANIMATION_MILLISECONDS)
+
+    if (nextLevel > 10 && nextLevel % 10 === 1) {
+      setComplexityNotice(nextLevel)
+      scheduleAnimation(
+        () => setComplexityNotice(null),
+        GAMEPLAY_ANIMATION_MILLISECONDS * 2 + 200,
+      )
+    }
+  }, [scheduleAnimation])
 
   useEffect(() => {
     if (!firstSavePending.current) return
     firstSavePending.current = false
     saveMathHeroProgress(gameProgress)
   }, [gameProgress, saveMathHeroProgress])
+
+  useEffect(() => {
+    if (pendingExitReset.current !== null) {
+      window.clearTimeout(pendingExitReset.current)
+      pendingExitReset.current = null
+    }
+
+    const resetOnExit = () => {
+      const initialProgress = createInitialMathHeroProgress()
+      previousLevel.current = initialProgress.level
+      saveMathHeroProgress(initialProgress)
+      setGameProgress(initialProgress)
+      setTimeRemaining(getRemainingSeconds(initialProgress.deadline))
+      setAnswerRevealVisible(false)
+      setCelebrating(false)
+      setBonusLifeAwarded(false)
+      setAnswerAnimation(null)
+      setLifeAnimation(null)
+      setLevelUp(0)
+      setComplexityNotice(null)
+      transitionInProgress.current = false
+    }
+    const handlePageHide = () => resetOnExit()
+    window.addEventListener('pagehide', handlePageHide)
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide)
+      pendingExitReset.current = window.setTimeout(() => {
+        pendingExitReset.current = null
+        resetOnExit()
+      }, 0)
+    }
+  }, [saveMathHeroProgress])
+
+  useEffect(() => () => {
+    if (answerTransitionTimer.current !== null) {
+      window.clearTimeout(answerTransitionTimer.current)
+    }
+    animationTimers.current.forEach((timerId) => window.clearTimeout(timerId))
+  }, [])
 
   useEffect(() => {
     if (!gameProgress.deadline) return undefined
@@ -72,39 +143,50 @@ function MathHero({ userId }) {
 
     const wait = feedback.ready
       ? 0
-      : Math.max(
-        0,
-        ANSWER_REVEAL_MILLISECONDS - (Date.now() - Date.parse(feedback.createdAt)),
-      )
+      : Math.max(0, GAMEPLAY_ANIMATION_MILLISECONDS - (Date.now() - Date.parse(feedback.createdAt)))
     const timeoutId = window.setTimeout(() => {
       const updated = gameProgress.lives > 0
         ? createNextMathHeroProgress(gameProgress)
         : createMathHeroGameOverProgress(gameProgress)
 
       if (updated.gameOver) playSound('complete')
+      animateLevelChange(updated.level)
       setGameProgress(updated)
       saveMathHeroProgress(updated)
       setTimeRemaining(getRemainingSeconds(updated.deadline))
       setAnswerRevealVisible(false)
       setCelebrating(false)
       setBonusLifeAwarded(false)
+      setAnswerAnimation(null)
       transitionInProgress.current = false
     }, wait)
     return () => window.clearTimeout(timeoutId)
-  }, [gameProgress, saveMathHeroProgress])
+  }, [animateLevelChange, gameProgress, saveMathHeroProgress])
 
-  useEffect(() => {
-    if (timeRemaining > 0 || !gameProgress.deadline || gameProgress.feedback || gameProgress.gameOver) return
+  const handleMiss = useCallback((type) => {
     if (transitionInProgress.current) return
-
     transitionInProgress.current = true
-    const updated = applyMathHeroMiss(gameProgress, 'timeout')
     playSound('wrong')
+    const missedProgress = applyMathHeroMiss(gameProgress, type)
+    const lifeEventId = ++animationId.current
+    setLifeAnimation({ type: 'lost', id: lifeEventId })
+    scheduleAnimation(() => setLifeAnimation(null), GAMEPLAY_ANIMATION_MILLISECONDS)
+    const updated = missedProgress.lives === 0
+      ? createMathHeroGameOverProgress(missedProgress)
+      : missedProgress
+
+    if (updated.gameOver) playSound('complete')
     setGameProgress(updated)
     saveMathHeroProgress(updated)
     setTimeRemaining(0)
-    setAnswerRevealVisible(true)
-  }, [gameProgress, saveMathHeroProgress, timeRemaining])
+    setAnswerRevealVisible(Boolean(updated.feedback))
+    if (updated.gameOver) transitionInProgress.current = false
+  }, [gameProgress, saveMathHeroProgress, scheduleAnimation])
+
+  useEffect(() => {
+    if (timeRemaining > 0 || !gameProgress.deadline || gameProgress.feedback || gameProgress.gameOver) return
+    handleMiss('timeout')
+  }, [gameProgress.deadline, gameProgress.feedback, gameProgress.gameOver, handleMiss, timeRemaining])
 
   useEffect(() => {
     if (!celebrating) return undefined
@@ -123,24 +205,30 @@ function MathHero({ userId }) {
     if (answer === gameProgress.question.answer) {
       transitionInProgress.current = true
       playSound('correct')
-      const { progress: updated, bonusLifeAwarded } = applyMathHeroCorrectAnswer(gameProgress)
-      setGameProgress(updated)
-      saveMathHeroProgress(updated, 5)
-      setTimeRemaining(getRemainingSeconds(updated.deadline))
-      setAnswerRevealVisible(false)
-      setCelebrating(true)
-      setBonusLifeAwarded(bonusLifeAwarded)
-      transitionInProgress.current = false
+      const id = ++animationId.current
+      setAnswerAnimation({ answer, result: 'correct', id })
+      answerTransitionTimer.current = window.setTimeout(() => {
+        const { progress: updated, bonusLifeAwarded } = applyMathHeroCorrectAnswer(gameProgress)
+        animateLevelChange(updated.level)
+        setGameProgress(updated)
+        saveMathHeroProgress(updated, 5)
+        setTimeRemaining(getRemainingSeconds(updated.deadline))
+        setAnswerRevealVisible(false)
+        setCelebrating(true)
+        setBonusLifeAwarded(bonusLifeAwarded)
+        if (bonusLifeAwarded) {
+          const lifeEventId = ++animationId.current
+          setLifeAnimation({ type: 'gained', id: lifeEventId })
+          scheduleAnimation(() => setLifeAnimation(null), GAMEPLAY_ANIMATION_MILLISECONDS * 2)
+        }
+        transitionInProgress.current = false
+        answerTransitionTimer.current = null
+      }, GAMEPLAY_ANIMATION_MILLISECONDS)
       return
     }
 
-    transitionInProgress.current = true
-    playSound('wrong')
-    const updated = applyMathHeroMiss(gameProgress, 'incorrect')
-    setGameProgress(updated)
-    saveMathHeroProgress(updated)
-    setTimeRemaining(0)
-    setAnswerRevealVisible(true)
+    setAnswerAnimation({ answer, result: 'wrong', id: ++animationId.current })
+    handleMiss('incorrect')
   }
 
   const startNewRun = () => {
@@ -148,17 +236,22 @@ function MathHero({ userId }) {
     transitionInProgress.current = true
     playSound('click')
     const updated = createInitialMathHeroProgress()
+    previousLevel.current = updated.level
     setGameProgress(updated)
     saveMathHeroProgress(updated)
     setTimeRemaining(getRemainingSeconds(updated.deadline))
     setAnswerRevealVisible(false)
     setCelebrating(false)
     setBonusLifeAwarded(false)
+    setAnswerAnimation(null)
+    setLifeAnimation(null)
+    setLevelUp(0)
+    setComplexityNotice(null)
     transitionInProgress.current = false
   }
 
   const { level, questionNumber, question, feedback, gameOver, lives } = gameProgress
-  const showCorrectAnswer = feedback && !feedback.ready && answerRevealVisible
+  const showCorrectAnswer = Boolean(feedback && !feedback.ready && answerRevealVisible)
   const progressPercent = (questionNumber / MATH_HERO_QUESTIONS_PER_LEVEL) * 100
 
   return (
@@ -192,9 +285,20 @@ function MathHero({ userId }) {
           <span>Math Hero XP</span>
         </div>
         <div className="math-hero-xp math-hero-lives" aria-label={`${lives} ${lives === 1 ? 'life' : 'lives'} remaining`}>
-          <span aria-hidden="true">❤️</span>
+          <span
+            key={lifeAnimation?.id ?? 'still-heart'}
+            className={`math-hero-heart${lifeAnimation ? ` is-${lifeAnimation.type}` : ''}`}
+            aria-hidden="true"
+          >
+            ❤️
+          </span>
           <strong>{lives}</strong>
           <span>{lives === 1 ? 'Life' : 'Lives'}</span>
+          {lifeAnimation?.type === 'gained' && (
+            <span key={`life-float-${lifeAnimation.id}`} className="math-hero-life-float" aria-hidden="true">
+              +1 Extra Life!
+            </span>
+          )}
         </div>
         <div className="math-hero-xp math-hero-total-xp">
           <span aria-hidden="true">🏆</span>
@@ -206,7 +310,9 @@ function MathHero({ userId }) {
       <section className="card math-hero-game" aria-labelledby="math-hero-question">
         <div className="math-hero-game-top">
           <div>
-            <p className="eyebrow">Level {level}</p>
+            <p key={level} className={`eyebrow math-hero-level-badge${levelUp === level ? ' is-leveling-up' : ''}`}>
+              Level {level}
+            </p>
             <h2 id="math-hero-question">Question {questionNumber} of {MATH_HERO_QUESTIONS_PER_LEVEL}</h2>
           </div>
           <div
@@ -218,6 +324,12 @@ function MathHero({ userId }) {
             {formatTime(timeRemaining)}
           </div>
         </div>
+
+        {complexityNotice && (
+          <p key={complexityNotice} className="math-hero-complexity-notice" role="status">
+            Complexity increased! Level {complexityNotice}
+          </p>
+        )}
 
         <div
           className="math-hero-progress"
@@ -253,13 +365,21 @@ function MathHero({ userId }) {
         <div className="math-hero-options" aria-label="Choose an answer">
           {question.options.map((option, index) => (
             <button
-              className="math-hero-option"
+              className={[
+                'math-hero-option',
+                answerAnimation?.answer === option ? `is-${answerAnimation.result}` : '',
+              ].filter(Boolean).join(' ')}
               key={`${option}-${index}`}
               type="button"
               disabled={Boolean(feedback || gameOver) || timeRemaining === 0}
               onClick={() => selectAnswer(option)}
             >
               {option}
+              {answerAnimation?.answer === option && answerAnimation.result === 'correct' && (
+                <span key={answerAnimation.id} className="math-hero-answer-particle" aria-hidden="true">
+                  ✓ +5 XP
+                </span>
+              )}
             </button>
           ))}
         </div>

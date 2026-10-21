@@ -717,8 +717,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .course-module-panel,
-  .module-reading-content {
+  .module-reading-content,
+  .math-hero-message.is-incorrect {
     transition: none;
+    animation: none;
   }
 }
 
@@ -1860,9 +1862,90 @@
 }
 
 .math-hero-lives {
+  position: relative;
   border-color: #f1c5cd;
   color: #a6354e;
   background: #fff0f2;
+}
+
+.math-hero-heart {
+  display: inline-block;
+  transform-origin: center;
+}
+
+.math-hero-heart.is-gained {
+  animation: math-hero-heart-pop 350ms ease-out;
+}
+
+.math-hero-heart.is-lost {
+  animation: math-hero-heart-loss 350ms ease-in forwards;
+}
+
+.math-hero-life-float {
+  position: absolute;
+  z-index: 1;
+  top: -0.5rem;
+  left: 50%;
+  width: max-content;
+  color: #16805b;
+  font-size: 0.78rem;
+  font-weight: 850;
+  pointer-events: none;
+  animation: math-hero-float-up 400ms ease-out forwards;
+}
+
+@keyframes math-hero-heart-pop {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  45% {
+    transform: scale(1.45);
+    filter: drop-shadow(0 0 8px rgb(255 70 100 / 75%));
+  }
+
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
+
+@keyframes math-hero-heart-loss {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  35% {
+    transform: scale(1.2);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgb(217 72 85 / 85%));
+  }
+
+  100% {
+    transform: scale(0.35) rotate(-18deg);
+    opacity: 0.15;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
+
+@keyframes math-hero-float-up {
+  0% {
+    transform: translate(-50%, 0) scale(0.85);
+    opacity: 0;
+  }
+
+  25% {
+    transform: translate(-50%, -0.35rem) scale(1.05);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -1.25rem) scale(1);
+    opacity: 0;
+  }
 }
 
 .app-shell[data-theme='dark'] .math-hero-xp {
@@ -1903,6 +1986,26 @@
 .math-hero-game-top .eyebrow {
   margin: 0 0 0.15rem;
   color: #ae7a28;
+}
+
+.math-hero-level-badge.is-leveling-up {
+  animation: math-hero-level-up 300ms ease-out;
+}
+
+@keyframes math-hero-level-up {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    color: #f29b19;
+    text-shadow: 0 0 10px rgb(255 190 55 / 75%);
+    transform: scale(1.18);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .math-hero-game-top h2 {
@@ -1998,6 +2101,100 @@
   background: #f0efff;
 }
 
+.math-hero-option.is-correct {
+  position: relative;
+  z-index: 1;
+  border-color: #25a873;
+  color: #146442;
+  background: #e2f8ec;
+  animation: math-hero-correct-pulse 300ms ease-out;
+}
+
+.math-hero-option.is-wrong {
+  border-color: #d94855;
+  color: #8e2634;
+  background: #ffe6e8;
+  animation: math-hero-option-shake 300ms ease-in-out;
+}
+
+@keyframes math-hero-correct-pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    box-shadow: 0 0 0 5px rgb(37 168 115 / 16%);
+    transform: scale(1.045);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgb(37 168 115 / 0%);
+    transform: scale(1);
+  }
+}
+
+@keyframes math-hero-option-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(4px);
+  }
+
+  75% {
+    transform: translateX(-2px);
+  }
+}
+
+.math-hero-answer-particle {
+  position: absolute;
+  top: -0.55rem;
+  left: 50%;
+  color: #16805b;
+  font-size: 0.78rem;
+  font-weight: 850;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: math-hero-float-up 400ms ease-out forwards;
+}
+
+.math-hero-complexity-notice {
+  margin: 1rem 0 0;
+  border: 1px solid #edc15a;
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  color: #785117;
+  background: linear-gradient(100deg, #fff1b8, #ffdf84, #fff1b8);
+  font-size: 0.95rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-align: center;
+  animation: math-hero-complexity-banner 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes math-hero-complexity-banner {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.65rem) scale(0.96);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateY(0.08rem) scale(1.015);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .math-hero-option:focus-visible,
 .math-hero-primary:focus-visible {
   outline: 3px solid #817dec;
@@ -2031,6 +2228,21 @@
 .math-hero-message.is-incorrect {
   color: #8c5a24;
   background: #fff3dc;
+  animation: math-hero-wrong-flash 300ms ease-out;
+}
+
+@keyframes math-hero-wrong-flash {
+  0% {
+    color: #fff;
+    background: #d94855;
+    box-shadow: 0 0 0 5px rgb(217 72 85 / 18%);
+  }
+
+  100% {
+    color: #8c5a24;
+    background: #fff3dc;
+    box-shadow: 0 0 0 0 rgb(217 72 85 / 0%);
+  }
 }
 
 .math-hero-message.is-timeout {
@@ -2065,6 +2277,40 @@
   padding: 1rem;
   background: rgb(19 24 38 / 66%);
   backdrop-filter: blur(5px);
+  animation: math-hero-backdrop-enter 300ms ease-out both;
+}
+
+.math-hero-game-over {
+  animation: math-hero-modal-enter 350ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes math-hero-backdrop-enter {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+
+  to {
+    opacity: 1;
+    backdrop-filter: blur(5px);
+  }
+}
+
+@keyframes math-hero-modal-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(0.6rem) scale(0.94);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translateY(-0.08rem) scale(1.015);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .math-hero-game-over {
@@ -2171,6 +2417,24 @@
   background: #292746;
 }
 
+.app-shell[data-theme='dark'] .math-hero-option.is-correct {
+  border-color: #69d5a6;
+  color: #a1f1ca;
+  background: #1c382f;
+}
+
+.app-shell[data-theme='dark'] .math-hero-option.is-wrong {
+  border-color: #ff9298;
+  color: #ffc0c3;
+  background: #40262e;
+}
+
+.app-shell[data-theme='dark'] .math-hero-complexity-notice {
+  border-color: #65512b;
+  color: #f1d078;
+  background: linear-gradient(100deg, #3b321f, #554521, #3b321f);
+}
+
 .app-shell[data-theme='dark'] .math-hero-message {
   color: #f1d078;
   background: #322b1d;
@@ -2244,6 +2508,20 @@
 
   .math-hero-footer {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .math-hero-heart,
+  .math-hero-life-float,
+  .math-hero-level-badge,
+  .math-hero-option,
+  .math-hero-answer-particle,
+  .math-hero-complexity-notice,
+  .math-hero-game-over-backdrop,
+  .math-hero-game-over {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
