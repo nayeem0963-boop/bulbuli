@@ -1,0 +1,330 @@
+.feedback-animated-card {
+  animation: feedback-card-enter var(--feedback-fast) ease-out both;
+}
+
+.feedback-animated-card.is-correct {
+  animation: feedback-card-correct var(--feedback-fast) ease-out;
+}
+
+.feedback-animated-card.is-wrong {
+  animation: feedback-card-wrong var(--feedback-fast) ease-in-out;
+}
+
+.feedback-level-badge.is-leveling-up {
+  animation: feedback-level-up var(--feedback-fast) ease-out;
+}
+
+@keyframes feedback-level-up {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  45% {
+    color: var(--feedback-bonus);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--feedback-bonus) 75%, transparent);
+    transform: scale(1.18);
+  }
+}
+
+@keyframes feedback-card-correct {
+  45% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--feedback-success) 18%, transparent);
+  }
+}
+
+@keyframes feedback-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes feedback-card-wrong {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-3px);
+  }
+
+  50% {
+    transform: translateX(3px);
+  }
+
+  75% {
+    transform: translateX(-1px);
+  }
+}
+
+.feedback-answer-option {
+  position: relative;
+  transition: transform 120ms ease, border-color 120ms ease, background-color 120ms ease;
+  touch-action: manipulation;
+}
+
+.feedback-answer-option:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.feedback-answer-option.is-correct {
+  border-color: var(--feedback-success);
+  color: var(--feedback-success);
+  background: var(--feedback-success-soft);
+  animation: feedback-answer-correct var(--feedback-fast) ease-out;
+}
+
+.feedback-answer-option.is-correct:hover:not(:disabled) {
+  border-color: var(--feedback-success);
+  color: var(--feedback-success);
+  background: var(--feedback-success-soft);
+}
+
+.feedback-answer-option.is-wrong {
+  border-color: var(--feedback-error);
+  color: #8e2634;
+  background: var(--feedback-error-soft);
+  animation: feedback-answer-wrong var(--feedback-fast) ease-in-out;
+}
+
+.feedback-answer-option.is-wrong:hover:not(:disabled) {
+  border-color: var(--feedback-error);
+  color: #8e2634;
+  background: var(--feedback-error-soft);
+}
+
+.app-shell[data-theme='dark'] .feedback-answer-option.is-correct {
+  color: var(--feedback-success);
+  background: var(--feedback-success-soft);
+}
+
+.app-shell[data-theme='dark'] .feedback-answer-option.is-wrong {
+  color: var(--feedback-error);
+  background: var(--feedback-error-soft);
+}
+
+@keyframes feedback-answer-correct {
+  45% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--feedback-success) 18%, transparent);
+    transform: scale(1.045);
+  }
+}
+
+@keyframes feedback-answer-wrong {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(4px);
+  }
+
+  75% {
+    transform: translateX(-2px);
+  }
+}
+
+.feedback-life-counter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.feedback-life-hearts {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12rem;
+}
+
+.feedback-life-heart {
+  display: inline-block;
+  transform-origin: center;
+}
+
+.feedback-life-heart.is-gained {
+  animation: feedback-heart-pop var(--feedback-fast) ease-out;
+}
+
+.feedback-life-heart.is-lost {
+  animation: feedback-heart-loss var(--feedback-fast) ease-in forwards;
+}
+
+.feedback-life-particle {
+  position: absolute;
+  z-index: 1;
+  top: -0.5rem;
+  left: 50%;
+  width: max-content;
+  color: var(--feedback-success);
+  font-size: 0.78rem;
+  font-weight: 850;
+  pointer-events: none;
+  animation: feedback-float-up var(--feedback-fast) ease-out forwards;
+}
+
+@keyframes feedback-heart-pop {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  45% {
+    transform: scale(1.45);
+    filter: drop-shadow(0 0 8px rgb(255 70 100 / 75%));
+  }
+
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
+
+@keyframes feedback-heart-loss {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  35% {
+    transform: scale(1.2);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgb(217 72 85 / 85%));
+  }
+
+  100% {
+    transform: scale(0.35) rotate(-18deg);
+    opacity: 0.15;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
+
+@keyframes feedback-float-up {
+  0% {
+    transform: translate(-50%, 0) scale(0.85);
+    opacity: 0;
+  }
+
+  25% {
+    transform: translate(-50%, -0.35rem) scale(1.05);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -1.25rem) scale(1);
+    opacity: 0;
+  }
+}
+
+.feedback-milestone-banner {
+  border: 1px solid color-mix(in srgb, var(--feedback-bonus) 60%, white);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  color: #785117;
+  background: linear-gradient(100deg, #fff1b8, #ffdf84, #fff1b8);
+  font-size: 0.95rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-align: center;
+  animation: feedback-banner-enter var(--feedback-fast) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.feedback-milestone-banner.is-bonus {
+  border-color: color-mix(in srgb, var(--feedback-success) 40%, white);
+  color: var(--feedback-success);
+  background: var(--feedback-success-soft);
+}
+
+.math-hero-answer-particle {
+  position: absolute;
+  top: -0.55rem;
+  left: 50%;
+  color: var(--feedback-success);
+  font-size: 0.78rem;
+  font-weight: 850;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: feedback-float-up var(--feedback-fast) ease-out forwards;
+}
+
+@keyframes feedback-banner-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.65rem) scale(0.96);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateY(0.08rem) scale(1.015);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.feedback-modal-backdrop {
+  animation: feedback-backdrop-enter var(--feedback-fast) ease-out both;
+}
+
+.feedback-modal-enter {
+  animation: feedback-modal-enter var(--feedback-fast) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes feedback-backdrop-enter {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+
+  to {
+    opacity: 1;
+    backdrop-filter: blur(5px);
+  }
+}
+
+@keyframes feedback-modal-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(0.6rem) scale(0.94);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translateY(-0.08rem) scale(1.015);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feedback-animated-card,
+  .feedback-level-badge,
+  .feedback-answer-option,
+  .feedback-life-heart,
+  .feedback-life-particle,
+  .feedback-milestone-banner,
+  .feedback-modal-backdrop,
+  .feedback-modal-enter {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

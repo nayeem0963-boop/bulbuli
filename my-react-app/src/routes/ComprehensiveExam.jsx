@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import AnimatedAnswerOption from '../components/AnimatedAnswerOption.jsx'
+import AnimatedQuizCard from '../components/AnimatedQuizCard.jsx'
+import useQuizFeedback from '../hooks/useQuizFeedback.js'
 import { useComprehensiveExam } from '../hooks/useComprehensiveExam.js'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import {
@@ -92,6 +95,7 @@ function ExamResults({ result, onRetake, examConfig }) {
 }
 
 function ComprehensiveExam({ userId, examConfig = EXAM_CONFIGS.preparation }) {
+  const { triggerClick, clearFeedback } = useQuizFeedback()
   const {
     activeAttempt,
     attempts,
@@ -165,12 +169,14 @@ function ComprehensiveExam({ userId, examConfig = EXAM_CONFIGS.preparation }) {
 
     const answers = activeAttempt.answers.slice()
     answers[questionIndex] = answerIndex
+    clearFeedback()
     saveActiveAttempt({ ...activeAttempt, answers })
   }
 
   const navigateQuestion = (index) => {
     if (!activeAttempt) return
     const currentIndex = Math.max(0, Math.min(index, activeAttempt.questions.length - 1))
+    clearFeedback()
     setQuestionIndex(currentIndex)
     saveActiveAttempt({ ...activeAttempt, currentIndex })
   }
@@ -227,7 +233,11 @@ function ComprehensiveExam({ userId, examConfig = EXAM_CONFIGS.preparation }) {
           ))}
         </nav>
 
-        <section className="card exam-question-card" aria-labelledby="exam-question-title">
+        <AnimatedQuizCard
+          as="section"
+          className="card exam-question-card"
+          aria-labelledby="exam-question-title"
+        >
           <div className="exam-question-meta">
             <p className="eyebrow">{question.category}</p>
             <span>Question {questionIndex + 1} of {examConfig.questionCount}</span>
@@ -235,16 +245,19 @@ function ComprehensiveExam({ userId, examConfig = EXAM_CONFIGS.preparation }) {
           <h2 id="exam-question-title">{question.question}</h2>
           <div className="exam-answer-options" role="group" aria-label="Answer choices">
             {question.options.map((option, index) => (
-              <button
+              <AnimatedAnswerOption
                 key={`${question.id}-${index}`}
-                type="button"
+                option={index}
                 className={activeAttempt.answers[questionIndex] === index ? 'is-selected' : ''}
                 aria-pressed={activeAttempt.answers[questionIndex] === index}
-                onClick={() => updateAnswers(index)}
+                onClick={() => {
+                  triggerClick()
+                  updateAnswers(index)
+                }}
               >
                 <span>{String.fromCharCode(65 + index)}</span>
                 {option}
-              </button>
+              </AnimatedAnswerOption>
             ))}
           </div>
           <div className="exam-question-actions">
@@ -266,7 +279,7 @@ function ComprehensiveExam({ userId, examConfig = EXAM_CONFIGS.preparation }) {
               </button>
             )}
           </div>
-        </section>
+        </AnimatedQuizCard>
         <div className="exam-submit-footer">
           <span>Your answers are saved automatically on this device.</span>
           <button className="button-secondary" type="button" onClick={() => setShowSubmitConfirmation(true)}>

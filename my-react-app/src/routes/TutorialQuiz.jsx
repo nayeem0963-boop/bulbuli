@@ -4,6 +4,7 @@ import ModuleReadingMaterial from '../components/ModuleReadingMaterial.jsx'
 import ProgressBar from '../components/ProgressBar.jsx'
 import QuizCard from '../components/QuizCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
+import useQuizFeedback from '../hooks/useQuizFeedback.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 
 const MODULE_QUIZ_DURATION_SECONDS = 5 * 60
@@ -17,6 +18,13 @@ function formatTime(seconds) {
 
 function TutorialQuizSession({ tutorial, userId, section }) {
   const navigate = useNavigate()
+  const {
+    feedback,
+    triggerClick,
+    triggerCorrect,
+    triggerWrong,
+    clearFeedback,
+  } = useQuizFeedback()
   const quizDurationSeconds = section
     ? MODULE_QUIZ_DURATION_SECONDS
     : TUTORIAL_QUIZ_DURATION_SECONDS
@@ -125,6 +133,7 @@ function TutorialQuizSession({ tutorial, userId, section }) {
   }
 
   const goToQuestion = (nextIndex) => {
+    clearFeedback()
     setQuestionIndex(nextIndex)
     saveAnswers(answers, nextIndex)
   }
@@ -308,7 +317,10 @@ function TutorialQuizSession({ tutorial, userId, section }) {
                 totalQuestions={totalQuestions}
                 selectedIndex={answers[questionIndex]}
                 isValidated={validatedIndexes.has(questionIndex)}
+                feedback={feedback}
                 onAnswer={(answerIndex) => {
+                  triggerClick()
+                  clearFeedback()
                   const nextAnswers = answers.slice()
                   nextAnswers[questionIndex] = answerIndex
                   saveAnswers(nextAnswers)
@@ -318,7 +330,15 @@ function TutorialQuizSession({ tutorial, userId, section }) {
                     return nextValidated
                   })
                 }}
-                onValidate={() => setValidatedIndexes((current) => new Set(current).add(questionIndex))}
+                onValidate={() => {
+                  const answerIndex = answers[questionIndex]
+                  if (answerIndex === question.correctIndex) {
+                    triggerCorrect(answerIndex)
+                  } else {
+                    triggerWrong(answerIndex)
+                  }
+                  setValidatedIndexes((current) => new Set(current).add(questionIndex))
+                }}
                 onPrevious={questionIndex > 0 ? () => goToQuestion(questionIndex - 1) : null}
                 onNext={() => {
                   if (questionIndex + 1 < totalQuestions) {

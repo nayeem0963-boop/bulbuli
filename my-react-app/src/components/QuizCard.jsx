@@ -1,9 +1,13 @@
+import AnimatedAnswerOption from './AnimatedAnswerOption.jsx'
+import AnimatedQuizCard from './AnimatedQuizCard.jsx'
+
 function QuizCard({
   question,
   questionNumber,
   totalQuestions,
   selectedIndex,
   isValidated,
+  feedback,
   onAnswer,
   onValidate,
   onPrevious,
@@ -15,8 +19,10 @@ function QuizCard({
   const answeredIncorrectly = isValidated && selectedIndex !== question.correctIndex
 
   return (
-    <section
+    <AnimatedQuizCard
+      as="section"
       className={`card question-card${answeredCorrectly ? ' has-correct-answer' : ''}${answeredIncorrectly ? ' has-incorrect-answer' : ''}`}
+      feedback={feedback}
       aria-labelledby="quiz-prompt"
     >
       <div className="quiz-question-meta">
@@ -31,9 +37,10 @@ function QuizCard({
           const isIncorrect = isValidated && isSelected && !answeredCorrectly
 
           return (
-            <button
+            <AnimatedAnswerOption
               key={option}
-              type="button"
+              option={index}
+              feedback={feedback}
               className={`${isCorrect ? 'option-correct' : ''}${isIncorrect ? ' option-incorrect' : ''}${isSelected ? ' is-selected' : ''}`}
               onClick={() => onAnswer(index)}
               aria-pressed={isSelected}
@@ -41,7 +48,7 @@ function QuizCard({
               <span className="answer-option-letter">{String.fromCharCode(65 + index)}</span>
               <span>{option}</span>
               {isCorrect && <span className="answer-option-mark" aria-label="Correct answer">✓</span>}
-            </button>
+            </AnimatedAnswerOption>
           )
         })}
       </div>
@@ -87,7 +94,7 @@ function QuizCard({
       {isLastQuestion && isValidated && !canFinish && (
         <p className="quiz-completion-hint">Answer each question before viewing your results.</p>
       )}
-    </section>
+    </AnimatedQuizCard>
   )
 }
 

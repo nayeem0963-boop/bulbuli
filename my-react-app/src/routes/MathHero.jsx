@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import mathHeroMascot from '../assets/math-hero-mascot.png'
+import AnimatedAnswerOption from '../components/AnimatedAnswerOption.jsx'
+import AnimatedQuizCard from '../components/AnimatedQuizCard.jsx'
+import LifeCounter from '../components/LifeCounter.jsx'
+import MilestoneBanner from '../components/MilestoneBanner.jsx'
 import useSoundToggle from '../hooks/useSoundToggle.js'
+import useQuizFeedback from '../hooks/useQuizFeedback.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
-import { playSound } from '../utils/sound.js'
+import { FEEDBACK_TIMING, getFeedbackStyle } from '../utils/feedbackConfig.js'
 import {
   applyMathHeroCorrectAnswer,
   applyMathHeroMiss,
@@ -11,8 +16,6 @@ import {
   createMathHeroGameOverProgress,
   MATH_HERO_QUESTIONS_PER_LEVEL,
 } from '../utils/mathHero.js'
-
-const GAMEPLAY_ANIMATION_MILLISECONDS = 300
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -27,6 +30,18 @@ function getRemainingSeconds(deadline) {
 
 function MathHero({ userId }) {
   const { muted, toggleMuted } = useSoundToggle()
+  const {
+    feedback,
+    milestone,
+    triggerClick,
+    triggerCorrect,
+    triggerWrong,
+    triggerBonus,
+    triggerLevelUp,
+    triggerGameOver,
+    clearFeedback,
+    clearMilestone,
+  } = useQuizFeedback()
   const {
     gamification,
     mathHeroProgress: savedProgress,
@@ -43,21 +58,17 @@ function MathHero({ userId }) {
     () => Boolean(
       gameProgress.feedback
       && !gameProgress.feedback.ready
-      && Date.now() - Date.parse(gameProgress.feedback.createdAt) < WRONG_ANSWER_FEEDBACK_MILLISECONDS,
+      && Date.now() - Date.parse(gameProgress.feedback.createdAt) < FEEDBACK_TIMING.answerTransition,
     ),
   )
   const [celebrating, setCelebrating] = useState(false)
   const [bonusLifeAwarded, setBonusLifeAwarded] = useState(false)
-  const [answerAnimation, setAnswerAnimation] = useState(null)
-  const [lifeAnimation, setLifeAnimation] = useState(null)
   const [levelUp, setLevelUp] = useState(0)
-  const [complexityNotice, setComplexityNotice] = useState(null)
   const transitionInProgress = useRef(false)
   const firstSavePending = useRef(!savedProgress)
   const pendingExitReset = useRef(null)
   const answerTransitionTimer = useRef(null)
   const animationTimers = useRef([])
-  const animationId = useRef(0)
   const previousLevel = useRef(gameProgress.level)
   const scheduleAnimation = useCallback((callback, delay) => {
     const timerId = window.setTimeout(() => {
@@ -71,16 +82,14 @@ function MathHero({ userId }) {
     if (nextLevel === previousLevel.current) return
     previousLevel.current = nextLevel
     setLevelUp(nextLevel)
-    scheduleAnimation(() => setLevelUp(0), GAMEPLAY_ANIMATION_MILLISECONDS)
+    scheduleAnimation(() => setLevelUp(0), FEEDBACK_TIMING.fast)
 
     if (nextLevel > 10 && nextLevel % 10 === 1) {
-      setComplexityNotice(nextLevel)
-      scheduleAnimation(
-        () => setComplexityNotice(null),
-        GAMEPLAY_ANIMATION_MILLISECONDS * 2 + 200,
-      )
+      triggerLevelUp(`COMPLEXITY INCREASED! Level ${nextLevel}`)
+    } else {
+      triggerLevelUp()
     }
-  }, [scheduleAnimation])
+  }, [scheduleAnimation, triggerLevelUp])
 
   useEffect(() => {
     if (!firstSavePending.current) return
@@ -103,10 +112,9 @@ function MathHero({ userId }) {
       setAnswerRevealVisible(false)
       setCelebrating(false)
       setBonusLifeAwarded(false)
-      setAnswerAnimation(null)
-      setLifeAnimation(null)
       setLevelUp(0)
-      setComplexityNotice(null)
+      clearFeedback()
+      clearMilestone()
       transitionInProgress.current = false
     }
     const handlePageHide = () => resetOnExit()
@@ -119,7 +127,7 @@ function MathHero({ userId }) {
         resetOnExit()
       }, 0)
     }
-  }, [saveMathHeroProgress])
+  }, [clearFeedback, clearMilestone, saveMathHeroProgress])
 
   useEffect(() => () => {
     if (answerTransitionTimer.current !== null) {
@@ -143,13 +151,13 @@ function MathHero({ userId }) {
 
     const wait = feedback.ready
       ? 0
-      : Math.max(0, GAMEPLAY_ANIMATION_MILLISECONDS - (Date.now() - Date.parse(feedback.createdAt)))
+      : Math.max(0, FEEDBACK_TIMING.answerTransition - (Date.now() - Date.parse(feedback.createdAt)))
     const timeoutId = window.setTimeout(() => {
       const updated = gameProgress.lives > 0
         ? createNextMathHeroProgress(gameProgress)
         : createMathHeroGameOverProgress(gameProgress)
 
-      if (updated.gameOver) playSound('complete')
+      if (updated.gameOver) triggerGameOver()
       animateLevelChange(updated.level)
       setGameProgress(updated)
       saveMathHeroProgress(updated)
@@ -157,31 +165,28 @@ function MathHero({ userId }) {
       setAnswerRevealVisible(false)
       setCelebrating(false)
       setBonusLifeAwarded(false)
-      setAnswerAnimation(null)
+      clearFeedback()
       transitionInProgress.current = false
     }, wait)
     return () => window.clearTimeout(timeoutId)
-  }, [animateLevelChange, gameProgress, saveMathHeroProgress])
+  }, [animateLevelChange, clearFeedback, gameProgress, saveMathHeroProgress, triggerGameOver])
 
-  const handleMiss = useCallback((type) => {
+  const handleMiss = useCallback((type, target = null) => {
     if (transitionInProgress.current) return
     transitionInProgress.current = true
-    playSound('wrong')
+    triggerWrong(target)
     const missedProgress = applyMathHeroMiss(gameProgress, type)
-    const lifeEventId = ++animationId.current
-    setLifeAnimation({ type: 'lost', id: lifeEventId })
-    scheduleAnimation(() => setLifeAnimation(null), GAMEPLAY_ANIMATION_MILLISECONDS)
     const updated = missedProgress.lives === 0
       ? createMathHeroGameOverProgress(missedProgress)
       : missedProgress
 
-    if (updated.gameOver) playSound('complete')
+    if (updated.gameOver) triggerGameOver()
     setGameProgress(updated)
     saveMathHeroProgress(updated)
     setTimeRemaining(0)
     setAnswerRevealVisible(Boolean(updated.feedback))
     if (updated.gameOver) transitionInProgress.current = false
-  }, [gameProgress, saveMathHeroProgress, scheduleAnimation])
+  }, [gameProgress, saveMathHeroProgress, triggerGameOver, triggerWrong])
 
   useEffect(() => {
     if (timeRemaining > 0 || !gameProgress.deadline || gameProgress.feedback || gameProgress.gameOver) return
@@ -196,7 +201,7 @@ function MathHero({ userId }) {
 
   const selectAnswer = (answer) => {
     if (gameProgress.feedback || gameProgress.gameOver || transitionInProgress.current) return
-    playSound('click')
+    triggerClick()
     if (getRemainingSeconds(gameProgress.deadline) === 0) {
       setTimeRemaining(0)
       return
@@ -204,9 +209,7 @@ function MathHero({ userId }) {
 
     if (answer === gameProgress.question.answer) {
       transitionInProgress.current = true
-      playSound('correct')
-      const id = ++animationId.current
-      setAnswerAnimation({ answer, result: 'correct', id })
+      triggerCorrect(answer)
       answerTransitionTimer.current = window.setTimeout(() => {
         const { progress: updated, bonusLifeAwarded } = applyMathHeroCorrectAnswer(gameProgress)
         animateLevelChange(updated.level)
@@ -216,25 +219,20 @@ function MathHero({ userId }) {
         setAnswerRevealVisible(false)
         setCelebrating(true)
         setBonusLifeAwarded(bonusLifeAwarded)
-        if (bonusLifeAwarded) {
-          const lifeEventId = ++animationId.current
-          setLifeAnimation({ type: 'gained', id: lifeEventId })
-          scheduleAnimation(() => setLifeAnimation(null), GAMEPLAY_ANIMATION_MILLISECONDS * 2)
-        }
+        if (bonusLifeAwarded) triggerBonus()
         transitionInProgress.current = false
         answerTransitionTimer.current = null
-      }, GAMEPLAY_ANIMATION_MILLISECONDS)
+      }, FEEDBACK_TIMING.answerTransition)
       return
     }
 
-    setAnswerAnimation({ answer, result: 'wrong', id: ++animationId.current })
-    handleMiss('incorrect')
+    handleMiss('incorrect', answer)
   }
 
   const startNewRun = () => {
     if (transitionInProgress.current) return
     transitionInProgress.current = true
-    playSound('click')
+    triggerClick()
     const updated = createInitialMathHeroProgress()
     previousLevel.current = updated.level
     setGameProgress(updated)
@@ -243,15 +241,21 @@ function MathHero({ userId }) {
     setAnswerRevealVisible(false)
     setCelebrating(false)
     setBonusLifeAwarded(false)
-    setAnswerAnimation(null)
-    setLifeAnimation(null)
     setLevelUp(0)
-    setComplexityNotice(null)
+    clearFeedback()
+    clearMilestone()
     transitionInProgress.current = false
   }
 
-  const { level, questionNumber, question, feedback, gameOver, lives } = gameProgress
-  const showCorrectAnswer = Boolean(feedback && !feedback.ready && answerRevealVisible)
+  const {
+    level,
+    questionNumber,
+    question,
+    feedback: gameFeedback,
+    gameOver,
+    lives,
+  } = gameProgress
+  const showCorrectAnswer = Boolean(gameFeedback && !gameFeedback.ready && answerRevealVisible)
   const progressPercent = (questionNumber / MATH_HERO_QUESTIONS_PER_LEVEL) * 100
 
   return (
@@ -284,22 +288,13 @@ function MathHero({ userId }) {
           <strong>{gameProgress.totalXp}</strong>
           <span>Math Hero XP</span>
         </div>
-        <div className="math-hero-xp math-hero-lives" aria-label={`${lives} ${lives === 1 ? 'life' : 'lives'} remaining`}>
-          <span
-            key={lifeAnimation?.id ?? 'still-heart'}
-            className={`math-hero-heart${lifeAnimation ? ` is-${lifeAnimation.type}` : ''}`}
-            aria-hidden="true"
-          >
-            ❤️
-          </span>
-          <strong>{lives}</strong>
-          <span>{lives === 1 ? 'Life' : 'Lives'}</span>
-          {lifeAnimation?.type === 'gained' && (
-            <span key={`life-float-${lifeAnimation.id}`} className="math-hero-life-float" aria-hidden="true">
-              +1 Extra Life!
-            </span>
-          )}
-        </div>
+        <LifeCounter
+          lives={lives}
+          event={gameOver
+            ? null
+            : milestone?.type === 'bonus' ? milestone : feedback?.type === 'wrong' ? feedback : null}
+          className="math-hero-xp math-hero-lives"
+        />
         <div className="math-hero-xp math-hero-total-xp">
           <span aria-hidden="true">🏆</span>
           <strong>{gamification.totalXp}</strong>
@@ -307,10 +302,18 @@ function MathHero({ userId }) {
         </div>
       </section>
 
-      <section className="card math-hero-game" aria-labelledby="math-hero-question">
+      <AnimatedQuizCard
+        className="card math-hero-game"
+        feedback={feedback}
+        aria-labelledby="math-hero-question"
+      >
         <div className="math-hero-game-top">
           <div>
-            <p key={level} className={`eyebrow math-hero-level-badge${levelUp === level ? ' is-leveling-up' : ''}`}>
+            <p
+              key={level}
+              className={`eyebrow feedback-level-badge${levelUp === level ? ' is-leveling-up' : ''}`}
+              style={getFeedbackStyle()}
+            >
               Level {level}
             </p>
             <h2 id="math-hero-question">Question {questionNumber} of {MATH_HERO_QUESTIONS_PER_LEVEL}</h2>
@@ -325,11 +328,10 @@ function MathHero({ userId }) {
           </div>
         </div>
 
-        {complexityNotice && (
-          <p key={complexityNotice} className="math-hero-complexity-notice" role="status">
-            Complexity increased! Level {complexityNotice}
-          </p>
-        )}
+        <MilestoneBanner
+          event={milestone?.type === 'level-up' ? milestone : null}
+          className="math-hero-complexity-notice"
+        />
 
         <div
           className="math-hero-progress"
@@ -347,40 +349,39 @@ function MathHero({ userId }) {
           {question.left} {question.operator} {question.right} <span>= ?</span>
         </p>
 
-        {celebrating && !feedback && (
+        {celebrating && !gameFeedback && (
           <p className="math-hero-message is-correct" role="status">
             {bonusLifeAwarded
               ? '🌟 Amazing! +5 XP and a bonus life!'
               : '🌟 Great job! +5 XP — here comes the next one!'}
           </p>
         )}
-        {feedback && (
-          <div className={`math-hero-message ${feedback.type === 'timeout' ? 'is-timeout' : 'is-incorrect'}`} role="status">
+        {gameFeedback && (
+          <div className={`math-hero-message ${gameFeedback.type === 'timeout' ? 'is-timeout' : 'is-incorrect'}`} role="status">
             {showCorrectAnswer
-              ? `${feedback.type === 'timeout' ? 'Time’s up!' : 'Almost!'} The answer is ${question.answer}.`
+              ? `${gameFeedback.type === 'timeout' ? 'Time’s up!' : 'Almost!'} The answer is ${question.answer}.`
               : 'Keep going — the next question is ready!'}
           </div>
         )}
 
         <div className="math-hero-options" aria-label="Choose an answer">
           {question.options.map((option, index) => (
-            <button
-              className={[
-                'math-hero-option',
-                answerAnimation?.answer === option ? `is-${answerAnimation.result}` : '',
-              ].filter(Boolean).join(' ')}
+            <AnimatedAnswerOption
               key={`${option}-${index}`}
+              className="math-hero-option"
+              feedback={feedback}
+              option={option}
               type="button"
-              disabled={Boolean(feedback || gameOver) || timeRemaining === 0}
+              disabled={Boolean(gameFeedback || gameOver) || timeRemaining === 0}
               onClick={() => selectAnswer(option)}
             >
               {option}
-              {answerAnimation?.answer === option && answerAnimation.result === 'correct' && (
-                <span key={answerAnimation.id} className="math-hero-answer-particle" aria-hidden="true">
+              {feedback?.target === option && feedback.type === 'correct' && (
+                <span key={feedback.id} className="math-hero-answer-particle" aria-hidden="true">
                   ✓ +5 XP
                 </span>
               )}
-            </button>
+            </AnimatedAnswerOption>
           ))}
         </div>
 
@@ -388,13 +389,17 @@ function MathHero({ userId }) {
           <span>Get it right to earn 5 XP!</span>
           <span>Every 10 correct answers earns a bonus life.</span>
         </div>
-      </section>
+      </AnimatedQuizCard>
       <p className="math-hero-save-note">Your adventure is saved automatically on this device.</p>
 
       {gameOver && (
-        <div className="math-hero-game-over-backdrop">
+        <div
+          className="math-hero-game-over-backdrop feedback-modal-backdrop"
+          style={getFeedbackStyle()}
+        >
           <section
-            className="math-hero-game-over"
+            className="math-hero-game-over feedback-modal-enter"
+            style={getFeedbackStyle()}
             role="dialog"
             aria-modal="true"
             aria-labelledby="math-hero-game-over-title"
