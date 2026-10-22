@@ -1,0 +1,74 @@
+<!doctype html>
+<!--
+  The Math Hero share page (https://bulbuli.org/share/math-hero).
+  It runs the same app as index.html; it exists so that a shared link shows a Math Hero
+  preview (title, picture, description) in WhatsApp, Messenger, Facebook and other apps,
+  which read these tags without running any JavaScript.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#8fd0f7" />
+    <meta name="description" content="Hey Explorer! Tap Math Hero to hear him talk, then play free maths games on Bulbuli, in Bangla or English." />
+    <meta
+      name="keywords"
+      content="learning games for kids, free educational games, typing games for kids, math games for kids, memory game for kids, pattern games, Bangla learning games, kids games under 12, Bulbuli"
+    />
+    <meta name="author" content="Bulbuli" />
+    <!-- Requests to other sites carry no Bulbuli address. Google's speech audio (the Bangla Math Hero voice) only loads this way. -->
+    <meta name="referrer" content="same-origin" />
+    <link rel="canonical" href="https://bulbuli.org/share/math-hero" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="Bulbuli" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="bn_BD" />
+    <meta property="og:url" content="https://bulbuli.org/share/math-hero" />
+    <meta property="og:site_name" content="Bulbuli" />
+    <meta property="og:title" content="Math Hero: Play to Learn on Bulbuli" />
+    <meta property="og:description" content="Hey Explorer! Tap Math Hero to hear him talk, then play free maths games on Bulbuli, in Bangla or English." />
+    <meta property="og:image" content="https://bulbuli.org/og/math-hero-card.png" />
+    <meta property="og:image:width" content="1080" />
+    <meta property="og:image:height" content="1350" />
+    <meta property="og:image:alt" content="Math Hero, a bulbul bird, invites kids to play and learn on Bulbuli" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Math Hero: Play to Learn on Bulbuli" />
+    <meta name="twitter:description" content="Hey Explorer! Tap Math Hero to hear him talk, then play free maths games on Bulbuli, in Bangla or English." />
+    <meta name="twitter:image" content="https://bulbuli.org/og/math-hero-card.png" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BWCEHNBE2P"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  // A site for children: no Google signals and no ad personalisation.
+  gtag('config', 'G-BWCEHNBE2P', {
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false,
+  });
+</script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Baloo+2:wght@500..800&family=Baloo+Da+2:wght@500..800&family=Hind+Siliguri:wght@400;500;600;700&family=Nunito:wght@400..800&display=swap"
+    />
+    <title>Math Hero: Play to Learn on Bulbuli</title>
+  </head>
+  <body>
+    <div id="root">
+      <main>
+        <h1>Math Hero: play to learn on Bulbuli</h1>
+        <p>Hey Explorer! Ready to master math, solve fun puzzles, and level up your skills? Join me inside Bulbuli and let's play to learn!</p>
+        <p><a href="https://bulbuli.org/games/math-hero">Play Math Hero free at bulbuli.org</a></p>
+      </main>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

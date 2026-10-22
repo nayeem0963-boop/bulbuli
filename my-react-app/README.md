@@ -31,16 +31,28 @@ The downloaded PNG can't talk or be clicked, so instead of the button it prints 
 `bulbuli.org` and a QR code that opens `https://bulbuli.org/games/math-hero`
 (`src/promo/qrMathHero.js`; make a new code there if the address changes).
 
-## Developer Hub (coding courses)
+### Share with Friends
 
-The five programming courses (HTML, CSS, JavaScript, GitHub, React) and their
-exams are folded away under **For grown-ups: coding courses** at the bottom of
-the home page, and at `/developer`. They need a Supabase sign-in.
+Under the card there is one button, **Share with Friends** (`shareLink` in
+`src/promo/MathHeroAdCard.jsx`). It opens the phone's or computer's share sheet
+(`navigator.share`) with:
 
-## Math Hero
+- title: `Math Hero on Bulbuli`
+- text: `Hey Explorer! 🚀 Play Math Hero with me for free on Bulbuli!`
+- url: `https://bulbuli.org/share/math-hero`
 
-Each multiple-choice question has a timer; correct answers earn 5 XP, and game
-progress resumes from the saved question and level on the same device.
+(Bangla title and text when the page is in Bangla; see `src/promo/adContent.js` and
+`src/promo/shareData.js`.) Where sharing isn't available, as in many desktop browsers, it copies
+the link to the clipboard; if that is blocked too, it shows the link to copy by hand.
+
+The landing page `/share/math-hero` plays a word-by-word intro straight away, and Math Hero speaks
+on the first tap. `share/math-hero/index.html` gives the shared link a Math Hero preview in chat
+apps (built as a second page in `vite.config.js`).
+
+Earlier export options (talking video, animated GIF and picture) are no longer shown. Their code
+is unused and can be deleted: `renderAdVideo.js`, `videoTimeline.js` (+ test),
+`public/audio/math-hero-ad-bn.mp3`, `renderAdGif.js`, `gifEncoder.js` (+ test), `gifTimeline.js`,
+`fileLinks.js`, and `renderAdCardBlob` / `buildVideoShareData`.
 
 ## Shared quiz feedback
 
@@ -89,5 +101,5 @@ npm run dev
 ```sh
 npm run lint
 npm test
-npm run build
+npm run build   # dist/ should contain share/math-hero/index.html too
 ```

@@ -381,58 +381,64 @@
   85%, 100% { transform: translateX(120%); }
 }
 
-/* ---------- the buttons under the card ---------- */
+/* ---------- the Share with Friends button under the card ---------- */
 
 .ad-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
   margin-top: 1.75rem;
 }
 
-.ad .ad-share,
-.ad .ad-share-secondary {
+.ad .ad-share-link {
   display: inline-flex;
-  min-height: 3.25rem;
+  min-height: 3.6rem;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.6rem;
   border: 3px solid var(--ad-ink);
   border-radius: 999px;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
   color: var(--ad-ink);
   background: #ffc93c;
-  box-shadow: 0 5px 0 var(--ad-ink);
+  box-shadow: 0 6px 0 var(--ad-ink);
   font-family: 'Baloo 2', 'Baloo Da 2', sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 800;
+  line-height: 1;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
 }
 
-.ad .ad-share-secondary { background: #fff; font-size: 1.05rem; }
-.ad .ad-share:hover:not(:disabled),
-.ad .ad-share-secondary:hover:not(:disabled) { color: var(--ad-ink); border-color: var(--ad-ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ad-ink); }
-.ad .ad-share:hover:not(:disabled) { background: #ffd45e; }
-.ad .ad-share-secondary:hover:not(:disabled) { background: #fff1c2; }
-.ad .ad-share:active:not(:disabled),
-.ad .ad-share-secondary:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 var(--ad-ink); }
-.ad .ad-share:focus-visible,
-.ad .ad-share-secondary:focus-visible { outline: 4px solid #3fa3ec; outline-offset: 4px; }
-.ad .ad-share:disabled,
-.ad .ad-share-secondary:disabled { opacity: 0.7; cursor: progress; }
+.ad:lang(bn) .ad-share-link { font-family: 'Baloo Da 2', 'Baloo 2', sans-serif; }
+.ad .ad-share-link:hover { border-color: var(--ad-ink); color: var(--ad-ink); background: #ffd45e; transform: translateY(-2px); box-shadow: 0 8px 0 var(--ad-ink); }
+.ad .ad-share-link:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--ad-ink); }
+.ad .ad-share-link:focus-visible { outline: 4px solid #3fa3ec; outline-offset: 4px; }
 
 .ad-status {
-  width: 100%;
   min-height: 1.5em;
   margin: 0;
   color: var(--text-muted, #4c5c7a);
   font-weight: 800;
   text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .ad-status.is-error { color: var(--danger, #b5322f); }
+
+/* the opening animation on the share page: the message appears word by word */
+.ad-word { display: inline; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ad-card.is-intro .ad-word {
+    animation: ad-word-in 260ms ease-out both;
+    animation-delay: calc(600ms + var(--i) * 110ms);
+  }
+}
+
+@keyframes ad-word-in {
+  from { opacity: 0; }
+}
 
 /* ---------- the /share/math-hero page ---------- */
 

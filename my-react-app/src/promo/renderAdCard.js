@@ -1,9 +1,10 @@
-// Draws the Math Hero ad onto a <canvas> and returns a PNG.
+// Draws the Math Hero ad onto a <canvas>: the still PNG and every frame of the animated GIF.
 // It paints from the same AD_LAYOUT the live card uses, instead of screenshotting the page,
 // so fonts, the speech bubble and the colours come out exactly right and nothing is clipped.
 
 import mascotUrl from '../assets/math-hero-mascot-cutout.webp'
 import { AD_COLORS as C, AD_LAYOUT as L, AD_TEXT, MASCOT_ASPECT } from './adContent.js'
+import { addPngText } from './fileLinks.js'
 import { QR_MODULES } from './qrMathHero.js'
 
 const FONTS = {
@@ -55,20 +56,24 @@ function wrapLines(ctx, text, maxWidth) {
   return lines
 }
 
-/** Draws the QR code as crisp squares, with the white quiet zone scanners need around it. */
+/**
+ * Draws the QR code with every square snapped to whole pixels, so its edges stay perfectly sharp
+ * (blurred edges, especially after the GIF's 256-colour palette, stop phones from scanning it).
+ * The code is centred in the size x size box on a white quiet zone.
+ */
 function drawQrCode(ctx, x, y, size) {
   const quiet = 3 // modules of white border (4 is the spec; 3 still scans and saves room)
   const count = QR_MODULES.length + quiet * 2
-  const module = size / count
+  const module = Math.max(1, Math.floor(size / count))
+  const drawn = module * count
+  const left = Math.round(x + (size - drawn) / 2)
+  const top = Math.round(y + (size - drawn) / 2)
   ctx.fillStyle = '#fff'
-  ctx.fillRect(x, y, size, size)
+  ctx.fillRect(Math.floor(x), Math.floor(y), Math.ceil(size), Math.ceil(size))
   ctx.fillStyle = '#000'
   QR_MODULES.forEach((row, r) => {
     for (let c = 0; c < row.length; c += 1) {
-      if (row[c] === '1') {
-        // Slightly oversized squares, so no hairline gaps appear between neighbours.
-        ctx.fillRect(x + (c + quiet) * module, y + (r + quiet) * module, module + 0.5, module + 0.5)
-      }
+      if (row[c] === '1') ctx.fillRect(left + (c + quiet) * module, top + (r + quiet) * module, module, module)
     }
   })
 }
@@ -100,10 +105,15 @@ function drawBrandMark(ctx, x, y, size) {
 }
 
 /**
- * Paints the ad. `width` is the PNG width in pixels (height is 1.25 x width).
- * Returns the canvas.
+ * Loads the picture and fonts once, then returns { width, height, paint(ctx, frame) }.
+ * `width` is in pixels (height is 1.25 x width). `frame` animates Math Hero talking:
+ *   words  how many words of the message are showing (default: all)
+ *   tilt   Math Hero's lean in degrees, for the talking bob (default 0)
+ *   glow   0..1, the yellow glow around the speech bubble (default 0)
+ *   bars   [a, b, c] heights 0..1 of the sound bars on the bubble, or null to hide them
+ *   footerGlow  0..1, a yellow glow around the address + QR panel (the video's closing moments)
  */
-export async function drawAdCard({ language = 'en', width = 1080, siteLabel = 'bulbuli.org' } = {}) {
+export async function createAdPainter({ language = 'en', width = 1080, siteLabel = 'bulbuli.org' } = {}) {
   const text = AD_TEXT[language] ?? AD_TEXT.en
   const font = FONTS[language] ?? FONTS.en
   const u = width / 100
@@ -112,190 +122,269 @@ export async function drawAdCard({ language = 'en', width = 1080, siteLabel = 'b
 
   const [mascot] = await Promise.all([loadImage(mascotUrl), loadFonts(language, u)])
 
-  const canvas = document.createElement('canvas')
-  canvas.width = W
-  canvas.height = H
-  const ctx = canvas.getContext('2d')
-  ctx.textBaseline = 'alphabetic'
+  const paint = (ctx, { words = Infinity, tilt = 0, glow = 0, bars = null, footerGlow = 0 } = {}) => {
+    ctx.clearRect(0, 0, W, H)
+    ctx.textBaseline = 'alphabetic'
 
-  // card shape: everything is clipped to the rounded card
-  const border = L.border * u
-  roundedRect(ctx, 0, 0, W, H, L.radius * u)
-  ctx.save()
-  ctx.clip()
-
-  // sky to warm sunshine
-  const sky = ctx.createLinearGradient(0, 0, 0, H)
-  sky.addColorStop(0, C.skyTop)
-  sky.addColorStop(0.45, C.skyMid)
-  sky.addColorStop(1, C.warm)
-  ctx.fillStyle = sky
-  ctx.fillRect(0, 0, W, H)
-
-  // sun rays behind Math Hero
-  const { cx, cy, count } = L.rays
-  ctx.fillStyle = C.rays
-  const reach = Math.hypot(W, H) * 1.2
-  for (let i = 0; i < count; i += 1) {
-    const a0 = (i / count) * Math.PI * 2
-    const a1 = a0 + Math.PI / count
-    ctx.beginPath()
-    ctx.moveTo(cx * u, cy * u)
-    ctx.lineTo(cx * u + Math.cos(a0) * reach, cy * u + Math.sin(a0) * reach)
-    ctx.lineTo(cx * u + Math.cos(a1) * reach, cy * u + Math.sin(a1) * reach)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  // floating maths symbols
-  for (const symbol of L.symbols) {
+    // card shape: everything is clipped to the rounded card
+    const border = L.border * u
+    roundedRect(ctx, 0, 0, W, H, L.radius * u)
     ctx.save()
-    ctx.translate(symbol.x * u, symbol.y * u)
-    ctx.rotate((symbol.rotate * Math.PI) / 180)
-    ctx.font = `800 ${symbol.size * u}px ${FONTS.en.display}`
+    ctx.clip()
+
+    // sky to warm sunshine
+    const sky = ctx.createLinearGradient(0, 0, 0, H)
+    sky.addColorStop(0, C.skyTop)
+    sky.addColorStop(0.45, C.skyMid)
+    sky.addColorStop(1, C.warm)
+    ctx.fillStyle = sky
+    ctx.fillRect(0, 0, W, H)
+
+    // sun rays behind Math Hero
+    const { cx, cy, count } = L.rays
+    ctx.fillStyle = C.rays
+    const reach = Math.hypot(W, H) * 1.2
+    for (let i = 0; i < count; i += 1) {
+      const a0 = (i / count) * Math.PI * 2
+      const a1 = a0 + Math.PI / count
+      ctx.beginPath()
+      ctx.moveTo(cx * u, cy * u)
+      ctx.lineTo(cx * u + Math.cos(a0) * reach, cy * u + Math.sin(a0) * reach)
+      ctx.lineTo(cx * u + Math.cos(a1) * reach, cy * u + Math.sin(a1) * reach)
+      ctx.closePath()
+      ctx.fill()
+    }
+
+    // floating maths symbols
+    for (const symbol of L.symbols) {
+      ctx.save()
+      ctx.translate(symbol.x * u, symbol.y * u)
+      ctx.rotate((symbol.rotate * Math.PI) / 180)
+      ctx.font = `800 ${symbol.size * u}px ${FONTS.en.display}`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.lineJoin = 'round'
+      ctx.lineWidth = 0.9 * u
+      ctx.strokeStyle = C.ink
+      ctx.strokeText(symbol.text, 0, 0)
+      ctx.fillStyle = symbol.color
+      ctx.fillText(symbol.text, 0, 0)
+      ctx.restore()
+    }
+
+    // green hill
+    ctx.beginPath()
+    ctx.ellipse(L.hill.cx * u, L.hill.cy * u, L.hill.rx * u, L.hill.ry * u, 0, 0, Math.PI * 2)
+    ctx.fillStyle = C.hill
+    ctx.fill()
+    ctx.lineWidth = border
+    ctx.strokeStyle = C.ink
+    ctx.stroke()
+
+    // brand row
+    const b = L.brand
+    drawBrandMark(ctx, b.x * u, b.y * u, b.mark * u)
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    ctx.fillStyle = C.ink
+    ctx.font = `800 ${b.size * u}px ${FONTS.en.display}`
+    const brandX = (b.x + b.mark + 1.5) * u
+    const brandY = (b.y + b.mark / 2 + 0.4) * u
+    ctx.fillText(text.brand, brandX, brandY)
+    const brandWidth = ctx.measureText(text.brand).width
+    ctx.font = `700 ${b.size * 0.62 * u}px ${font.body}`
+    ctx.fillText(text.presents, brandX + brandWidth + 1.6 * u, brandY + 0.4 * u)
+
+    // title: yellow letters with a thick ink outline and a hard drop shadow
+    const t = L.title
+    ctx.save()
+    ctx.translate(t.x * u, t.y * u)
+    ctx.rotate((t.rotate * Math.PI) / 180)
+    ctx.font = `800 ${t.size * u}px ${font.display}`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.lineJoin = 'round'
-    ctx.lineWidth = 0.9 * u
+    ctx.lineWidth = t.stroke * u * 2
     ctx.strokeStyle = C.ink
-    ctx.strokeText(symbol.text, 0, 0)
-    ctx.fillStyle = symbol.color
-    ctx.fillText(symbol.text, 0, 0)
+    ctx.fillStyle = C.ink
+    ctx.fillText(text.title, 0, 1.2 * u) // the shadow
+    ctx.strokeText(text.title, 0, 1.2 * u)
+    ctx.strokeText(text.title, 0, 0)
+    ctx.fillStyle = C.sun
+    ctx.fillText(text.title, 0, 0)
     ctx.restore()
+
+    // Math Hero
+    const m = L.mascot
+    const mh = m.h * u
+    const mw = mh * MASCOT_ASPECT
+    ctx.save()
+    ctx.translate(m.x * u + mw / 2, H - m.bottom * u) // lean from his feet
+    ctx.rotate((tilt * Math.PI) / 180)
+    ctx.drawImage(mascot, -mw / 2, -mh, mw, mh)
+    ctx.restore()
+
+    // speech bubble, sized to its words
+    const bb = L.bubble
+    ctx.font = `800 ${bb.size * u}px ${font.body}, ${EMOJI}`
+    const lines = wrapLines(ctx, text.speech, (bb.w - bb.pad * 2) * u)
+    const lineHeight = bb.size * bb.lineHeight * u
+    const bx = bb.x * u
+    const by = bb.y * u
+    const bw = bb.w * u
+    const bh = lines.length * lineHeight + bb.pad * 2 * u
+    const tailY = by + bh * bb.tailAt
+    ctx.lineJoin = 'round'
+    ctx.lineWidth = bb.border * u * 2
+    ctx.strokeStyle = C.ink
+    ctx.fillStyle = C.white
+    const bubble = new Path2D()
+    bubble.roundRect(bx, by, bw, bh, bb.radius * u)
+    const tail = new Path2D()
+    tail.moveTo(bx + 0.5 * u, tailY - 3 * u)
+    tail.lineTo(bx + bb.tailTip.dx * u, tailY + bb.tailTip.dy * u)
+    tail.lineTo(bx + 0.5 * u, tailY + 3 * u)
+    tail.closePath()
+    if (glow > 0) {
+      // the talking glow: a soft yellow halo and a ring hugging the bubble
+      ctx.save()
+      ctx.shadowColor = `rgba(255, 201, 60, ${0.55 + glow * 0.35})`
+      ctx.shadowBlur = (3 + glow * 4) * u
+      ctx.lineWidth = (bb.border * 2 + 0.8 + glow * 1.4) * u
+      ctx.strokeStyle = 'rgba(255, 201, 60, 0.95)'
+      ctx.stroke(bubble)
+      ctx.restore()
+    }
+    ctx.save()
+    ctx.translate(0, 1.2 * u) // hard drop shadow under the bubble
+    ctx.fillStyle = C.ink
+    ctx.fill(bubble)
+    ctx.restore()
+    ctx.stroke(bubble)
+    ctx.stroke(tail)
+    ctx.fill(bubble)
+    ctx.fill(tail)
+    ctx.fillStyle = C.ink
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    // Lines are wrapped for the whole message first, so revealing word by word never re-flows the text.
+    let wordsLeft = words
+    lines.forEach((line, i) => {
+      if (wordsLeft <= 0) return
+      const lineWords = line.split(' ')
+      const shown = lineWords.slice(0, wordsLeft).join(' ')
+      wordsLeft -= lineWords.length
+      ctx.fillText(shown, bx + bb.pad * u, by + bb.pad * u + lineHeight * (i + 0.5))
+    })
+
+    if (bars) {
+      // sound bars on the bubble's corner, like the live card's Listen button while he talks
+      const pw = 13 * u
+      const ph = 7 * u
+      const px = bx + bw - 3 * u - pw
+      const py = by + bh - 3.6 * u
+      roundedRect(ctx, px, py + 0.8 * u, pw, ph, ph / 2)
+      ctx.fillStyle = C.ink
+      ctx.fill()
+      roundedRect(ctx, px, py, pw, ph, ph / 2)
+      ctx.fillStyle = C.sun
+      ctx.fill()
+      ctx.lineWidth = 0.7 * u
+      ctx.strokeStyle = C.ink
+      ctx.stroke()
+      const barW = 1.1 * u
+      const gap = 0.8 * u
+      const maxH = 3.6 * u
+      const startX = px + pw / 2 - (barW * 3 + gap * 2) / 2
+      ctx.fillStyle = C.ink
+      bars.forEach((level, i) => {
+        const h = Math.max(0.25, Math.min(1, level)) * maxH
+        roundedRect(ctx, startX + i * (barW + gap), py + ph / 2 + maxH / 2 - h, barW, h, barW / 2)
+        ctx.fill()
+      })
+    }
+
+    // Where to go: a picture can't be clicked, so print the address and a QR code instead of a button.
+    const f = L.pngFooter
+    const fx = f.x * u
+    const fy = f.y * u
+    if (footerGlow > 0) {
+      ctx.save()
+      ctx.shadowColor = `rgba(255, 201, 60, ${0.6 + footerGlow * 0.4})`
+      ctx.shadowBlur = (2 + footerGlow * 5) * u
+      roundedRect(ctx, fx - 0.4 * u, fy - 0.4 * u, f.w * u + 0.8 * u, f.h * u + 0.8 * u, f.radius * u + 0.4 * u)
+      ctx.lineWidth = (1 + footerGlow * 1.6) * u
+      ctx.strokeStyle = 'rgba(255, 201, 60, 0.95)'
+      ctx.stroke()
+      ctx.restore()
+    }
+    ctx.fillStyle = C.ink
+    roundedRect(ctx, fx, fy + 1.2 * u, f.w * u, f.h * u, f.radius * u)
+    ctx.fill() // hard drop shadow
+    roundedRect(ctx, fx, fy, f.w * u, f.h * u, f.radius * u)
+    ctx.fillStyle = C.white
+    ctx.fill()
+    ctx.lineWidth = border
+    ctx.strokeStyle = C.ink
+    ctx.stroke()
+
+    const qrSize = f.qr * u
+    const qrPad = (f.h - f.qr) / 2 * u
+    const qrX = fx + f.w * u - qrPad - qrSize
+    drawQrCode(ctx, qrX, fy + qrPad, qrSize)
+
+    const textX = fx + 4 * u
+    const textWidth = qrX - textX - 2 * u
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillStyle = C.ink
+    ctx.font = `800 ${f.lead * u}px ${font.body}`
+    ctx.fillText(text.pngLead, textX, fy + 5.6 * u, textWidth)
+    ctx.fillStyle = C.berry
+    ctx.font = `800 ${f.url * u}px ${FONTS.en.display}`
+    ctx.fillText(siteLabel, textX, fy + 12.9 * u, textWidth)
+    ctx.fillStyle = C.ink
+    ctx.font = `700 ${f.scan * u}px ${font.body}`
+    ctx.fillText(text.pngScan, textX, fy + 16.6 * u, textWidth)
+
+    ctx.restore()
+
+    // card outline, drawn last so nothing covers it
+    roundedRect(ctx, border / 2, border / 2, W - border, H - border, L.radius * u - border / 2)
+    ctx.lineWidth = border
+    ctx.strokeStyle = C.ink
+    ctx.stroke()
   }
 
-  // green hill
-  ctx.beginPath()
-  ctx.ellipse(L.hill.cx * u, L.hill.cy * u, L.hill.rx * u, L.hill.ry * u, 0, 0, Math.PI * 2)
-  ctx.fillStyle = C.hill
-  ctx.fill()
-  ctx.lineWidth = border
-  ctx.strokeStyle = C.ink
-  ctx.stroke()
+  // how many words the message has, for the word-by-word reveal
+  const wordCount = text.speech.split(' ').length
 
-  // brand row
-  const b = L.brand
-  drawBrandMark(ctx, b.x * u, b.y * u, b.mark * u)
-  ctx.textAlign = 'left'
-  ctx.textBaseline = 'middle'
-  ctx.fillStyle = C.ink
-  ctx.font = `800 ${b.size * u}px ${FONTS.en.display}`
-  const brandX = (b.x + b.mark + 1.5) * u
-  const brandY = (b.y + b.mark / 2 + 0.4) * u
-  ctx.fillText(text.brand, brandX, brandY)
-  const brandWidth = ctx.measureText(text.brand).width
-  ctx.font = `700 ${b.size * 0.62 * u}px ${font.body}`
-  ctx.fillText(text.presents, brandX + brandWidth + 1.6 * u, brandY + 0.4 * u)
+  return { width: W, height: H, wordCount, paint }
+}
 
-  // title: yellow letters with a thick ink outline and a hard drop shadow
-  const t = L.title
-  ctx.save()
-  ctx.translate(t.x * u, t.y * u)
-  ctx.rotate((t.rotate * Math.PI) / 180)
-  ctx.font = `800 ${t.size * u}px ${font.display}`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.lineJoin = 'round'
-  ctx.lineWidth = t.stroke * u * 2
-  ctx.strokeStyle = C.ink
-  ctx.fillStyle = C.ink
-  ctx.fillText(text.title, 0, 1.2 * u) // the shadow
-  ctx.strokeText(text.title, 0, 1.2 * u)
-  ctx.strokeText(text.title, 0, 0)
-  ctx.fillStyle = C.sun
-  ctx.fillText(text.title, 0, 0)
-  ctx.restore()
-
-  // Math Hero
-  const m = L.mascot
-  const mh = m.h * u
-  const mw = mh * MASCOT_ASPECT
-  ctx.drawImage(mascot, m.x * u, H - m.bottom * u - mh, mw, mh)
-
-  // speech bubble, sized to its words
-  const bb = L.bubble
-  ctx.font = `800 ${bb.size * u}px ${font.body}, ${EMOJI}`
-  const lines = wrapLines(ctx, text.speech, (bb.w - bb.pad * 2) * u)
-  const lineHeight = bb.size * bb.lineHeight * u
-  const bx = bb.x * u
-  const by = bb.y * u
-  const bw = bb.w * u
-  const bh = lines.length * lineHeight + bb.pad * 2 * u
-  const tailY = by + bh * bb.tailAt
-  ctx.lineJoin = 'round'
-  ctx.lineWidth = bb.border * u * 2
-  ctx.strokeStyle = C.ink
-  ctx.fillStyle = C.white
-  const bubble = new Path2D()
-  bubble.roundRect(bx, by, bw, bh, bb.radius * u)
-  const tail = new Path2D()
-  tail.moveTo(bx + 0.5 * u, tailY - 3 * u)
-  tail.lineTo(bx + bb.tailTip.dx * u, tailY + bb.tailTip.dy * u)
-  tail.lineTo(bx + 0.5 * u, tailY + 3 * u)
-  tail.closePath()
-  ctx.save()
-  ctx.translate(0, 1.2 * u) // hard drop shadow under the bubble
-  ctx.fillStyle = C.ink
-  ctx.fill(bubble)
-  ctx.restore()
-  ctx.stroke(bubble)
-  ctx.stroke(tail)
-  ctx.fill(bubble)
-  ctx.fill(tail)
-  ctx.fillStyle = C.ink
-  ctx.textAlign = 'left'
-  ctx.textBaseline = 'middle'
-  lines.forEach((line, i) => {
-    ctx.fillText(line, bx + bb.pad * u, by + bb.pad * u + lineHeight * (i + 0.5))
-  })
-
-  // Where to go: a picture can't be clicked, so print the address and a QR code instead of a button.
-  const f = L.pngFooter
-  const fx = f.x * u
-  const fy = f.y * u
-  ctx.fillStyle = C.ink
-  roundedRect(ctx, fx, fy + 1.2 * u, f.w * u, f.h * u, f.radius * u)
-  ctx.fill() // hard drop shadow
-  roundedRect(ctx, fx, fy, f.w * u, f.h * u, f.radius * u)
-  ctx.fillStyle = C.white
-  ctx.fill()
-  ctx.lineWidth = border
-  ctx.strokeStyle = C.ink
-  ctx.stroke()
-
-  const qrSize = f.qr * u
-  const qrPad = (f.h - f.qr) / 2 * u
-  const qrX = fx + f.w * u - qrPad - qrSize
-  drawQrCode(ctx, qrX, fy + qrPad, qrSize)
-
-  const textX = fx + 4 * u
-  const textWidth = qrX - textX - 2 * u
-  ctx.textAlign = 'left'
-  ctx.textBaseline = 'alphabetic'
-  ctx.fillStyle = C.ink
-  ctx.font = `800 ${f.lead * u}px ${font.body}`
-  ctx.fillText(text.pngLead, textX, fy + 5.6 * u, textWidth)
-  ctx.fillStyle = C.berry
-  ctx.font = `800 ${f.url * u}px ${FONTS.en.display}`
-  ctx.fillText(siteLabel, textX, fy + 12.9 * u, textWidth)
-  ctx.fillStyle = C.ink
-  ctx.font = `700 ${f.scan * u}px ${font.body}`
-  ctx.fillText(text.pngScan, textX, fy + 16.6 * u, textWidth)
-
-  ctx.restore()
-
-  // card outline, drawn last so nothing covers it
-  roundedRect(ctx, border / 2, border / 2, W - border, H - border, L.radius * u - border / 2)
-  ctx.lineWidth = border
-  ctx.strokeStyle = C.ink
-  ctx.stroke()
-
+/** The still picture, fully drawn. Returns the canvas. */
+export async function drawAdCard(options) {
+  const painter = await createAdPainter(options)
+  const canvas = document.createElement('canvas')
+  canvas.width = painter.width
+  canvas.height = painter.height
+  painter.paint(canvas.getContext('2d'))
   return canvas
 }
 
-export async function renderAdCardBlob(options) {
+/**
+ * The still picture as a PNG Blob. The web address is also written into the file's details
+ * (PNG text fields), so it travels with the picture.
+ */
+export async function renderAdCardBlob({ link, ...options } = {}) {
   const canvas = await drawAdCard(options)
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('The picture could not be made.'))), 'image/png')
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((png) => (png ? resolve(png) : reject(new Error('The picture could not be made.'))), 'image/png')
+  })
+  if (!link) return blob
+  return addPngText(blob, {
+    Title: 'Math Hero on Bulbuli',
+    Source: link,
+    Comment: `Play Math Hero free: ${link}`,
   })
 }

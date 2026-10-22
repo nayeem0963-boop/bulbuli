@@ -5,36 +5,15 @@ import mascot from '../assets/math-hero-mascot-cutout.webp'
 import { useMuted } from '../arcade/preferences.js'
 import { AD_LAYOUT as L, AD_TEXT } from './adContent.js'
 import { speak, warmUpVoices } from './adVoice.js'
-import { renderAdCardBlob } from './renderAdCard.js'
+import { buildLinkShareData, SHARE_PAGE_URL } from './shareData.js'
 import './ad-card.css'
 
 // 1 card unit = 1% of the card's width (the card is a size container), matching the canvas export.
 const u = (n) => `${n}cqw`
 
-function downloadBlob(blob, fileName) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  document.body.append(link)
-  link.click()
-  link.remove()
-  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
-}
-
-const isTouchDevice = () => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches
-
-function canShareFiles() {
-  if (typeof navigator === 'undefined' || !navigator.canShare || typeof File === 'undefined') return false
-  try {
-    return navigator.canShare({ files: [new File([''], 'test.png', { type: 'image/png' })] })
-  } catch {
-    return false
-  }
-}
-
 /**
- * Math Hero advert card with a "Play" link and a Download & Share button.
+ * Math Hero advert card with a "Play" link and a "Share with Friends" button, which shares the
+ * card's landing page (https://bulbuli.org/share/math-hero) or copies its link.
  * Tapping Math Hero, his speech bubble or the Listen button makes him read his message aloud in
  * Bengali (bn-BD, then any bn voice; see adVoice.js). While he talks, the bubble shows the words he says.
  *
@@ -42,21 +21,20 @@ function canShareFiles() {
  *   language   'en' | 'bn'
  *   to         where the Play button goes: an in-app path ('/games/math-hero') or a full URL
  *   voiceLanguage  the language Math Hero speaks in (default 'bn')
- *   shareUrl   public link included when the picture is shared
+ *   shareUrl   the page the Share button sends (default https://bulbuli.org/share/math-hero)
  *   siteLabel  web address printed on the picture
+ *   introTalk  play a short talking animation when the card first appears (the share page does)
  */
 export default function MathHeroAdCard({
   language = 'en',
   to = '/games/math-hero',
-  shareUrl = 'https://bulbuli.org/games/math-hero',
+  shareUrl = SHARE_PAGE_URL,
   siteLabel = 'bulbuli.org',
   voiceLanguage = 'bn',
+  introTalk = false,
 }) {
   const text = AD_TEXT[language] ?? AD_TEXT.en
   const [status, setStatus] = useState({ kind: 'idle', message: '' })
-  const [shareSupported] = useState(canShareFiles)
-  const [touch] = useState(isTouchDevice)
-  const pngPromise = useRef(null)
   const { muted } = useMuted()
   const [talking, setTalking] = useState(false)
   const voice = useRef(null)
@@ -98,73 +76,52 @@ export default function MathHeroAdCard({
     if (handle.method !== 'none') voice.current = handle
   }
 
-  // Make the picture ahead of time, so the share sheet can open straight from the tap.
+  const [intro, setIntro] = useState(false)
+
+  // The share page opens with Math Hero "speaking" his message word by word (sound needs a tap:
+  // browsers never let a page start talking on its own).
   useEffect(() => {
-    const promise = renderAdCardBlob({ language, siteLabel })
-    promise.catch(() => {}) // a failure is reported when the button is pressed
-    pngPromise.current = promise
-  }, [language, siteLabel])
+    if (!introTalk || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
+    setIntro(true)
+    const words = text.speech.split(' ').length
+    const timer = window.setTimeout(() => setIntro(false), 600 + words * 110 + 900)
+    return () => window.clearTimeout(timer)
+  }, [introTalk, text.speech])
 
-  const getPng = () => {
-    if (!pngPromise.current) pngPromise.current = renderAdCardBlob({ language, siteLabel })
-    return pngPromise.current.catch((error) => {
-      pngPromise.current = null // try again from scratch next time
-      throw error
-    })
-  }
-
-  const save = async () => {
-    setStatus({ kind: 'working', message: text.working })
-    try {
-      downloadBlob(await getPng(), text.fileName)
-      setStatus({ kind: 'done', message: text.saved })
-    } catch (error) {
-      console.error('Could not make the Math Hero picture.', error)
-      setStatus({ kind: 'error', message: text.failed })
-    }
-  }
-
-  const share = async () => {
-    setStatus({ kind: 'working', message: text.working })
-    let blob
-    try {
-      blob = await getPng()
-    } catch (error) {
-      console.error('Could not make the Math Hero picture.', error)
-      setStatus({ kind: 'error', message: text.failed })
-      return
-    }
-    const file = new File([blob], text.fileName, { type: 'image/png' })
-    if (navigator.canShare?.({ files: [file] })) {
+  /**
+   * Shares the landing page with the phone's or computer's share sheet. Where sharing isn't
+   * available (many desktop browsers), copies the link instead.
+   */
+  const shareLink = async () => {
+    const data = buildLinkShareData({ title: text.shareTitle, text: text.shareText, url: shareUrl })
+    if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
       try {
-        await navigator.share({ files: [file], title: text.shareTitle, text: `${text.shareText} ${shareUrl}` })
+        await navigator.share(data)
         setStatus({ kind: 'done', message: text.shared })
         return
       } catch (error) {
         if (error?.name === 'AbortError') {
-          setStatus({ kind: 'idle', message: '' }) // the player closed the share sheet
+          setStatus({ kind: 'idle', message: '' }) // the share sheet was closed
           return
         }
-        // Sharing failed (or isn't allowed here): fall back to saving the picture.
+        // Sharing failed for another reason: fall back to copying the link.
       }
     }
-    downloadBlob(blob, text.fileName)
-    setStatus({ kind: 'done', message: text.saved })
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setStatus({ kind: 'done', message: text.linkCopied })
+    } catch {
+      // No clipboard access either (old browser, or not https): show the link to copy by hand.
+      setStatus({ kind: 'voice', message: text.copyFallback(shareUrl) })
+    }
   }
-
-  // Phones and tablets: the main button opens the share sheet (which can also save).
-  // Computers: the main button downloads; a second button shares when the browser can.
-  const primary = touch && shareSupported ? share : save
-  const secondary = touch && shareSupported
-    ? { label: text.saveOnly, onClick: save }
-    : shareSupported ? { label: text.shareOnly, onClick: share } : null
 
   const { bubble: bb, cta, mascot: m, hill, brand, title, rays } = L
   const ctaStyle = { top: u(cta.y), width: u(cta.w), height: u(cta.h), fontSize: u(cta.size) }
 
   return (
     <article className="ad" lang={language}>
-      <div className={`ad-card${talking ? ' is-talking' : ''}`} role="group" aria-label={text.imageAlt}>
+      <div className={`ad-card${talking || intro ? ' is-talking' : ''}${intro ? ' is-intro' : ''}`} role="group" aria-label={text.imageAlt}>
         <div
           className="ad-rays"
           aria-hidden="true"
@@ -216,7 +173,12 @@ export default function MathHeroAdCard({
           style={{ left: u(bb.x), top: u(bb.y), width: u(bb.w), padding: u(bb.pad - bb.border), paddingBottom: u(bb.pad - bb.border + 2.5), fontSize: u(bb.size), lineHeight: bb.lineHeight }}
         >
           {/* While Math Hero talks, the bubble shows the words he is saying (Bengali by default). */}
-          <p lang={talking ? voiceLanguage : undefined}>{talking ? (AD_TEXT[voiceLanguage] ?? text).speech : text.speech}</p>
+          {intro ? (
+            // the opening animation: words appear one by one, as if Math Hero is saying them
+            <p>{text.speech.split(' ').map((w, i) => <span key={i} className="ad-word" style={{ '--i': i }}>{w} </span>)}</p>
+          ) : (
+            <p lang={talking ? voiceLanguage : undefined}>{talking ? (AD_TEXT[voiceLanguage] ?? text).speech : text.speech}</p>
+          )}
           <button
             type="button"
             className="ad-listen"
@@ -255,19 +217,9 @@ export default function MathHeroAdCard({
       </div>
 
       <div className="ad-actions">
-        <button type="button" className="ad-share" onClick={primary} disabled={status.kind === 'working'}>
-          <span aria-hidden="true">⬇</span> {text.share}
+        <button type="button" className="ad-share-link" onClick={shareLink}>
+          <span aria-hidden="true">📤</span> {text.shareWithFriends}
         </button>
-        {secondary && (
-          <button
-            type="button"
-            className="ad-share-secondary"
-            onClick={secondary.onClick}
-            disabled={status.kind === 'working'}
-          >
-            {secondary.label}
-          </button>
-        )}
         <p className={`ad-status is-${status.kind}`} role="status">{status.message}</p>
       </div>
     </article>
