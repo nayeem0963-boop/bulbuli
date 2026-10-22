@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import mathHeroMascot from '../assets/math-hero-mascot.png'
 import TutorialCard from '../components/TutorialCard.jsx'
 import { tutorialCatalog } from '../data/tutorialCatalog.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
@@ -47,24 +46,29 @@ function Home({ session }) {
     || 'learner'
 
   return (
-    <main className="page tutorial-hub">
+    <main className="page tutorial-hub developer-hub-page">
       <nav className="tutorial-home-nav" aria-label="Main navigation">
         <Link className="dashboard-brand" to="/" aria-label="Bulbuli home">
           bulbuli<span>.</span>
         </Link>
-        <Link className="button button-secondary tutorial-dashboard-link" to="/dashboard">
-          Your dashboard <span aria-hidden="true">↗</span>
-        </Link>
+        <span className="developer-hub-nav-links">
+          <Link className="button button-secondary tutorial-dashboard-link" to="/">
+            <span aria-hidden="true">←</span> Back to the games
+          </Link>
+          <Link className="button button-secondary tutorial-dashboard-link" to="/dashboard">
+            Your account
+          </Link>
+        </span>
       </nav>
       <header className="tutorial-hero">
         <div className="tutorial-hero-copy">
-          <p className="eyebrow">Your learning space</p>
+          <p className="eyebrow">Developer Hub</p>
           <h1>Small steps, {learnerName}.</h1>
           <p>{currentStreak
             ? `🔥 ${currentStreak}-day streak active! Keep going, ${learnerName}.`
-            : 'Pick up a new skill with five focused tutorials. Your progress stays saved on this device.'}</p>
+            : 'Five focused courses on building for the web, with quizzes and exams. Your progress stays saved on this device.'}</p>
           <Link className="button tutorial-hero-action" to="/tutorials">
-            Explore all tutorials <span aria-hidden="true">→</span>
+            Explore all courses <span aria-hidden="true">→</span>
           </Link>
           <Link className="button-secondary home-exam-link" to="/exam">
             Frontend Developer Preparation <span aria-hidden="true">↗</span>
@@ -118,18 +122,6 @@ function Home({ session }) {
           <span className="tutorial-stat-label">Your next win</span>
           <strong>{tutorialCatalog.length - completedCount}<small> to go</small></strong>
         </article>
-      </section>
-
-      <section className="math-hero-promo" aria-labelledby="math-hero-promo-heading">
-        <img className="math-hero-promo-icon" src={mathHeroMascot} alt="" />
-        <div>
-          <p className="eyebrow">A new kind of adventure</p>
-          <h2 id="math-hero-promo-heading">Ready to be a Math Hero?</h2>
-          <p>Practice addition and subtraction, earn XP, and unlock new levels as you go.</p>
-        </div>
-        <Link className="button math-hero-primary" to="/math-hero">
-          Play Math Hero <span aria-hidden="true">→</span>
-        </Link>
       </section>
 
       <section className="tutorial-section" aria-labelledby="home-tutorials-heading">

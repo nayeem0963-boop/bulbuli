@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local backups made during the arcade refactor
+_backup-*.tar.gz
+_tmp-claude-*

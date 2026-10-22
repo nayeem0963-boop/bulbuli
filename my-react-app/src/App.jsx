@@ -5,59 +5,70 @@ import { getAuthRedirectPath } from './utils/authRedirect.js'
 import Dashboard from './routes/Dashboard.jsx'
 import ComprehensiveExam from './routes/ComprehensiveExam.jsx'
 import Home from './routes/Home.jsx'
+import ArcadeHome from './arcade/ArcadeHome.jsx'
+import GamePage from './arcade/GamePage.jsx'
+import { useLanguage } from './arcade/preferences.js'
+import { getGame } from './games/registry.js'
 import Login from './routes/Login.jsx'
 import TutorialCatalog from './routes/TutorialCatalog.jsx'
 import TutorialOverview from './routes/TutorialOverview.jsx'
 import TutorialQuiz from './routes/TutorialQuiz.jsx'
-import MathHero from './routes/MathHero.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import { tutorialCatalog } from './data/tutorialCatalog.js'
-import { useTutorialProgress } from './hooks/useTutorialProgress.js'
+import { GUEST_PLAYER_ID, useTutorialProgress } from './hooks/useTutorialProgress.js'
 import { EXAM_CONFIGS } from './utils/comprehensiveExam.js'
+
+const SITE_TITLE = 'Bulbuli: Free Learning Games for Kids'
+const SITE_DESCRIPTION = 'Bulbuli is a free, colourful learning arcade for children under 12. Play Math Hero, Memory Match, Pattern Quest and Type Runner in English or Bangla, no sign-up needed.'
+const isArcadePath = (pathname) => pathname === '/' || pathname.startsWith('/games/')
 
 function RouteTitle() {
   const { pathname } = useLocation()
+  const [language] = useLanguage()
 
   useEffect(() => {
     const catalogTutorialId = pathname.match(/^\/tutorials\/([^/]+)(?:\/quiz)?$/)?.[1]
     const catalogTutorial = tutorialCatalog.find((item) => item.id === catalogTutorialId)
     const subjectExamId = pathname.match(/^\/exams\/([^/]+)$/)?.[1]
     const subjectExam = Object.values(EXAM_CONFIGS).find((exam) => exam.id === subjectExamId)
-    let title = 'Free Interactive Coding Quizzes | Bulbuli'
-    let description = 'Bulbuli is a free interactive quiz platform for learning HTML, CSS, JavaScript, GitHub, and React. Explore bite-sized tutorials, test your skills, and track your progress.'
+    const game = getGame(pathname.match(/^\/games\/([^/]+)$/)?.[1])
+    let title = SITE_TITLE
+    let description = SITE_DESCRIPTION
 
-    if (pathname === '/login') {
+    if (game) {
+      title = `${game.title.en}: Free Learning Game for Kids | Bulbuli`
+      description = `${game.tagline.en} A free ${game.skill.en.toLowerCase()} game for ages ${game.ages}, in English or Bangla.`
+    } else if (pathname === '/login') {
       title = 'Sign in or Sign up | Bulbuli'
-      description = 'Sign in or create a free Bulbuli account to learn HTML, CSS, JavaScript, GitHub, and React with interactive quizzes.'
+      description = 'Sign in to Bulbuli to save progress in the Developer Hub coding courses and exams.'
     } else if (pathname === '/dashboard') {
-      title = 'Your Learning Dashboard | Bulbuli'
-      description = 'Track your learning progress and continue your interactive HTML, CSS, JavaScript, GitHub, and React tutorials with Bulbuli.'
-    } else if (pathname === '/math-hero') {
-      title = 'Math Hero | Bulbuli'
-      description = 'Play Math Hero, a friendly addition and subtraction game with timed multiple-choice questions, saved levels, and XP rewards.'
+      title = 'Your Account | Bulbuli'
+      description = 'Your Bulbuli account and Developer Hub course progress.'
+    } else if (pathname === '/developer') {
+      title = 'Developer Hub: Coding Courses | Bulbuli'
+      description = 'Guided HTML, CSS, JavaScript, GitHub, and React courses with quizzes and exams, for teens and adults.'
     } else if (pathname === '/exam') {
-      title = `${EXAM_CONFIGS.preparation.title} | Bulbuli`
+      title = `${EXAM_CONFIGS.preparation.title} | Bulbuli Developer Hub`
       description = 'Test your HTML, CSS, JavaScript, GitHub, and React skills in Bulbuli’s timed 50-question preparation exam.'
     } else if (subjectExam) {
-      title = `${subjectExam.title} | Bulbuli`
+      title = `${subjectExam.title} | Bulbuli Developer Hub`
       description = `${subjectExam.description} Take Bulbuli’s timed subject exam and earn a certification.`
-    } else if (pathname === '/') {
-      title = 'Free Interactive Coding Quizzes | Bulbuli'
     } else if (pathname === '/tutorials') {
-      title = 'Free Coding Tutorials & Quizzes | Bulbuli'
-      description = 'Explore free interactive tutorials and quizzes covering HTML, CSS, JavaScript, GitHub, and React. Choose a topic and learn at your pace.'
+      title = 'Coding Courses | Bulbuli Developer Hub'
+      description = 'Interactive courses and quizzes covering HTML, CSS, JavaScript, GitHub, and React.'
     } else if (pathname.startsWith('/tutorials/')) {
       title = catalogTutorial
-        ? `${catalogTutorial.title}${pathname.endsWith('/quiz') ? ' Interactive Quiz' : ' Tutorial'} | Bulbuli`
-        : 'Tutorial Not Found | Bulbuli'
+        ? `${catalogTutorial.title}${pathname.endsWith('/quiz') ? ' Quiz' : ' Course'} | Bulbuli Developer Hub`
+        : 'Course Not Found | Bulbuli'
       if (catalogTutorial) {
-        description = `Learn ${catalogTutorial.title} with a bite-sized tutorial and free interactive quiz. Practice key concepts and track your progress with Bulbuli.`
+        description = `Learn ${catalogTutorial.title} with a bite-sized course and interactive quiz in the Bulbuli Developer Hub.`
       }
     }
 
     document.title = title
     document.querySelector('meta[name="description"]')?.setAttribute('content', description)
-  }, [pathname])
+    document.documentElement.lang = isArcadePath(pathname) ? language : 'en'
+  }, [pathname, language])
 
   return null
 }
@@ -94,8 +105,17 @@ function UserActivityTracker({ userId }) {
     : null
 }
 
-function MemberRoute({ session, children }) {
+function MemberRoute({ session, authError, onRetryAuth, children }) {
   const location = useLocation()
+
+  if (!session && authError) {
+    return (
+      <main className="page">
+        <p className="notice" role="alert">{authError}</p>
+        <button className="button" type="button" onClick={onRetryAuth}>Try again</button>
+      </main>
+    )
+  }
 
   return session
     ? children
@@ -112,7 +132,8 @@ function LoginRoute({ session }) {
 
 function AppThemeToggle({ theme, onToggleTheme }) {
   const { pathname } = useLocation()
-  if (pathname === '/dashboard') return null
+  // The arcade has its own day/night button in its header; the dashboard has one in its sidebar.
+  if (pathname === '/dashboard' || isArcadePath(pathname)) return null
 
   return <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} className="theme-toggle app-theme-toggle" />
 }
@@ -177,26 +198,24 @@ function App() {
 
   useEffect(() => {
     const themeColor = document.querySelector('meta[name="theme-color"]')
-    themeColor?.setAttribute('content', theme === 'dark' ? '#10131d' : '#f5f7fc')
+    themeColor?.setAttribute('content', theme === 'dark' ? '#1b2f5c' : '#8fd0f7')
   }, [theme])
+
+  const retryAuth = () => {
+    setLoading(true)
+    setAuthCheckAttempt((attempt) => attempt + 1)
+  }
+  // Games are open to everyone. Players who are not signed in keep progress on this device.
+  const playerId = session?.user?.id ?? GUEST_PLAYER_ID
+  const member = (element) => (
+    <MemberRoute session={session} authError={authError} onRetryAuth={retryAuth}>{element}</MemberRoute>
+  )
 
   return (
     <div className="app-shell" data-theme={theme}>
       {loading ? (
-        <main className="loading-state" role="status">Loading your learning space…</main>
-      ) : authError ? (
-        <main className="page">
-          <p className="notice" role="alert">{authError}</p>
-          <button
-            className="button"
-            type="button"
-            onClick={() => {
-              setLoading(true)
-              setAuthCheckAttempt((attempt) => attempt + 1)
-            }}
-          >
-            Try again
-          </button>
+        <main className="loading-state" role="status">
+          <span className="loading-bird" aria-hidden="true">🐦</span>
         </main>
       ) : (
         <BrowserRouter>
@@ -204,52 +223,32 @@ function App() {
           <RouteTitle />
           {session && <UserActivityTracker userId={session.user.id} />}
           <Routes>
-            <Route path="/" element={session
-              ? <Home session={session} />
-              : <Navigate to="/login" replace />} />
+            <Route path="/" element={
+              <ArcadeHome key={playerId} session={session} playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
+            } />
+            <Route path="/games/:gameId" element={
+              <GamePage playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
+            } />
+            <Route path="/math-hero" element={<Navigate to="/games/math-hero" replace />} />
             <Route path="/login" element={<LoginRoute session={session} />} />
-            <Route path="/tutorials" element={
-              <MemberRoute session={session}>
-                <TutorialCatalog userId={session?.user?.id} />
-              </MemberRoute>
-            } />
-            <Route path="/tutorials/:tutorialId" element={
-              <MemberRoute session={session}>
-                <TutorialOverview userId={session?.user?.id} />
-              </MemberRoute>
-            } />
-            <Route path="/tutorials/:tutorialId/quiz" element={
-              <MemberRoute session={session}>
-                <TutorialQuiz userId={session?.user?.id} />
-              </MemberRoute>
-            } />
-            <Route path="/math-hero" element={
-              <MemberRoute session={session}>
-                <MathHero userId={session?.user?.id} />
-              </MemberRoute>
-            } />
-            <Route path="/dashboard" element={
-              <MemberRoute session={session}>
-                <Dashboard session={session} theme={theme} onToggleTheme={toggleTheme} />
-              </MemberRoute>
-            } />
-            <Route path="/exam" element={
-              <MemberRoute session={session}>
-                <ComprehensiveExam userId={session?.user?.id} examConfig={EXAM_CONFIGS.preparation} />
-              </MemberRoute>
-            } />
+            <Route path="/developer" element={member(<Home session={session} />)} />
+            <Route path="/tutorials" element={member(<TutorialCatalog userId={session?.user?.id} />)} />
+            <Route path="/tutorials/:tutorialId" element={member(<TutorialOverview userId={session?.user?.id} />)} />
+            <Route path="/tutorials/:tutorialId/quiz" element={member(<TutorialQuiz userId={session?.user?.id} />)} />
+            <Route path="/dashboard" element={member(
+              <Dashboard session={session} theme={theme} onToggleTheme={toggleTheme} />,
+            )} />
+            <Route path="/exam" element={member(
+              <ComprehensiveExam userId={session?.user?.id} examConfig={EXAM_CONFIGS.preparation} />,
+            )} />
             {Object.values(EXAM_CONFIGS).filter((examConfig) => examConfig.tutorialId).map((examConfig) => (
               <Route
                 key={examConfig.id}
                 path={`/exams/${examConfig.id}`}
-                element={
-                  <MemberRoute session={session}>
-                    <ComprehensiveExam userId={session?.user?.id} examConfig={examConfig} />
-                  </MemberRoute>
-                }
+                element={member(<ComprehensiveExam userId={session?.user?.id} examConfig={examConfig} />)}
               />
             ))}
-            <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       )}

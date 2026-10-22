@@ -154,8 +154,11 @@ function Dashboard({ session, theme, onToggleTheme }) {
             <a className="dashboard-nav-link is-current" href="#overview" aria-current="page">
               <span className="dashboard-nav-icon" aria-hidden="true">⌂</span>Overview
             </a>
+            <Link className="dashboard-nav-link" to="/developer">
+              <span className="dashboard-nav-icon" aria-hidden="true">▤</span>Developer Hub
+            </Link>
             <Link className="dashboard-nav-link" to="/">
-              <span className="dashboard-nav-icon" aria-hidden="true">▤</span>Learning
+              <span className="dashboard-nav-icon" aria-hidden="true">★</span>Games
             </Link>
             <a className="dashboard-nav-link" href="#profile">
               <span className="dashboard-nav-icon" aria-hidden="true">◉</span>Profile

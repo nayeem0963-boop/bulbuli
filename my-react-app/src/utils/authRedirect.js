@@ -7,5 +7,5 @@ export function getAuthRedirectPath(from) {
 
   return requestedPath.startsWith('/') && !requestedPath.startsWith('//')
     ? requestedPath
-    : '/dashboard'
+    : '/developer'
 }

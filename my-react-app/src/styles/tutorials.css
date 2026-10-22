@@ -3560,30 +3560,30 @@ button:active:not(:disabled),
 
 /* ------------------------------------------------------------------
    Bulbuli look-and-feel refresh
-   The home hero is the one bold surface: a deep canopy-green panel with
-   the crimson of the bulbul's under-tail as its only bright note.
+   The Developer Hub hero and sign-in panel are the one bold surface: a deep
+   navy panel (the arcade's ink colour) with sunshine yellow as its bright note.
    ------------------------------------------------------------------ */
 
 .tutorial-hero,
 .auth-welcome-panel {
-  --text: #f2f6ef;
-  --text-muted: #bcd0c4;
-  --accent: #9be3a6;
-  --accent-hover: #b9edc1;
-  --on-accent: #10362c;
+  --text: #f3f7ff;
+  --text-muted: #c3cfe6;
+  --accent: #ffc93c;
+  --accent-hover: #ffd96e;
+  --on-accent: #1b2a49;
   --surface: #f7faf5;
   --border: rgb(255 255 255 / 18%);
   --accent-soft: rgb(255 255 255 / 10%);
   color: var(--text);
   border: 0;
-  background: #14473a;
-  box-shadow: 0 1px 0 #0c2d24, 0 24px 48px -28px rgb(12 45 36 / 70%);
+  background: #1b2a49;
+  box-shadow: 0 1px 0 #0f1a33, 0 24px 48px -28px rgb(15 26 51 / 70%);
 }
 
 .app-shell[data-theme='dark'] .tutorial-hero,
 .app-shell[data-theme='dark'] .auth-welcome-panel {
-  background: #173b31;
-  box-shadow: 0 1px 0 #0b1f19;
+  background: #1a2c56;
+  box-shadow: 0 1px 0 #050a17;
 }
 
 .tutorial-hero-copy h1 {
@@ -3631,7 +3631,7 @@ button:active:not(:disabled),
 }
 
 .tutorial-hero .hero-art-tooltip {
-  color: #10362c;
+  color: #1b2a49;
 }
 
 .home-exam-link {
@@ -3686,12 +3686,12 @@ button:active:not(:disabled),
 @media (max-width: 760px) {
   .tutorial-hero,
   .auth-welcome-panel {
-    background: #14473a;
+    background: #1b2a49;
   }
 
   .app-shell[data-theme='dark'] .tutorial-hero,
   .app-shell[data-theme='dark'] .auth-welcome-panel {
-    background: #173b31;
+    background: #1a2c56;
   }
 
   .home-exam-link {

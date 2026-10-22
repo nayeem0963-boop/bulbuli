@@ -2,7 +2,7 @@
 // Digits are converted to Bengali numerals automatically, so write plain 0-9 here.
 export default {
   // app
-  "title": "বুলবুলি কুইজ",
+  "title": "প্যাটার্ন খোঁজ",
   "tag": "নকশা খুঁজে বের করো, অঙ্ক কষো।",
 
   // sound

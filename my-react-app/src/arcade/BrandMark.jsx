@@ -1,0 +1,16 @@
+// The Bulbuli bird: a round red-vented bulbul with its crest up. Same drawing as public/favicon.svg.
+export default function BrandMark({ size = 40 }) {
+  return (
+    <svg className="brand-mark" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path d="M14 44 L3 50 Q2 55 7 56 L19 51 Z" fill="#5c4a40" stroke="#1b2a49" strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M27 17 C23 11 23 5 27 1 C29 6 33 8 38 9 C35 11 36 14 39 16 Z" fill="#1b2a49" />
+      <ellipse cx="34" cy="38" rx="21" ry="20" fill="#8a7466" stroke="#1b2a49" strokeWidth="3" />
+      <path d="M15 31 C16 20 24 14 34 14 C44 14 51 21 53 30 C47 33 41 35 34 34 C27 33 20 31 15 31 Z" fill="#1b2a49" />
+      <circle cx="41" cy="25" r="4.6" fill="#fff" />
+      <circle cx="42" cy="25.5" r="2.3" fill="#1b2a49" />
+      <path d="M51 27 L62 31 L51 35 Z" fill="#f2b33d" stroke="#1b2a49" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M28 40 C35 37 45 41 46 50 C38 51 31 47 28 40 Z" fill="#6d5a4f" />
+      <path d="M16 46 C18 53 23 57 29 57 C26 52 22 48 16 46 Z" fill="#e4333f" stroke="#1b2a49" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  )
+}

@@ -10,7 +10,7 @@ function TutorialCatalog({ userId }) {
 
   return (
     <main className="page tutorial-hub tutorial-list-page">
-      <Link className="back-link" to="/">← Your learning space</Link>
+      <Link className="back-link" to="/developer">← Developer Hub</Link>
       <header className="tutorial-list-heading">
         <div>
           <p className="eyebrow">The Bulbuli collection</p>

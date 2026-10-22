@@ -3,38 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f5f7fc" />
+    <meta name="theme-color" content="#8fd0f7" />
     <meta
       name="description"
-      content="Bulbuli is a free interactive quiz platform for learning HTML, CSS, JavaScript, GitHub, and React. Explore bite-sized tutorials, test your skills, and track your progress."
+      content="Bulbuli is a free, colourful learning arcade for children under 12. Play Math Hero, Memory Match, Pattern Quest and Type Runner in English or Bangla, no sign-up needed."
     />
     <meta
       name="keywords"
-      content="free coding quiz, interactive coding quizzes, learn HTML, learn CSS, learn JavaScript, learn GitHub, learn React, web development tutorials"
+      content="learning games for kids, free educational games, typing games for kids, math games for kids, memory game for kids, pattern games, Bangla learning games, kids games under 12, Bulbuli"
     />
     <meta name="author" content="Bulbuli" />
     <!-- Requests to other sites carry no Bulbuli address. Google's speech audio (the Bangla Math Hero voice) only loads this way. -->
     <meta name="referrer" content="same-origin" />
     <link rel="canonical" href="https://bulbuli.org/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="Bulbuli" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="bn_BD" />
     <meta property="og:url" content="https://bulbuli.org/" />
     <meta property="og:site_name" content="Bulbuli" />
-    <meta property="og:title" content="Free Interactive Coding Quizzes | Bulbuli" />
+    <meta property="og:title" content="Bulbuli: Free Learning Games for Kids" />
     <meta
       property="og:description"
-      content="Learn HTML, CSS, JavaScript, GitHub, and React with free interactive quizzes and bite-sized tutorials. Practice, see your progress, and keep learning."
+      content="Count, match, spot patterns and learn to type with Bulbuli the bird. Free learning games for children under 12, in English and Bangla."
     />
-    <meta property="og:image" content="https://bulbuli.org/og-image.svg" />
-    <meta property="og:image:alt" content="Bulbuli - friendly tutorials for modern web skills" />
+    <meta property="og:image" content="https://bulbuli.org/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Bulbuli the bird above three game tiles: Math Hero, Memory Match and Pattern Quest" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Free Interactive Coding Quizzes | Bulbuli" />
+    <meta name="twitter:title" content="Bulbuli: Free Learning Games for Kids" />
     <meta
       name="twitter:description"
-      content="Learn HTML, CSS, JavaScript, GitHub, and React with free interactive quizzes and bite-sized tutorials."
+      content="Free learning games for children under 12: Math Hero, Memory Match, Pattern Quest and Type Runner, in English and Bangla."
     />
-    <meta name="twitter:image" content="https://bulbuli.org/og-image.svg" />
+    <meta name="twitter:image" content="https://bulbuli.org/og-image.png" />
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BWCEHNBE2P"></script>
 <script>
@@ -42,29 +49,31 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
-  gtag('config', 'G-BWCEHNBE2P');
+  // A site for children: no Google signals and no ad personalisation.
+  gtag('config', 'G-BWCEHNBE2P', {
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false,
+  });
 </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Baloo+Da+2:wght@500..800&family=Hind+Siliguri:wght@400;500;600;700&family=Lexend:wght@300..700&family=Young+Serif&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Baloo+2:wght@500..800&family=Baloo+Da+2:wght@500..800&family=Hind+Siliguri:wght@400;500;600;700&family=Nunito:wght@400..800&display=swap"
     />
-    <title>Free Interactive Coding Quizzes | Bulbuli</title>
+    <title>Bulbuli: Free Learning Games for Kids</title>
   </head>
   <body>
     <div id="root">
       <main>
-        <h1>Learn web skills with Bulbuli</h1>
+        <h1>Bulbuli: free learning games for kids</h1>
         <p>
-          Bulbuli offers friendly tutorials in HTML, CSS, JavaScript, GitHub, and React,
-          with short interactive quizzes to help each idea stick.
+          Play with Bulbuli the bird: add and take away in Math Hero, find the pairs in
+          Memory Match, spot what comes next in Pattern Quest, and race to the flag by typing in Type Runner. For children under 12,
+          in English and Bangla.
         </p>
-        <p>
-          Save your quiz progress, pick up where you left off, and build practical
-          skills one small step at a time.
-        </p>
+        <p>Grown-ups learning to code can find HTML, CSS, JavaScript, GitHub and React courses in the Developer Hub.</p>
       </main>
     </div>
     <script type="module" src="/src/main.jsx"></script>

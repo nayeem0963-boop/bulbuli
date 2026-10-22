@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MATH_HERO_QUESTIONS_PER_LEVEL } from '../utils/mathHero.js'
 
+/** Progress for players who are not signed in. Games are open to everyone and save on this device. */
+export const GUEST_PLAYER_ID = 'guest'
+
 const EMPTY_PROGRESS = {
   startedTutorialIds: [],
   completedTutorials: {},
@@ -8,6 +11,7 @@ const EMPTY_PROGRESS = {
   quizProgress: {},
   quizSessionStartedAt: {},
   mathHeroProgress: null,
+  games: {},
   userActivity: false,
   gamification: {
     totalXp: 0,
@@ -19,7 +23,7 @@ const EMPTY_PROGRESS = {
 
 function getStorageKey(userId) {
   if (typeof userId !== 'string' || !userId.trim()) {
-    throw new TypeError('A signed-in user ID is required to track tutorial progress.')
+    throw new TypeError('A player ID (a signed-in user ID or GUEST_PLAYER_ID) is required to track progress.')
   }
 
   return `bulbuli.tutorial-progress.v1.${encodeURIComponent(userId)}`
@@ -250,9 +254,19 @@ function normalizeProgress(progress) {
     mathHeroProgress: progress.mathHeroProgress
       ? normalizeMathHeroProgress(progress.mathHeroProgress)
       : null,
+    games: normalizeGames(progress.games),
     gamification,
     userActivity: progress.userActivity === true,
   }
+}
+
+// Per-game records for arcade games ({ [gameId]: plain object }). Anything malformed is dropped,
+// so one broken game record never blocks the rest of a player's progress.
+function normalizeGames(games) {
+  if (!games || typeof games !== 'object' || Array.isArray(games)) return {}
+  return Object.fromEntries(Object.entries(games).filter(([gameId, record]) => (
+    /^[a-z0-9-]+$/.test(gameId) && record && typeof record === 'object' && !Array.isArray(record)
+  )))
 }
 
 function loadProgress(storageKey) {
@@ -540,7 +554,28 @@ export function useTutorialProgress(userId) {
     }))
   }, [saveProgress])
 
+  /**
+   * Saves an arcade game's own record and adds the XP it earned to the player's total.
+   * `update` receives the game's previous record ({} the first time) and returns the new one.
+   */
+  const saveGameResult = useCallback((gameId, update, xpEarned = 0) => {
+    if (!/^[a-z0-9-]+$/.test(gameId) || !Number.isSafeInteger(xpEarned) || xpEarned < 0) {
+      throw new TypeError('A game result needs a valid game ID and a whole, non-negative XP amount.')
+    }
+
+    return saveProgress((current) => ({
+      ...current,
+      games: { ...current.games, [gameId]: update(current.games?.[gameId] ?? {}) },
+      gamification: {
+        ...current.gamification,
+        totalXp: current.gamification.totalXp + xpEarned,
+      },
+    }))
+  }, [saveProgress])
+
   return {
+    games: state.progress.games ?? {},
+    saveGameResult,
     startedTutorialIds: state.progress.startedTutorialIds,
     completedTutorials: state.progress.completedTutorials,
     moduleResults: state.progress.moduleResults,

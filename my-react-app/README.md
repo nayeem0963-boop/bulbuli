@@ -1,15 +1,28 @@
 # Bulbuli
 
-Bulbuli is a small-step learning app built with React and Vite. Signed-in
-learners can follow five guided tutorials covering HTML, CSS, JavaScript,
-GitHub, and React.
+Bulbuli is a free learning arcade for children under 12, built with React and
+Vite. Games are open to everyone (no sign-in); progress and XP are saved on the
+device. Every game works in English and Bangla.
+
+| Game | Route | Practises |
+|------|-------|-----------|
+| Math Hero | `/games/math-hero` | addition and subtraction against the clock |
+| Memory Match | `/games/memory-match` | memory, then matching pictures to written words |
+| Pattern Quest | `/games/pattern-quest` | number and shape patterns, quick sums |
+| Type Runner | `/games/type-runner` | keyboard letters (Speed Keys), then typing words |
+
+To add a game, see [`src/games/README.md`](src/games/README.md).
+
+## Developer Hub (coding courses)
+
+The five programming courses (HTML, CSS, JavaScript, GitHub, React) and their
+exams are folded away under **For grown-ups: coding courses** at the bottom of
+the home page, and at `/developer`. They need a Supabase sign-in.
 
 ## Math Hero
 
-Open **Math Hero** from the learning home page for a friendly addition and
-subtraction game. Each multiple-choice question has a two-minute timer; correct
-answers earn 5 XP, and game progress resumes from the saved question and level
-on the same device.
+Each multiple-choice question has a timer; correct answers earn 5 XP, and game
+progress resumes from the saved question and level on the same device.
 
 ## Shared quiz feedback
 
@@ -57,5 +70,6 @@ npm run dev
 
 ```sh
 npm run lint
+npm test
 npm run build
 ```

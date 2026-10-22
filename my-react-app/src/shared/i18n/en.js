@@ -1,7 +1,7 @@
 // English strings. {name} placeholders are filled by t(key, params).
 export default {
   // app
-  "title": "Bulbuli Quiz",
+  "title": "Pattern Quest",
   "tag": "Spot the pattern. Solve the sum.",
 
   // sound

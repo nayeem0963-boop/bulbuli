@@ -1,13 +1,15 @@
 :root {
-  --font-display: 'Young Serif', Georgia, 'Times New Roman', serif;
-  --font-body: 'Lexend', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  /* Baloo 2 is round and chunky like a toy; Nunito is soft and very readable for early readers.
+     The Bangla cuts (Baloo Da 2, Hind Siliguri) follow right after so Bangla text matches. */
+  --font-display: 'Baloo 2', 'Baloo Da 2', 'Trebuchet MS', ui-rounded, system-ui, sans-serif;
+  --font-body: 'Nunito', 'Hind Siliguri', ui-rounded, system-ui, 'Segoe UI', sans-serif;
   --font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, Consolas, monospace;
   font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-weight: 400;
+  font-weight: 500;
   font-optical-sizing: auto;
 }
 
@@ -28,68 +30,101 @@ input {
 }
 
 /*
-  Bulbuli palette, taken from the bird itself: leaf greens for the canopy it lives in,
-  a near-black crest for ink, and the crimson under-tail patch as the one bright note.
+  Bulbuli arcade palette. A bright day sky, sunshine yellow, leaf green, and the red-vented
+  bulbul's crimson as the colour of every "go" button. Navy ink outlines everything, like a toy.
 */
 .app-shell {
   color-scheme: light;
-  --page-bg: #edf1ea;
+  --ink: #1b2a49;
+  --sky: #3fa3ec;
+  --sky-soft: #d7efff;
+  --sun: #ffc93c;
+  --sun-soft: #fff1c2;
+  --leaf: #2e9e6b;
+  --leaf-soft: #d5f3e3;
+  --berry: #d42a37;
+  --berry-soft: #ffe1e3;
+  --grape: #8a4fd3;
+  --grape-soft: #ece0fb;
+  --page-bg: #eaf6ff;
+  --page-sky: linear-gradient(180deg, #8fd0f7 0%, #c4e7fc 340px, var(--page-bg) 620px);
   --surface: #fff;
   --surface-raised: #fff;
-  --surface-muted: #f3f6f1;
-  --text: #1c2420;
-  --text-muted: #5b675f;
-  --border: #d9e1d6;
-  --border-strong: #b7c4b5;
-  --accent: #0f6b5a;
-  --accent-hover: #0a5447;
-  --accent-soft: #e0efe8;
-  --accent-2: #3f9a7a;
-  --crimson: #cc2a3e;
-  --crimson-soft: #fbe6e8;
-  --sun: #e5a21f;
-  --success: #2a7b38;
-  --success-soft: #e4f3e2;
+  --surface-muted: #f2f8fd;
+  --text: var(--ink);
+  --text-muted: #4c5c7a;
+  --border: #cddcec;
+  --border-strong: #a8bdd4;
+  --accent: var(--berry);
+  --accent-hover: #b9212d;
+  --accent-soft: var(--berry-soft);
+  --accent-2: var(--leaf);
+  --crimson: var(--berry);
+  --crimson-soft: var(--berry-soft);
+  --success: #1f7a4f;
+  --success-soft: var(--leaf-soft);
   --danger: #b5322f;
-  --danger-soft: #fbe8e5;
+  --danger-soft: #fde6e4;
   --on-accent: #fff;
-  --edge: 0 1px 0 var(--border-strong);
-  --shadow: 0 1px 0 var(--border-strong), 0 14px 32px -18px rgb(28 52 40 / 22%);
-  --radius-panel: 22px;
-  --radius-card: 16px;
-  --radius-control: 12px;
+  --toy-border: 3px solid var(--ink);
+  --toy-lift: 0 5px 0 var(--ink);
+  --toy-lift-press: 0 2px 0 var(--ink);
+  --edge: 0 2px 0 var(--border-strong);
+  --shadow: 0 2px 0 var(--border-strong), 0 16px 32px -20px rgb(27 42 73 / 30%);
+  --radius-panel: 28px;
+  --radius-card: 20px;
+  --radius-control: 16px;
   position: relative;
   min-height: 100vh;
   padding-top: 1px;
   color: var(--text);
-  background: var(--page-bg);
+  background: var(--page-sky), var(--page-bg);
+  background-repeat: no-repeat;
   transition: color 220ms ease, background-color 220ms ease;
 }
 
+/* Night sky: the same toy look after dark. Ink stays dark so outlines still read as outlines. */
 .app-shell[data-theme='dark'] {
   color-scheme: dark;
-  --page-bg: #111613;
-  --surface: #19201c;
-  --surface-raised: #1f2823;
-  --surface-muted: #151b18;
-  --text: #e9efe9;
-  --text-muted: #9bab9f;
-  --border: #2b3530;
-  --border-strong: #3e4c45;
-  --accent: #5fcfb1;
-  --accent-hover: #84ddc5;
-  --accent-soft: #1b3830;
-  --accent-2: #9be3a6;
-  --on-accent: #0b2620;
-  --crimson: #ff6474;
-  --crimson-soft: #3b1f24;
-  --sun: #f2bd52;
-  --success: #82d68e;
-  --success-soft: #1d3523;
+  --ink: #050a17;
+  --sky: #5db8ff;
+  --sky-soft: #183357;
+  --sun: #ffd25e;
+  --sun-soft: #3d3216;
+  --leaf: #4fc58d;
+  --leaf-soft: #163a2b;
+  --berry: #ff5f6d;
+  --berry-soft: #43202a;
+  --grape: #b48cff;
+  --grape-soft: #2f2350;
+  --page-bg: #0e1830;
+  --page-sky: linear-gradient(180deg, #1b2f5c 0%, #142449 340px, var(--page-bg) 620px);
+  --surface: #182850;
+  --surface-raised: #1d2f5c;
+  --surface-muted: #14234a;
+  --text: #f1f6ff;
+  --text-muted: #b2c1de;
+  --border: #2b4073;
+  --border-strong: #3c5490;
+  --accent: var(--berry);
+  --accent-hover: #ff8590;
+  --accent-soft: var(--berry-soft);
+  --on-accent: #1a0509;
+  --success: #7fe0a9;
   --danger: #ff8f86;
   --danger-soft: #3c2220;
-  --shadow: 0 1px 0 var(--border-strong), 0 18px 40px -20px rgb(0 0 0 / 60%);
-  background: var(--page-bg);
+  --shadow: 0 2px 0 var(--ink), 0 18px 40px -20px rgb(0 0 0 / 60%);
+  background: var(--page-sky), var(--page-bg);
+  background-repeat: no-repeat;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .loading-state {
@@ -156,14 +191,14 @@ button,
   padding: 0.7rem 1.25rem;
   color: var(--on-accent);
   background: var(--accent);
-  font-weight: 600;
+  font-weight: 800;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
   transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
 }
 
-button:hover:not(:disabled),
+:where(button:hover:not(:disabled)),
 .button:hover {
   transform: translateY(-1px);
   border-color: var(--accent-hover);
@@ -171,7 +206,7 @@ button:hover:not(:disabled),
   box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--accent) 60%, transparent);
 }
 
-button:active:not(:disabled),
+:where(button:active:not(:disabled)),
 .button:active {
   transform: translateY(1px);
   box-shadow: none;
@@ -184,7 +219,7 @@ input:focus-visible {
   outline-offset: 3px;
 }
 
-button:disabled {
+:where(button:disabled) {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -232,7 +267,7 @@ p {
 h1,
 h2 {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
@@ -240,7 +275,7 @@ h3 {
   letter-spacing: -0.005em;
 }
 
-/* Small titles inside cards read better in the body face; the serif is kept for page and section headings. */
+/* Small titles inside cards read better in the body face; the rounded display face is kept for page and section headings. */
 .card h2:not(.auth-card-title),
 .card h3 {
   font-family: var(--font-body);

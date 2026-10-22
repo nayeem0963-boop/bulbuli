@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import mathHeroMascot from '../assets/math-hero-mascot.png'
+import mathHeroMascot from '../assets/math-hero-mascot-cutout.webp'
 import AnimatedAnswerOption from '../components/AnimatedAnswerOption.jsx'
 import AnimatedQuizCard from '../components/AnimatedQuizCard.jsx'
 import LifeCounter from '../components/LifeCounter.jsx'
@@ -18,12 +17,8 @@ import {
   createNextMathHeroProgress,
   MATH_HERO_QUESTIONS_PER_LEVEL,
 } from '../utils/mathHero.js'
-import {
-  formatDigits,
-  loadMathHeroLanguage,
-  MATH_HERO_TEXT,
-  saveMathHeroLanguage,
-} from '../utils/mathHeroText.js'
+import { formatDigits, MATH_HERO_TEXT } from '../utils/mathHeroText.js'
+import { useLanguage } from '../arcade/preferences.js'
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -37,8 +32,9 @@ function getRemainingSeconds(deadline) {
 }
 
 function MathHero({ userId }) {
-  const { muted, toggleMuted } = useSoundToggle()
-  const [language, setLanguage] = useState(loadMathHeroLanguage)
+  // Language and sound are switched from the arcade's game bar, which is shared by every game.
+  const { muted } = useSoundToggle()
+  const [language] = useLanguage()
   const text = MATH_HERO_TEXT[language]
   const n = (value) => formatDigits(value, language)
   // The level-up banner is created inside a memoised callback, so it reads the language from a ref.
@@ -46,11 +42,6 @@ function MathHero({ userId }) {
   useEffect(() => {
     languageRef.current = language
   }, [language])
-  const toggleLanguage = () => {
-    const next = language === 'en' ? 'bn' : 'en'
-    setLanguage(next)
-    saveMathHeroLanguage(next)
-  }
   const {
     feedback,
     milestone,
@@ -281,8 +272,7 @@ function MathHero({ userId }) {
   const progressPercent = (questionNumber / MATH_HERO_QUESTIONS_PER_LEVEL) * 100
 
   return (
-    <main className="page tutorial-hub math-hero-page" lang={language}>
-      <Link className="back-link" to="/">{text.back}</Link>
+    <div className="page tutorial-hub math-hero-page" lang={language}>
       <header className="math-hero-heading">
         <MathHeroMascot
           src={mathHeroMascot}
@@ -296,27 +286,7 @@ function MathHero({ userId }) {
           <h1>{text.title}</h1>
           <p>{text.subtitle}</p>
         </div>
-        <button
-          className="math-hero-language-toggle"
-          type="button"
-          onClick={toggleLanguage}
-          lang={language === 'en' ? 'bn' : 'en'}
-          aria-label={text.switchLanguageLabel}
-          title={text.switchLanguageLabel}
-        >
-          {text.switchLanguage}
-        </button>
-        <button
-          className="math-hero-sound-toggle"
-          type="button"
-          onClick={toggleMuted}
-          aria-label={muted ? text.soundOn : text.soundOff}
-          aria-pressed={muted}
-          title={muted ? text.soundOn : text.soundOff}
-        >
-          {muted ? '🔇' : '🔊'}
-        </button>
-      </header>
+</header>
 
       {storageError && <p className="notice" role="alert">{storageError}</p>}
 
@@ -458,7 +428,7 @@ function MathHero({ userId }) {
           </section>
         </div>
       )}
-    </main>
+    </div>
   )
 }
 
