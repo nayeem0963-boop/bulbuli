@@ -493,6 +493,51 @@
 
 .art-typing-keys span.is-next { background: var(--sun); transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
 
+/* ---------- "share Math Hero" strip: the way into /share/math-hero ---------- */
+
+.share-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: clamp(1.5rem, 4vw, 2.25rem);
+  border: var(--toy-border);
+  border-radius: var(--radius-panel);
+  padding: 0.9rem 1.25rem;
+  background: var(--sun-soft);
+  box-shadow: 0 6px 0 var(--ink);
+}
+
+.share-strip img { width: 64px; height: auto; flex: 0 0 auto; margin: -1.4rem 0 -0.6rem; }
+.share-strip-copy { flex: 1 1 14rem; }
+.share-strip h2 { margin: 0; font-size: 1.45rem; line-height: 1.15; }
+.share-strip p { margin: 0.15rem 0 0; color: var(--text); }
+.app-shell[data-theme='dark'] .share-strip { background: var(--surface); }
+
+.arcade .share-strip-button {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0 1.4rem;
+  color: var(--ink);
+  background: var(--sun);
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.arcade .share-strip-button:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.arcade .share-strip-button:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+
+@media (max-width: 640px) {
+  .arcade .share-strip-button { width: 100%; justify-content: center; }
+}
+
 /* ---------- grown-ups / Developer Hub toggle ---------- */
 
 .dev-hub {

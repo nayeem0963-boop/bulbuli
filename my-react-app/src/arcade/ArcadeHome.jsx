@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import mascot from '../assets/mascot.webp'
+import mathHeroMascot from '../assets/math-hero-mascot-cutout.webp'
 import { GAMES } from '../games/registry.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 import { formatDigits } from '../utils/mathHeroText.js'
@@ -66,6 +67,15 @@ export default function ArcadeHome({ session, playerId, theme, onToggleTheme }) 
               <p>{text.hatchingText}</p>
             </li>
           </ul>
+        </section>
+
+        <section className="share-strip" aria-labelledby="share-strip-title">
+          <img src={mathHeroMascot} alt="" width="64" height="78" loading="lazy" />
+          <div className="share-strip-copy">
+            <h2 id="share-strip-title">{text.shareTitle}</h2>
+            <p>{text.shareText}</p>
+          </div>
+          <Link className="share-strip-button" to="/share/math-hero">{text.shareButton}</Link>
         </section>
 
         <DeveloperHub session={session} language={language} />

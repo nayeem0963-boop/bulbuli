@@ -1,0 +1,441 @@
+/* Math Hero ad card. Positions come from AD_LAYOUT (inline styles, in cqw);
+   this file holds the look. The PNG export (renderAdCard.js) paints the same design. */
+
+.ad {
+  --ad-ink: #1b2a49;
+  width: min(100%, 440px);
+  margin: 0 auto;
+  /* The card's width is the unit for everything inside it: 1cqw = 1 card unit (see adContent.js). */
+  container-type: inline-size;
+}
+
+.ad-card {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 7cqw;
+  color: var(--ad-ink);
+  background: linear-gradient(180deg, #7cc8f6 0%, #c4e9ff 45%, #fff0b8 100%);
+  box-shadow: 0 8px 0 var(--ad-ink), 0 24px 40px -18px rgb(27 42 73 / 45%);
+  font-family: 'Nunito', 'Hind Siliguri', ui-rounded, system-ui, sans-serif;
+  isolation: isolate;
+}
+
+.ad-card,
+.ad-card * { box-sizing: border-box; }
+
+/* The outline is drawn on top, as in the canvas, so it never shifts what is inside. */
+.ad-card::after {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  border: 1.1cqw solid var(--ad-ink);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.ad-rays {
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 90deg at var(--ray-x) var(--ray-y),
+    rgb(255 255 255 / 34%) 0 calc(var(--ray-step) / 2),
+    transparent calc(var(--ray-step) / 2) var(--ray-step)
+  );
+}
+
+.ad-symbol {
+  position: absolute;
+  z-index: 1;
+  font-family: 'Baloo 2', 'Trebuchet MS', sans-serif;
+  font-weight: 800;
+  line-height: 1;
+  -webkit-text-stroke: 0.9cqw var(--ad-ink);
+  paint-order: stroke fill;
+  transform: translate(-50%, -50%) rotate(var(--r));
+}
+
+.ad-hill {
+  position: absolute;
+  z-index: 1;
+  border: 1.1cqw solid var(--ad-ink);
+  border-radius: 50%;
+  background: #8fdcb2;
+}
+
+.ad-brand {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1.5cqw;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.ad-brand .brand-mark { width: 8.5cqw; height: 8.5cqw; }
+
+.ad-brand-name {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 5.6cqw;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ad-brand-presents { font-size: 3.5cqw; font-weight: 700; }
+
+.ad-title {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  margin: 0;
+  color: #ffc93c;
+  font-family: 'Baloo 2', 'Trebuchet MS', sans-serif;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
+  -webkit-text-stroke: 5.2cqw var(--ad-ink);
+  paint-order: stroke fill;
+  filter: drop-shadow(0 1.2cqw 0 var(--ad-ink));
+  transform: translateY(-50%) rotate(var(--r));
+}
+
+.ad-title:lang(bn),
+.ad:lang(bn) .ad-title { font-family: 'Baloo Da 2', 'Baloo 2', sans-serif; }
+
+/* Math Hero is a button: tap him (or his bubble) to hear him talk. */
+.ad .ad-talk {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  min-height: 0;
+  border: 0;
+  border-radius: 6cqw;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ad .ad-talk:hover,
+.ad .ad-talk:active { border: 0; background: none; box-shadow: none; transform: none; }
+.ad .ad-talk:focus-visible { outline: 1.2cqw solid #3fa3ec; outline-offset: 0.5cqw; }
+
+/* a warm glow behind Math Hero while he talks */
+.ad-talk::before {
+  content: '';
+  position: absolute;
+  inset: 8% -4% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 214 94 / 85%), rgb(255 214 94 / 0%));
+  opacity: 0;
+  transition: opacity 250ms ease;
+  pointer-events: none;
+}
+
+.ad-card.is-talking .ad-talk::before { opacity: 1; }
+
+.ad-mascot {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  transform-origin: 50% 100%;
+}
+
+.ad-tap-hint {
+  position: absolute;
+  z-index: 1;
+  top: -5%;
+  left: 24%;
+  border: 0.7cqw solid var(--ad-ink);
+  border-radius: 999px;
+  padding: 0.6cqw 2cqw;
+  color: var(--ad-ink);
+  background: #fff;
+  box-shadow: 0 0.7cqw 0 var(--ad-ink);
+  font-family: 'Baloo 2', 'Baloo Da 2', sans-serif;
+  font-size: 3.4cqw;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: rotate(-6deg);
+  transition: opacity 200ms ease;
+}
+
+.ad-card.is-talking .ad-tap-hint { opacity: 0; }
+
+.ad:lang(bn) .ad-tap-hint { font-family: 'Baloo Da 2', 'Baloo 2', sans-serif; }
+
+/* the Listen button on the bubble's corner; while Math Hero talks it shows dancing sound bars */
+.ad .ad-listen {
+  position: absolute;
+  right: 3cqw;
+  bottom: -3.4cqw;
+  display: inline-flex;
+  min-width: 13cqw;
+  min-height: 0;
+  height: 7cqw;
+  align-items: center;
+  justify-content: center;
+  gap: 1cqw;
+  border: 0.7cqw solid var(--ad-ink);
+  border-radius: 999px;
+  padding: 0 2.2cqw;
+  color: var(--ad-ink);
+  background: #ffc93c;
+  box-shadow: 0 0.8cqw 0 var(--ad-ink);
+  font-family: 'Baloo 2', 'Baloo Da 2', sans-serif;
+  font-size: 3.4cqw;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.ad:lang(bn) .ad-listen { font-family: 'Baloo Da 2', 'Baloo 2', sans-serif; }
+.ad .ad-listen:hover { border-color: var(--ad-ink); color: var(--ad-ink); background: #ffd45e; transform: translateY(-0.4cqw); box-shadow: 0 1.2cqw 0 var(--ad-ink); }
+.ad .ad-listen:active { transform: translateY(0.6cqw); box-shadow: 0 0.2cqw 0 var(--ad-ink); }
+.ad .ad-listen:focus-visible { outline: 1cqw solid #3fa3ec; outline-offset: 0.6cqw; }
+
+.ad-sound-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.8cqw;
+  height: 3.6cqw;
+}
+
+.ad-sound-bars i {
+  display: block;
+  width: 1.1cqw;
+  height: 100%;
+  border-radius: 1cqw;
+  background: var(--ad-ink);
+  transform-origin: 50% 100%;
+}
+
+.ad-sound-bars i:nth-child(2) { height: 60%; }
+.ad-sound-bars i:nth-child(3) { height: 80%; }
+
+/* while talking: the bubble glows (also without motion, so the state is always visible) */
+.ad-bubble { cursor: pointer; transition: box-shadow 250ms ease; }
+.ad-card.is-talking .ad-bubble {
+  box-shadow: 0 1.2cqw 0 var(--ad-ink), 0 0 0 1cqw rgb(255 201 60 / 90%), 0 0 5cqw 2cqw rgb(255 201 60 / 55%);
+}
+
+.ad-bubble {
+  position: absolute;
+  z-index: 3;
+  border: 0.9cqw solid var(--ad-ink);
+  border-radius: 6cqw;
+  background: #fff;
+  box-shadow: 0 1.2cqw 0 var(--ad-ink);
+  font-weight: 800;
+  text-align: left;
+  transform-origin: 0% 62%;
+}
+
+/* padding is (pad - border) so the words sit exactly where the canvas writes them */
+.ad-bubble p { margin: 0; }
+.ad:lang(bn) .ad-bubble { font-family: 'Hind Siliguri', 'Nunito', sans-serif; }
+
+.ad-bubble-tail {
+  position: absolute;
+  overflow: visible;
+  margin-left: -0.9cqw;
+}
+
+.ad-bubble-tail path {
+  fill: #fff;
+  stroke: var(--ad-ink);
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 0.9cqw;
+}
+
+.ad-cta {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5cqw;
+  border: 1.1cqw solid var(--ad-ink);
+  border-radius: 999px;
+  color: #fff;
+  background: #d42a37;
+  box-shadow: 0 1.3cqw 0 var(--ad-ink);
+  font-family: 'Baloo 2', 'Trebuchet MS', sans-serif;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  transform: translateX(-50%);
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.ad:lang(bn) .ad-cta { font-family: 'Baloo Da 2', 'Baloo 2', sans-serif; }
+.ad-cta:hover { color: #fff; background: #e23744; }
+.ad-cta:active { box-shadow: 0 0.3cqw 0 var(--ad-ink); transform: translate(-50%, 1cqw); }
+.ad-cta:focus-visible { outline: 1.4cqw solid #3fa3ec; outline-offset: 1cqw; }
+
+/* a shine that sweeps across the button */
+.ad-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 45%) 45%, transparent 60%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.ad-url {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  margin: 0;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ad-bubble { animation: ad-pop 520ms cubic-bezier(0.3, 1.6, 0.5, 1) 250ms both; }
+  .ad-tap-hint { animation: ad-hint 1.6s ease-in-out 1.5s infinite; }
+  /* talking: Math Hero bobs as if speaking, the bubble's glow pulses (the bubble itself stays still,
+     so its Listen/stop button is easy to tap), the bars dance */
+  .ad-card.is-talking .ad-mascot { animation: ad-talk 340ms ease-in-out infinite alternate; }
+  .ad-card.is-talking .ad-bubble { animation: ad-glow 1.1s ease-in-out infinite; }
+  .ad-card.is-talking .ad-talk::before { animation: ad-halo 1.1s ease-in-out infinite; }
+  .ad-card.is-talking .ad-sound-bars i { animation: ad-bar 420ms ease-in-out infinite alternate; }
+  .ad-card.is-talking .ad-sound-bars i:nth-child(2) { animation-delay: -140ms; }
+  .ad-card.is-talking .ad-sound-bars i:nth-child(3) { animation-delay: -280ms; }
+  .ad-mascot { animation: ad-sway 5s ease-in-out 1s infinite; }
+  .ad-symbol { animation: ad-bob 3.2s ease-in-out var(--delay) infinite; }
+  .ad-cta { animation: ad-bounce 2.4s ease-in-out 1.2s infinite; }
+  .ad-cta::after { animation: ad-shine 2.4s ease-in-out 1.2s infinite; }
+  .ad-cta:hover,
+  .ad-cta:active { animation-play-state: paused; }
+}
+
+@keyframes ad-hint {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50% { transform: rotate(-6deg) translateY(-1.2cqw); }
+}
+
+@keyframes ad-talk {
+  from { transform: rotate(-1.5deg) scale(1, 1); }
+  to { transform: rotate(1.5deg) scale(1.02, 0.985); }
+}
+
+@keyframes ad-glow {
+  0%, 100% {
+    box-shadow: 0 1.2cqw 0 var(--ad-ink), 0 0 0 0.6cqw rgb(255 201 60 / 90%), 0 0 3cqw 1cqw rgb(255 201 60 / 45%);
+  }
+  50% {
+    box-shadow: 0 1.2cqw 0 var(--ad-ink), 0 0 0 1.3cqw rgb(255 201 60 / 95%), 0 0 6cqw 3cqw rgb(255 201 60 / 65%);
+  }
+}
+
+@keyframes ad-halo {
+  0%, 100% { transform: scale(0.94); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes ad-bar {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes ad-pop {
+  from { opacity: 0; transform: scale(0.4); }
+}
+
+@keyframes ad-sway {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-2deg); }
+}
+
+@keyframes ad-bob {
+  0%, 100% { transform: translate(-50%, -50%) rotate(var(--r)); }
+  50% { transform: translate(-50%, -62%) rotate(var(--r)); }
+}
+
+@keyframes ad-bounce {
+  0%, 60%, 100% { transform: translateX(-50%) scale(1); }
+  70% { transform: translateX(-50%) scale(1.07); }
+  80% { transform: translateX(-50%) scale(0.98); }
+  90% { transform: translateX(-50%) scale(1.03); }
+}
+
+@keyframes ad-shine {
+  0%, 55% { transform: translateX(-120%); }
+  85%, 100% { transform: translateX(120%); }
+}
+
+/* ---------- the buttons under the card ---------- */
+
+.ad-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.ad .ad-share,
+.ad .ad-share-secondary {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  border: 3px solid var(--ad-ink);
+  border-radius: 999px;
+  padding: 0 1.5rem;
+  color: var(--ad-ink);
+  background: #ffc93c;
+  box-shadow: 0 5px 0 var(--ad-ink);
+  font-family: 'Baloo 2', 'Baloo Da 2', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.ad .ad-share-secondary { background: #fff; font-size: 1.05rem; }
+.ad .ad-share:hover:not(:disabled),
+.ad .ad-share-secondary:hover:not(:disabled) { color: var(--ad-ink); border-color: var(--ad-ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ad-ink); }
+.ad .ad-share:hover:not(:disabled) { background: #ffd45e; }
+.ad .ad-share-secondary:hover:not(:disabled) { background: #fff1c2; }
+.ad .ad-share:active:not(:disabled),
+.ad .ad-share-secondary:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 var(--ad-ink); }
+.ad .ad-share:focus-visible,
+.ad .ad-share-secondary:focus-visible { outline: 4px solid #3fa3ec; outline-offset: 4px; }
+.ad .ad-share:disabled,
+.ad .ad-share-secondary:disabled { opacity: 0.7; cursor: progress; }
+
+.ad-status {
+  width: 100%;
+  min-height: 1.5em;
+  margin: 0;
+  color: var(--text-muted, #4c5c7a);
+  font-weight: 800;
+  text-align: center;
+}
+
+.ad-status.is-error { color: var(--danger, #b5322f); }
+
+/* ---------- the /share/math-hero page ---------- */
+
+.ad-page { padding: 1.5rem 0 3rem; text-align: center; }
+.ad-page-title { margin: 0 0 0.35rem; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.05; }
+.ad-page-intro { max-width: 30rem; margin: 0 auto 1.75rem; font-size: 1.1rem; }

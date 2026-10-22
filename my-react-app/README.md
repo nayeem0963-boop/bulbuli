@@ -13,6 +13,24 @@ device. Every game works in English and Bangla.
 
 To add a game, see [`src/games/README.md`](src/games/README.md).
 
+## Math Hero ad card
+
+`/share/math-hero` shows a shareable Math Hero advert (`src/promo/MathHeroAdCard.jsx`).
+**Download & Share** saves a 1080 × 1350 PNG (`Bulbuli-MathHero-Ad.png`); on phones and
+tablets it opens the share sheet instead (Web Share API), with **Save image only** as a
+fallback. The PNG is painted on a canvas from the same layout as the card
+(`src/promo/adContent.js`), so change text, colours or positions there.
+
+On the live card, tap Math Hero, his speech bubble or the **Listen** button and he reads his
+message aloud in Bengali (`src/promo/adVoice.js`): `window.speechSynthesis` with a `bn-BD` voice,
+then any `bn` voice; on devices with no Bengali voice (most Windows PCs, iPhones, iPads) the same
+online Bangla voice as the Math Hero game. It respects the arcade's mute switch. The **Play Now**
+button links to `/games/math-hero` (pass a full URL as `to` to link elsewhere).
+
+The downloaded PNG can't talk or be clicked, so instead of the button it prints a panel with
+`bulbuli.org` and a QR code that opens `https://bulbuli.org/games/math-hero`
+(`src/promo/qrMathHero.js`; make a new code there if the address changes).
+
 ## Developer Hub (coding courses)
 
 The five programming courses (HTML, CSS, JavaScript, GitHub, React) and their

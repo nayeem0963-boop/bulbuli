@@ -7,6 +7,7 @@ import ComprehensiveExam from './routes/ComprehensiveExam.jsx'
 import Home from './routes/Home.jsx'
 import ArcadeHome from './arcade/ArcadeHome.jsx'
 import GamePage from './arcade/GamePage.jsx'
+import AdCardPage from './promo/AdCardPage.jsx'
 import { useLanguage } from './arcade/preferences.js'
 import { getGame } from './games/registry.js'
 import Login from './routes/Login.jsx'
@@ -20,7 +21,7 @@ import { EXAM_CONFIGS } from './utils/comprehensiveExam.js'
 
 const SITE_TITLE = 'Bulbuli: Free Learning Games for Kids'
 const SITE_DESCRIPTION = 'Bulbuli is a free, colourful learning arcade for children under 12. Play Math Hero, Memory Match, Pattern Quest and Type Runner in English or Bangla, no sign-up needed.'
-const isArcadePath = (pathname) => pathname === '/' || pathname.startsWith('/games/')
+const isArcadePath = (pathname) => pathname === '/' || pathname.startsWith('/games/') || pathname.startsWith('/share/')
 
 function RouteTitle() {
   const { pathname } = useLocation()
@@ -35,7 +36,10 @@ function RouteTitle() {
     let title = SITE_TITLE
     let description = SITE_DESCRIPTION
 
-    if (game) {
+    if (pathname === '/share/math-hero') {
+      title = 'Math Hero: Play to Learn on Bulbuli'
+      description = 'Hey Explorer! Join Math Hero on Bulbuli to master math, solve fun puzzles and level up, through free learning games for kids.'
+    } else if (game) {
       title = `${game.title.en}: Free Learning Game for Kids | Bulbuli`
       description = `${game.tagline.en} A free ${game.skill.en.toLowerCase()} game for ages ${game.ages}, in English or Bangla.`
     } else if (pathname === '/login') {
@@ -229,6 +233,7 @@ function App() {
             <Route path="/games/:gameId" element={
               <GamePage playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
             } />
+            <Route path="/share/math-hero" element={<AdCardPage theme={theme} onToggleTheme={toggleTheme} />} />
             <Route path="/math-hero" element={<Navigate to="/games/math-hero" replace />} />
             <Route path="/login" element={<LoginRoute session={session} />} />
             <Route path="/developer" element={member(<Home session={session} />)} />
