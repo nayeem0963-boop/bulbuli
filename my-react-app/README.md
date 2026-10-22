@@ -13,6 +13,37 @@ device. Every game works in English and Bangla.
 
 To add a game, see [`src/games/README.md`](src/games/README.md).
 
+### Type Runner's forest
+
+The bulbul (`src/assets/bulbul-runner.webp`) runs along a forest path that scrolls in two layers
+(parallax): misty hills far away (`public/forest/back.webp`, slow) and the big trees and path
+(`public/forest/front.webp`, moving with the runner). The forest drifts during a race and rushes
+forward on every correct key; one animation loop sets a CSS variable, `--scroll`, and each layer
+moves by it times its own speed (`src/games/type-runner/ForestScene.jsx`, `forestLayers.js`).
+While racing, the bird bounces, leans and kicks up dust; at the finish he stands and breathes.
+Everything stays still when "reduce motion" is on.
+
+The layers are built from the painted scenes in `design/forest-source/` by
+`python3 tools/build-forest-layers.py` (Pillow + NumPy): it crops them to the path band, makes the
+trees layer's sky see-through, and joins the pictures so they loop without a visible seam. **To
+change the forest**, replace the pictures in `design/forest-source/` and run the script again.
+Don't put full scenes straight into `public/forest/`: an opaque picture in a front layer covers
+the bird.
+
+## Play and Learn zones
+
+The home page has two zones, switched with the **Play | Learn** toggle in the header
+(`src/arcade/ZoneToggle.jsx`):
+
+- **Play** (default): the games and the Math Hero ad. Sky blue, sunny, toy-like.
+- **Learn**: the five coding courses (HTML, CSS, JavaScript, GitHub, React) and their exams, for
+  teens and grown-ups (`src/arcade/LearnZone.jsx`). Mint and teal on squared paper, flatter cards.
+  Courses and exams need a Supabase sign-in; `/developer` is the signed-in course home.
+
+The zone lives in the address: `/` is Play, `/?zone=learn` is Learn (`src/arcade/zone.js`,
+`useZone()`). So Bulbuli always opens in Play, the Back button steps between zones, and a Learn
+link can be shared. The Math Hero ad is part of the Play zone only.
+
 ## Math Hero ad card
 
 `/share/math-hero` shows a shareable Math Hero advert (`src/promo/MathHeroAdCard.jsx`).

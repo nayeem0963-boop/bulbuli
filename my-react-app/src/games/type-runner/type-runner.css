@@ -103,35 +103,154 @@
 .tr-stars.is-lg { font-size: 3.2rem; }
 .app-shell[data-theme='dark'] .tr-choice .tr-stars span:not(.is-on) { color: #c9d3e6; }
 
-/* race track */
+/* race track: a forest scene with parallax layers (see ForestScene.jsx and forestLayers.js) */
 .tr-track {
   margin-bottom: 1rem;
+  overflow: hidden;
   border: var(--toy-border);
   border-radius: 22px;
-  padding: 0.5rem 0.75rem;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 34px, rgb(255 255 255 / 45%) 34px 50px) 0 calc(100% - 14px) / 100% 5px no-repeat,
-    linear-gradient(180deg, #bfe6ff 0 55%, #8fdcb2 55%);
   box-shadow: 0 5px 0 var(--ink);
 }
 
-.tr-track-lane {
+.forest {
+  /* tall enough to feel like a place, short enough that the keyboard stays on screen */
+  --scene-h: clamp(140px, 23vh, 200px);
   position: relative;
+  height: var(--scene-h);
+  overflow: hidden;
+  background: #8fbf7a; /* shows only until the first layer loads */
+  isolation: isolate;
+}
+
+/* Every layer is its own image repeating left to right, shown at the scene's height.
+   It moves by --scroll (set every frame by ForestScene) times its own --speed. */
+.forest-layer {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: calc(var(--scroll, 0) * var(--speed) * -1px) 0;
+  pointer-events: none;
+}
+
+.forest-stage { position: absolute; z-index: 1; inset: 0; }
+/* only layers marked `front: true` in forestLayers.js are drawn over the runner */
+.forest-layer.over-runner { z-index: 2; }
+
+/* Readability: a soft vignette and a darker top and bottom keep the bird, the flag and the
+   frame clear against the busy forest, while the middle of the scene stays bright. */
+.forest-shade {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 75% 90% at 50% 55%, transparent 55%, rgb(10 30 18 / 35%) 100%),
+    linear-gradient(180deg, rgb(10 30 18 / 22%) 0%, transparent 28%, transparent 78%, rgb(10 30 18 / 22%) 100%);
+  pointer-events: none;
+}
+
+.app-shell[data-theme='dark'] .forest-shade {
+  background:
+    radial-gradient(ellipse 75% 90% at 50% 55%, rgb(5 12 30 / 18%) 50%, rgb(5 12 30 / 55%) 100%),
+    linear-gradient(180deg, rgb(5 12 30 / 30%) 0%, transparent 30%, transparent 78%, rgb(5 12 30 / 30%) 100%);
+}
+
+.tr-track-lane {
+  /* the runner is the bulbul picture (src/assets/bulbul-runner.webp), facing the flag */
+  --runner-w: 104px;
+  position: absolute;
+  left: 0.75rem;
+  right: calc(0.75rem + 2.5rem); /* room for the flag */
+  bottom: 20%; /* the top edge of the forest path */
   height: 70px;
-  margin-right: 2.5rem; /* room for the flag */
 }
 
 .tr-runner {
   position: absolute;
   bottom: 2px;
-  left: calc(var(--progress) * (100% - 56px));
+  left: calc(var(--progress) * (100% - var(--runner-w)));
   transition: left 260ms cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
-.tr-runner-bird { display: block; transform-origin: 50% 100%; }
+.tr-runner-bird { position: relative; display: block; transform-origin: 50% 100%; }
+
+.tr-runner-bird img {
+  display: block;
+  transform-origin: 50% 100%;
+  width: var(--runner-w);
+  height: auto;
+  max-width: none;
+  /* a soft contact shadow, so the bird sits on the path instead of floating over the photo */
+  /* a faint light halo lifts him off the darker trees; the shadow grounds him */
+  filter: drop-shadow(0 0 3px rgb(255 255 240 / 70%)) drop-shadow(0 4px 3px rgb(0 0 0 / 45%));
+  user-select: none;
+}
 
 @media (prefers-reduced-motion: no-preference) {
   .tr-runner-bird.is-hopping { animation: tr-hop 260ms ease-out; }
+}
+
+/* ----- the running animation -----
+   One picture can't move its legs, so the run is acted out by the whole bird: a quick stride
+   bounce with a forward lean, a squash as each step lands, a shadow that shrinks as he lifts
+   off, and puffs of dust behind his feet. Each correct key adds a leap on top (tr-hop). */
+.tr-runner::after { /* his shadow on the path */
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 18%;
+  right: 22%;
+  bottom: -3px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 30%);
+  filter: blur(2px);
+}
+
+.tr-runner-bird::before,
+.tr-runner-bird::after { /* dust puffs */
+  content: '';
+  position: absolute;
+  left: 22%;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgb(214 190 150 / 75%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tr-track.is-running .tr-runner-bird img { animation: tr-run 440ms linear infinite; }
+  .tr-track.is-running .tr-runner::after { animation: tr-run-shadow 440ms linear infinite; }
+  .tr-track.is-running .tr-runner-bird::before { animation: tr-dust 440ms ease-out infinite; }
+  .tr-track.is-running .tr-runner-bird::after { animation: tr-dust 440ms ease-out 220ms infinite; }
+  /* at the finish line he stands and catches his breath */
+  .tr-track:not(.is-running) .tr-runner-bird img { animation: tr-rest 1.8s ease-in-out infinite; }
+}
+
+@keyframes tr-run {
+  0%   { transform: translateY(0) rotate(-4deg) scale(1.04, 0.95); }
+  20%  { transform: translateY(-9px) rotate(1deg) scale(0.98, 1.03); }
+  50%  { transform: translateY(0) rotate(-3deg) scale(1.04, 0.95); }
+  70%  { transform: translateY(-7px) rotate(2deg) scale(0.98, 1.03); }
+  100% { transform: translateY(0) rotate(-4deg) scale(1.04, 0.95); }
+}
+
+@keyframes tr-run-shadow {
+  0%, 50%, 100% { transform: scaleX(1); opacity: 1; }
+  20%, 70% { transform: scaleX(0.75); opacity: 0.6; }
+}
+
+@keyframes tr-dust {
+  0%   { opacity: 0.8; transform: translate(0, 0) scale(0.4); }
+  100% { opacity: 0; transform: translate(-26px, -10px) scale(1.4); }
+}
+
+@keyframes tr-rest {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.02, 0.98); }
 }
 
 @keyframes tr-hop {
@@ -146,6 +265,7 @@
   bottom: 4px;
   font-size: 2.4rem;
   line-height: 1;
+  filter: drop-shadow(0 3px 2px rgb(0 0 0 / 45%));
 }
 
 /* stats bar */
@@ -342,5 +462,22 @@
   .tr-bar-actions .tr-secondary { flex: 1; }
   .tr-count { flex: 1; }
   .tr-target { min-height: 9rem; }
-  .tr-track-lane { height: 60px; }
+  .forest { --scene-h: 150px; }
+  .tr-track-lane { --runner-w: 84px; height: 60px; }
+}
+
+/* short laptop screens (e.g. 1366 x 768): a slimmer forest and target box keep the whole
+   keyboard on screen while racing */
+@media (max-height: 820px) and (min-width: 521px) {
+  .forest { --scene-h: 128px; }
+  .tr-track-lane { --runner-w: 76px; height: 54px; }
+  .tr-header.is-compact { margin-bottom: 0.4rem; }
+  .tr-header.is-compact h1 { font-size: 1.7rem; }
+  .tr-track,
+  .tr-bar,
+  .tr-target { margin-bottom: 0.6rem; }
+  .tr-target { min-height: 7.5rem; padding: 0.5rem; }
+  .tr-target.is-key .tr-letters { font-size: 4.5rem; }
+  .tr-picture { font-size: 2.2rem; }
+  .tr-letters { font-size: 3rem; }
 }

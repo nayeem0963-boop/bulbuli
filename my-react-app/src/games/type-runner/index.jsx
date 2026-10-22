@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import BrandMark from '../../arcade/BrandMark.jsx'
+import runnerBird from '../../assets/bulbul-runner.webp'
+import ForestScene from './ForestScene.jsx'
 import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import { playSound } from '../../utils/sound.js'
@@ -174,15 +175,22 @@ export default function TypeRunner({ playerId, language }) {
         <p>{text.levels[level.id].name}</p>
       </header>
 
-      <div className="tr-track" role="img" aria-label={`${text.trackLabel}: ${text.progressLabel(n(done), n(run.targets.length))}`}>
-        <div className="tr-track-lane">
-          <span className="tr-runner" style={{ '--progress': progress(run) }}>
-            <span key={hops} className={hops ? 'tr-runner-bird is-hopping' : 'tr-runner-bird'}>
-              <BrandMark size={56} />
+      <div className={`tr-track${finished ? '' : ' is-running'}`}>
+        {/* The bulbul runs through a scrolling forest; every correct key sends the forest rushing by. */}
+        <ForestScene
+          running={!finished}
+          pulse={hops}
+          label={`${text.trackLabel}: ${text.progressLabel(n(done), n(run.targets.length))}`}
+        >
+          <div className="tr-track-lane">
+            <span className="tr-runner" style={{ '--progress': progress(run) }}>
+              <span key={hops} className={hops ? 'tr-runner-bird is-hopping' : 'tr-runner-bird'}>
+                <img src={runnerBird} alt="" width="480" height="264" draggable="false" />
+              </span>
             </span>
-          </span>
-          <span className="tr-finish" aria-hidden="true">🏁</span>
-        </div>
+            <span className="tr-finish" aria-hidden="true">🏁</span>
+          </div>
+        </ForestScene>
       </div>
 
       <div className="tr-bar">

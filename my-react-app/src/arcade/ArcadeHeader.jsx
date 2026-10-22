@@ -1,7 +1,8 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useLanguage, useMuted } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import BrandMark from './BrandMark.jsx'
+import ZoneToggle from './ZoneToggle.jsx'
 
 function IconButton({ label, pressed, onClick, children, lang }) {
   return (
@@ -21,7 +22,7 @@ function IconButton({ label, pressed, onClick, children, lang }) {
 
 /**
  * The bar across the top of every arcade screen.
- * `game` (optional) turns it into a game bar: a big "All games" button replaces the nav.
+ * `game` (optional) turns it into a game bar: a big "All games" button replaces the Play | Learn toggle.
  */
 export default function ArcadeHeader({ theme, onToggleTheme, game = null, showControls = true }) {
   const [language, , toggleLanguage] = useLanguage()
@@ -40,10 +41,7 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, showCo
             <BrandMark />
             <span>bulbuli</span>
           </Link>
-          <nav className="arcade-nav" aria-label="Main">
-            <NavLink to="/" end>{text.navGames}</NavLink>
-            <a href="#developer-hub">{text.navGrownUps}</a>
-          </nav>
+          <ZoneToggle text={text} />
         </>
       )}
 

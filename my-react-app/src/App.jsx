@@ -10,6 +10,7 @@ import GamePage from './arcade/GamePage.jsx'
 import AdCardPage from './promo/AdCardPage.jsx'
 import { useLanguage } from './arcade/preferences.js'
 import { getGame } from './games/registry.js'
+import { zoneFromSearch } from './arcade/zone.js'
 import Login from './routes/Login.jsx'
 import TutorialCatalog from './routes/TutorialCatalog.jsx'
 import TutorialOverview from './routes/TutorialOverview.jsx'
@@ -24,7 +25,7 @@ const SITE_DESCRIPTION = 'Bulbuli is a free, colourful learning arcade for child
 const isArcadePath = (pathname) => pathname === '/' || pathname.startsWith('/games/') || pathname.startsWith('/share/')
 
 function RouteTitle() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const [language] = useLanguage()
 
   useEffect(() => {
@@ -36,7 +37,10 @@ function RouteTitle() {
     let title = SITE_TITLE
     let description = SITE_DESCRIPTION
 
-    if (pathname === '/share/math-hero') {
+    if (pathname === '/' && zoneFromSearch(search) === 'learn') {
+      title = 'Learn to Code: Courses and Exams | Bulbuli'
+      description = 'Guided HTML, CSS, JavaScript, GitHub, and React courses with quizzes and exams, for teens and grown-ups.'
+    } else if (pathname === '/share/math-hero') {
       title = 'Math Hero: Play to Learn on Bulbuli'
       description = 'Hey Explorer! Join Math Hero on Bulbuli to master math, solve fun puzzles and level up, through free learning games for kids.'
     } else if (game) {
@@ -72,7 +76,7 @@ function RouteTitle() {
     document.title = title
     document.querySelector('meta[name="description"]')?.setAttribute('content', description)
     document.documentElement.lang = isArcadePath(pathname) ? language : 'en'
-  }, [pathname, language])
+  }, [pathname, search, language])
 
   return null
 }
