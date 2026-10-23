@@ -1,0 +1,854 @@
+{
+  "$schema": "./course.schema.json",
+  "version": 1,
+  "id": "subject-verb-agreement",
+  "title": {
+    "en": "Subject-Verb Agreement",
+    "bn": "Subject ও Verb-এর মিল"
+  },
+  "tagline": {
+    "en": "Make the subject and the verb match",
+    "bn": "Subject আর Verb মিলিয়ে লেখো"
+  },
+  "subtitle": {
+    "en": "Every card has a short rule and 3 questions. Learn when a verb takes -s, and when to use is or are, has or have, was or were.",
+    "bn": "প্রতিটি কার্ডে ছোট্ট একটি নিয়ম আর ৩টি প্রশ্ন। শেখো কখন verb-এ -s বসে, আর কখন is বা are, has বা have, was বা were হয়।"
+  },
+  "sections": [
+    {
+      "id": "basics",
+      "title": {
+        "en": "The basics",
+        "bn": "মূল নিয়ম"
+      },
+      "hint": {
+        "en": "One person or thing, or many?",
+        "bn": "একজন/একটি, নাকি অনেক?"
+      }
+    },
+    {
+      "id": "tricky",
+      "title": {
+        "en": "Tricky subjects",
+        "bn": "জটিল Subject"
+      },
+      "hint": {
+        "en": "Find the real subject first",
+        "bn": "আগে আসল subject খুঁজে বের করো"
+      }
+    },
+    {
+      "id": "special",
+      "title": {
+        "en": "Special cases",
+        "bn": "বিশেষ ক্ষেত্র"
+      },
+      "hint": {
+        "en": "Words that surprise people",
+        "bn": "যে শব্দগুলো ভুল করায়"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "one-or-many",
+      "order": 1,
+      "section": "basics",
+      "title": {
+        "en": "One or Many",
+        "bn": "এক বনাম অনেক"
+      },
+      "badge": "he / she / it + verb-s",
+      "recap": {
+        "rule": {
+          "en": "With one person or thing (he, she, it), the verb takes -s. With many (they), it does not.",
+          "bn": "একজন বা একটি (he, she, it) হলে verb-এ -s বসে; অনেক (they) হলে বসে না।"
+        },
+        "example": "My sister works. My sisters work."
+      },
+      "questions": [
+        {
+          "id": "one-or-many-1",
+          "prompt": "My sister ___ in a bank.",
+          "options": [
+            {
+              "id": "a",
+              "text": "works"
+            },
+            {
+              "id": "b",
+              "text": "work",
+              "why": "“My sister” is one person (she), so the verb needs -s."
+            },
+            {
+              "id": "c",
+              "text": "are work",
+              "why": "Don’t put “are” before a plain verb. Say “works”."
+            },
+            {
+              "id": "d",
+              "text": "working",
+              "why": "A sentence needs a full verb. “Working” alone needs “is”."
+            }
+          ],
+          "answer": "a",
+          "explanation": "My sister is “she”, so the verb takes -s: works."
+        },
+        {
+          "id": "one-or-many-2",
+          "prompt": "The birds ___ every morning.",
+          "options": [
+            {
+              "id": "a",
+              "text": "sings",
+              "why": "-s is only for one (he, she, it). Birds are many."
+            },
+            {
+              "id": "b",
+              "text": "is singing",
+              "why": "For many birds, use “are singing”, not “is singing”."
+            },
+            {
+              "id": "c",
+              "text": "sing"
+            },
+            {
+              "id": "d",
+              "text": "singing",
+              "why": "A sentence needs a full verb: sing."
+            }
+          ],
+          "answer": "c",
+          "explanation": "“The birds” are many (they), so the verb has no -s."
+        },
+        {
+          "id": "one-or-many-3",
+          "prompt": "The children ___ milk at breakfast.",
+          "options": [
+            {
+              "id": "a",
+              "text": "drink"
+            },
+            {
+              "id": "b",
+              "text": "drinks",
+              "why": "“Children” is plural, so the verb has no -s."
+            },
+            {
+              "id": "c",
+              "text": "does drink",
+              "why": "“Does” is for one (he, she, it), not for children."
+            },
+            {
+              "id": "d",
+              "text": "drinking",
+              "why": "A sentence needs a full verb: drink."
+            }
+          ],
+          "answer": "a",
+          "explanation": "“Children” means many (they), so no -s: drink."
+        }
+      ]
+    },
+    {
+      "id": "be-have-do",
+      "order": 2,
+      "section": "basics",
+      "title": {
+        "en": "Is / Are, Has / Have, Does / Do",
+        "bn": "Is / Are, Has / Have, Does / Do"
+      },
+      "badge": "is · has · does = one",
+      "recap": {
+        "rule": {
+          "en": "For one person or thing use is, has and does. For many (and for you) use are, have and do. With I, use am, have and do.",
+          "bn": "একজন/একটি হলে is, has, does; অনেক (আর you) হলে are, have, do। I-এর সাথে am, have, do।"
+        },
+        "example": "He has a cat. They have a dog."
+      },
+      "questions": [
+        {
+          "id": "be-have-do-1",
+          "prompt": "My shoes ___ too small.",
+          "options": [
+            {
+              "id": "a",
+              "text": "is",
+              "why": "“Is” is for one thing. Shoes are more than one."
+            },
+            {
+              "id": "b",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "c",
+              "text": "be",
+              "why": "“Be” needs a helper like “will”. Here use “are”."
+            },
+            {
+              "id": "d",
+              "text": "are"
+            }
+          ],
+          "answer": "d",
+          "explanation": "“Shoes” are two (they), so use are."
+        },
+        {
+          "id": "be-have-do-2",
+          "prompt": "She ___ two brothers.",
+          "options": [
+            {
+              "id": "a",
+              "text": "have",
+              "why": "“Have” is for I, you, we and they. She takes “has”."
+            },
+            {
+              "id": "b",
+              "text": "haves",
+              "why": "“Haves” is not a word. Use has."
+            },
+            {
+              "id": "c",
+              "text": "has"
+            },
+            {
+              "id": "d",
+              "text": "having",
+              "why": "A sentence needs a full verb: has."
+            }
+          ],
+          "answer": "c",
+          "explanation": "With she (one person), use has."
+        },
+        {
+          "id": "be-have-do-3",
+          "prompt": "___ your dog like bones?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Do",
+              "why": "“Do” is for I, you, we and they. One dog takes “Does”."
+            },
+            {
+              "id": "b",
+              "text": "Does"
+            },
+            {
+              "id": "c",
+              "text": "Is",
+              "why": "“Is” doesn’t go with a plain verb like “like”."
+            },
+            {
+              "id": "d",
+              "text": "Are",
+              "why": "“Are” is for many, and it doesn’t go with a plain verb."
+            }
+          ],
+          "answer": "b",
+          "explanation": "“Your dog” is it (one), so the question starts with Does."
+        }
+      ]
+    },
+    {
+      "id": "was-were",
+      "order": 3,
+      "section": "basics",
+      "title": {
+        "en": "Was or Were",
+        "bn": "Was না Were"
+      },
+      "badge": "was = one · were = many / you",
+      "recap": {
+        "rule": {
+          "en": "In the past, use was with I, he, she and it. Use were with you, we and they.",
+          "bn": "অতীতে I, he, she, it-এর সাথে was; you, we, they-এর সাথে were।"
+        },
+        "example": "I was tired. We were tired."
+      },
+      "questions": [
+        {
+          "id": "was-were-1",
+          "prompt": "I ___ at home yesterday.",
+          "options": [
+            {
+              "id": "a",
+              "text": "were",
+              "why": "“Were” is for you, we and they, not I."
+            },
+            {
+              "id": "b",
+              "text": "am",
+              "why": "“Am” is the present, but “yesterday” is past."
+            },
+            {
+              "id": "c",
+              "text": "was"
+            },
+            {
+              "id": "d",
+              "text": "be",
+              "why": "“Be” needs a helper. Use “was”."
+            }
+          ],
+          "answer": "c",
+          "explanation": "With I in the past, use was."
+        },
+        {
+          "id": "was-were-2",
+          "prompt": "You ___ late for class yesterday.",
+          "options": [
+            {
+              "id": "a",
+              "text": "was",
+              "why": "“You” never takes “was”. Use were."
+            },
+            {
+              "id": "b",
+              "text": "is",
+              "why": "“Is” is present and doesn’t go with you."
+            },
+            {
+              "id": "c",
+              "text": "were"
+            },
+            {
+              "id": "d",
+              "text": "be",
+              "why": "“Be” needs a helper. Use “were”."
+            }
+          ],
+          "answer": "c",
+          "explanation": "“You” always takes were, even for one person."
+        },
+        {
+          "id": "was-were-3",
+          "prompt": "The books ___ on the table this morning.",
+          "options": [
+            {
+              "id": "a",
+              "text": "was",
+              "why": "“Was” is for one thing. Books are many."
+            },
+            {
+              "id": "b",
+              "text": "is",
+              "why": "“Is” is present and for one thing."
+            },
+            {
+              "id": "c",
+              "text": "be",
+              "why": "“Be” needs a helper. Use “were”."
+            },
+            {
+              "id": "d",
+              "text": "were"
+            }
+          ],
+          "answer": "d",
+          "explanation": "Books are many, and it is the past: were."
+        }
+      ]
+    },
+    {
+      "id": "words-in-between",
+      "order": 4,
+      "section": "tricky",
+      "title": {
+        "en": "Words in Between",
+        "bn": "মাঝের শব্দ"
+      },
+      "badge": "The box (of toys) is…",
+      "recap": {
+        "rule": {
+          "en": "Words like “of the toys” can sit between the subject and the verb. Skip them: the verb matches the real subject.",
+          "bn": "Subject আর verb-এর মাঝে “of the toys”-এর মতো শব্দ থাকতে পারে। সেগুলো বাদ দিয়ে আসল subject-এর সাথে verb মেলাও।"
+        },
+        "example": "The box of toys is under the bed."
+      },
+      "questions": [
+        {
+          "id": "words-in-between-1",
+          "prompt": "The box of toys ___ under the bed.",
+          "options": [
+            {
+              "id": "a",
+              "text": "are",
+              "why": "“Toys” is not the subject. The box is one thing, so use is."
+            },
+            {
+              "id": "b",
+              "text": "is"
+            },
+            {
+              "id": "c",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "d",
+              "text": "be",
+              "why": "“Be” needs a helper. Use “is”."
+            }
+          ],
+          "answer": "b",
+          "explanation": "The subject is “the box” (one), not “toys”."
+        },
+        {
+          "id": "words-in-between-2",
+          "prompt": "The students in my class ___ very kind.",
+          "options": [
+            {
+              "id": "a",
+              "text": "is",
+              "why": "“My class” is not the subject. The students are many: are."
+            },
+            {
+              "id": "b",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "c",
+              "text": "be",
+              "why": "“Be” needs a helper. Use “are”."
+            },
+            {
+              "id": "d",
+              "text": "are"
+            }
+          ],
+          "answer": "d",
+          "explanation": "The subject is “the students” (many), not “class”."
+        },
+        {
+          "id": "words-in-between-3",
+          "prompt": "The colour of the flowers ___ bright.",
+          "options": [
+            {
+              "id": "a",
+              "text": "are",
+              "why": "“Flowers” is not the subject. The colour is one thing."
+            },
+            {
+              "id": "b",
+              "text": "is"
+            },
+            {
+              "id": "c",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "d",
+              "text": "have",
+              "why": "“Have” doesn’t fit here. The colour is bright."
+            }
+          ],
+          "answer": "b",
+          "explanation": "The subject is “the colour” (one), so use is."
+        }
+      ]
+    },
+    {
+      "id": "and-or-nor",
+      "order": 5,
+      "section": "tricky",
+      "title": {
+        "en": "And, Or, Nor",
+        "bn": "And, Or, Nor"
+      },
+      "badge": "A and B → are · A or B → nearest",
+      "recap": {
+        "rule": {
+          "en": "Two subjects joined by “and” are plural. With “or” or “nor”, the verb matches the subject nearest to it.",
+          "bn": "“and” দিয়ে যুক্ত দুটি subject হলে verb বহুবচন। “or” বা “nor” হলে verb কাছের subject-এর সাথে মেলে।"
+        },
+        "example": "Rina and Tom are here. Either Tom or his sisters are here."
+      },
+      "questions": [
+        {
+          "id": "and-or-nor-1",
+          "prompt": "Rina and Tom ___ good friends.",
+          "options": [
+            {
+              "id": "a",
+              "text": "are"
+            },
+            {
+              "id": "b",
+              "text": "is",
+              "why": "“Rina and Tom” are two people, so use are."
+            },
+            {
+              "id": "c",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "d",
+              "text": "be",
+              "why": "“Be” needs a helper. Use “are”."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Two people joined by “and” make they: are."
+        },
+        {
+          "id": "and-or-nor-2",
+          "prompt": "Either my mum or my dad ___ me to school.",
+          "options": [
+            {
+              "id": "a",
+              "text": "take",
+              "why": "With “or”, the verb matches “my dad” (one person), so it needs -s."
+            },
+            {
+              "id": "b",
+              "text": "taking",
+              "why": "A sentence needs a full verb: takes."
+            },
+            {
+              "id": "c",
+              "text": "are take",
+              "why": "Don’t put “are” before a plain verb."
+            },
+            {
+              "id": "d",
+              "text": "takes"
+            }
+          ],
+          "answer": "d",
+          "explanation": "With “or”, match the nearest subject: “my dad” (he) → takes."
+        },
+        {
+          "id": "and-or-nor-3",
+          "prompt": "Neither the teacher nor the students ___ ready.",
+          "options": [
+            {
+              "id": "a",
+              "text": "is",
+              "why": "The nearest subject is “the students”, which is plural."
+            },
+            {
+              "id": "b",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "c",
+              "text": "are"
+            },
+            {
+              "id": "d",
+              "text": "was",
+              "why": "“Was” is for one. The students are many."
+            }
+          ],
+          "answer": "c",
+          "explanation": "With “nor”, match the nearest subject: “the students” (many) → are."
+        }
+      ]
+    },
+    {
+      "id": "each-every",
+      "order": 6,
+      "section": "tricky",
+      "title": {
+        "en": "Each, Every, Everyone",
+        "bn": "Each, Every, Everyone"
+      },
+      "badge": "each / every / everyone + is",
+      "recap": {
+        "rule": {
+          "en": "Each, every, everyone, everybody and nobody take a singular verb, as if they were “he” or “she”.",
+          "bn": "Each, every, everyone, everybody, nobody-এর সাথে একবচন verb বসে (he/she-এর মতো)।"
+        },
+        "example": "Everyone is here. Each child has a book."
+      },
+      "questions": [
+        {
+          "id": "each-every-1",
+          "prompt": "Each student ___ a pencil.",
+          "options": [
+            {
+              "id": "a",
+              "text": "have",
+              "why": "“Each” means one at a time, so use has."
+            },
+            {
+              "id": "b",
+              "text": "having",
+              "why": "A sentence needs a full verb: has."
+            },
+            {
+              "id": "c",
+              "text": "are",
+              "why": "“Are” is plural, and it doesn’t mean “own”."
+            },
+            {
+              "id": "d",
+              "text": "has"
+            }
+          ],
+          "answer": "d",
+          "explanation": "“Each” is singular, so use has."
+        },
+        {
+          "id": "each-every-2",
+          "prompt": "Everyone ___ the new song.",
+          "options": [
+            {
+              "id": "a",
+              "text": "love",
+              "why": "“Everyone” takes a singular verb with -s."
+            },
+            {
+              "id": "b",
+              "text": "are loving",
+              "why": "“Everyone” is singular, so it would be “is”, not “are”."
+            },
+            {
+              "id": "c",
+              "text": "loving",
+              "why": "A sentence needs a full verb: loves."
+            },
+            {
+              "id": "d",
+              "text": "loves"
+            }
+          ],
+          "answer": "d",
+          "explanation": "“Everyone” is singular: loves."
+        },
+        {
+          "id": "each-every-3",
+          "prompt": "Every boy and girl ___ a prize.",
+          "options": [
+            {
+              "id": "a",
+              "text": "gets"
+            },
+            {
+              "id": "b",
+              "text": "get",
+              "why": "After “every”, the verb is singular, even with “and”."
+            },
+            {
+              "id": "c",
+              "text": "are get",
+              "why": "Don’t put “are” before a plain verb."
+            },
+            {
+              "id": "d",
+              "text": "getting",
+              "why": "A sentence needs a full verb: gets."
+            }
+          ],
+          "answer": "a",
+          "explanation": "“Every” makes the whole subject singular, even with “and”: gets."
+        }
+      ]
+    },
+    {
+      "id": "plural-looking",
+      "order": 7,
+      "section": "special",
+      "title": {
+        "en": "Words That Look Plural",
+        "bn": "বহুবচনের মতো দেখতে শব্দ"
+      },
+      "badge": "news / maths / a pair of + is",
+      "recap": {
+        "rule": {
+          "en": "Some words end in -s but are singular: news, maths, physics. “A pair of …” is singular too.",
+          "bn": "কিছু শব্দ -s দিয়ে শেষ হলেও একবচন: news, maths, physics। “A pair of …”-ও একবচন।"
+        },
+        "example": "The news is good. A pair of shoes is under the bed."
+      },
+      "questions": [
+        {
+          "id": "plural-looking-1",
+          "prompt": "The news ___ good.",
+          "options": [
+            {
+              "id": "a",
+              "text": "are",
+              "why": "“News” looks plural but is singular."
+            },
+            {
+              "id": "b",
+              "text": "were",
+              "why": "“News” is singular, so never “were”."
+            },
+            {
+              "id": "c",
+              "text": "is"
+            },
+            {
+              "id": "d",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            }
+          ],
+          "answer": "c",
+          "explanation": "“News” is singular, even though it ends in -s."
+        },
+        {
+          "id": "plural-looking-2",
+          "prompt": "Mathematics ___ my favourite subject.",
+          "options": [
+            {
+              "id": "a",
+              "text": "is"
+            },
+            {
+              "id": "b",
+              "text": "are",
+              "why": "Mathematics is one subject, so use is."
+            },
+            {
+              "id": "c",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "d",
+              "text": "were",
+              "why": "“Were” is plural and past."
+            }
+          ],
+          "answer": "a",
+          "explanation": "A school subject ending in -s (maths, physics) is singular."
+        },
+        {
+          "id": "plural-looking-3",
+          "prompt": "A pair of scissors ___ on the desk.",
+          "options": [
+            {
+              "id": "a",
+              "text": "are",
+              "why": "The subject is “a pair”, which is singular."
+            },
+            {
+              "id": "b",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "c",
+              "text": "is"
+            },
+            {
+              "id": "d",
+              "text": "were",
+              "why": "“Were” is plural. One pair takes is or was."
+            }
+          ],
+          "answer": "c",
+          "explanation": "“A pair” is one pair, so use is."
+        }
+      ]
+    },
+    {
+      "id": "there-is-are",
+      "order": 8,
+      "section": "special",
+      "title": {
+        "en": "There Is / There Are",
+        "bn": "There Is / There Are"
+      },
+      "badge": "there is + one · there are + many",
+      "recap": {
+        "rule": {
+          "en": "After “there”, look at the noun that comes next. One thing (or something you can’t count) → is. Many things → are.",
+          "bn": "“there”-এর পরের noun দেখো। একটি (বা গোনা যায় না এমন) হলে is, অনেক হলে are।"
+        },
+        "example": "There is a cat. There are three cats."
+      },
+      "questions": [
+        {
+          "id": "there-is-are-1",
+          "prompt": "There ___ a cat on the roof.",
+          "options": [
+            {
+              "id": "a",
+              "text": "are",
+              "why": "“A cat” is one cat. Use is."
+            },
+            {
+              "id": "b",
+              "text": "is"
+            },
+            {
+              "id": "c",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "d",
+              "text": "have",
+              "why": "We say “There is”, not “There have”."
+            }
+          ],
+          "answer": "b",
+          "explanation": "“A cat” is one, so use is."
+        },
+        {
+          "id": "there-is-are-2",
+          "prompt": "There ___ three apples in the basket.",
+          "options": [
+            {
+              "id": "a",
+              "text": "are"
+            },
+            {
+              "id": "b",
+              "text": "is",
+              "why": "Three apples are more than one. Use are."
+            },
+            {
+              "id": "c",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "d",
+              "text": "has",
+              "why": "We say “There are”, not “There has”."
+            }
+          ],
+          "answer": "a",
+          "explanation": "“Three apples” are many, so use are."
+        },
+        {
+          "id": "there-is-are-3",
+          "prompt": "There ___ some milk in the fridge.",
+          "options": [
+            {
+              "id": "a",
+              "text": "are",
+              "why": "You can’t count milk, so it is singular: is."
+            },
+            {
+              "id": "b",
+              "text": "am",
+              "why": "“Am” only goes with I."
+            },
+            {
+              "id": "c",
+              "text": "were",
+              "why": "Milk can’t be counted, so it takes is (or was), never were."
+            },
+            {
+              "id": "d",
+              "text": "is"
+            }
+          ],
+          "answer": "d",
+          "explanation": "“Milk” can’t be counted, so it takes is."
+        }
+      ]
+    }
+  ]
+}

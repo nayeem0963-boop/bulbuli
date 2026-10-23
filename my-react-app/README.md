@@ -77,6 +77,26 @@ To change a question, edit `tenses.json` and run `npm test`. `grammar.test.js` c
 against the schema and checks that every question has exactly one right answer and a `why` for
 each wrong choice. The quiz code loads only when Grammar is opened, so Play stays light.
 
+### More grammar courses
+
+A course picker sits at the top of the Grammar page: **12 Tenses** (the default), then four
+courses in `src/grammar/courses/`, each one JSON file shaped by `course.schema.json`:
+Subject-Verb Agreement, Articles & Prepositions, Active vs. Passive Voice, and Punctuation &
+Sentence Structure. Each has 3 sections and 8 topic cards; every card has a title, a short
+`badge` (the formula shown on the card, 40 characters at most), a rule recap and 3 questions.
+
+`src/grammar/catalog.js` puts the tenses and the courses into one shape, so the Grammar page
+(`GrammarZone.jsx`) and the quiz screen (`GrammarQuizPage.jsx`) treat them all alike.
+
+| Address | Shows |
+| --- | --- |
+| `/?zone=learn&track=grammar&course=<id>` | one course's cards (no `course` = the tenses) |
+| `/grammar/<course>/<card>` | a card's rule recap, then its quiz |
+| `/grammar/<tense>` | a tense (the original short links still work) |
+
+To add a course: put a new JSON file in `src/grammar/courses/`, add it to `courses/index.js`,
+give it an icon in `catalog.js`, and run `npm test`.
+
 ## Math Hero ad card
 
 `/share/math-hero` shows a shareable Math Hero advert (`src/promo/MathHeroAdCard.jsx`).

@@ -24,9 +24,83 @@
   --wrong-soft: #45261a;
 }
 
-.grammar .is-present, .grammar-card.is-present { --time: var(--present); }
-.grammar .is-past, .grammar-card.is-past { --time: var(--past); }
-.grammar .is-future, .grammar-card.is-future { --time: var(--future); }
+.arcade { --tone-3: #b45309; }
+.app-shell[data-theme='dark'] .arcade { --tone-3: #f5b85c; }
+
+/* each section of a course gets its own ink: teal, plum, blue, amber (the tenses: present, past, future) */
+.grammar .is-present, .grammar .is-tone-0 { --time: var(--present); }
+.grammar .is-past, .grammar .is-tone-1 { --time: var(--past); }
+.grammar .is-future, .grammar .is-tone-2 { --time: var(--future); }
+.grammar .is-tone-3 { --time: var(--tone-3); }
+
+/* ---------- the course picker ---------- */
+
+.grammar-picker ul {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0 0 clamp(1.25rem, 3vw, 2rem);
+  padding: 0;
+  list-style: none;
+}
+
+.grammar-course-pick {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  gap: 0.6rem;
+  border: 2px solid var(--learn-line);
+  border-radius: 16px;
+  padding: 0.65rem 0.8rem;
+  color: var(--text);
+  background: var(--surface, #fff);
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.grammar-course-pick:hover { border-color: var(--teal); color: var(--text); transform: translateY(-2px); }
+.grammar-course-pick:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+.grammar-course-pick.is-active { border-color: var(--teal); background: var(--teal-soft); box-shadow: 0 4px 0 var(--teal); }
+
+.grammar-course-icon { flex: none; font-size: 1.6rem; line-height: 1; }
+.grammar-course-name { display: grid; min-width: 0; gap: 0.1rem; }
+.grammar-course-name strong { font-size: 0.98rem; line-height: 1.2; }
+.grammar-course-name span { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; }
+.grammar-course-pick.is-active .grammar-course-name span { color: var(--teal-dark); }
+
+@media (max-width: 900px) {
+  /* one swipeable row on smaller screens */
+  .grammar-picker ul {
+    display: flex;
+    overflow-x: auto;
+    margin-right: -1rem;
+    margin-left: -1rem;
+    padding: 0.25rem 1rem 0.6rem;
+    scroll-padding-inline: 1rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+  }
+  .grammar-picker li { flex: 0 0 auto; width: min(13.5rem, 62vw); scroll-snap-align: start; }
+}
+
+/* the hero picture for the courses other than the tenses: their rule badges */
+.grammar-art.is-badges { justify-items: center; gap: 0.9rem; padding: 1.25rem; }
+.grammar-art-icon { font-size: 2.6rem; line-height: 1; }
+.grammar-art.is-badges ul { display: grid; justify-items: center; gap: 0.55rem; margin: 0; padding: 0; list-style: none; }
+.grammar-art.is-badges li {
+  border-radius: 10px;
+  padding: 0.3rem 0.75rem;
+  color: var(--time);
+  background: color-mix(in srgb, var(--time) 13%, transparent);
+  font-weight: 800;
+  text-align: center;
+}
+.grammar-art.is-badges li:nth-child(odd) { transform: rotate(-1.5deg); }
+.grammar-art.is-badges li:nth-child(even) { transform: rotate(1.5deg); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .grammar-course { animation: grammar-in 260ms ease-out; }
+}
 
 /* ---------- the timeline in the hero ---------- */
 
@@ -166,7 +240,7 @@
 
 .grammar-recap-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem; margin: 1.25rem 0 1rem; }
 .grammar-recap-box { border-radius: 14px; padding: 0.9rem 1rem; background: var(--surface-muted, #f2f7f5); }
-.grammar-recap-box.is-when, .grammar-recap-box.is-form { grid-column: 1 / -1; }
+.grammar-recap-box.is-when, .grammar-recap-box.is-form, .grammar-recap-box.is-wide { grid-column: 1 / -1; }
 .arcade .grammar-recap-box h2 { margin: 0 0 0.45rem; color: var(--teal-dark); font-family: var(--font-body); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 .grammar-recap-box p { margin: 0; font-size: 1.08rem; line-height: 1.55; }
 

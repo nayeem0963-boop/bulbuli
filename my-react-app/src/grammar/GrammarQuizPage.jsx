@@ -3,12 +3,13 @@ import { Link, useParams } from 'react-router-dom'
 import ArcadeHeader from '../arcade/ArcadeHeader.jsx'
 import { useLanguage } from '../arcade/preferences.js'
 import { ARCADE_TEXT } from '../arcade/text.js'
-import { zonePath } from '../arcade/zone.js'
 import { formatDigits } from '../utils/mathHeroText.js'
 import { playSound } from '../utils/sound.js'
+import { cardPath, getCard, getCourse, grammarPath, nextCard, parseCardPath, starsKey } from './catalog.js'
 import { Stars } from './GrammarZone.jsx'
+import { usePageMeta } from './meta.js'
 import { saveStars } from './progress.js'
-import { getTenseModule, nextTenseModule, promptPieces, starsFor } from './tenseModules.js'
+import { promptPieces, starsFor } from './tenseModules.js'
 import '../arcade/arcade.css'
 import './grammar.css'
 
@@ -23,14 +24,32 @@ function Prompt({ prompt, fill, correct }) {
   )
 }
 
-function Recap({ module, language, text, onBegin }) {
-  const { recap } = module
+/** The recap for one of the other courses: the rule, its formula badge, and an example. */
+function RuleRecap({ card, language, text }) {
+  const { recap } = card
   return (
-    <section className="grammar-recap" aria-labelledby="recap-title">
-      <p className="learn-eyebrow">{text.grammarRecap}</p>
-      <h1 id="recap-title" lang="en">{module.title.en}</h1>
-      {language === 'bn' && <p className="grammar-recap-bn">{module.title.bn}</p>}
+    <div className="grammar-recap-grid">
+      <div className="grammar-recap-box is-when">
+        <h2>{text.grammarRule}</h2>
+        <p>{recap.rule[language]}</p>
+      </div>
+      <div className="grammar-recap-box is-form">
+        <h2>{text.grammarFormula}</h2>
+        <ul className="grammar-formulas" lang="en"><li><code>{card.badge}</code></li></ul>
+      </div>
+      <div className="grammar-recap-box is-examples is-wide">
+        <h2>{text.grammarExamples}</h2>
+        <ul className="grammar-examples" lang="en">{recap.example.split(' · ').map((line) => <li key={line}>{line}</li>)}</ul>
+      </div>
+    </div>
+  )
+}
 
+/** The tenses' fuller recap: when to use it, how to make it, signal words, examples and a tip. */
+function TenseRecap({ card, language, text }) {
+  const { recap } = card
+  return (
+    <>
       <div className="grammar-recap-grid">
         <div className="grammar-recap-box is-when">
           <h2>{text.grammarWhen}</h2>
@@ -54,7 +73,19 @@ function Recap({ module, language, text, onBegin }) {
         </div>
       </div>
       <p className="grammar-tip"><strong>{text.grammarTip}:</strong> <span lang="en">{recap.tip}</span></p>
+    </>
+  )
+}
 
+function Recap({ course, card, language, text, onBegin }) {
+  return (
+    <section className="grammar-recap" aria-labelledby="recap-title">
+      <p className="learn-eyebrow">{text.grammarRecap} · {course.title[language]}</p>
+      <h1 id="recap-title" lang="en">{card.title.en}</h1>
+      {language === 'bn' && card.title.bn !== card.title.en && <p className="grammar-recap-bn">{card.title.bn}</p>}
+      {course.kind === 'tenses'
+        ? <TenseRecap card={card} language={language} text={text} />
+        : <RuleRecap card={card} language={language} text={text} />}
       <button type="button" className="learn-button is-primary grammar-begin" onClick={onBegin}>
         {text.grammarBegin} <span aria-hidden="true">→</span>
       </button>
@@ -125,9 +156,9 @@ function Question({ question, index, total, picked, onPick, onNext, language, te
   )
 }
 
-function Results({ module, score, total, newBest, language, text, onRetry, onReread }) {
+function Results({ course, card, score, total, newBest, language, text, onRetry, onReread }) {
   const stars = starsFor(score, total)
-  const next = nextTenseModule(module.id)
+  const next = nextCard(course, card.id)
   return (
     <section className={`grammar-results is-${stars}`} aria-labelledby="results-title">
       <Stars count={stars} label={text.grammarStarsLabel(formatDigits(stars, language))} />
@@ -136,7 +167,7 @@ function Results({ module, score, total, newBest, language, text, onRetry, onRer
       {newBest && <p className="grammar-new-best">{text.grammarNewBest}</p>}
       <div className="learn-actions">
         {next
-          ? <Link className="learn-button is-primary" to={`/grammar/${next.id}`}>{text.grammarNextModule(next.title.en)}</Link>
+          ? <Link className="learn-button is-primary" to={cardPath(course.id, next.id)}>{text.grammarNextModule(next.title.en)}</Link>
           : <p className="grammar-all-done">{text.grammarAllDone}</p>}
         <button type="button" className="learn-button" onClick={onRetry}>{text.grammarRetry}</button>
         <button type="button" className="learn-button" onClick={onReread}>{text.grammarReread}</button>
@@ -145,13 +176,13 @@ function Results({ module, score, total, newBest, language, text, onRetry, onRer
   )
 }
 
-function Quiz({ module, language, text }) {
+function Quiz({ course, card, language, text }) {
   const [stage, setStage] = useState('recap') // recap → quiz → done
   const [index, setIndex] = useState(0)
   const [picks, setPicks] = useState([])
   const [newBest, setNewBest] = useState(false)
 
-  const questions = module.questions
+  const questions = card.questions
   const picked = picks[index] ?? null
   const score = picks.filter((pick, i) => pick === questions[i].answer).length
 
@@ -176,16 +207,17 @@ function Quiz({ module, language, text }) {
       return
     }
     const stars = starsFor(score, questions.length)
-    setNewBest(saveStars(module.id, stars) && stars > 0)
+    setNewBest(saveStars(starsKey(course.id, card.id), stars) && stars > 0)
     playSound('complete')
     setStage('done')
   }
 
-  if (stage === 'recap') return <Recap module={module} language={language} text={text} onBegin={() => { playSound('click'); setStage('quiz') }} />
+  if (stage === 'recap') return <Recap course={course} card={card} language={language} text={text} onBegin={() => { playSound('click'); setStage('quiz') }} />
   if (stage === 'done') {
     return (
       <Results
-        module={module}
+        course={course}
+        card={card}
         score={score}
         total={questions.length}
         newBest={newBest}
@@ -211,31 +243,46 @@ function Quiz({ module, language, text }) {
   )
 }
 
-/** /grammar/:moduleId: one tense, its rule recap, then its 5 questions. Open to everyone. */
+/**
+ * One topic card: its rule recap, then its questions. Open to everyone.
+ * /grammar/:first is a tense (/grammar/simple-past); /grammar/:first/:second is a card in
+ * another course (/grammar/articles-prepositions/a-or-an).
+ */
 export default function GrammarQuizPage({ theme, onToggleTheme }) {
-  const { moduleId } = useParams()
-  const module = getTenseModule(moduleId)
+  const { first, second } = useParams()
+  const { courseId, cardId } = parseCardPath(first, second)
+  const found = getCard(courseId, cardId)
+  const backCourse = found?.course ?? getCourse(courseId)
   const [language] = useLanguage()
   const text = ARCADE_TEXT[language]
+  const backTo = grammarPath(backCourse?.id)
+  const backLabel = backCourse?.kind === 'tenses' ? text.grammarBackTenses : text.grammarBack
+
+  usePageMeta(
+    found ? `${found.card.title.en} Quiz: ${found.course.title.en} | Bulbuli` : 'English Grammar | Bulbuli',
+    found
+      ? `${found.card.recap.rule?.en ?? found.card.recap.use.en} Read the rule, then answer ${found.card.questions.length} questions with an explanation for every choice.`
+      : 'Free English grammar quizzes for learners.',
+  )
 
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [moduleId])
+  }, [first, second])
 
   return (
     <div className="arcade is-grammar-page" data-zone="learn" lang={language}>
       <ArcadeHeader
         theme={theme}
         onToggleTheme={onToggleTheme}
-        back={{ to: zonePath('learn', 'grammar'), label: text.grammarBack }}
+        back={{ to: backTo, label: backLabel }}
       />
       <main id="main" className="arcade-main grammar-stage">
-        {module
-          ? <Quiz key={module.id} module={module} language={language} text={text} />
+        {found
+          ? <Quiz key={`${found.course.id}/${found.card.id}`} course={found.course} card={found.card} language={language} text={text} />
           : (
             <div className="grammar-recap">
               <h1>{text.grammarMissing}</h1>
-              <Link className="learn-button is-primary" to={zonePath('learn', 'grammar')}>{text.grammarBack}</Link>
+              <Link className="learn-button is-primary" to={backTo}>{backLabel}</Link>
             </div>
           )}
       </main>

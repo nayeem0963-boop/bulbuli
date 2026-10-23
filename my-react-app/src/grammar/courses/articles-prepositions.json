@@ -1,0 +1,854 @@
+{
+  "$schema": "./course.schema.json",
+  "version": 1,
+  "id": "articles-prepositions",
+  "title": {
+    "en": "Articles & Prepositions",
+    "bn": "Article ও Preposition"
+  },
+  "tagline": {
+    "en": "Use a, an, the, in, on and at with confidence",
+    "bn": "a, an, the, in, on, at ঠিকভাবে ব্যবহার করো"
+  },
+  "subtitle": {
+    "en": "Small words, big difference. Every card has a short rule and 3 questions: when to say a, an or the, and where in, on and at go.",
+    "bn": "ছোট শব্দ, কিন্তু অনেক গুরুত্বপূর্ণ। প্রতিটি কার্ডে ছোট্ট নিয়ম আর ৩টি প্রশ্ন: কখন a, an বা the, আর কোথায় in, on, at।"
+  },
+  "sections": [
+    {
+      "id": "articles",
+      "title": {
+        "en": "Articles",
+        "bn": "Article"
+      },
+      "hint": {
+        "en": "a, an, the, or no article",
+        "bn": "a, an, the, নাকি কিছুই না"
+      }
+    },
+    {
+      "id": "time",
+      "title": {
+        "en": "Prepositions of time",
+        "bn": "সময় বোঝানো Preposition"
+      },
+      "hint": {
+        "en": "When something happens",
+        "bn": "কখন কিছু ঘটে"
+      }
+    },
+    {
+      "id": "place",
+      "title": {
+        "en": "Prepositions of place and movement",
+        "bn": "স্থান ও গতি বোঝানো Preposition"
+      },
+      "hint": {
+        "en": "Where something is, or where it goes",
+        "bn": "কোথায় আছে, বা কোথায় যাচ্ছে"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "a-or-an",
+      "order": 1,
+      "section": "articles",
+      "title": {
+        "en": "A or An",
+        "bn": "A না An"
+      },
+      "badge": "a + consonant sound · an + vowel sound",
+      "recap": {
+        "rule": {
+          "en": "Use “an” before a vowel sound (an apple, an hour) and “a” before a consonant sound (a book, a university). Listen to the sound, not the letter.",
+          "bn": "স্বরধ্বনির (vowel sound) আগে “an”, ব্যঞ্জনধ্বনির আগে “a”। অক্ষর নয়, উচ্চারণ শুনে ঠিক করো।"
+        },
+        "example": "an egg · an hour · a cat · a uniform"
+      },
+      "questions": [
+        {
+          "id": "a-or-an-1",
+          "prompt": "Which is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "a umbrella",
+              "why": "“Umbrella” starts with a vowel sound (“um”), so it needs an."
+            },
+            {
+              "id": "b",
+              "text": "an umbrella"
+            },
+            {
+              "id": "c",
+              "text": "an book",
+              "why": "“Book” starts with a consonant sound, so it needs a."
+            },
+            {
+              "id": "d",
+              "text": "a orange",
+              "why": "“Orange” starts with a vowel sound, so it needs an."
+            }
+          ],
+          "answer": "b",
+          "explanation": "“Umbrella” starts with a vowel sound, so use an."
+        },
+        {
+          "id": "a-or-an-2",
+          "prompt": "Which is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "a hour",
+              "why": "You don’t say the h in “hour”, so it sounds like “our”: an hour."
+            },
+            {
+              "id": "b",
+              "text": "an horse",
+              "why": "You do say the h in “horse”, so it is “a horse”."
+            },
+            {
+              "id": "c",
+              "text": "an house",
+              "why": "You do say the h in “house”, so it is “a house”."
+            },
+            {
+              "id": "d",
+              "text": "an hour"
+            }
+          ],
+          "answer": "d",
+          "explanation": "The h in “hour” is silent, so it starts with a vowel sound: an hour."
+        },
+        {
+          "id": "a-or-an-3",
+          "prompt": "Which sentence is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "She is an university student.",
+              "why": "“University” sounds like “yoo-niversity”, a consonant sound, so use a."
+            },
+            {
+              "id": "b",
+              "text": "She is a university student."
+            },
+            {
+              "id": "c",
+              "text": "She is an student.",
+              "why": "“Student” starts with a consonant sound: a student."
+            },
+            {
+              "id": "d",
+              "text": "She is a honest student.",
+              "why": "The h in “honest” is silent, so it is “an honest student”."
+            }
+          ],
+          "answer": "b",
+          "explanation": "“University” starts with a “yoo” sound, which is a consonant sound, so use a."
+        }
+      ]
+    },
+    {
+      "id": "the",
+      "order": 2,
+      "section": "articles",
+      "title": {
+        "en": "The",
+        "bn": "The"
+      },
+      "badge": "the + a thing we both know",
+      "recap": {
+        "rule": {
+          "en": "Use “the” when the listener knows which one you mean: you said it before, there is only one, or it is clear from the place.",
+          "bn": "শ্রোতা যখন জানে তুমি কোনটির কথা বলছ (আগে বলা হয়েছে, একটিই আছে, বা পরিস্থিতি থেকে বোঝা যায়) তখন “the”।"
+        },
+        "example": "I saw a dog. The dog was big. · The sun is hot."
+      },
+      "questions": [
+        {
+          "id": "the-1",
+          "prompt": "I bought a book. ___ book is about birds.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The"
+            },
+            {
+              "id": "b",
+              "text": "A",
+              "why": "We already talked about this book, so we use the."
+            },
+            {
+              "id": "c",
+              "text": "An",
+              "why": "“An” is for a vowel sound, and the book is already known."
+            },
+            {
+              "id": "d",
+              "text": "Some",
+              "why": "“Some” is for more than one, or for things you can’t count."
+            }
+          ],
+          "answer": "a",
+          "explanation": "We already said “a book”, so now it is “the book”."
+        },
+        {
+          "id": "the-2",
+          "prompt": "___ sun is very hot today.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A",
+              "why": "There is only one sun, so it is “the sun”."
+            },
+            {
+              "id": "b",
+              "text": "An",
+              "why": "“Sun” starts with a consonant sound, and there is only one: the."
+            },
+            {
+              "id": "c",
+              "text": "Some",
+              "why": "We don’t say “some sun is hot” about the one sun in the sky."
+            },
+            {
+              "id": "d",
+              "text": "The"
+            }
+          ],
+          "answer": "d",
+          "explanation": "There is only one sun, so use the."
+        },
+        {
+          "id": "the-3",
+          "prompt": "Can you close ___ door, please?",
+          "options": [
+            {
+              "id": "a",
+              "text": "a",
+              "why": "“A door” means any door. You mean this room’s door: the."
+            },
+            {
+              "id": "b",
+              "text": "an",
+              "why": "“Door” starts with a consonant sound, and you mean one known door."
+            },
+            {
+              "id": "c",
+              "text": "the"
+            },
+            {
+              "id": "d",
+              "text": "some",
+              "why": "“Some” is for more than one thing."
+            }
+          ],
+          "answer": "c",
+          "explanation": "You both know which door (the one in this room), so use the."
+        }
+      ]
+    },
+    {
+      "id": "no-article",
+      "order": 3,
+      "section": "articles",
+      "title": {
+        "en": "No Article",
+        "bn": "Article ছাড়া"
+      },
+      "badge": "no article: by bus · play football",
+      "recap": {
+        "rule": {
+          "en": "Don’t use an article with games and sports, languages, school subjects, meals, or “by” + transport.",
+          "bn": "খেলা, ভাষা, স্কুলের বিষয়, খাবারের বেলা (breakfast, lunch) আর “by” + যানবাহনের আগে article বসে না।"
+        },
+        "example": "We play cricket. She speaks Bangla. I go by bus."
+      },
+      "questions": [
+        {
+          "id": "no-article-1",
+          "prompt": "She goes to school by ___ bus.",
+          "options": [
+            {
+              "id": "a",
+              "text": "a",
+              "why": "We say “by bus”, with no article."
+            },
+            {
+              "id": "b",
+              "text": "the",
+              "why": "We say “by bus”, not “by the bus”."
+            },
+            {
+              "id": "c",
+              "text": "an",
+              "why": "We say “by bus”, with no article."
+            },
+            {
+              "id": "d",
+              "text": "(no article)"
+            }
+          ],
+          "answer": "d",
+          "explanation": "After “by” with transport, we don’t use an article: by bus, by car."
+        },
+        {
+          "id": "no-article-2",
+          "prompt": "We play ___ football every Friday.",
+          "options": [
+            {
+              "id": "a",
+              "text": "a",
+              "why": "Sports take no article: play football."
+            },
+            {
+              "id": "b",
+              "text": "the",
+              "why": "We say “play football”, not “play the football”."
+            },
+            {
+              "id": "c",
+              "text": "an",
+              "why": "Sports take no article."
+            },
+            {
+              "id": "d",
+              "text": "(no article)"
+            }
+          ],
+          "answer": "d",
+          "explanation": "Sports and games don’t take an article: play football."
+        },
+        {
+          "id": "no-article-3",
+          "prompt": "He speaks ___ English very well.",
+          "options": [
+            {
+              "id": "a",
+              "text": "(no article)"
+            },
+            {
+              "id": "b",
+              "text": "the",
+              "why": "We say “speak English”, not “speak the English”."
+            },
+            {
+              "id": "c",
+              "text": "an",
+              "why": "Languages take no article."
+            },
+            {
+              "id": "d",
+              "text": "a",
+              "why": "Languages take no article."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Languages don’t take an article: speak English."
+        }
+      ]
+    },
+    {
+      "id": "at-on-in-time",
+      "order": 4,
+      "section": "time",
+      "title": {
+        "en": "At, On, In for Time",
+        "bn": "সময়ের জন্য At, On, In"
+      },
+      "badge": "at 5 pm · on Monday · in July",
+      "recap": {
+        "rule": {
+          "en": "Use “at” for clock times, “on” for days and dates, and “in” for months, years and seasons.",
+          "bn": "ঘড়ির সময়ে “at”, দিন ও তারিখে “on”, আর মাস, বছর ও ঋতুতে “in”।"
+        },
+        "example": "at 7 o’clock · on Friday · in 2026 · in winter"
+      },
+      "questions": [
+        {
+          "id": "at-on-in-time-1",
+          "prompt": "The film starts ___ 7 o’clock.",
+          "options": [
+            {
+              "id": "a",
+              "text": "on",
+              "why": "“On” is for days and dates, not clock times."
+            },
+            {
+              "id": "b",
+              "text": "in",
+              "why": "“In” is for months, years and seasons."
+            },
+            {
+              "id": "c",
+              "text": "at"
+            },
+            {
+              "id": "d",
+              "text": "to",
+              "why": "“To” shows direction, not a time."
+            }
+          ],
+          "answer": "c",
+          "explanation": "Clock times use at."
+        },
+        {
+          "id": "at-on-in-time-2",
+          "prompt": "My birthday is ___ Friday.",
+          "options": [
+            {
+              "id": "a",
+              "text": "on"
+            },
+            {
+              "id": "b",
+              "text": "at",
+              "why": "“At” is for clock times."
+            },
+            {
+              "id": "c",
+              "text": "in",
+              "why": "“In” is for months and years, not days."
+            },
+            {
+              "id": "d",
+              "text": "to",
+              "why": "“To” shows direction, not a day."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Days of the week use on."
+        },
+        {
+          "id": "at-on-in-time-3",
+          "prompt": "We go to Cox’s Bazar ___ December.",
+          "options": [
+            {
+              "id": "a",
+              "text": "at",
+              "why": "“At” is for clock times."
+            },
+            {
+              "id": "b",
+              "text": "on",
+              "why": "“On” is for days and dates, like “on 5 December”."
+            },
+            {
+              "id": "c",
+              "text": "in"
+            },
+            {
+              "id": "d",
+              "text": "to",
+              "why": "“To” shows direction, not a month."
+            }
+          ],
+          "answer": "c",
+          "explanation": "Months use in."
+        }
+      ]
+    },
+    {
+      "id": "for-since",
+      "order": 5,
+      "section": "time",
+      "title": {
+        "en": "For and Since",
+        "bn": "For ও Since"
+      },
+      "badge": "for + how long · since + start",
+      "recap": {
+        "rule": {
+          "en": "Use “for” with a length of time (for two hours). Use “since” with the moment something started (since Monday).",
+          "bn": "সময়ের দৈর্ঘ্য বোঝাতে “for” (for two hours); শুরুর মুহূর্ত বোঝাতে “since” (since Monday)।"
+        },
+        "example": "for three days · since 2020"
+      },
+      "questions": [
+        {
+          "id": "for-since-1",
+          "prompt": "I have lived here ___ ten years.",
+          "options": [
+            {
+              "id": "a",
+              "text": "since",
+              "why": "“Since” needs a starting point, like “since 2016”."
+            },
+            {
+              "id": "b",
+              "text": "for"
+            },
+            {
+              "id": "c",
+              "text": "from",
+              "why": "We say “for ten years” with “have lived”."
+            },
+            {
+              "id": "d",
+              "text": "ago",
+              "why": "“Ago” comes after the time (“ten years ago”) and goes with the simple past."
+            }
+          ],
+          "answer": "b",
+          "explanation": "“Ten years” is a length of time, so use for."
+        },
+        {
+          "id": "for-since-2",
+          "prompt": "She has been sick ___ Monday.",
+          "options": [
+            {
+              "id": "a",
+              "text": "since"
+            },
+            {
+              "id": "b",
+              "text": "for",
+              "why": "“For” needs a length of time, like “for three days”."
+            },
+            {
+              "id": "c",
+              "text": "ago",
+              "why": "“Ago” goes after a length of time, with the simple past."
+            },
+            {
+              "id": "d",
+              "text": "at",
+              "why": "“At” is for clock times."
+            }
+          ],
+          "answer": "a",
+          "explanation": "“Monday” is when it started, so use since."
+        },
+        {
+          "id": "for-since-3",
+          "prompt": "They waited ___ two hours.",
+          "options": [
+            {
+              "id": "a",
+              "text": "since",
+              "why": "“Since” needs a starting point, not a length of time."
+            },
+            {
+              "id": "b",
+              "text": "ago",
+              "why": "“Ago” would come after: “two hours ago”."
+            },
+            {
+              "id": "c",
+              "text": "at",
+              "why": "“At” is for a clock time, not how long."
+            },
+            {
+              "id": "d",
+              "text": "for"
+            }
+          ],
+          "answer": "d",
+          "explanation": "“Two hours” is a length of time: for."
+        }
+      ]
+    },
+    {
+      "id": "at-on-in-place",
+      "order": 6,
+      "section": "place",
+      "title": {
+        "en": "At, On, In for Place",
+        "bn": "স্থানের জন্য At, On, In"
+      },
+      "badge": "at the door · on the desk · in the box",
+      "recap": {
+        "rule": {
+          "en": "Use “in” for inside something, “on” for touching a surface, and “at” for a point or place.",
+          "bn": "কোনো কিছুর ভেতরে থাকলে “in”, উপরিতল ছুঁয়ে থাকলে “on”, আর নির্দিষ্ট জায়গা বোঝাতে “at”।"
+        },
+        "example": "in the bag · on the wall · at the bus stop"
+      },
+      "questions": [
+        {
+          "id": "at-on-in-place-1",
+          "prompt": "The keys are ___ the table.",
+          "options": [
+            {
+              "id": "a",
+              "text": "on"
+            },
+            {
+              "id": "b",
+              "text": "in",
+              "why": "“In” means inside. You can’t be inside a table."
+            },
+            {
+              "id": "c",
+              "text": "at",
+              "why": "“At the table” means sitting there, like people at dinner."
+            },
+            {
+              "id": "d",
+              "text": "to",
+              "why": "“To” shows movement, not where something is."
+            }
+          ],
+          "answer": "a",
+          "explanation": "The keys are lying on top of the table’s surface: on."
+        },
+        {
+          "id": "at-on-in-place-2",
+          "prompt": "The fish are swimming ___ the pond.",
+          "options": [
+            {
+              "id": "a",
+              "text": "in"
+            },
+            {
+              "id": "b",
+              "text": "on",
+              "why": "“On” means on top of the surface. The fish are inside the water."
+            },
+            {
+              "id": "c",
+              "text": "at",
+              "why": "“At” is a point, not inside something."
+            },
+            {
+              "id": "d",
+              "text": "to",
+              "why": "“To” shows movement towards a place."
+            }
+          ],
+          "answer": "a",
+          "explanation": "The fish are inside the water: in."
+        },
+        {
+          "id": "at-on-in-place-3",
+          "prompt": "Someone is ___ the door.",
+          "options": [
+            {
+              "id": "a",
+              "text": "in",
+              "why": "A person can’t be inside a door."
+            },
+            {
+              "id": "b",
+              "text": "at"
+            },
+            {
+              "id": "c",
+              "text": "on",
+              "why": "“On the door” is for things stuck to it, like a poster."
+            },
+            {
+              "id": "d",
+              "text": "to",
+              "why": "“To” shows movement, not where someone is."
+            }
+          ],
+          "answer": "b",
+          "explanation": "A person waiting by the door is at the door."
+        }
+      ]
+    },
+    {
+      "id": "under-between-next-to",
+      "order": 7,
+      "section": "place",
+      "title": {
+        "en": "Under, Between, Next To",
+        "bn": "Under, Between, Next To"
+      },
+      "badge": "under · between · next to · behind",
+      "recap": {
+        "rule": {
+          "en": "“Under” is below. “Between” is in the middle of two things. “Next to” is beside. “Behind” is at the back of.",
+          "bn": "“Under” = নিচে, “between” = দুটির মাঝে, “next to” = পাশে, “behind” = পেছনে।"
+        },
+        "example": "The ball is under the chair. B is between A and C."
+      },
+      "questions": [
+        {
+          "id": "under-between-next-to-1",
+          "prompt": "The cat is sleeping ___ the bed.",
+          "options": [
+            {
+              "id": "a",
+              "text": "between",
+              "why": "“Between” needs two things, like “between the bed and the wall”."
+            },
+            {
+              "id": "b",
+              "text": "next",
+              "why": "We need “next to”, not just “next”."
+            },
+            {
+              "id": "c",
+              "text": "among",
+              "why": "“Among” is for a group of many things."
+            },
+            {
+              "id": "d",
+              "text": "under"
+            }
+          ],
+          "answer": "d",
+          "explanation": "Below the bed: under."
+        },
+        {
+          "id": "under-between-next-to-2",
+          "prompt": "The letter B is ___ A and C.",
+          "options": [
+            {
+              "id": "a",
+              "text": "among",
+              "why": "“Among” is for a group of three or more. Here there are two letters."
+            },
+            {
+              "id": "b",
+              "text": "between"
+            },
+            {
+              "id": "c",
+              "text": "under",
+              "why": "B is beside the letters, not below them."
+            },
+            {
+              "id": "d",
+              "text": "behind",
+              "why": "B is in the middle, not at the back."
+            }
+          ],
+          "answer": "b",
+          "explanation": "In the middle of two things: between."
+        },
+        {
+          "id": "under-between-next-to-3",
+          "prompt": "Sit ___ me, so we can share the book.",
+          "options": [
+            {
+              "id": "a",
+              "text": "between",
+              "why": "“Between” needs two people or things."
+            },
+            {
+              "id": "b",
+              "text": "under",
+              "why": "You can’t share a book sitting under someone."
+            },
+            {
+              "id": "c",
+              "text": "among",
+              "why": "“Among” is for a group, not one person."
+            },
+            {
+              "id": "d",
+              "text": "next to"
+            }
+          ],
+          "answer": "d",
+          "explanation": "Beside someone: next to."
+        }
+      ]
+    },
+    {
+      "id": "to-into-from",
+      "order": 8,
+      "section": "place",
+      "title": {
+        "en": "To, Into, From",
+        "bn": "To, Into, From"
+      },
+      "badge": "go to · jump into · come from",
+      "recap": {
+        "rule": {
+          "en": "“To” shows where you are going. “Into” means going inside something. “From” shows where you started.",
+          "bn": "“To” = কোথায় যাচ্ছ, “into” = কোনো কিছুর ভেতরে ঢোকা, “from” = কোথা থেকে।"
+        },
+        "example": "Walk to the shop. Jump into the pool. A letter from Grandma."
+      },
+      "questions": [
+        {
+          "id": "to-into-from-1",
+          "prompt": "We go ___ school by bus.",
+          "options": [
+            {
+              "id": "a",
+              "text": "into",
+              "why": "“Into” means going inside. We say “go to school”."
+            },
+            {
+              "id": "b",
+              "text": "at",
+              "why": "“At” is for where you are, not where you go."
+            },
+            {
+              "id": "c",
+              "text": "to"
+            },
+            {
+              "id": "d",
+              "text": "in",
+              "why": "“In” is for inside, not for going somewhere."
+            }
+          ],
+          "answer": "c",
+          "explanation": "Going towards a place: to."
+        },
+        {
+          "id": "to-into-from-2",
+          "prompt": "The frog jumped ___ the water.",
+          "options": [
+            {
+              "id": "a",
+              "text": "to",
+              "why": "“To” shows direction, but the frog went inside the water: into."
+            },
+            {
+              "id": "b",
+              "text": "into"
+            },
+            {
+              "id": "c",
+              "text": "at",
+              "why": "“At” is a point, not movement inside."
+            },
+            {
+              "id": "d",
+              "text": "on",
+              "why": "“On” is the top of a surface. The frog went in."
+            }
+          ],
+          "answer": "b",
+          "explanation": "Moving from outside to inside: into."
+        },
+        {
+          "id": "to-into-from-3",
+          "prompt": "My grandfather comes ___ Sylhet.",
+          "options": [
+            {
+              "id": "a",
+              "text": "from"
+            },
+            {
+              "id": "b",
+              "text": "to",
+              "why": "“To” is where you go, not where you start."
+            },
+            {
+              "id": "c",
+              "text": "into",
+              "why": "“Into” means going inside something."
+            },
+            {
+              "id": "d",
+              "text": "at",
+              "why": "“At” is for where you are now."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Where someone started or was born: from."
+        }
+      ]
+    }
+  ]
+}
