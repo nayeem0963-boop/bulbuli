@@ -2,9 +2,10 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { cardPath, COURSES, courseFromSearch, getCard, grammarPath, nextCard, parseCardPath, starsKey } from './catalog.js'
 
-test('the picker lists the tenses first, then the four new courses', () => {
+test('the picker lists the tenses first, then the nine other courses', () => {
   assert.deepEqual(COURSES.map((course) => course.id), [
     'tenses', 'subject-verb-agreement', 'articles-prepositions', 'active-passive-voice', 'punctuation-sentences',
+    'modals', 'conditionals', 'reported-speech', 'relative-clauses', 'comparatives-superlatives',
   ])
   for (const course of COURSES) {
     assert.ok(course.icon && course.title.en && course.title.bn && course.tagline.en && course.subtitle.bn, course.id)

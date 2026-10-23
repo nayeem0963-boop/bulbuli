@@ -16,6 +16,11 @@ const ICONS = {
   'articles-prepositions': '📍',
   'active-passive-voice': '🔄',
   'punctuation-sentences': '❗',
+  modals: '🔑',
+  conditionals: '🔀',
+  'reported-speech': '💬',
+  'relative-clauses': '🔗',
+  'comparatives-superlatives': '📊',
 }
 
 const TENSE_SECTIONS = [

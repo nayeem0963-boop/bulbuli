@@ -1,0 +1,854 @@
+{
+  "$schema": "./course.schema.json",
+  "version": 1,
+  "id": "comparatives-superlatives",
+  "title": {
+    "en": "Comparatives & Superlatives",
+    "bn": "Comparative ও Superlative"
+  },
+  "tagline": {
+    "en": "Bigger, better, the best",
+    "bn": "বড়, আরও ভালো, সবচেয়ে ভালো"
+  },
+  "subtitle": {
+    "en": "Every card has a short rule and 3 questions. Compare two things with -er and more, pick the top one with -est and most, and never say “more better”.",
+    "bn": "প্রতিটি কার্ডে ছোট্ট নিয়ম আর ৩টি প্রশ্ন। -er আর more দিয়ে দুটির তুলনা করো, -est আর most দিয়ে সেরাটি বাছো, আর কখনো “more better” নয়।"
+  },
+  "sections": [
+    {
+      "id": "forms",
+      "title": {
+        "en": "Making the forms",
+        "bn": "রূপ তৈরি"
+      },
+      "hint": {
+        "en": "-er, -est, more, most",
+        "bn": "-er, -est, more, most"
+      }
+    },
+    {
+      "id": "comparing",
+      "title": {
+        "en": "Other ways to compare",
+        "bn": "তুলনার আরও উপায়"
+      },
+      "hint": {
+        "en": "as … as, and comparing actions",
+        "bn": "as … as, আর কাজের তুলনা"
+      }
+    },
+    {
+      "id": "further",
+      "title": {
+        "en": "Going further",
+        "bn": "আরও এগিয়ে"
+      },
+      "hint": {
+        "en": "much bigger, the more the better",
+        "bn": "much bigger, the more the better"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "short-adjectives",
+      "order": 1,
+      "section": "forms",
+      "title": {
+        "en": "Short Adjectives: -er / -est",
+        "bn": "ছোট Adjective: -er / -est"
+      },
+      "badge": "tall · taller · the tallest",
+      "recap": {
+        "rule": {
+          "en": "For one-syllable adjectives, add -er + than to compare two things, and use the + -est for the top one.",
+          "bn": "এক syllable-এর adjective-এ দুটির তুলনায় -er + than, সবার সেরা বোঝাতে the + -est।"
+        },
+        "example": "tall · taller · the tallest"
+      },
+      "questions": [
+        {
+          "id": "short-adjectives-1",
+          "prompt": "Rahim is ___ than Karim.",
+          "options": [
+            {
+              "id": "a",
+              "text": "taller"
+            },
+            {
+              "id": "b",
+              "text": "tall",
+              "why": "With than, use the comparative: taller."
+            },
+            {
+              "id": "c",
+              "text": "tallest",
+              "why": "-est is for the top one of a group, not for two."
+            },
+            {
+              "id": "d",
+              "text": "more tall",
+              "why": "tall is short, so add -er."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Two people + than → taller."
+        },
+        {
+          "id": "short-adjectives-2",
+          "prompt": "Everest is ___ mountain in the world.",
+          "options": [
+            {
+              "id": "a",
+              "text": "higher",
+              "why": "“in the world” means the top one: the highest."
+            },
+            {
+              "id": "b",
+              "text": "the higher",
+              "why": "Use -est for the top of a group."
+            },
+            {
+              "id": "c",
+              "text": "the most high",
+              "why": "high is short, so add -est."
+            },
+            {
+              "id": "d",
+              "text": "the highest"
+            }
+          ],
+          "answer": "d",
+          "explanation": "the + -est for the top one."
+        },
+        {
+          "id": "short-adjectives-3",
+          "prompt": "Karim is 15. Rina is 12. Which is true?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Rina is youngest than Karim.",
+              "why": "With than, use -er: younger."
+            },
+            {
+              "id": "b",
+              "text": "Rina is younger than Karim."
+            },
+            {
+              "id": "c",
+              "text": "Rina is more young than Karim.",
+              "why": "young is short, so add -er."
+            },
+            {
+              "id": "d",
+              "text": "Karim is younger than Rina.",
+              "why": "Karim is older, not younger."
+            }
+          ],
+          "answer": "b",
+          "explanation": "12 is less than 15, so Rina is younger."
+        }
+      ]
+    },
+    {
+      "id": "spelling",
+      "order": 2,
+      "section": "forms",
+      "title": {
+        "en": "Spelling Rules",
+        "bn": "বানানের নিয়ম"
+      },
+      "badge": "big → bigger · happy → happier",
+      "recap": {
+        "rule": {
+          "en": "Double the last letter after one short vowel (big → bigger). After -e, just add -r (nice → nicer). Change -y to -i (happy → happier).",
+          "bn": "একটি ছোট vowel-এর পরে শেষ অক্ষর দ্বিগুণ (big → bigger)। শেষে -e থাকলে শুধু -r (nice → nicer)। -y হলে -i (happy → happier)।"
+        },
+        "example": "hot · hotter · easy · easiest"
+      },
+      "questions": [
+        {
+          "id": "spelling-1",
+          "prompt": "Today is ___ than yesterday.",
+          "options": [
+            {
+              "id": "a",
+              "text": "hoter",
+              "why": "Double the t: hotter."
+            },
+            {
+              "id": "b",
+              "text": "hotter"
+            },
+            {
+              "id": "c",
+              "text": "more hot",
+              "why": "hot is short, so add -er."
+            },
+            {
+              "id": "d",
+              "text": "hottest",
+              "why": "With than, use -er."
+            }
+          ],
+          "answer": "b",
+          "explanation": "hot → hotter."
+        },
+        {
+          "id": "spelling-2",
+          "prompt": "This is ___ question on the test.",
+          "options": [
+            {
+              "id": "a",
+              "text": "the easyest",
+              "why": "Change y to i: easiest."
+            },
+            {
+              "id": "b",
+              "text": "the most easy",
+              "why": "Two-syllable adjectives ending in -y take -est: easiest."
+            },
+            {
+              "id": "c",
+              "text": "the easier",
+              "why": "For the top one, use -est."
+            },
+            {
+              "id": "d",
+              "text": "the easiest"
+            }
+          ],
+          "answer": "d",
+          "explanation": "easy → the easiest."
+        },
+        {
+          "id": "spelling-3",
+          "prompt": "Which sentence is spelt correctly?",
+          "options": [
+            {
+              "id": "a",
+              "text": "My room is biger than yours.",
+              "why": "Double the g: bigger."
+            },
+            {
+              "id": "b",
+              "text": "My room is bigest than yours.",
+              "why": "Use -er with than, and double the g: bigger."
+            },
+            {
+              "id": "c",
+              "text": "My room is bigger than yours."
+            },
+            {
+              "id": "d",
+              "text": "My room is more big than yours.",
+              "why": "big is short, so add -er."
+            }
+          ],
+          "answer": "c",
+          "explanation": "big → bigger."
+        }
+      ]
+    },
+    {
+      "id": "long-adjectives",
+      "order": 3,
+      "section": "forms",
+      "title": {
+        "en": "Long Adjectives: more / most",
+        "bn": "বড় Adjective: more / most"
+      },
+      "badge": "more beautiful · the most beautiful",
+      "recap": {
+        "rule": {
+          "en": "For most adjectives with two or more syllables (not ending in -y), use more + adjective + than and the most + adjective. Don’t add -er as well.",
+          "bn": "দুই বা তার বেশি syllable-এর বেশিরভাগ adjective-এ (-y দিয়ে শেষ না হলে) more + adjective + than, আর the most + adjective। সাথে -er যোগ করবে না।"
+        },
+        "example": "beautiful · more beautiful · the most beautiful"
+      },
+      "questions": [
+        {
+          "id": "long-adjectives-1",
+          "prompt": "This film is ___ than the book.",
+          "options": [
+            {
+              "id": "a",
+              "text": "more interesting"
+            },
+            {
+              "id": "b",
+              "text": "interestinger",
+              "why": "Long adjectives don’t take -er. Use more."
+            },
+            {
+              "id": "c",
+              "text": "most interesting",
+              "why": "With than, use more, not most."
+            },
+            {
+              "id": "d",
+              "text": "more interestinger",
+              "why": "Use more or -er, never both."
+            }
+          ],
+          "answer": "a",
+          "explanation": "more + long adjective + than."
+        },
+        {
+          "id": "long-adjectives-2",
+          "prompt": "She is ___ student in the class.",
+          "options": [
+            {
+              "id": "a",
+              "text": "the more intelligent",
+              "why": "For the top of a group, use the most."
+            },
+            {
+              "id": "b",
+              "text": "the most intelligent"
+            },
+            {
+              "id": "c",
+              "text": "the intelligentest",
+              "why": "Long adjectives use most, not -est."
+            },
+            {
+              "id": "d",
+              "text": "the most intelligentest",
+              "why": "Use most or -est, never both."
+            }
+          ],
+          "answer": "b",
+          "explanation": "the most + long adjective."
+        },
+        {
+          "id": "long-adjectives-3",
+          "prompt": "Which sentence is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "This is the most cheapest shop in town.",
+              "why": "Use most or -est, never both."
+            },
+            {
+              "id": "b",
+              "text": "This is the most cheap shop in town.",
+              "why": "cheap is short, so add -est."
+            },
+            {
+              "id": "c",
+              "text": "This is the cheaper shop in town.",
+              "why": "“in town” means the top of a group: the cheapest."
+            },
+            {
+              "id": "d",
+              "text": "This is the cheapest shop in town."
+            }
+          ],
+          "answer": "d",
+          "explanation": "cheap → the cheapest."
+        }
+      ]
+    },
+    {
+      "id": "irregular",
+      "order": 4,
+      "section": "forms",
+      "title": {
+        "en": "Irregular Forms",
+        "bn": "অনিয়মিত রূপ"
+      },
+      "badge": "good · better · best",
+      "recap": {
+        "rule": {
+          "en": "Some words change completely: good → better → best, bad → worse → worst, far → further → furthest, much/many → more → most, little → less → least.",
+          "bn": "কিছু শব্দ পুরো বদলে যায়: good → better → best, bad → worse → worst, far → further → furthest, much/many → more → most, little → less → least।"
+        },
+        "example": "good · better · best · bad · worse · worst"
+      },
+      "questions": [
+        {
+          "id": "irregular-1",
+          "prompt": "My cooking is bad, but his is ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "worse"
+            },
+            {
+              "id": "b",
+              "text": "badder",
+              "why": "bad is irregular: worse."
+            },
+            {
+              "id": "c",
+              "text": "worst",
+              "why": "worst is for the top one of a group."
+            },
+            {
+              "id": "d",
+              "text": "more bad",
+              "why": "bad is irregular: worse."
+            }
+          ],
+          "answer": "a",
+          "explanation": "bad → worse."
+        },
+        {
+          "id": "irregular-2",
+          "prompt": "This is ___ biryani in Dhaka!",
+          "options": [
+            {
+              "id": "a",
+              "text": "the goodest",
+              "why": "good is irregular: best."
+            },
+            {
+              "id": "b",
+              "text": "the better",
+              "why": "For the top one, use the best."
+            },
+            {
+              "id": "c",
+              "text": "the most good",
+              "why": "good is irregular: best."
+            },
+            {
+              "id": "d",
+              "text": "the best"
+            }
+          ],
+          "answer": "d",
+          "explanation": "good → the best."
+        },
+        {
+          "id": "irregular-3",
+          "prompt": "Which sentence is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Her English is more good than mine.",
+              "why": "good is irregular: better."
+            },
+            {
+              "id": "b",
+              "text": "Her English is more better than mine.",
+              "why": "better already compares. Don’t add more."
+            },
+            {
+              "id": "c",
+              "text": "Her English is better than mine."
+            },
+            {
+              "id": "d",
+              "text": "Her English is best than mine.",
+              "why": "With than, use better."
+            }
+          ],
+          "answer": "c",
+          "explanation": "good → better."
+        }
+      ]
+    },
+    {
+      "id": "as-as",
+      "order": 5,
+      "section": "comparing",
+      "title": {
+        "en": "as … as / not as … as",
+        "bn": "as … as / not as … as"
+      },
+      "badge": "as tall as · not as cold as",
+      "recap": {
+        "rule": {
+          "en": "Use as + adjective + as when two things are the same. Use not as + adjective + as when the first is less.",
+          "bn": "দুটি সমান হলে as + adjective + as। প্রথমটি কম হলে not as + adjective + as।"
+        },
+        "example": "as tall as · not as cold as"
+      },
+      "questions": [
+        {
+          "id": "as-as-1",
+          "prompt": "Rajshahi is not ___ big as Dhaka.",
+          "options": [
+            {
+              "id": "a",
+              "text": "than",
+              "why": "The pattern is not as … as."
+            },
+            {
+              "id": "b",
+              "text": "more",
+              "why": "The pattern is not as … as."
+            },
+            {
+              "id": "c",
+              "text": "as"
+            },
+            {
+              "id": "d",
+              "text": "so much",
+              "why": "The pattern is not as … as."
+            }
+          ],
+          "answer": "c",
+          "explanation": "not as + adjective + as."
+        },
+        {
+          "id": "as-as-2",
+          "prompt": "My phone costs the same as yours. My phone is ___ yours.",
+          "options": [
+            {
+              "id": "a",
+              "text": "as expensive as"
+            },
+            {
+              "id": "b",
+              "text": "as expensive than",
+              "why": "The pattern is as … as, not as … than."
+            },
+            {
+              "id": "c",
+              "text": "more expensive as",
+              "why": "They cost the same, so use as … as."
+            },
+            {
+              "id": "d",
+              "text": "expensive as",
+              "why": "Start with as: as expensive as."
+            }
+          ],
+          "answer": "a",
+          "explanation": "The same → as + adjective + as."
+        },
+        {
+          "id": "as-as-3",
+          "prompt": "Sylhet is colder than Khulna. Which means the same?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sylhet is not as cold as Khulna.",
+              "why": "This says Sylhet is warmer: the opposite."
+            },
+            {
+              "id": "b",
+              "text": "Khulna is not as cold as Sylhet."
+            },
+            {
+              "id": "c",
+              "text": "Khulna is not as colder as Sylhet.",
+              "why": "Use the plain adjective: as cold as."
+            },
+            {
+              "id": "d",
+              "text": "Khulna is not cold as Sylhet.",
+              "why": "You need as before cold."
+            }
+          ],
+          "answer": "b",
+          "explanation": "colder than = the other is not as cold as."
+        }
+      ]
+    },
+    {
+      "id": "comparing-actions",
+      "order": 6,
+      "section": "comparing",
+      "title": {
+        "en": "Comparing Actions",
+        "bn": "কাজের তুলনা (Adverb)"
+      },
+      "badge": "faster · more carefully · better",
+      "recap": {
+        "rule": {
+          "en": "To compare how people do things: fast → faster, carefully → more carefully, well → better, badly → worse.",
+          "bn": "কে কীভাবে কাজ করে তার তুলনা: fast → faster, carefully → more carefully, well → better, badly → worse।"
+        },
+        "example": "She runs faster. · Drive more carefully."
+      },
+      "questions": [
+        {
+          "id": "comparing-actions-1",
+          "prompt": "He speaks English ___ than his brother.",
+          "options": [
+            {
+              "id": "a",
+              "text": "better"
+            },
+            {
+              "id": "b",
+              "text": "more good",
+              "why": "The adverb of good is well, and well → better."
+            },
+            {
+              "id": "c",
+              "text": "gooder",
+              "why": "There is no “gooder”."
+            },
+            {
+              "id": "d",
+              "text": "more well",
+              "why": "well is irregular: better."
+            }
+          ],
+          "answer": "a",
+          "explanation": "well → better."
+        },
+        {
+          "id": "comparing-actions-2",
+          "prompt": "Please speak ___. I can’t follow you.",
+          "options": [
+            {
+              "id": "a",
+              "text": "slowlier",
+              "why": "-ly adverbs take more: more slowly."
+            },
+            {
+              "id": "b",
+              "text": "more slow",
+              "why": "We need the adverb: slowly."
+            },
+            {
+              "id": "c",
+              "text": "more slowly"
+            },
+            {
+              "id": "d",
+              "text": "most slowly",
+              "why": "You are comparing with how they speak now, so use more."
+            }
+          ],
+          "answer": "c",
+          "explanation": "slowly → more slowly."
+        },
+        {
+          "id": "comparing-actions-3",
+          "prompt": "Rina doesn’t drive as carefully as Nila. Which means the same?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Rina drives more carefully than Nila.",
+              "why": "This is the opposite."
+            },
+            {
+              "id": "b",
+              "text": "Nila drives carefuller than Rina.",
+              "why": "-ly adverbs take more."
+            },
+            {
+              "id": "c",
+              "text": "Nila drives more carefully than Rina."
+            },
+            {
+              "id": "d",
+              "text": "Nila drives more careful than Rina.",
+              "why": "We need the adverb: carefully."
+            }
+          ],
+          "answer": "c",
+          "explanation": "not as carefully as = the other drives more carefully."
+        }
+      ]
+    },
+    {
+      "id": "much-a-bit",
+      "order": 7,
+      "section": "further",
+      "title": {
+        "en": "Much / A Bit + Comparative",
+        "bn": "Much / A bit + Comparative"
+      },
+      "badge": "much bigger · a bit cheaper",
+      "recap": {
+        "rule": {
+          "en": "For a big difference, use much, far or a lot before the comparative. For a small one, use a bit or slightly. Never very + comparative.",
+          "bn": "পার্থক্য বেশি হলে comparative-এর আগে much, far বা a lot। কম হলে a bit বা slightly। কখনো very + comparative নয়।"
+        },
+        "example": "much bigger · a bit cheaper"
+      },
+      "questions": [
+        {
+          "id": "much-a-bit-1",
+          "prompt": "This flat is ___ cheaper than the last one. It costs half the price!",
+          "options": [
+            {
+              "id": "a",
+              "text": "much"
+            },
+            {
+              "id": "b",
+              "text": "very",
+              "why": "Never put very before a comparative."
+            },
+            {
+              "id": "c",
+              "text": "most",
+              "why": "most is for superlatives."
+            },
+            {
+              "id": "d",
+              "text": "a bit",
+              "why": "Half the price is a big difference, not a small one."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Big difference → much."
+        },
+        {
+          "id": "much-a-bit-2",
+          "prompt": "My new bag is ___ heavier than the old one, only 100 grams more.",
+          "options": [
+            {
+              "id": "a",
+              "text": "much",
+              "why": "100 grams is a small difference."
+            },
+            {
+              "id": "b",
+              "text": "very",
+              "why": "Never very + comparative."
+            },
+            {
+              "id": "c",
+              "text": "the most",
+              "why": "the most is for superlatives. Use a bit for a small difference."
+            },
+            {
+              "id": "d",
+              "text": "a bit"
+            }
+          ],
+          "answer": "d",
+          "explanation": "Small difference → a bit (or slightly)."
+        },
+        {
+          "id": "much-a-bit-3",
+          "prompt": "Which sentence is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Today is very hotter than yesterday.",
+              "why": "Never very + comparative."
+            },
+            {
+              "id": "b",
+              "text": "Today is much more hotter than yesterday.",
+              "why": "Use more or -er, never both."
+            },
+            {
+              "id": "c",
+              "text": "Today is much hot than yesterday.",
+              "why": "With than, use hotter."
+            },
+            {
+              "id": "d",
+              "text": "Today is much hotter than yesterday."
+            }
+          ],
+          "answer": "d",
+          "explanation": "much + comparative."
+        }
+      ]
+    },
+    {
+      "id": "the-more",
+      "order": 8,
+      "section": "further",
+      "title": {
+        "en": "The More …, the More …",
+        "bn": "The more …, the more …"
+      },
+      "badge": "the more …, the better …",
+      "recap": {
+        "rule": {
+          "en": "Use the + comparative, the + comparative when one change brings another. Use -er and -er (or more and more) for something changing over time.",
+          "bn": "একটি বদলালে অন্যটিও বদলায়: the + comparative, the + comparative। সময়ের সাথে বাড়তে থাকলে -er and -er (বা more and more)।"
+        },
+        "example": "The more you practise, the better you get. · It’s getting hotter and hotter."
+      },
+      "questions": [
+        {
+          "id": "the-more-1",
+          "prompt": "The ___ you read, the more you learn.",
+          "options": [
+            {
+              "id": "a",
+              "text": "most",
+              "why": "The pattern uses comparatives: the more."
+            },
+            {
+              "id": "b",
+              "text": "more"
+            },
+            {
+              "id": "c",
+              "text": "much",
+              "why": "Use more, not much."
+            },
+            {
+              "id": "d",
+              "text": "many",
+              "why": "Use more, not many."
+            }
+          ],
+          "answer": "b",
+          "explanation": "the more …, the more …."
+        },
+        {
+          "id": "the-more-2",
+          "prompt": "Prices are getting ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "high and high",
+              "why": "Use the comparative: higher and higher."
+            },
+            {
+              "id": "b",
+              "text": "higher and higher"
+            },
+            {
+              "id": "c",
+              "text": "more higher and higher",
+              "why": "Don’t add more to -er."
+            },
+            {
+              "id": "d",
+              "text": "highest and highest",
+              "why": "Use -er, not -est."
+            }
+          ],
+          "answer": "b",
+          "explanation": "-er and -er = rising over time."
+        },
+        {
+          "id": "the-more-3",
+          "prompt": "“If you start early, you finish early.” Which means the same?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The early you start, the early you finish.",
+              "why": "Use comparatives: the earlier."
+            },
+            {
+              "id": "b",
+              "text": "The earliest you start, the earliest you finish.",
+              "why": "Use -er, not -est."
+            },
+            {
+              "id": "c",
+              "text": "The earlier you start, the earlier you finish."
+            },
+            {
+              "id": "d",
+              "text": "Earlier you start, earlier you finish.",
+              "why": "You need the before each part."
+            }
+          ],
+          "answer": "c",
+          "explanation": "the + comparative, the + comparative."
+        }
+      ]
+    }
+  ]
+}

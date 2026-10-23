@@ -35,9 +35,10 @@ function check(value, rule, path, errors) {
   }
 }
 
-test('there are 4 courses, and each matches course.schema.json', () => {
+test('there are 9 courses, and each matches course.schema.json', () => {
   assert.deepEqual(GRAMMAR_COURSES.map((course) => course.title.en), [
     'Subject-Verb Agreement', 'Articles & Prepositions', 'Active vs. Passive Voice', 'Punctuation & Sentence Structure',
+    'Modals', 'Conditionals', 'Reported Speech', 'Relative Clauses', 'Comparatives & Superlatives',
   ])
   for (const course of GRAMMAR_COURSES) {
     const errors = []

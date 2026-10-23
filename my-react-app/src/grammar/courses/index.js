@@ -4,8 +4,16 @@ import subjectVerbAgreement from './subject-verb-agreement.json' with { type: 'j
 import articlesPrepositions from './articles-prepositions.json' with { type: 'json' }
 import activePassiveVoice from './active-passive-voice.json' with { type: 'json' }
 import punctuationSentences from './punctuation-sentences.json' with { type: 'json' }
+import modals from './modals.json' with { type: 'json' }
+import conditionals from './conditionals.json' with { type: 'json' }
+import reportedSpeech from './reported-speech.json' with { type: 'json' }
+import relativeClauses from './relative-clauses.json' with { type: 'json' }
+import comparativesSuperlatives from './comparatives-superlatives.json' with { type: 'json' }
 
-export const GRAMMAR_COURSES = [subjectVerbAgreement, articlesPrepositions, activePassiveVoice, punctuationSentences]
+export const GRAMMAR_COURSES = [
+  subjectVerbAgreement, articlesPrepositions, activePassiveVoice, punctuationSentences,
+  modals, conditionals, reportedSpeech, relativeClauses, comparativesSuperlatives,
+]
 
 export const getCourse = (id) => GRAMMAR_COURSES.find((course) => course.id === id) ?? null
 

@@ -109,7 +109,7 @@ function HeroArt({ course, text }) {
 }
 
 /**
- * The Learn zone's Grammar track: a course picker on top (12 Tenses and four more courses),
+ * The Learn zone's Grammar track: a course picker on top (12 Tenses and nine more courses),
  * then the chosen course's topic cards in sections. Open to everyone; stars stay on this device.
  */
 export default function GrammarZone({ language, text }) {

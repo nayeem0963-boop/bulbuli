@@ -44,7 +44,7 @@ function RouteTitle() {
     // The grammar pages then set their own, more exact title (src/grammar/meta.js).
     if (track === 'grammar' || pathname.startsWith('/grammar/')) {
       title = 'English Grammar Quizzes | Bulbuli'
-      description = 'Free English grammar quizzes: tenses, subject-verb agreement, articles and prepositions, active and passive voice, and punctuation. Every topic has a short rule recap and questions with explanations.'
+      description = 'Free English grammar quizzes: tenses, subject-verb agreement, articles and prepositions, active and passive voice, punctuation, modals, conditionals, reported speech, relative clauses, and comparatives and superlatives. Every topic has a short rule recap and questions with explanations.'
     } else if (track === 'coding') {
       title = 'Learn to Code: Courses and Exams | Bulbuli'
       description = 'Guided HTML, CSS, JavaScript, GitHub, and React courses with quizzes and exams, for teens and grown-ups.'

@@ -1,0 +1,854 @@
+{
+  "$schema": "./course.schema.json",
+  "version": 1,
+  "id": "relative-clauses",
+  "title": {
+    "en": "Relative Clauses",
+    "bn": "Relative Clause"
+  },
+  "tagline": {
+    "en": "Who, which, that: join two ideas",
+    "bn": "Who, which, that দিয়ে দুটি ভাবনা জোড়ো"
+  },
+  "subtitle": {
+    "en": "Every card has a short rule and 3 questions. Join two short sentences into one with who, which, that, where and whose.",
+    "bn": "প্রতিটি কার্ডে ছোট্ট নিয়ম আর ৩টি প্রশ্ন। who, which, that, where, whose দিয়ে দুটি ছোট বাক্যকে একটিতে জোড়ো।"
+  },
+  "sections": [
+    {
+      "id": "words",
+      "title": {
+        "en": "Choosing the word",
+        "bn": "সঠিক শব্দ বাছাই"
+      },
+      "hint": {
+        "en": "People, things, places, owners",
+        "bn": "মানুষ, বস্তু, স্থান, মালিক"
+      }
+    },
+    {
+      "id": "short-extra",
+      "title": {
+        "en": "Leaving out and commas",
+        "bn": "বাদ দেওয়া ও কমা"
+      },
+      "hint": {
+        "en": "When to drop the word, when to add commas",
+        "bn": "কখন শব্দ বাদ, কখন কমা"
+      }
+    },
+    {
+      "id": "further",
+      "title": {
+        "en": "Going further",
+        "bn": "আরও এগিয়ে"
+      },
+      "hint": {
+        "en": "Prepositions and short forms",
+        "bn": "Preposition ও ছোট রূপ"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "who",
+      "order": 1,
+      "section": "words",
+      "title": {
+        "en": "Who: for People",
+        "bn": "Who: মানুষের জন্য"
+      },
+      "badge": "person + who + verb",
+      "recap": {
+        "rule": {
+          "en": "Use who to give more information about a person.",
+          "bn": "কোনো মানুষ সম্পর্কে আরও তথ্য দিতে who।"
+        },
+        "example": "the girl who sings · a man who teaches"
+      },
+      "questions": [
+        {
+          "id": "who-1",
+          "prompt": "That’s the doctor ___ helped me.",
+          "options": [
+            {
+              "id": "a",
+              "text": "which",
+              "why": "which is for things. A doctor is a person."
+            },
+            {
+              "id": "b",
+              "text": "where",
+              "why": "where is for places."
+            },
+            {
+              "id": "c",
+              "text": "whose",
+              "why": "whose shows belonging, but nothing belongs to anyone here."
+            },
+            {
+              "id": "d",
+              "text": "who"
+            }
+          ],
+          "answer": "d",
+          "explanation": "person → who."
+        },
+        {
+          "id": "who-2",
+          "prompt": "I have a friend ___ in Chattogram.",
+          "options": [
+            {
+              "id": "a",
+              "text": "who live",
+              "why": "a friend is one person, so use lives."
+            },
+            {
+              "id": "b",
+              "text": "which lives",
+              "why": "A friend is a person: who."
+            },
+            {
+              "id": "c",
+              "text": "who lives"
+            },
+            {
+              "id": "d",
+              "text": "who he lives",
+              "why": "Don’t add he. who already stands for the friend."
+            }
+          ],
+          "answer": "c",
+          "explanation": "who + verb (lives)."
+        },
+        {
+          "id": "who-3",
+          "prompt": "Join: I met a boy. He plays cricket.",
+          "options": [
+            {
+              "id": "a",
+              "text": "I met a boy who plays cricket."
+            },
+            {
+              "id": "b",
+              "text": "I met a boy who he plays cricket.",
+              "why": "who replaces he, so drop he."
+            },
+            {
+              "id": "c",
+              "text": "I met a boy which plays cricket.",
+              "why": "A boy is a person: who."
+            },
+            {
+              "id": "d",
+              "text": "I met a boy, he plays cricket.",
+              "why": "A comma can’t join two sentences. Use who."
+            }
+          ],
+          "answer": "a",
+          "explanation": "who replaces he."
+        }
+      ]
+    },
+    {
+      "id": "which-that",
+      "order": 2,
+      "section": "words",
+      "title": {
+        "en": "Which / That: for Things",
+        "bn": "Which / That: বস্তুর জন্য"
+      },
+      "badge": "thing + which / that",
+      "recap": {
+        "rule": {
+          "en": "Use which or that for things and animals. that can also be used for people.",
+          "bn": "বস্তু ও প্রাণীর জন্য which বা that। that মানুষের জন্যও চলে।"
+        },
+        "example": "the book which I bought · a phone that works"
+      },
+      "questions": [
+        {
+          "id": "which-that-1",
+          "prompt": "This is the bag ___ I lost.",
+          "options": [
+            {
+              "id": "a",
+              "text": "who",
+              "why": "who is for people. A bag is a thing."
+            },
+            {
+              "id": "b",
+              "text": "where",
+              "why": "where is for places."
+            },
+            {
+              "id": "c",
+              "text": "which"
+            },
+            {
+              "id": "d",
+              "text": "whose",
+              "why": "whose shows belonging."
+            }
+          ],
+          "answer": "c",
+          "explanation": "thing → which (or that)."
+        },
+        {
+          "id": "which-that-2",
+          "prompt": "I like films ___ make me laugh.",
+          "options": [
+            {
+              "id": "a",
+              "text": "who",
+              "why": "Films are things, so use that or which."
+            },
+            {
+              "id": "b",
+              "text": "where",
+              "why": "where is for places."
+            },
+            {
+              "id": "c",
+              "text": "what",
+              "why": "what can’t join a noun to a clause like this. Use that or which."
+            },
+            {
+              "id": "d",
+              "text": "that"
+            }
+          ],
+          "answer": "d",
+          "explanation": "thing → that / which."
+        },
+        {
+          "id": "which-that-3",
+          "prompt": "Join: She has a cat. It sleeps all day.",
+          "options": [
+            {
+              "id": "a",
+              "text": "She has a cat that it sleeps all day.",
+              "why": "that replaces it, so drop it."
+            },
+            {
+              "id": "b",
+              "text": "She has a cat that sleeps all day."
+            },
+            {
+              "id": "c",
+              "text": "She has a cat where sleeps all day.",
+              "why": "where is for places."
+            },
+            {
+              "id": "d",
+              "text": "She has a cat, sleeps all day.",
+              "why": "You need that or which to join them."
+            }
+          ],
+          "answer": "b",
+          "explanation": "that replaces it."
+        }
+      ]
+    },
+    {
+      "id": "where-when",
+      "order": 3,
+      "section": "words",
+      "title": {
+        "en": "Where and When",
+        "bn": "Where ও When"
+      },
+      "badge": "place + where · time + when",
+      "recap": {
+        "rule": {
+          "en": "Use where after a place and when after a time.",
+          "bn": "স্থানের পরে where, সময়ের পরে when।"
+        },
+        "example": "the village where I was born · the day when we met"
+      },
+      "questions": [
+        {
+          "id": "where-when-1",
+          "prompt": "This is the café ___ we first met.",
+          "options": [
+            {
+              "id": "a",
+              "text": "where"
+            },
+            {
+              "id": "b",
+              "text": "when",
+              "why": "A café is a place, not a time."
+            },
+            {
+              "id": "c",
+              "text": "who",
+              "why": "who is for people."
+            },
+            {
+              "id": "d",
+              "text": "whose",
+              "why": "whose shows belonging."
+            }
+          ],
+          "answer": "a",
+          "explanation": "place → where."
+        },
+        {
+          "id": "where-when-2",
+          "prompt": "I remember the year ___ I started school.",
+          "options": [
+            {
+              "id": "a",
+              "text": "where",
+              "why": "A year is a time, not a place."
+            },
+            {
+              "id": "b",
+              "text": "who",
+              "why": "who is for people."
+            },
+            {
+              "id": "c",
+              "text": "when"
+            },
+            {
+              "id": "d",
+              "text": "whose",
+              "why": "whose shows belonging."
+            }
+          ],
+          "answer": "c",
+          "explanation": "time → when."
+        },
+        {
+          "id": "where-when-3",
+          "prompt": "Join: That’s the hospital. My sister works there.",
+          "options": [
+            {
+              "id": "a",
+              "text": "That’s the hospital where my sister works there.",
+              "why": "where replaces there, so drop there."
+            },
+            {
+              "id": "b",
+              "text": "That’s the hospital where my sister works."
+            },
+            {
+              "id": "c",
+              "text": "That’s the hospital when my sister works.",
+              "why": "A hospital is a place: where."
+            },
+            {
+              "id": "d",
+              "text": "That’s the hospital who my sister works.",
+              "why": "who is for people."
+            }
+          ],
+          "answer": "b",
+          "explanation": "where replaces there."
+        }
+      ]
+    },
+    {
+      "id": "whose",
+      "order": 4,
+      "section": "words",
+      "title": {
+        "en": "Whose: Belonging",
+        "bn": "Whose: কার জিনিস"
+      },
+      "badge": "whose + noun = his / her / their",
+      "recap": {
+        "rule": {
+          "en": "whose replaces his, her, their or its. It is always followed by a noun.",
+          "bn": "whose বসে his, her, their বা its-এর জায়গায়। এর পরে সবসময় একটি noun থাকে।"
+        },
+        "example": "the man whose car was stolen"
+      },
+      "questions": [
+        {
+          "id": "whose-1",
+          "prompt": "She’s the student ___ essay won the prize.",
+          "options": [
+            {
+              "id": "a",
+              "text": "who",
+              "why": "The essay belongs to her, so use whose."
+            },
+            {
+              "id": "b",
+              "text": "whose"
+            },
+            {
+              "id": "c",
+              "text": "who’s",
+              "why": "who’s means who is. Here we need belonging: whose."
+            },
+            {
+              "id": "d",
+              "text": "which",
+              "why": "which is for things, and we need belonging."
+            }
+          ],
+          "answer": "b",
+          "explanation": "her essay → whose essay."
+        },
+        {
+          "id": "whose-2",
+          "prompt": "I know a girl ___ father is a pilot.",
+          "options": [
+            {
+              "id": "a",
+              "text": "whose"
+            },
+            {
+              "id": "b",
+              "text": "who",
+              "why": "“who father” is wrong. The father belongs to her: whose."
+            },
+            {
+              "id": "c",
+              "text": "who her",
+              "why": "Don’t add her. whose already means her."
+            },
+            {
+              "id": "d",
+              "text": "that",
+              "why": "that doesn’t show belonging."
+            }
+          ],
+          "answer": "a",
+          "explanation": "her father → whose father."
+        },
+        {
+          "id": "whose-3",
+          "prompt": "Join: That’s the boy. His bike is red.",
+          "options": [
+            {
+              "id": "a",
+              "text": "That’s the boy whose his bike is red.",
+              "why": "whose replaces his, so drop his."
+            },
+            {
+              "id": "b",
+              "text": "That’s the boy who bike is red.",
+              "why": "Use whose to show the bike is his."
+            },
+            {
+              "id": "c",
+              "text": "That’s the boy whose bike is red."
+            },
+            {
+              "id": "d",
+              "text": "That’s the boy who’s bike is red.",
+              "why": "who’s means who is."
+            }
+          ],
+          "answer": "c",
+          "explanation": "his bike → whose bike."
+        }
+      ]
+    },
+    {
+      "id": "leaving-out",
+      "order": 5,
+      "section": "short-extra",
+      "title": {
+        "en": "Leaving the Word Out",
+        "bn": "শব্দটি বাদ দেওয়া"
+      },
+      "badge": "the cake (that) I made",
+      "recap": {
+        "rule": {
+          "en": "You can drop who, which or that when a new subject comes after it. Never add an extra it, him or her.",
+          "bn": "পরে নতুন subject থাকলে who, which বা that বাদ দিতে পারো। কখনো বাড়তি it, him বা her যোগ করবে না।"
+        },
+        "example": "the cake (that) I made · the man (who) we saw"
+      },
+      "questions": [
+        {
+          "id": "leaving-out-1",
+          "prompt": "In which sentence can you leave out “that”?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The bus that goes to Mirpur is late.",
+              "why": "that is the subject of goes, so you can’t drop it."
+            },
+            {
+              "id": "b",
+              "text": "The film that we watched was good."
+            },
+            {
+              "id": "c",
+              "text": "The man that lives next door is kind.",
+              "why": "that is the subject of lives, so you can’t drop it."
+            },
+            {
+              "id": "d",
+              "text": "The phone that broke was new.",
+              "why": "that is the subject of broke, so you can’t drop it."
+            }
+          ],
+          "answer": "b",
+          "explanation": "A new subject (we) comes after that, so it can go."
+        },
+        {
+          "id": "leaving-out-2",
+          "prompt": "Which sentence is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The book which I bought it is great.",
+              "why": "which already stands for the book. Drop it."
+            },
+            {
+              "id": "b",
+              "text": "The book I bought is great."
+            },
+            {
+              "id": "c",
+              "text": "The book I bought it is great.",
+              "why": "Don’t add it. The book is already named."
+            },
+            {
+              "id": "d",
+              "text": "The book what I bought is great.",
+              "why": "Use which or that (or nothing), not what."
+            }
+          ],
+          "answer": "b",
+          "explanation": "Drop which, and never add it."
+        },
+        {
+          "id": "leaving-out-3",
+          "prompt": "Join without who, which or that: This is the song. I love it.",
+          "options": [
+            {
+              "id": "a",
+              "text": "This is the song I love it.",
+              "why": "Drop it. The song is already named."
+            },
+            {
+              "id": "b",
+              "text": "This is the song what I love.",
+              "why": "Don’t use what here."
+            },
+            {
+              "id": "c",
+              "text": "This is the song I loves.",
+              "why": "With I, use love."
+            },
+            {
+              "id": "d",
+              "text": "This is the song I love."
+            }
+          ],
+          "answer": "d",
+          "explanation": "the song + I love."
+        }
+      ]
+    },
+    {
+      "id": "extra-information",
+      "order": 6,
+      "section": "short-extra",
+      "title": {
+        "en": "Extra Information with Commas",
+        "bn": "কমা দিয়ে বাড়তি তথ্য"
+      },
+      "badge": "My brother, who lives in Dhaka, …",
+      "recap": {
+        "rule": {
+          "en": "If the information is extra, put it between commas and use who or which, never that.",
+          "bn": "তথ্যটি বাড়তি হলে দুই কমার মাঝে রাখো, আর who বা which ব্যবহার করো, কখনো that নয়।"
+        },
+        "example": "My brother, who lives in Dhaka, is a teacher."
+      },
+      "questions": [
+        {
+          "id": "extra-information-1",
+          "prompt": "Which sentence is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Dhaka, that is the capital, is very busy.",
+              "why": "Never use that after a comma."
+            },
+            {
+              "id": "b",
+              "text": "Dhaka, who is the capital, is very busy.",
+              "why": "Dhaka is a place, not a person."
+            },
+            {
+              "id": "c",
+              "text": "Dhaka which is the capital, is very busy.",
+              "why": "Extra information needs two commas."
+            },
+            {
+              "id": "d",
+              "text": "Dhaka, which is the capital, is very busy."
+            }
+          ],
+          "answer": "d",
+          "explanation": "Extra information: commas + which."
+        },
+        {
+          "id": "extra-information-2",
+          "prompt": "My mother, ___ is a nurse, works at night.",
+          "options": [
+            {
+              "id": "a",
+              "text": "that",
+              "why": "Never use that after a comma."
+            },
+            {
+              "id": "b",
+              "text": "which",
+              "why": "which is for things. Your mother is a person."
+            },
+            {
+              "id": "c",
+              "text": "who"
+            },
+            {
+              "id": "d",
+              "text": "whose",
+              "why": "whose shows belonging."
+            }
+          ],
+          "answer": "c",
+          "explanation": "A person + extra information → , who …,"
+        },
+        {
+          "id": "extra-information-3",
+          "prompt": "Join: The Sundarbans is home to tigers. It is a mangrove forest.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The Sundarbans, which is a mangrove forest, is home to tigers."
+            },
+            {
+              "id": "b",
+              "text": "The Sundarbans, that is a mangrove forest, is home to tigers.",
+              "why": "Never use that after a comma."
+            },
+            {
+              "id": "c",
+              "text": "The Sundarbans, which it is a mangrove forest, is home to tigers.",
+              "why": "which replaces it, so drop it."
+            },
+            {
+              "id": "d",
+              "text": "The Sundarbans which is a mangrove forest is home to tigers.",
+              "why": "This is extra information, so it needs commas."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Extra information about a place → , which …,"
+        }
+      ]
+    },
+    {
+      "id": "prepositions",
+      "order": 7,
+      "section": "further",
+      "title": {
+        "en": "Prepositions in Relative Clauses",
+        "bn": "Relative Clause-এ Preposition"
+      },
+      "badge": "the house I grew up in",
+      "recap": {
+        "rule": {
+          "en": "In everyday English, put the preposition at the end. In formal English, put it before whom or which.",
+          "bn": "সাধারণ ইংরেজিতে preposition শেষে বসে। আনুষ্ঠানিক ইংরেজিতে whom বা which-এর আগে বসে।"
+        },
+        "example": "the house I grew up in · the person to whom I spoke"
+      },
+      "questions": [
+        {
+          "id": "prepositions-1",
+          "prompt": "That’s the friend I told you ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "whom",
+              "why": "You need a preposition at the end: about."
+            },
+            {
+              "id": "b",
+              "text": "about"
+            },
+            {
+              "id": "c",
+              "text": "which",
+              "why": "which can’t end the sentence here. You need about."
+            },
+            {
+              "id": "d",
+              "text": "it",
+              "why": "Don’t add it. You need a preposition: about."
+            }
+          ],
+          "answer": "b",
+          "explanation": "tell someone about someone → I told you about."
+        },
+        {
+          "id": "prepositions-2",
+          "prompt": "The chair ___ which you are sitting is very old.",
+          "options": [
+            {
+              "id": "a",
+              "text": "on"
+            },
+            {
+              "id": "b",
+              "text": "to",
+              "why": "We sit on a chair, not to it."
+            },
+            {
+              "id": "c",
+              "text": "of",
+              "why": "We sit on a chair, not of it."
+            },
+            {
+              "id": "d",
+              "text": "by",
+              "why": "by means next to. You sit on a chair."
+            }
+          ],
+          "answer": "a",
+          "explanation": "sit on a chair → on which."
+        },
+        {
+          "id": "prepositions-3",
+          "prompt": "Which is the formal version of “This is the man I spoke to”?",
+          "options": [
+            {
+              "id": "a",
+              "text": "This is the man to whom I spoke."
+            },
+            {
+              "id": "b",
+              "text": "This is the man to who I spoke.",
+              "why": "After a preposition, use whom."
+            },
+            {
+              "id": "c",
+              "text": "This is the man whom I spoke to him.",
+              "why": "Don’t add him."
+            },
+            {
+              "id": "d",
+              "text": "This is the man to that I spoke.",
+              "why": "Never use that after a preposition."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Formal: preposition + whom."
+        }
+      ]
+    },
+    {
+      "id": "short-forms",
+      "order": 8,
+      "section": "further",
+      "title": {
+        "en": "Short Forms: -ing and V3",
+        "bn": "ছোট রূপ: -ing ও V3"
+      },
+      "badge": "the girl sitting there · made in Korea",
+      "recap": {
+        "rule": {
+          "en": "You can drop who/which + be. Use -ing for an active meaning and V3 for a passive meaning.",
+          "bn": "who/which + be বাদ দিতে পারো। কর্তা নিজে করলে -ing, কাজটি তার উপর হলে V3।"
+        },
+        "example": "the girl sitting there · a phone made in Korea"
+      },
+      "questions": [
+        {
+          "id": "short-forms-1",
+          "prompt": "The man ___ by the door is my uncle.",
+          "options": [
+            {
+              "id": "a",
+              "text": "stands",
+              "why": "The sentence already has a main verb (is). Use the short form: standing."
+            },
+            {
+              "id": "b",
+              "text": "stood",
+              "why": "The man is doing the action now: standing."
+            },
+            {
+              "id": "c",
+              "text": "who standing",
+              "why": "Say either who is standing, or just standing."
+            },
+            {
+              "id": "d",
+              "text": "standing"
+            }
+          ],
+          "answer": "d",
+          "explanation": "who is standing → standing."
+        },
+        {
+          "id": "short-forms-2",
+          "prompt": "Most of the cars ___ in Japan are sold abroad.",
+          "options": [
+            {
+              "id": "a",
+              "text": "making",
+              "why": "Cars don’t make anything. They are made, so use V3."
+            },
+            {
+              "id": "b",
+              "text": "make",
+              "why": "Use the short form: made."
+            },
+            {
+              "id": "c",
+              "text": "which made",
+              "why": "Say either which are made, or just made."
+            },
+            {
+              "id": "d",
+              "text": "made"
+            }
+          ],
+          "answer": "d",
+          "explanation": "which are made → made."
+        },
+        {
+          "id": "short-forms-3",
+          "prompt": "Shorten: The bus which is leaving now goes to Sylhet.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The bus left now goes to Sylhet.",
+              "why": "The bus is doing the action, so use -ing."
+            },
+            {
+              "id": "b",
+              "text": "The bus is leaving now goes to Sylhet.",
+              "why": "Drop is too: leaving."
+            },
+            {
+              "id": "c",
+              "text": "The bus leaving now goes to Sylhet."
+            },
+            {
+              "id": "d",
+              "text": "The bus which leaving now goes to Sylhet.",
+              "why": "Drop which and is together."
+            }
+          ],
+          "answer": "c",
+          "explanation": "which is leaving → leaving."
+        }
+      ]
+    }
+  ]
+}

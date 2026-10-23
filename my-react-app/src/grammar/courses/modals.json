@@ -1,0 +1,854 @@
+{
+  "$schema": "./course.schema.json",
+  "version": 1,
+  "id": "modals",
+  "title": {
+    "en": "Modals",
+    "bn": "Modal Verb"
+  },
+  "tagline": {
+    "en": "Say what you can, must and should do",
+    "bn": "কী পারো, কী করতেই হবে, কী করা উচিত — বলো"
+  },
+  "subtitle": {
+    "en": "Every card has a short rule and 3 questions. Learn can, must, should and might, then use them to talk about the past.",
+    "bn": "প্রতিটি কার্ডে ছোট্ট নিয়ম আর ৩টি প্রশ্ন। can, must, should, might শেখো, তারপর অতীত নিয়ে কথা বলতে এগুলো ব্যবহার করো।"
+  },
+  "sections": [
+    {
+      "id": "ability",
+      "title": {
+        "en": "Ability and permission",
+        "bn": "সামর্থ্য ও অনুমতি"
+      },
+      "hint": {
+        "en": "Can you? May I?",
+        "bn": "তুমি কি পারো? আমি কি পারি?"
+      }
+    },
+    {
+      "id": "rules-advice",
+      "title": {
+        "en": "Rules and advice",
+        "bn": "নিয়ম ও পরামর্শ"
+      },
+      "hint": {
+        "en": "Must, have to, should",
+        "bn": "করতেই হবে, নাকি করা উচিত?"
+      }
+    },
+    {
+      "id": "how-sure",
+      "title": {
+        "en": "Maybe and sure",
+        "bn": "হয়তো ও নিশ্চিত"
+      },
+      "hint": {
+        "en": "How sure are you?",
+        "bn": "তুমি কতটা নিশ্চিত?"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "can-could",
+      "order": 1,
+      "section": "ability",
+      "title": {
+        "en": "Can / Could: Ability",
+        "bn": "Can / Could: সামর্থ্য"
+      },
+      "badge": "can / could + verb",
+      "recap": {
+        "rule": {
+          "en": "Use can + verb for what you are able to do now, and could + verb for what you were able to do in the past. No “to”, no -s.",
+          "bn": "এখন যা পারো তার জন্য can + verb, অতীতে যা পারতে তার জন্য could + verb। “to” বা -s বসে না।"
+        },
+        "example": "I can swim. · She could read at four."
+      },
+      "questions": [
+        {
+          "id": "can-could-1",
+          "prompt": "When I was five, I ___ ride a bike.",
+          "options": [
+            {
+              "id": "a",
+              "text": "could"
+            },
+            {
+              "id": "b",
+              "text": "can",
+              "why": "“When I was five” is the past, so use could."
+            },
+            {
+              "id": "c",
+              "text": "must",
+              "why": "must means it is necessary, not that you were able to."
+            },
+            {
+              "id": "d",
+              "text": "could to",
+              "why": "No “to” after a modal. Say could ride."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Ability in the past: could + verb."
+        },
+        {
+          "id": "can-could-2",
+          "prompt": "Rina ___ three languages.",
+          "options": [
+            {
+              "id": "a",
+              "text": "cans speak",
+              "why": "Modals never take -s, even with she or he."
+            },
+            {
+              "id": "b",
+              "text": "can speak"
+            },
+            {
+              "id": "c",
+              "text": "can to speak",
+              "why": "No “to” after a modal."
+            },
+            {
+              "id": "d",
+              "text": "can speaks",
+              "why": "After can, the verb stays in its base form: speak."
+            }
+          ],
+          "answer": "b",
+          "explanation": "can + base verb, the same for every subject."
+        },
+        {
+          "id": "can-could-3",
+          "prompt": "Which sentence means the same as “He is able to fix computers”?",
+          "options": [
+            {
+              "id": "a",
+              "text": "He must fix computers.",
+              "why": "must means he has to, not that he is able to."
+            },
+            {
+              "id": "b",
+              "text": "He can fix computers."
+            },
+            {
+              "id": "c",
+              "text": "He should fix computers.",
+              "why": "should is advice, not ability."
+            },
+            {
+              "id": "d",
+              "text": "He can fixes computers.",
+              "why": "After can, use the base verb: fix."
+            }
+          ],
+          "answer": "b",
+          "explanation": "be able to = can."
+        }
+      ]
+    },
+    {
+      "id": "asking-politely",
+      "order": 2,
+      "section": "ability",
+      "title": {
+        "en": "Asking Politely",
+        "bn": "ভদ্রভাবে অনুমতি ও অনুরোধ"
+      },
+      "badge": "Can I…? · Could you…? · May I…?",
+      "recap": {
+        "rule": {
+          "en": "Use can, could or may to ask for permission or to ask someone to do something. can is casual; could and may are more polite.",
+          "bn": "অনুমতি চাইতে বা কাউকে কিছু করতে বলতে can, could বা may। can সাধারণ; could আর may বেশি ভদ্র।"
+        },
+        "example": "Can I sit here? · May I come in, sir?"
+      },
+      "questions": [
+        {
+          "id": "asking-politely-1",
+          "prompt": "Which is the most polite way to ask for water?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Give me water.",
+              "why": "This is an order, not a request."
+            },
+            {
+              "id": "b",
+              "text": "I want water.",
+              "why": "This tells, it doesn’t ask, and it can sound rude."
+            },
+            {
+              "id": "c",
+              "text": "Could I have some water, please?"
+            },
+            {
+              "id": "d",
+              "text": "Can I have water?",
+              "why": "This is fine with friends, but could … please is more polite."
+            }
+          ],
+          "answer": "c",
+          "explanation": "could + please is the politest choice."
+        },
+        {
+          "id": "asking-politely-2",
+          "prompt": "You ask your teacher: “___ I leave early today, sir?”",
+          "options": [
+            {
+              "id": "a",
+              "text": "Must",
+              "why": "must is for rules, not for asking permission."
+            },
+            {
+              "id": "b",
+              "text": "Will",
+              "why": "“Will I leave early?” asks about the future, not for permission."
+            },
+            {
+              "id": "c",
+              "text": "May"
+            },
+            {
+              "id": "d",
+              "text": "Do",
+              "why": "“Do I leave early?” asks about a habit or plan, not for permission."
+            }
+          ],
+          "answer": "c",
+          "explanation": "May I…? is a polite way to ask for permission."
+        },
+        {
+          "id": "asking-politely-3",
+          "prompt": "Choose the polite request for “Open the window.”",
+          "options": [
+            {
+              "id": "a",
+              "text": "Could you open the window, please?"
+            },
+            {
+              "id": "b",
+              "text": "Could you opened the window, please?",
+              "why": "After could, use the base verb: open."
+            },
+            {
+              "id": "c",
+              "text": "May you open the window, please?",
+              "why": "We say May I…, not May you…, when we ask someone to do something."
+            },
+            {
+              "id": "d",
+              "text": "You open the window, please.",
+              "why": "This is still an order. Make it a question: Could you…?"
+            }
+          ],
+          "answer": "a",
+          "explanation": "Could you + verb + please? is a polite request."
+        }
+      ]
+    },
+    {
+      "id": "must-have-to",
+      "order": 3,
+      "section": "rules-advice",
+      "title": {
+        "en": "Must / Have to: Obligation",
+        "bn": "Must / Have to: করতেই হবে"
+      },
+      "badge": "must · have to · had to",
+      "recap": {
+        "rule": {
+          "en": "must and have to both mean it is necessary. must often shows the speaker’s own feeling; have to often means a rule. For the past, use had to.",
+          "bn": "must আর have to দুটোরই মানে কাজটি করতেই হবে। must প্রায়ই বক্তার নিজের মনের কথা, have to প্রায়ই বাইরের নিয়ম। অতীতে had to।"
+        },
+        "example": "I must study. · We have to wear uniforms."
+      },
+      "questions": [
+        {
+          "id": "must-have-to-1",
+          "prompt": "Yesterday I ___ go to the doctor.",
+          "options": [
+            {
+              "id": "a",
+              "text": "must",
+              "why": "must has no past form. Use had to for the past."
+            },
+            {
+              "id": "b",
+              "text": "have to",
+              "why": "have to is present, but “yesterday” is past."
+            },
+            {
+              "id": "c",
+              "text": "had to"
+            },
+            {
+              "id": "d",
+              "text": "musted",
+              "why": "There is no word “musted”."
+            }
+          ],
+          "answer": "c",
+          "explanation": "Past obligation: had to."
+        },
+        {
+          "id": "must-have-to-2",
+          "prompt": "She ___ wake up at 6 every day for work.",
+          "options": [
+            {
+              "id": "a",
+              "text": "have to",
+              "why": "With she, use has to."
+            },
+            {
+              "id": "b",
+              "text": "has",
+              "why": "“has wake” is wrong. We need has to + verb."
+            },
+            {
+              "id": "c",
+              "text": "must to",
+              "why": "No “to” after a modal."
+            },
+            {
+              "id": "d",
+              "text": "has to"
+            }
+          ],
+          "answer": "d",
+          "explanation": "she + has to + base verb."
+        },
+        {
+          "id": "must-have-to-3",
+          "prompt": "Which is the past of “I must finish the report”?",
+          "options": [
+            {
+              "id": "a",
+              "text": "I must finished the report.",
+              "why": "must has no past form, and the verb after it stays in the base form."
+            },
+            {
+              "id": "b",
+              "text": "I musted finish the report.",
+              "why": "There is no “musted”."
+            },
+            {
+              "id": "c",
+              "text": "I had to finish the report."
+            },
+            {
+              "id": "d",
+              "text": "I have to finish the report.",
+              "why": "This is still the present."
+            }
+          ],
+          "answer": "c",
+          "explanation": "must → had to in the past."
+        }
+      ]
+    },
+    {
+      "id": "mustnt-dont-have-to",
+      "order": 4,
+      "section": "rules-advice",
+      "title": {
+        "en": "Mustn’t vs. Don’t Have to",
+        "bn": "Mustn’t আর Don’t have to"
+      },
+      "badge": "mustn’t = no · don’t have to = no need",
+      "recap": {
+        "rule": {
+          "en": "mustn’t means it is not allowed. don’t have to means it is not necessary, so you can choose.",
+          "bn": "mustn’t মানে করা নিষেধ। don’t have to মানে করার দরকার নেই, চাইলে করতে পারো।"
+        },
+        "example": "You mustn’t smoke here. · You don’t have to come."
+      },
+      "questions": [
+        {
+          "id": "mustnt-dont-have-to-1",
+          "prompt": "Tomorrow is a holiday. You ___ wake up early.",
+          "options": [
+            {
+              "id": "a",
+              "text": "mustn’t",
+              "why": "mustn’t means not allowed. Waking up early isn’t against a rule."
+            },
+            {
+              "id": "b",
+              "text": "must",
+              "why": "On a holiday, waking up early is not necessary."
+            },
+            {
+              "id": "c",
+              "text": "doesn’t have to",
+              "why": "With you, use don’t, not doesn’t."
+            },
+            {
+              "id": "d",
+              "text": "don’t have to"
+            }
+          ],
+          "answer": "d",
+          "explanation": "No need = don’t have to."
+        },
+        {
+          "id": "mustnt-dont-have-to-2",
+          "prompt": "You ___ use your phone during the exam. It’s against the rules.",
+          "options": [
+            {
+              "id": "a",
+              "text": "don’t have to",
+              "why": "This means no need, but here it is not allowed."
+            },
+            {
+              "id": "b",
+              "text": "must",
+              "why": "must means you are required to use it: the opposite."
+            },
+            {
+              "id": "c",
+              "text": "can",
+              "why": "can means it is allowed, but it is against the rules."
+            },
+            {
+              "id": "d",
+              "text": "mustn’t"
+            }
+          ],
+          "answer": "d",
+          "explanation": "Not allowed = mustn’t."
+        },
+        {
+          "id": "mustnt-dont-have-to-3",
+          "prompt": "“It is not necessary to bring food.” Which means the same?",
+          "options": [
+            {
+              "id": "a",
+              "text": "You mustn’t bring food.",
+              "why": "This says food is not allowed."
+            },
+            {
+              "id": "b",
+              "text": "You don’t have to bring food."
+            },
+            {
+              "id": "c",
+              "text": "You must bring food.",
+              "why": "This says food is necessary."
+            },
+            {
+              "id": "d",
+              "text": "You don’t must bring food.",
+              "why": "This is not English. Say don’t have to."
+            }
+          ],
+          "answer": "b",
+          "explanation": "not necessary = don’t have to."
+        }
+      ]
+    },
+    {
+      "id": "should-ought-to",
+      "order": 5,
+      "section": "rules-advice",
+      "title": {
+        "en": "Should / Ought to: Advice",
+        "bn": "Should / Ought to: পরামর্শ"
+      },
+      "badge": "should / ought to + verb",
+      "recap": {
+        "rule": {
+          "en": "Use should or ought to + verb to give advice or say what is a good idea. shouldn’t means it is a bad idea.",
+          "bn": "পরামর্শ দিতে বা কোনটা ভালো তা বলতে should বা ought to + verb। shouldn’t মানে কাজটি ভালো না।"
+        },
+        "example": "You should rest. · You ought to see a doctor."
+      },
+      "questions": [
+        {
+          "id": "should-ought-to-1",
+          "prompt": "You look tired. You ___ go to bed early.",
+          "options": [
+            {
+              "id": "a",
+              "text": "mustn’t",
+              "why": "mustn’t means not allowed, but going to bed early is a good idea."
+            },
+            {
+              "id": "b",
+              "text": "can’t",
+              "why": "can’t means not able, which doesn’t fit."
+            },
+            {
+              "id": "c",
+              "text": "ought",
+              "why": "ought always needs to: ought to go."
+            },
+            {
+              "id": "d",
+              "text": "should"
+            }
+          ],
+          "answer": "d",
+          "explanation": "should gives advice."
+        },
+        {
+          "id": "should-ought-to-2",
+          "prompt": "You ___ eat so much sugar. It’s bad for your teeth.",
+          "options": [
+            {
+              "id": "a",
+              "text": "shouldn’t"
+            },
+            {
+              "id": "b",
+              "text": "should",
+              "why": "Too much sugar is bad, so the advice must be negative."
+            },
+            {
+              "id": "c",
+              "text": "don’t should",
+              "why": "This is wrong. The negative is shouldn’t."
+            },
+            {
+              "id": "d",
+              "text": "shouldn’t to",
+              "why": "No “to” after should."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Bad idea = shouldn’t + verb."
+        },
+        {
+          "id": "should-ought-to-3",
+          "prompt": "Which means the same as “You should call your mother”?",
+          "options": [
+            {
+              "id": "a",
+              "text": "You ought call your mother.",
+              "why": "ought always needs to: ought to call."
+            },
+            {
+              "id": "b",
+              "text": "You ought to call your mother."
+            },
+            {
+              "id": "c",
+              "text": "You ought to calling your mother.",
+              "why": "After ought to, use the base verb: call."
+            },
+            {
+              "id": "d",
+              "text": "You must to call your mother.",
+              "why": "No “to” after must, and must is stronger than advice."
+            }
+          ],
+          "answer": "b",
+          "explanation": "should = ought to."
+        }
+      ]
+    },
+    {
+      "id": "may-might",
+      "order": 6,
+      "section": "how-sure",
+      "title": {
+        "en": "May / Might / Could: Maybe",
+        "bn": "May / Might / Could: হয়তো"
+      },
+      "badge": "may / might / could = maybe",
+      "recap": {
+        "rule": {
+          "en": "Use may, might or could + verb when something is possible but you are not sure. might is a little less sure.",
+          "bn": "কোনো কিছু সম্ভব কিন্তু নিশ্চিত নও, তখন may, might বা could + verb। might-এ নিশ্চয়তা একটু কম।"
+        },
+        "example": "It might rain. · She may be late."
+      },
+      "questions": [
+        {
+          "id": "may-might-1",
+          "prompt": "Take an umbrella. It ___ rain later.",
+          "options": [
+            {
+              "id": "a",
+              "text": "must",
+              "why": "must means you are sure, but nobody is sure about rain."
+            },
+            {
+              "id": "b",
+              "text": "has to",
+              "why": "has to means it is necessary, which doesn’t fit the weather."
+            },
+            {
+              "id": "c",
+              "text": "mights",
+              "why": "Modals never take -s."
+            },
+            {
+              "id": "d",
+              "text": "might"
+            }
+          ],
+          "answer": "d",
+          "explanation": "Possible but not sure: might."
+        },
+        {
+          "id": "may-might-2",
+          "prompt": "I’m not sure, but Tanvir ___ at home now.",
+          "options": [
+            {
+              "id": "a",
+              "text": "may is",
+              "why": "After may, use the base verb: be."
+            },
+            {
+              "id": "b",
+              "text": "may be"
+            },
+            {
+              "id": "c",
+              "text": "must be",
+              "why": "must be means you are sure, but you said you’re not sure."
+            },
+            {
+              "id": "d",
+              "text": "maybe",
+              "why": "maybe is one word that starts a sentence (Maybe he is at home). Here we need may be."
+            }
+          ],
+          "answer": "b",
+          "explanation": "may + be = possibly is."
+        },
+        {
+          "id": "may-might-3",
+          "prompt": "Which means the same as “Maybe he is busy”?",
+          "options": [
+            {
+              "id": "a",
+              "text": "He might be busy."
+            },
+            {
+              "id": "b",
+              "text": "He must be busy.",
+              "why": "must is for when you are sure."
+            },
+            {
+              "id": "c",
+              "text": "He might is busy.",
+              "why": "After might, use be, not is."
+            },
+            {
+              "id": "d",
+              "text": "He can’t be busy.",
+              "why": "can’t be means you are sure he is not busy."
+            }
+          ],
+          "answer": "a",
+          "explanation": "maybe = might be."
+        }
+      ]
+    },
+    {
+      "id": "must-cant-sure",
+      "order": 7,
+      "section": "how-sure",
+      "title": {
+        "en": "Must / Can’t: Being Sure",
+        "bn": "Must / Can’t: নিশ্চিত অনুমান"
+      },
+      "badge": "must be = sure · can’t be = sure not",
+      "recap": {
+        "rule": {
+          "en": "Use must when you are sure something is true, and can’t when you are sure it is not true.",
+          "bn": "কোনো কিছু নিশ্চয়ই সত্য মনে হলে must, নিশ্চয়ই সত্য না মনে হলে can’t।"
+        },
+        "example": "He must be tired. · That can’t be true."
+      },
+      "questions": [
+        {
+          "id": "must-cant-sure-1",
+          "prompt": "She has worked for 12 hours. She ___ be exhausted.",
+          "options": [
+            {
+              "id": "a",
+              "text": "must"
+            },
+            {
+              "id": "b",
+              "text": "can’t",
+              "why": "After 12 hours of work, she is surely tired, not surely fresh."
+            },
+            {
+              "id": "c",
+              "text": "mustn’t",
+              "why": "mustn’t means not allowed. It isn’t a guess."
+            },
+            {
+              "id": "d",
+              "text": "doesn’t have to",
+              "why": "This is about need, not about being sure."
+            }
+          ],
+          "answer": "a",
+          "explanation": "Sure it is true = must."
+        },
+        {
+          "id": "must-cant-sure-2",
+          "prompt": "You just ate a big lunch. You ___ be hungry already!",
+          "options": [
+            {
+              "id": "a",
+              "text": "must",
+              "why": "You just ate, so you are surely not hungry."
+            },
+            {
+              "id": "b",
+              "text": "can’t"
+            },
+            {
+              "id": "c",
+              "text": "mustn’t",
+              "why": "mustn’t means not allowed. For “sure it’s not true”, use can’t."
+            },
+            {
+              "id": "d",
+              "text": "should",
+              "why": "should is advice, not a guess."
+            }
+          ],
+          "answer": "b",
+          "explanation": "Sure it is not true = can’t."
+        },
+        {
+          "id": "must-cant-sure-3",
+          "prompt": "“I’m sure this is Rafi’s bag.” Which means the same?",
+          "options": [
+            {
+              "id": "a",
+              "text": "This must be Rafi’s bag."
+            },
+            {
+              "id": "b",
+              "text": "This might be Rafi’s bag.",
+              "why": "might means you are not sure."
+            },
+            {
+              "id": "c",
+              "text": "This can’t be Rafi’s bag.",
+              "why": "This means you are sure it is not his."
+            },
+            {
+              "id": "d",
+              "text": "This must is Rafi’s bag.",
+              "why": "After must, use be."
+            }
+          ],
+          "answer": "a",
+          "explanation": "I’m sure = must be."
+        }
+      ]
+    },
+    {
+      "id": "modal-have-v3",
+      "order": 8,
+      "section": "how-sure",
+      "title": {
+        "en": "Should Have / Must Have: The Past",
+        "bn": "Should have / Must have: অতীত নিয়ে"
+      },
+      "badge": "modal + have + V3",
+      "recap": {
+        "rule": {
+          "en": "Use should have + V3 for a regret, must have + V3 when you are sure it happened, might have + V3 for maybe, and can’t have + V3 when you are sure it didn’t.",
+          "bn": "আফসোস বোঝাতে should have + V3, নিশ্চিত ঘটেছে বোঝাতে must have + V3, হয়তো ঘটেছে বোঝাতে might have + V3, নিশ্চিত ঘটেনি বোঝাতে can’t have + V3।"
+        },
+        "example": "I should have studied. · She must have left."
+      },
+      "questions": [
+        {
+          "id": "modal-have-v3-1",
+          "prompt": "I failed the test. I ___ harder.",
+          "options": [
+            {
+              "id": "a",
+              "text": "should study",
+              "why": "The test is over, so talk about the past: should have studied."
+            },
+            {
+              "id": "b",
+              "text": "should have study",
+              "why": "After have, use V3: studied."
+            },
+            {
+              "id": "c",
+              "text": "should of studied",
+              "why": "“should of” is a spelling mistake. Say should have (should’ve)."
+            },
+            {
+              "id": "d",
+              "text": "should have studied"
+            }
+          ],
+          "answer": "d",
+          "explanation": "Regret about the past: should have + V3."
+        },
+        {
+          "id": "modal-have-v3-2",
+          "prompt": "The road is wet. It ___ last night.",
+          "options": [
+            {
+              "id": "a",
+              "text": "must rain",
+              "why": "Last night is the past, so use must have + V3."
+            },
+            {
+              "id": "b",
+              "text": "must have rain",
+              "why": "After have, use V3: rained."
+            },
+            {
+              "id": "c",
+              "text": "must have rained"
+            },
+            {
+              "id": "d",
+              "text": "can’t have rained",
+              "why": "The wet road shows that it did rain."
+            }
+          ],
+          "answer": "c",
+          "explanation": "Sure it happened = must have + V3."
+        },
+        {
+          "id": "modal-have-v3-3",
+          "prompt": "“I’m sure he didn’t see us.” Which means the same?",
+          "options": [
+            {
+              "id": "a",
+              "text": "He must have seen us.",
+              "why": "This means you are sure he did see us."
+            },
+            {
+              "id": "b",
+              "text": "He can’t have saw us.",
+              "why": "After have, use V3: seen, not saw."
+            },
+            {
+              "id": "c",
+              "text": "He can’t have seen us."
+            },
+            {
+              "id": "d",
+              "text": "He shouldn’t have seen us.",
+              "why": "This means it was wrong for him to see us."
+            }
+          ],
+          "answer": "c",
+          "explanation": "Sure it didn’t happen = can’t have + V3."
+        }
+      ]
+    }
+  ]
+}

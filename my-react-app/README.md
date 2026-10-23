@@ -79,10 +79,11 @@ each wrong choice. The quiz code loads only when Grammar is opened, so Play stay
 
 ### More grammar courses
 
-A course picker sits at the top of the Grammar page: **12 Tenses** (the default), then four
+A course picker sits at the top of the Grammar page: **12 Tenses** (the default), then nine
 courses in `src/grammar/courses/`, each one JSON file shaped by `course.schema.json`:
-Subject-Verb Agreement, Articles & Prepositions, Active vs. Passive Voice, and Punctuation &
-Sentence Structure. Each has 3 sections and 8 topic cards; every card has a title, a short
+Subject-Verb Agreement, Articles & Prepositions, Active vs. Passive Voice, Punctuation &
+Sentence Structure, Modals, Conditionals, Reported Speech, Relative Clauses, and
+Comparatives & Superlatives. Each has 3 sections and 8 topic cards; every card has a title, a short
 `badge` (the formula shown on the card, 40 characters at most), a rule recap and 3 questions.
 
 `src/grammar/catalog.js` puts the tenses and the courses into one shape, so the Grammar page
