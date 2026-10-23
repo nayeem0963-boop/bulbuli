@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useLanguage, useMuted } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import BrandMark from './BrandMark.jsx'
-import ZoneToggle from './ZoneToggle.jsx'
+import ZoneToggle, { TrackToggle } from './ZoneToggle.jsx'
 
 function IconButton({ label, pressed, onClick, children, lang }) {
   return (
@@ -22,18 +22,22 @@ function IconButton({ label, pressed, onClick, children, lang }) {
 
 /**
  * The bar across the top of every arcade screen.
- * `game` (optional) turns it into a game bar: a big "All games" button replaces the Play | Learn toggle.
+ * `game` (optional) turns it into a game bar: a big "All games" button replaces the toggles.
+ * `back` ({ to, label }, optional) does the same with another destination (the Grammar quizzes use it).
+ * In the Learn zone a second switch, Coding | Grammar, sits beside Play | Learn.
  */
-export default function ArcadeHeader({ theme, onToggleTheme, game = null, showControls = true }) {
+export default function ArcadeHeader({ theme, onToggleTheme, game = null, back = null, showControls = true }) {
   const [language, , toggleLanguage] = useLanguage()
   const { muted, toggleMuted } = useMuted()
   const text = ARCADE_TEXT[language]
 
+  const backLink = back ?? (game ? { to: '/', label: text.backToGames } : null)
+
   return (
-    <header className={`arcade-header${game ? ' is-game' : ''}`}>
-      {game ? (
-        <Link className="arcade-back" to="/">
-          <span aria-hidden="true">‹</span> {text.backToGames}
+    <header className={`arcade-header${backLink ? ' is-game' : ''}`}>
+      {backLink ? (
+        <Link className="arcade-back" to={backLink.to}>
+          <span aria-hidden="true">‹</span> {backLink.label}
         </Link>
       ) : (
         <>
@@ -41,7 +45,10 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, showCo
             <BrandMark />
             <span>bulbuli</span>
           </Link>
-          <ZoneToggle text={text} />
+          <div className="arcade-toggles">
+            <ZoneToggle text={text} />
+            <TrackToggle text={text} />
+          </div>
         </>
       )}
 

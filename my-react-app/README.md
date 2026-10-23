@@ -44,6 +44,39 @@ The zone lives in the address: `/` is Play, `/?zone=learn` is Learn (`src/arcade
 `useZone()`). So Bulbuli always opens in Play, the Back button steps between zones, and a Learn
 link can be shared. The Math Hero ad is part of the Play zone only.
 
+### Coding and Grammar (inside Learn)
+
+In Learn, a second switch, **Coding | Grammar**, appears beside Play | Learn. It is not shown in
+Play. Both switches are the same `SlideToggle` in `src/arcade/ZoneToggle.jsx`, so they share
+keyboard support (Tab, then the arrow keys).
+
+| Address | Shows |
+| --- | --- |
+| `/` | Play |
+| `/?zone=learn` | Learn, Coding (the default track) |
+| `/?zone=learn&track=grammar` | Learn, Grammar |
+| `/grammar/<tense-id>` | one tense: rule recap, then 5 questions |
+
+`useZone()` and `useLearnTrack()` in `src/arcade/zone.js` read and set these. Opening Learn always
+starts on Coding.
+
+### Grammar: the 12 tense quizzes
+
+Everything for Grammar is in `src/grammar/`:
+
+- `tenses.json`: the 12 modules (Simple Present … Future Perfect Continuous). Each has a recap
+  (when to use it, how to make it, signal words, examples and a tip) and 5 questions. Every
+  question has 4 choices, the right answer's letter, an `explanation`, and a `why` on each wrong
+  choice.
+- `tenses.schema.json`: the JSON Schema for that file.
+- `tenseModules.js`: helpers (groups, look-up, next module, stars).
+- `GrammarZone.jsx`: the list of tenses. `GrammarQuizPage.jsx`: the recap and quiz.
+- `progress.js`: best stars per tense, saved on this device (no sign-in needed).
+
+To change a question, edit `tenses.json` and run `npm test`. `grammar.test.js` checks the file
+against the schema and checks that every question has exactly one right answer and a `why` for
+each wrong choice. The quiz code loads only when Grammar is opened, so Play stays light.
+
 ## Math Hero ad card
 
 `/share/math-hero` shows a shareable Math Hero advert (`src/promo/MathHeroAdCard.jsx`).

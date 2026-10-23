@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { useState, useEffect, useRef } from 'react'
+import { lazy, Suspense, useState, useEffect, useRef } from 'react'
 import { supabase } from './supabaseClient.js'
 import { getAuthRedirectPath } from './utils/authRedirect.js'
 import Dashboard from './routes/Dashboard.jsx'
@@ -10,7 +10,7 @@ import GamePage from './arcade/GamePage.jsx'
 import AdCardPage from './promo/AdCardPage.jsx'
 import { useLanguage } from './arcade/preferences.js'
 import { getGame } from './games/registry.js'
-import { zoneFromSearch } from './arcade/zone.js'
+import { homePlace } from './arcade/zone.js'
 import Login from './routes/Login.jsx'
 import TutorialCatalog from './routes/TutorialCatalog.jsx'
 import TutorialOverview from './routes/TutorialOverview.jsx'
@@ -22,7 +22,13 @@ import { EXAM_CONFIGS } from './utils/comprehensiveExam.js'
 
 const SITE_TITLE = 'Bulbuli: Free Learning Games for Kids'
 const SITE_DESCRIPTION = 'Bulbuli is a free, colourful learning arcade for children under 12. Play Math Hero, Memory Match, Pattern Quest and Type Runner in English or Bangla, no sign-up needed.'
-const isArcadePath = (pathname) => pathname === '/' || pathname.startsWith('/games/') || pathname.startsWith('/share/')
+const isArcadePath = (pathname) => pathname === '/' || ['/games/', '/share/', '/grammar/'].some((start) => pathname.startsWith(start))
+
+const GrammarQuizPage = lazy(() => import('./grammar/GrammarQuizPage.jsx'))
+
+// 'past-perfect-continuous' → 'Past Perfect Continuous' (the quiz data loads only with its page)
+const TENSE_ID = /^(simple|present|past|future)(-(simple|present|past|future|continuous|perfect))*$/
+const tenseTitle = (id) => (id && TENSE_ID.test(id) ? id.replace(/(^|-)([a-z])/g, (_, dash, letter) => `${dash ? ' ' : ''}${letter.toUpperCase()}`) : null)
 
 function RouteTitle() {
   const { pathname, search } = useLocation()
@@ -34,10 +40,18 @@ function RouteTitle() {
     const subjectExamId = pathname.match(/^\/exams\/([^/]+)$/)?.[1]
     const subjectExam = Object.values(EXAM_CONFIGS).find((exam) => exam.id === subjectExamId)
     const game = getGame(pathname.match(/^\/games\/([^/]+)$/)?.[1])
+    const tense = tenseTitle(pathname.match(/^\/grammar\/([^/]+)$/)?.[1])
+    const { track } = homePlace(pathname, search)
     let title = SITE_TITLE
     let description = SITE_DESCRIPTION
 
-    if (pathname === '/' && zoneFromSearch(search) === 'learn') {
+    if (track === 'grammar') {
+      title = 'English Grammar: 12 Tense Quizzes | Bulbuli'
+      description = 'Free English tense quizzes: a short rule recap and 5 questions for each of the 12 tenses, from Simple Present to Future Perfect Continuous.'
+    } else if (tense) {
+      title = `${tense} Quiz: English Tenses | Bulbuli`
+      description = `Learn the ${tense} tense on Bulbuli: read a short rule recap, then answer 5 questions with an explanation for every choice.`
+    } else if (track === 'coding') {
       title = 'Learn to Code: Courses and Exams | Bulbuli'
       description = 'Guided HTML, CSS, JavaScript, GitHub, and React courses with quizzes and exams, for teens and grown-ups.'
     } else if (pathname === '/share/math-hero') {
@@ -238,6 +252,10 @@ function App() {
               <GamePage playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
             } />
             <Route path="/share/math-hero" element={<AdCardPage theme={theme} onToggleTheme={toggleTheme} />} />
+            <Route path="/grammar" element={<Navigate to="/?zone=learn&track=grammar" replace />} />
+            <Route path="/grammar/:moduleId" element={
+              <Suspense fallback={null}><GrammarQuizPage theme={theme} onToggleTheme={toggleTheme} /></Suspense>
+            } />
             <Route path="/math-hero" element={<Navigate to="/games/math-hero" replace />} />
             <Route path="/login" element={<LoginRoute session={session} />} />
             <Route path="/developer" element={member(<Home session={session} />)} />

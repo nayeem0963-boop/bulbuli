@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
 import mascot from '../assets/mascot.webp'
 import mathHeroMascot from '../assets/math-hero-mascot-cutout.webp'
@@ -8,8 +9,11 @@ import ArcadeHeader from './ArcadeHeader.jsx'
 import LearnZone from './LearnZone.jsx'
 import { useLanguage } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
-import { useZone } from './zone.js'
+import { useLearnTrack, useZone } from './zone.js'
 import './arcade.css'
+
+// Grammar carries 60 questions; load them only when someone opens the Grammar track.
+const GrammarZone = lazy(() => import('../grammar/GrammarZone.jsx'))
 
 function GameTile({ game, language, text }) {
   const { Art } = game
@@ -80,22 +84,28 @@ function PlayZone({ language, text, playerId }) {
 
 /**
  * The home page. The Play | Learn toggle in the header picks the zone (see zone.js);
- * Play is the default. Each zone has its own look, set by data-zone on the page.
+ * Play is the default. In Learn, a second Coding | Grammar toggle picks the track.
+ * Each zone has its own look, set by data-zone on the page.
  */
 export default function ArcadeHome({ session, playerId, theme, onToggleTheme }) {
   const [language] = useLanguage()
   const text = ARCADE_TEXT[language]
   const [zone] = useZone()
+  const [track] = useLearnTrack()
 
   return (
-    <div className="arcade" data-zone={zone} lang={language}>
+    <div className="arcade" data-zone={zone} data-track={track ?? undefined} lang={language}>
       <ArcadeHeader theme={theme} onToggleTheme={onToggleTheme} />
 
-      {/* Re-keyed per zone, so each switch plays the entrance animation. */}
-      <main id="main" key={zone} className={`arcade-main zone-panel is-${zone}`}>
-        {zone === 'learn'
-          ? <LearnZone session={session} text={text} />
-          : <PlayZone language={language} text={text} playerId={playerId} />}
+      {/* Re-keyed per zone and track, so each switch plays the entrance animation. */}
+      <main id="main" key={`${zone}-${track}`} className={`arcade-main zone-panel is-${zone}`}>
+        {zone === 'play' && <PlayZone language={language} text={text} playerId={playerId} />}
+        {track === 'coding' && <LearnZone session={session} text={text} />}
+        {track === 'grammar' && (
+          <Suspense fallback={<p className="game-message" role="status">{text.loadingGame}</p>}>
+            <GrammarZone language={language} text={text} />
+          </Suspense>
+        )}
       </main>
 
       <footer className="arcade-footer">

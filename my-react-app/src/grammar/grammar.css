@@ -1,0 +1,301 @@
+/* ------------------------------------------------------------------
+   Grammar (Learn zone): the tense list and the tense quiz.
+   It wears Learn's exercise-book look (teal, thin lines, flat cards) and gives
+   each time its own ink colour: Present teal, Past plum, Future blue.
+   ------------------------------------------------------------------ */
+
+.arcade {
+  --present: #0b7a6b;
+  --past: #8b3fa8;
+  --future: #1f6fc2;
+  --right: #1f8a4c;
+  --right-soft: #dcf5e6;
+  --wrong: #c2410c;
+  --wrong-soft: #ffe6d9;
+}
+
+.app-shell[data-theme='dark'] .arcade {
+  --present: #4fd1b8;
+  --past: #d39af0;
+  --future: #7cb8ff;
+  --right: #5fdc95;
+  --right-soft: #173f2b;
+  --wrong: #ff9a6b;
+  --wrong-soft: #45261a;
+}
+
+.grammar .is-present, .grammar-card.is-present { --time: var(--present); }
+.grammar .is-past, .grammar-card.is-past { --time: var(--past); }
+.grammar .is-future, .grammar-card.is-future { --time: var(--future); }
+
+/* ---------- the timeline in the hero ---------- */
+
+.grammar-art {
+  display: grid;
+  gap: 1.4rem;
+  border: 2px solid var(--learn-line);
+  border-radius: 18px;
+  padding: 1.5rem 1.25rem 1.25rem;
+  background: var(--surface, #fff);
+  box-shadow: 0 6px 0 var(--learn-line);
+  transform: rotate(1.2deg);
+}
+
+.grammar-art-sentence { margin: 0; text-align: center; font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; }
+.grammar-art-sentence mark { border-radius: 6px; padding: 0 0.3rem; color: var(--time); background: color-mix(in srgb, var(--time) 14%, transparent); }
+
+.grammar-art-line {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  font-weight: 800;
+  text-align: center;
+}
+
+/* the arrow of time */
+.grammar-art-line::before {
+  content: '';
+  position: absolute;
+  top: 0.55rem;
+  right: 0.5rem;
+  left: 0.5rem;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--past), var(--present), var(--future));
+}
+
+.grammar-art-line::after {
+  content: '';
+  position: absolute;
+  top: calc(0.55rem - 5px);
+  right: 0;
+  border: 6.5px solid transparent;
+  border-left: 10px solid var(--future);
+  border-right: 0;
+}
+
+.grammar-art-stop { position: relative; display: grid; justify-items: center; gap: 0.45rem; color: var(--time); font-size: 0.95rem; }
+.grammar-art-stop i { width: 1.15rem; height: 1.15rem; border: 3px solid var(--surface, #fff); border-radius: 50%; background: var(--time); box-shadow: 0 0 0 2px var(--time); }
+
+/* ---------- the module cards ---------- */
+
+.arcade .grammar-group h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; color: var(--time); }
+.grammar-group-hint { color: var(--text-muted); font-family: var(--font-body); font-size: 0.95rem; font-weight: 700; }
+
+.grammar-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grammar-card {
+  display: flex;
+  height: 100%;
+  align-items: flex-start;
+  gap: 0.85rem;
+  border: 2px solid var(--learn-line);
+  border-top: 5px solid var(--time);
+  border-radius: 16px;
+  padding: 1rem;
+  color: var(--text);
+  background: var(--surface, #fff);
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.grammar-card:hover { border-color: var(--time); color: var(--text); box-shadow: 0 5px 0 var(--time); transform: translateY(-2px); }
+.grammar-card:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+
+.grammar-card-number {
+  display: grid;
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--time);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.app-shell[data-theme='dark'] .grammar-card-number { color: #10202a; }
+
+.grammar-card-body { display: grid; min-width: 0; gap: 0.25rem; }
+.grammar-card strong { font-size: 1.12rem; line-height: 1.25; }
+.grammar-card-bn { color: var(--text-muted); font-size: 0.92rem; font-weight: 700; }
+
+.grammar-card-form {
+  justify-self: start;
+  border-radius: 8px;
+  padding: 0.15rem 0.45rem;
+  color: var(--time);
+  background: var(--surface-muted, #f2f7f5);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.grammar-card-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 0.75rem; margin-top: 0.35rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; }
+.grammar-card-new { font-style: italic; }
+
+.grammar-stars { display: inline-flex; gap: 0.1rem; color: var(--learn-line); font-size: 1.1rem; line-height: 1; }
+.grammar-stars .is-on { color: #f2a900; }
+
+/* ---------- the quiz page ---------- */
+
+.grammar-stage { width: min(100% - 2rem, 760px); padding: clamp(1rem, 3vw, 2rem) 0 3rem; }
+
+.grammar-recap,
+.grammar-question,
+.grammar-results {
+  border: 2px solid var(--learn-line);
+  border-radius: 22px;
+  padding: clamp(1.25rem, 4vw, 2.25rem);
+  background: var(--surface, #fff);
+  box-shadow: 0 6px 0 var(--learn-line);
+}
+
+.arcade .grammar-recap h1,
+.arcade .grammar-results h1 { margin: 0.2rem 0 0.3rem; color: var(--text); font-size: clamp(1.8rem, 5vw, 2.5rem); line-height: 1.1; }
+.grammar-recap-bn { margin: 0 0 0.5rem; color: var(--text-muted); font-weight: 800; }
+
+.grammar-recap-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem; margin: 1.25rem 0 1rem; }
+.grammar-recap-box { border-radius: 14px; padding: 0.9rem 1rem; background: var(--surface-muted, #f2f7f5); }
+.grammar-recap-box.is-when, .grammar-recap-box.is-form { grid-column: 1 / -1; }
+.arcade .grammar-recap-box h2 { margin: 0 0 0.45rem; color: var(--teal-dark); font-family: var(--font-body); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.grammar-recap-box p { margin: 0; font-size: 1.08rem; line-height: 1.55; }
+
+.grammar-formulas, .grammar-examples, .grammar-chips { margin: 0; padding: 0; list-style: none; }
+.grammar-formulas { display: grid; gap: 0.5rem; }
+.grammar-formulas li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; }
+.grammar-formulas code { border-radius: 8px; padding: 0.2rem 0.55rem; color: var(--teal-dark); background: var(--surface, #fff); font-family: var(--font-body); font-size: 1rem; font-weight: 800; }
+.grammar-formulas span { color: var(--text-muted); font-style: italic; }
+.grammar-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.grammar-chips li { border: 1.5px solid var(--learn-line); border-radius: 999px; padding: 0.2rem 0.7rem; background: var(--surface, #fff); font-weight: 700; }
+.grammar-examples { display: grid; gap: 0.35rem; }
+.grammar-examples li::before { content: '“'; color: var(--teal); font-weight: 800; }
+.grammar-examples li::after { content: '”'; color: var(--teal); font-weight: 800; }
+
+.grammar-tip { margin: 0 0 1.5rem; border-left: 4px solid #f2a900; border-radius: 0 12px 12px 0; padding: 0.7rem 1rem; background: rgb(242 169 0 / 12%); line-height: 1.5; }
+
+.arcade .grammar-begin { min-height: 3.1rem; font-size: 1.15rem; }
+
+.grammar-progress { display: flex; gap: 0.4rem; margin-bottom: 0.9rem; }
+.grammar-progress span { flex: 1; height: 0.5rem; border-radius: 999px; background: var(--learn-line); }
+.grammar-progress .is-done { background: var(--teal); }
+.grammar-progress .is-now { background: var(--teal); opacity: 0.5; }
+
+.grammar-count { margin: 0; color: var(--teal-dark); font-size: 0.9rem; font-weight: 800; }
+
+.grammar-prompt { margin: 0.4rem 0 0.25rem; font-family: var(--font-display); font-size: clamp(1.45rem, 4.5vw, 1.95rem); font-weight: 700; line-height: 1.35; }
+
+.grammar-gap {
+  display: inline-block;
+  min-width: 4.5rem;
+  border-bottom: 3px dashed var(--teal);
+  padding: 0 0.3rem;
+  text-align: center;
+}
+
+.grammar-gap.is-right { border-bottom-style: solid; border-color: var(--right); border-radius: 8px 8px 0 0; color: var(--right); background: var(--right-soft); }
+.grammar-gap.is-wrong { border-bottom-style: solid; border-color: var(--wrong); border-radius: 8px 8px 0 0; color: var(--wrong); background: var(--wrong-soft); text-decoration: line-through; text-decoration-thickness: 2px; }
+
+.grammar-pick { margin: 0 0 1rem; color: var(--text-muted); font-weight: 700; }
+
+.grammar-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
+
+.arcade .grammar-option {
+  display: flex;
+  min-height: 3.4rem;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.7rem;
+  border: 2px solid var(--learn-line);
+  border-radius: 14px;
+  padding: 0.6rem 0.85rem;
+  color: var(--text);
+  background: var(--surface, #fff);
+  box-shadow: 0 3px 0 var(--learn-line);
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, opacity 200ms ease;
+}
+
+.arcade .grammar-option:not(:disabled):hover { border-color: var(--teal); box-shadow: 0 4px 0 var(--teal); transform: translateY(-2px); }
+.arcade .grammar-option:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+.arcade .grammar-option:disabled { cursor: default; opacity: 1; }
+
+.grammar-option-letter {
+  display: grid;
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--teal-dark);
+  background: var(--teal-soft);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.grammar-option-mark { margin-left: auto; font-size: 1.3rem; font-weight: 800; }
+
+.arcade .grammar-option.is-right { border-color: var(--right); color: var(--text); background: var(--right-soft); box-shadow: 0 3px 0 var(--right); }
+.grammar-option.is-right .grammar-option-letter { color: #fff; background: var(--right); }
+.grammar-option.is-right .grammar-option-mark { color: var(--right); }
+.arcade .grammar-option.is-wrong { border-color: var(--wrong); color: var(--text); background: var(--wrong-soft); box-shadow: 0 3px 0 var(--wrong); }
+.grammar-option.is-wrong .grammar-option-letter { color: #fff; background: var(--wrong); }
+.grammar-option.is-wrong .grammar-option-mark { color: var(--wrong); }
+.arcade .grammar-option.is-dim { opacity: 0.55; }
+
+.grammar-feedback-slot { min-height: 1rem; }
+
+.grammar-feedback {
+  display: grid;
+  justify-items: start;
+  gap: 0.45rem;
+  margin-top: 1.1rem;
+  border-left: 5px solid var(--right);
+  border-radius: 0 14px 14px 0;
+  padding: 0.9rem 1.1rem;
+  background: var(--right-soft);
+}
+
+.grammar-feedback.is-wrong { border-color: var(--wrong); background: var(--wrong-soft); }
+.grammar-feedback p { margin: 0; line-height: 1.5; }
+.grammar-feedback .learn-button { margin-top: 0.4rem; }
+.grammar-feedback-title { color: var(--right); font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; }
+.grammar-feedback.is-wrong .grammar-feedback-title { color: var(--wrong); }
+
+.grammar-results { display: grid; justify-items: center; text-align: center; }
+.grammar-results .grammar-stars { font-size: 3rem; gap: 0.3rem; }
+.grammar-results > p { margin: 0 0 0.5rem; font-size: 1.1rem; }
+.grammar-results .learn-actions { justify-content: center; margin-top: 0.75rem; }
+.grammar-new-best { color: #b77f00; font-weight: 800; }
+.app-shell[data-theme='dark'] .grammar-new-best { color: #ffc93c; }
+.grammar-all-done { flex-basis: 100%; margin: 0; font-weight: 800; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .grammar-question, .grammar-recap, .grammar-results { animation: grammar-in 260ms ease-out; }
+  .grammar-feedback { animation: grammar-in 220ms ease-out; }
+  .grammar-results .grammar-stars .is-on { animation: grammar-star 520ms cubic-bezier(0.3, 1.5, 0.5, 1) backwards; }
+  .grammar-results .grammar-stars .is-on:nth-child(2) { animation-delay: 140ms; }
+  .grammar-results .grammar-stars .is-on:nth-child(3) { animation-delay: 280ms; }
+  .grammar-option.is-wrong { animation: grammar-shake 320ms ease; }
+}
+
+@keyframes grammar-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes grammar-star { from { opacity: 0; transform: scale(0.3) rotate(-30deg); } }
+@keyframes grammar-shake { 25% { translate: -5px 0; } 75% { translate: 5px 0; } }
+
+@media (max-width: 640px) {
+  .grammar-art { transform: none; }
+  .grammar-recap-grid, .grammar-options { grid-template-columns: 1fr; }
+}

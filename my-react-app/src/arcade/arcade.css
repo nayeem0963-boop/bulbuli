@@ -106,7 +106,15 @@
 .arcade-brand:hover { color: inherit; }
 .arcade-brand .brand-mark { width: 2.75rem; height: 2.75rem; }
 
-/* ---------- the Play | Learn toggle ---------- */
+/* ---------- the Play | Learn toggle (and, in Learn, Coding | Grammar) ---------- */
+
+.arcade-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.75rem;
+}
+
 
 .zone-toggle {
   position: relative;
@@ -128,10 +136,11 @@
   border-radius: 999px;
   background: var(--sun);
   box-shadow: inset 0 0 0 2px var(--ink);
+  transform: translateX(calc(var(--active, 0) * 100%));
   transition: transform 320ms cubic-bezier(0.3, 1.3, 0.5, 1), background-color 320ms ease;
 }
 
-.zone-toggle.is-learn .zone-toggle-thumb { background: var(--teal); transform: translateX(100%); }
+.zone-toggle.is-learn .zone-toggle-thumb { background: var(--teal); }
 
 .arcade .zone-toggle-option {
   position: relative;
@@ -159,6 +168,43 @@
 .arcade .zone-toggle.is-learn .zone-toggle-option[aria-checked='true'] { color: #fff; }
 .app-shell[data-theme='dark'] .arcade .zone-toggle.is-learn .zone-toggle-option[aria-checked='true'] { color: #062521; }
 .arcade .zone-toggle-option:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+
+/* Coding | Grammar: Learn's calmer version of the same switch (thin teal line, flat, smaller) */
+.zone-toggle.is-track {
+  border: 2px solid var(--teal);
+  padding: 3px;
+  background: var(--surface, #fff);
+  box-shadow: 0 3px 0 var(--learn-line);
+}
+
+.zone-toggle.is-track .zone-toggle-thumb {
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  background: var(--teal);
+  box-shadow: none;
+}
+
+.arcade .zone-toggle.is-track .zone-toggle-option {
+  min-height: 2.35rem;
+  padding: 0 1rem;
+  color: var(--teal-dark);
+  font-size: 1.02rem;
+}
+
+.arcade .zone-toggle.is-track .zone-toggle-option:hover { color: var(--teal-dark); }
+.arcade .zone-toggle.is-track .zone-toggle-option[aria-checked='true'] { color: #fff; }
+.app-shell[data-theme='dark'] .arcade .zone-toggle.is-track .zone-toggle-option[aria-checked='true'] { color: #062521; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* the second switch slides in beside the first when Learn opens */
+  .zone-toggle.is-track { animation: track-toggle-in 360ms cubic-bezier(0.3, 1.3, 0.5, 1); }
+}
+
+@keyframes track-toggle-in {
+  from { opacity: 0; transform: translateX(-12px) scale(0.92); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .zone-toggle-thumb { transition: none; }
@@ -861,7 +907,10 @@
   .arcade-header { flex-wrap: wrap; }
   .arcade-brand { font-size: 1.55rem; }
   .arcade-brand .brand-mark { width: 2.3rem; height: 2.3rem; }
-  .zone-toggle { order: 3; width: 100%; }
+  .arcade-toggles { order: 3; width: 100%; gap: 0.5rem; }
+  .arcade-toggles .zone-toggle { flex: 1 1 15rem; min-width: 0; }
+  .arcade .zone-toggle-option { padding: 0 0.5rem; font-size: 1.05rem; }
+  .arcade .zone-toggle.is-track .zone-toggle-option { padding: 0 0.4rem; font-size: 0.95rem; }
   .arcade-controls { gap: 0.45rem; }
   .arcade .arcade-icon-button,
   .arcade .arcade-lang { min-width: 2.75rem; min-height: 2.75rem; }
