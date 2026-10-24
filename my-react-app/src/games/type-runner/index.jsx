@@ -185,7 +185,7 @@ export default function TypeRunner({ playerId, language }) {
           <div className="tr-track-lane">
             <span className="tr-runner" style={{ '--progress': progress(run) }}>
               <span key={hops} className={hops ? 'tr-runner-bird is-hopping' : 'tr-runner-bird'}>
-                <img src={runnerBird} alt="" width="480" height="264" draggable="false" />
+                <img src={runnerBird} alt="" width="240" height="236" draggable="false" />
               </span>
             </span>
             <span className="tr-finish" aria-hidden="true">🏁</span>

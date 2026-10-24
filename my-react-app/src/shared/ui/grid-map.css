@@ -1,0 +1,217 @@
+/* The grid map shared by the coding games (Code Critter, Bug Hunter). Uses the toy tokens in src/styles/global.css. */
+
+.grid-map {
+  --grid-map-grass: #c4ecaa;
+  --grid-map-grass-2: #b2e297;
+}
+
+.app-shell[data-theme='dark'] .grid-map {
+  --grid-map-grass: #3c7a4f;
+  --grid-map-grass-2: #356d47;
+}
+
+.grid-map {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+  width: 100%;
+  max-width: calc(var(--cols) * 104px);
+  aspect-ratio: var(--cols) / var(--rows);
+  margin: 0 auto;
+  overflow: hidden;
+  border: var(--toy-border);
+  border-radius: 24px;
+  background:
+    conic-gradient(var(--grid-map-grass-2) 25%, transparent 0 50%, var(--grid-map-grass-2) 0 75%, transparent 0)
+      0 0 / calc(200% / var(--cols)) calc(200% / var(--rows)),
+    var(--grid-map-grass);
+  box-shadow: 0 6px 0 var(--ink);
+  user-select: none;
+}
+
+.grid-map-cell { position: relative; display: grid; place-items: center; min-width: 0; }
+
+.grid-map-start {
+  width: 62%;
+  aspect-ratio: 1;
+  border: 3px dashed color-mix(in srgb, var(--ink) 35%, transparent);
+  border-radius: 50%;
+}
+
+.grid-map-nest {
+  position: relative;
+  display: flex;
+  width: 76%;
+  height: 42%;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6%;
+  margin-top: 18%;
+  border: 3px solid var(--ink);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background:
+    repeating-linear-gradient(-30deg, #8a5a2b 0 4px, #a9733d 4px 8px);
+}
+
+.grid-map-nest i {
+  width: 24%;
+  aspect-ratio: 3 / 4;
+  margin-top: -18%;
+  border: 2px solid var(--ink);
+  border-radius: 50% 50% 48% 48% / 60% 60% 40% 40%;
+  background: #f4f0e6;
+}
+
+.grid-map-seed {
+  width: 30%;
+  aspect-ratio: 3 / 4;
+  border: 3px solid var(--ink);
+  border-radius: 50% 50% 46% 46% / 62% 62% 38% 38%;
+  background: radial-gradient(circle at 35% 30%, #fff6c4 0 14%, transparent 16%), #f5b700;
+  box-shadow: 0 3px 0 var(--ink);
+  transform: rotate(-12deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .grid-map-seed { animation: grid-map-glint 1.8s ease-in-out infinite; }
+}
+
+.grid-map-rock {
+  width: 70%;
+  height: 52%;
+  margin-top: 14%;
+  border: 3px solid var(--ink);
+  border-radius: 46% 54% 40% 44% / 60% 62% 38% 40%;
+  background: radial-gradient(circle at 30% 30%, #b9c0cc 0 18%, transparent 20%), #8b94a3;
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.grid-map-tree { font-size: clamp(1.6rem, 7.5vw, 3rem); line-height: 1; }
+
+.grid-map-cell.is-hit { background: color-mix(in srgb, var(--berry) 30%, transparent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .grid-map-cell.is-hit > * { animation: grid-map-wobble 420ms ease; }
+}
+
+/* Bulbuli moves by sliding one cell size at a time. */
+.grid-map-bird {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: calc(100% / var(--cols));
+  height: calc(100% / var(--rows));
+  place-items: center;
+  transform: translate(calc(var(--col) * 100%), calc(var(--row) * 100%));
+  transition: transform 430ms cubic-bezier(0.45, 0.05, 0.3, 1.2);
+  pointer-events: none;
+}
+
+.grid-map-bird img {
+  position: relative;
+  z-index: 1;
+  width: 86%;
+  height: auto;
+  filter: drop-shadow(0 3px 0 rgb(27 42 73 / 28%));
+  transition: transform 220ms ease;
+}
+
+.grid-map-bird img.is-flipped { transform: scaleX(-1); }
+
+/* the arrow around Bulbuli shows which way "forward" is */
+.grid-map-heading {
+  position: absolute;
+  inset: 4%;
+  border: 3px dashed rgb(255 255 255 / 75%);
+  border-radius: 50%;
+  transform: rotate(calc(var(--turns) * 90deg));
+  transition: transform 320ms ease;
+}
+
+.grid-map-heading::before,
+.grid-map-heading::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  translate: -50% 0;
+}
+
+.grid-map-heading::before { top: -14%; width: 30%; aspect-ratio: 1.1; background: var(--ink); }
+.grid-map-heading::after { top: -6%; width: 18%; aspect-ratio: 1.1; background: var(--sun); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .grid-map-bird.is-bump img { animation: grid-map-shake 420ms ease; }
+  .grid-map-bird.is-happy img { animation: grid-map-hop 420ms ease; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-map-bird,
+  .grid-map-bird img,
+  .grid-map-heading { transition: none; }
+}
+
+@keyframes grid-map-shake {
+  0%, 100% { translate: 0 0; }
+  20% { translate: -10% 0; }
+  40% { translate: 9% 0; }
+  60% { translate: -6% 0; }
+  80% { translate: 3% 0; }
+}
+
+@keyframes grid-map-hop {
+  50% { translate: 0 -18%; }
+}
+
+@keyframes grid-map-wobble {
+  25% { rotate: -8deg; }
+  75% { rotate: 6deg; }
+}
+
+@keyframes grid-map-glint {
+  50% { scale: 1.12; }
+}
+
+/* treasure chest goal: the lid swings open when Bulbuli arrives */
+.grid-map-chest {
+  position: relative;
+  width: 64%;
+  height: 46%;
+  margin-top: 16%;
+  border: 3px solid var(--ink);
+  border-radius: 6px 6px 8px 8px;
+  background: linear-gradient(90deg, transparent 44%, #f5b700 44% 56%, transparent 56%), #b0682e;
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.grid-map-chest::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  right: -3px;
+  bottom: 100%;
+  height: 62%;
+  border: 3px solid var(--ink);
+  border-radius: 50% 50% 4px 4px / 90% 90% 4px 4px;
+  background: linear-gradient(90deg, transparent 44%, #f5b700 44% 56%, transparent 56%), #c97a37;
+  transform-origin: 0 100%;
+  transition: transform 380ms cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.grid-map-chest.is-open::before { transform: rotate(-38deg); }
+
+.grid-map-chest.is-open::after {
+  content: '✨';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  font-size: clamp(1rem, 4vw, 1.6rem);
+  translate: -50% -30%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-map-chest::before { transition: none; }
+}

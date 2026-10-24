@@ -63,6 +63,7 @@ Also add `https://bulbuli.org/games/my-game` to `public/sitemap.xml`.
 
 - Sounds: `playSound('click' | 'correct' | 'wrong' | 'complete')` from `src/utils/sound.js` (respects the mute switch).
 - Bangla digits: `formatDigits(value, language)` from `src/utils/mathHeroText.js`.
+- Grid map for coding games: `GridMap` from `src/shared/ui/GridMap.jsx`, driven by `run()` from `src/games/code-critter/engine.js` (Code Critter and Bug Hunter use both).
 - Toy styling tokens: `--ink`, `--toy-border`, `--toy-lift`, `--sun`, `--leaf`, `--berry`, `--sky`, `--grape` in `src/styles/global.css`.
 
 ## A game that is its own app

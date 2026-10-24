@@ -1,0 +1,485 @@
+/* Logic Gate Builder. Uses the arcade's toy tokens (see src/styles/global.css). */
+
+.lg {
+  --lg-high: #ffc93c;
+  --lg-low: #4c5c7a;
+  --lg-unknown: #a8b4cc;
+  --lg-board: #f2f8fd;
+  --lg-board-dot: #d3deee;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-top: 1rem;
+}
+
+.app-shell[data-theme='dark'] .lg {
+  --lg-high: #ffd25e;
+  --lg-low: #8fa0c2;
+  --lg-unknown: #56688f;
+  --lg-board: #14234a;
+  --lg-board-dot: #23396b;
+}
+
+.lg-header { margin-bottom: 1.5rem; }
+.lg-header h1 { margin: 0 0 0.35rem; font-size: clamp(2.3rem, 6vw, 3.4rem); line-height: 1; }
+.lg-header p { margin: 0; max-width: 46rem; font-size: 1.15rem; }
+.lg-header.is-compact { margin-bottom: 1rem; }
+.lg-header.is-compact h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); }
+.lg-header.is-compact p { color: var(--text-muted); font-weight: 700; }
+
+.lg-subheading { margin: 0 0 0.5rem; font-size: 1.4rem; }
+.lg-hint { margin: -0.25rem 0 0.75rem; color: var(--text-muted); font-size: 0.95rem; font-weight: 700; }
+
+/* Every Logic Gate Builder button resets the site-wide button look first. */
+.lg button {
+  border: var(--toy-border);
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.lg button:hover:not(:disabled) { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.lg button:active:not(:disabled) { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+.lg button:focus-visible,
+.lg [role='button']:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
+.lg button:disabled { cursor: not-allowed; opacity: 0.45; }
+
+.lg .lg-primary {
+  min-height: 3.4rem;
+  border-radius: 999px;
+  padding: 0 1.6rem;
+  color: #fff;
+  background: var(--berry);
+  font-size: 1.35rem;
+}
+
+.lg .lg-primary:hover:not(:disabled) { color: #fff; background: #e23744; }
+.app-shell[data-theme='dark'] .lg .lg-primary { color: #1a0509; }
+
+.lg .lg-secondary {
+  min-height: 2.9rem;
+  border-radius: 999px;
+  padding: 0 1.1rem;
+  font-size: 1.05rem;
+}
+
+.lg .lg-secondary.is-small { min-height: 2.5rem; padding: 0 0.9rem; font-size: 0.95rem; box-shadow: 0 3px 0 var(--ink); }
+.lg .lg-secondary:hover:not(:disabled) { background: var(--sun-soft); }
+.app-shell[data-theme='dark'] .lg .lg-secondary:hover:not(:disabled) { background: #fff1c2; }
+
+/* ---------- level picker ---------- */
+
+.lg-levels {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.lg .lg-level {
+  position: relative;
+  display: grid;
+  min-height: 6rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.2rem;
+  border-radius: 22px;
+  padding: 0.75rem 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.lg .lg-level:hover:not(:disabled) { background: var(--sun-soft); }
+.app-shell[data-theme='dark'] .lg .lg-level:hover:not(:disabled) { background: #fff1c2; }
+.lg .lg-level[aria-pressed='true'] { background: var(--sun); }
+.lg .lg-level[aria-pressed='true']::before {
+  content: '✓';
+  position: absolute;
+  top: -0.65rem;
+  right: -0.65rem;
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  place-items: center;
+  border: var(--toy-border);
+  border-radius: 50%;
+  color: #fff;
+  background: var(--leaf);
+  font-size: 1rem;
+}
+
+.lg-level-hint { font-family: var(--font-body); font-size: 0.92rem; font-weight: 700; }
+.lg-start { width: 100%; max-width: 22rem; }
+
+/* stars */
+.lg-stars { display: inline-flex; gap: 0.1rem; line-height: 1; }
+.lg-stars span { color: color-mix(in srgb, var(--ink) 18%, transparent); }
+.lg-stars span.is-on { color: #f5a500; text-shadow: 0 2px 0 var(--ink); }
+.lg-stars.is-sm { font-size: 1.05rem; }
+.lg-stars.is-lg { font-size: 3.2rem; }
+.app-shell[data-theme='dark'] .lg-stars span:not(.is-on) { color: #c9d3e6; }
+.app-shell[data-theme='dark'] .lg-level .lg-stars span:not(.is-on) { color: #9aa6bd; }
+
+/* ---------- bar above the game ---------- */
+
+.lg-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.lg-count {
+  display: grid;
+  min-width: 5.5rem;
+  margin: 0;
+  border: var(--toy-border);
+  border-radius: 18px;
+  padding: 0.25rem 0.9rem;
+  background: var(--surface);
+  line-height: 1.15;
+}
+
+.lg-count span { color: var(--text-muted); font-size: 0.85rem; font-weight: 800; }
+.lg-count strong { font-family: var(--font-display); font-size: 1.5rem; }
+.lg-bar-actions { display: flex; gap: 0.6rem; margin-left: auto; }
+
+/* ---------- controls and messages ---------- */
+
+
+.lg-status {
+  border: var(--toy-border);
+  border-radius: 18px;
+  padding: 0.6rem 1rem;
+  color: var(--ink);
+  background: var(--sky-soft);
+  font-weight: 700;
+}
+
+.lg-status p { margin: 0; }
+.lg-status .lg-status-tip { margin-top: 0.25rem; font-size: 0.92rem; }
+.lg-status.is-win { background: #d5f3e3; }
+.lg-status.is-oops { background: #fff1c2; }
+.app-shell[data-theme='dark'] .lg-status { background: #d7efff; }
+.app-shell[data-theme='dark'] .lg-status.is-win { background: #bfeed5; }
+.app-shell[data-theme='dark'] .lg-status.is-oops { background: #fff1c2; }
+
+/* ---------- win dialog ---------- */
+
+.lg-win-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(14 24 48 / 55%);
+}
+
+.lg-win {
+  width: min(100%, 26rem);
+  border: var(--toy-border);
+  border-radius: 30px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 9px 0 var(--ink);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* let the last row of the power test finish before celebrating */
+  .lg-win-backdrop { animation: lg-fade 260ms ease 380ms both; }
+  .lg-win { animation: lg-win-in 420ms cubic-bezier(0.3, 1.5, 0.5, 1) 380ms both; }
+}
+
+@keyframes lg-fade { from { opacity: 0; } }
+@keyframes lg-win-in { from { opacity: 0; transform: translateY(24px) scale(0.92); } }
+
+.lg-win-cheer {
+  display: inline-block;
+  margin: 0 0 0.5rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.9rem;
+  background: var(--sun);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.lg-win h2 { margin: 0 0 0.25rem; font-size: 2rem; line-height: 1.05; }
+.lg-win p { margin: 0.25rem 0; }
+.lg-win-xp { color: #1f7f55; font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; }
+.lg-win .lg-stars span:not(.is-on) { color: #d5dce8; }
+.lg-win-actions { display: grid; gap: 0.75rem; margin-top: 1.1rem; }
+
+.lg-mission {
+  margin: 0 0 1rem;
+  border-radius: 14px;
+  padding: 0.55rem 0.9rem;
+  color: var(--ink);
+  background: #fff1c2;
+  font-weight: 800;
+}
+
+.lg-hint { margin: 0.5rem 0 0; color: var(--text-muted); font-size: 0.92rem; font-weight: 700; }
+.lg-panel .lg-subheading + .lg-hint { margin: -0.25rem 0 0.75rem; }
+
+/* ---------- layout ---------- */
+
+.lg-play { display: grid; gap: 1.25rem; align-items: start; }
+.lg-bench,
+.lg-side { display: grid; gap: 1rem; min-width: 0; }
+
+@media (min-width: 1000px) {
+  .lg-play { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+  .lg-side { position: sticky; top: 1rem; }
+}
+
+.lg-panel {
+  min-width: 0;
+  border: var(--toy-border);
+  border-radius: 24px;
+  padding: 1rem;
+  background: var(--surface);
+  box-shadow: 0 6px 0 var(--ink);
+}
+
+.lg .lg-test { width: 100%; }
+
+/* ---------- the circuit board ---------- */
+
+.lg-board {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle, var(--lg-board-dot) 1.4px, transparent 1.6px) 0 0 / 20px 20px,
+    var(--lg-board);
+  font-family: var(--font-display);
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.lg-board text { fill: var(--text); font-weight: 800; pointer-events: none; }
+
+.lg-hit { cursor: pointer; outline: none; }
+.lg-board.is-locked .lg-hit { cursor: default; }
+.lg-hit:focus-visible > :first-child { stroke: var(--sky); stroke-width: 5; }
+
+/* signals */
+.lg-lead,
+.lg-wire-line { fill: none; stroke-linecap: round; }
+.lg-lead { stroke: var(--ink); stroke-width: 4; }
+.app-shell[data-theme='dark'] .lg-lead { stroke: #c9d3e6; }
+.lg-lead.is-high { stroke: var(--lg-high); }
+.lg-wire-under { fill: none; stroke: var(--ink); stroke-width: 9; stroke-linecap: round; }
+.lg-wire-line { stroke-width: 5; }
+.lg-wire.is-high .lg-wire-line { stroke: var(--lg-high); stroke-dasharray: 10 8; }
+.lg-wire.is-low .lg-wire-line { stroke: var(--lg-low); }
+.lg-wire.is-unknown .lg-wire-line { stroke: var(--lg-unknown); stroke-dasharray: 3 7; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* current flowing along a live wire */
+  .lg-wire.is-high .lg-wire-line { animation: lg-flow 700ms linear infinite; }
+}
+
+@keyframes lg-flow { to { stroke-dashoffset: -18; } }
+
+/* pins */
+.lg-pin-target { fill: transparent; }
+.lg-pin-dot { fill: #fff; stroke: var(--ink); stroke-width: 3; transition: r 120ms ease; }
+.lg-pin.is-high .lg-pin-dot { fill: var(--lg-high); }
+.lg-pin.is-low .lg-pin-dot { fill: var(--lg-low); }
+.lg-pin:hover .lg-pin-dot { r: 9; }
+.lg-pin.is-picked .lg-pin-target { fill: rgb(63 163 236 / 35%); stroke: var(--sky); stroke-width: 3; }
+.lg-pin.is-candidate .lg-pin-target { fill: rgb(46 158 107 / 28%); stroke: var(--leaf); stroke-width: 2.5; stroke-dasharray: 4 3; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .lg-pin.is-candidate .lg-pin-dot { animation: lg-beckon 900ms ease-in-out infinite; }
+}
+
+@keyframes lg-beckon { 50% { r: 9.5; } }
+
+/* switches */
+.lg-switch rect { fill: #e4e9f2; stroke: var(--ink); stroke-width: 3; transition: fill 160ms ease; }
+.lg-switch.is-on rect { fill: var(--leaf); }
+.lg-switch-knob { fill: #fff; stroke: var(--ink); stroke-width: 3; transition: cx 160ms ease; }
+.lg-board .lg-switch-value { fill: var(--ink); font-size: 14px; }
+.lg-board .lg-switch.is-on .lg-switch-value { fill: #fff; }
+.lg-board .lg-switch-name { font-size: 14px; }
+
+/* sockets and gates */
+.lg-socket rect { fill: rgb(255 255 255 / 55%); stroke: var(--text-muted); stroke-width: 2.5; stroke-dasharray: 7 6; }
+.app-shell[data-theme='dark'] .lg-socket rect { fill: rgb(255 255 255 / 6%); }
+.lg-socket.is-armed rect { stroke: var(--sky); stroke-width: 3.5; fill: rgb(63 163 236 / 16%); }
+.lg-board .lg-socket text { font-size: 13px; fill: var(--text-muted); }
+.lg-board .lg-socket .lg-socket-hint { font-size: 18px; fill: var(--text); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .lg-socket.is-armed rect { animation: lg-march 600ms linear infinite; }
+}
+
+@keyframes lg-march { to { stroke-dashoffset: -13; } }
+
+.lg-gate-body path,
+.lg-bubble { fill: #fff; stroke: var(--ink); stroke-width: 3.5; stroke-linejoin: round; }
+.lg-gate.is-high .lg-gate-body path { fill: #fff6d6; }
+.lg-xor-arc { fill: none; stroke: var(--ink); stroke-width: 3.5; }
+.lg-board .lg-gate-name { fill: var(--ink); font-size: 15px; }
+.lg-board .lg-value { font-size: 15px; }
+.lg-board .lg-value.is-high { fill: #c98a00; }
+.app-shell[data-theme='dark'] .lg-board .lg-value.is-high { fill: var(--lg-high); }
+.lg-board .lg-value.is-unknown { fill: var(--lg-unknown); }
+
+.lg-remove circle { fill: var(--berry-soft); stroke: var(--ink); stroke-width: 2.5; }
+.lg-board .lg-remove text { fill: var(--ink); font-size: 12px; }
+.app-shell[data-theme='dark'] .lg-remove circle { fill: #ffe1e3; }
+
+/* devices */
+.lg-device-lead { stroke: var(--ink); stroke-width: 4; }
+.app-shell[data-theme='dark'] .lg-device-lead { stroke: #c9d3e6; }
+.lg-board .lg-device-name { font-size: 15px; }
+
+.lg-bulb-glow { fill: var(--lg-high); opacity: 0; transition: opacity 220ms ease; }
+.lg-bulb-glass { fill: #eef2f8; stroke: var(--ink); stroke-width: 3.5; transition: fill 220ms ease; }
+.lg-bulb-filament { fill: none; stroke: #8b94a3; stroke-width: 2.5; }
+.lg-bulb-base { fill: #8b94a3; stroke: var(--ink); stroke-width: 3; }
+.lg-device.is-high .lg-bulb-glow { opacity: 0.35; }
+.lg-device.is-high .lg-bulb-glass { fill: var(--lg-high); }
+.lg-device.is-high .lg-bulb-filament { stroke: #c45c00; }
+
+.lg-door-frame { fill: #8a5a2b; stroke: var(--ink); stroke-width: 3.5; }
+.lg-door-gap { fill: #1b2a49; }
+.lg-door-panel rect { fill: #c97a37; stroke: var(--ink); stroke-width: 3; }
+.lg-door-knob { fill: var(--sun); stroke: var(--ink); stroke-width: 2; }
+.lg-door-panel { transition: transform 420ms cubic-bezier(0.3, 1.3, 0.5, 1); }
+.lg-device.is-high .lg-door-panel { transform: scaleX(0.3); }
+
+.lg-house-roof { fill: var(--berry); stroke: var(--ink); stroke-width: 3.5; stroke-linejoin: round; }
+.lg-house-body { fill: #f1c27d; stroke: var(--ink); stroke-width: 3.5; }
+.lg-house-hole { fill: #1b2a49; }
+.lg-house-perch { fill: #8a5a2b; }
+.lg-alarm-light { fill: #c9d3e6; stroke: var(--ink); stroke-width: 3; }
+.lg-device.is-alarm.is-high .lg-alarm-light { fill: #ff3b4b; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .lg-device.is-alarm.is-high .lg-alarm-light { animation: lg-siren 500ms ease-in-out infinite; }
+  .lg-bird.is-won { animation: lg-hop 600ms ease 3; transform-box: fill-box; transform-origin: center bottom; }
+}
+
+@keyframes lg-siren { 50% { fill: #ffd25e; } }
+@keyframes lg-hop { 50% { transform: translateY(-14px) rotate(-6deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-door-panel,
+  .lg-bulb-glow,
+  .lg-bulb-glass,
+  .lg-switch rect,
+  .lg-switch-knob { transition: none; }
+}
+
+/* ---------- gate palette ---------- */
+
+.lg-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: 0.6rem;
+}
+
+.lg-chip {
+  display: grid;
+  gap: 0.1rem;
+  min-height: 3.2rem;
+  border: var(--toy-border);
+  border-radius: 14px;
+  padding: 0.45rem 0.75rem;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift);
+  cursor: grab;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.lg-chip strong { font-family: var(--font-display); font-size: 1.2rem; line-height: 1.1; }
+.lg-chip span { font-size: 0.85rem; font-weight: 700; line-height: 1.25; }
+.lg-chip:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.lg-chip:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
+.lg-chip[aria-pressed='true'] { background: var(--sun); }
+.lg-chip[aria-disabled='true'] { cursor: not-allowed; opacity: 0.5; transform: none; }
+
+/* ---------- truth table ---------- */
+
+.lg-table-wrap { overflow-x: auto; }
+
+.lg-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+.lg-table th,
+.lg-table td { padding: 0.35rem 0.5rem; border-bottom: 2px solid color-mix(in srgb, var(--text) 15%, transparent); }
+.lg-table th { background: var(--surface-muted); font-size: 0.85rem; line-height: 1.15; }
+.lg-table tbody tr:last-child td { border-bottom: 0; }
+.lg-table td { font-size: 1.1rem; font-weight: 800; }
+.lg-table td.is-high { color: #b07800; }
+.app-shell[data-theme='dark'] .lg-table td.is-high { color: var(--lg-high); }
+.lg-table td.is-low { color: var(--text-muted); }
+.lg-table td.is-unknown { color: var(--lg-unknown); }
+.lg-table .is-goal { background: color-mix(in srgb, var(--leaf) 12%, transparent); }
+.lg-table tr.is-current td { background: color-mix(in srgb, var(--sky) 22%, transparent); }
+.lg-table tr.is-bad td { background: color-mix(in srgb, var(--berry) 16%, transparent); }
+.lg-mark { width: 2rem; }
+.lg-table tr.is-bad .lg-mark { color: var(--berry); }
+
+/* ---------- wiring list ---------- */
+
+.lg-wiring summary { cursor: pointer; margin: 0; }
+.lg-wiring[open] summary { margin-bottom: 0.5rem; }
+
+.lg-wiring-group {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  border: 2px solid color-mix(in srgb, var(--text) 20%, transparent);
+  border-radius: 14px;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.lg-wiring-group legend { padding: 0 0.3rem; font-family: var(--font-display); font-weight: 800; }
+.lg-wiring-group label { display: grid; gap: 0.2rem; font-size: 0.9rem; font-weight: 700; }
+
+.lg-wiring-group select {
+  min-height: 2.75rem;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 0 0.6rem;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 520px) {
+  .lg-count { flex: 1; }
+  .lg-panel { padding: 0.75rem; }
+  .lg-board-panel { padding: 0.5rem; }
+  .lg-board { border-radius: 14px; }
+}

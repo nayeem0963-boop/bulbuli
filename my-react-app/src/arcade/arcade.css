@@ -617,7 +617,7 @@
   position: absolute;
   bottom: -4px;
   left: 22%;
-  width: 74px;
+  width: 64px;
   height: auto;
   filter: drop-shadow(0 3px 0 rgb(27 42 73 / 25%));
 }
@@ -641,6 +641,142 @@
 }
 
 .art-typing-keys span.is-next { background: var(--sun); transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+
+/* Code Critter tile */
+
+.art-code { flex-direction: column; gap: 0.75rem; }
+
+.art-code-map {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(2, 44px);
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background:
+    conic-gradient(#b2e297 25%, transparent 0 50%, #b2e297 0 75%, transparent 0) 0 0 / 88px 88px,
+    #c4ecaa;
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.art-code-cell { display: grid; place-items: center; }
+.art-code-bird { width: 38px; height: auto; }
+.art-code-cell.is-rock::after {
+  content: '';
+  width: 28px;
+  height: 20px;
+  border: 3px solid var(--ink);
+  border-radius: 46% 54% 40% 44% / 60% 62% 38% 40%;
+  background: #8b94a3;
+}
+.art-code-seed {
+  width: 14px;
+  height: 18px;
+  border: 2px solid var(--ink);
+  border-radius: 50% 50% 46% 46% / 62% 62% 38% 40%;
+  background: #f5b700;
+  transform: rotate(-12deg);
+}
+.art-code-nest {
+  width: 32px;
+  height: 15px;
+  margin-top: 8px;
+  border: 3px solid var(--ink);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: #a9733d;
+}
+
+.art-code-blocks { display: flex; gap: 0.35rem; }
+
+.art-code-blocks span {
+  display: grid;
+  width: 38px;
+  height: 34px;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #cfe9ff;
+  box-shadow: 0 3px 0 var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.art-code-blocks .is-turn { background: #e6d8fb; }
+.art-code-blocks .is-loop { background: #ffe7a3; font-size: 1rem; }
+
+/* Bug Hunter tile */
+
+.art-bug { gap: 0.6rem; }
+.art-bug-blocks { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.art-bug-blocks span {
+  position: relative;
+  display: grid;
+  width: 92px;
+  height: 34px;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #cfe9ff;
+  box-shadow: 0 3px 0 var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.art-bug-blocks .is-buggy { background: #e6d8fb; outline: 3px dashed var(--berry); outline-offset: 2px; }
+.art-bug-blocks i { position: absolute; top: -12px; right: -14px; font-size: 1.3rem; font-style: normal; }
+.art-bug-lens { font-size: 2.8rem; line-height: 1; transform: rotate(-12deg); }
+
+/* DevCraft Studio tile */
+
+.art-dev { flex-direction: column; gap: 0.6rem; }
+
+.art-dev-window {
+  display: grid;
+  width: 150px;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.art-dev-bar { display: flex; gap: 4px; border-bottom: 3px solid var(--ink); padding: 4px 6px; background: #f2f8fd; }
+.art-dev-bar i { width: 8px; height: 8px; border: 2px solid var(--ink); border-radius: 50%; background: var(--berry); }
+.art-dev-bar i:nth-child(2) { background: var(--sun); }
+.art-dev-bar i:nth-child(3) { background: var(--leaf); }
+.art-dev-row { display: flex; justify-content: center; gap: 8px; padding: 12px 8px; }
+.art-dev-row b { width: 26px; height: 26px; border: 3px solid var(--ink); border-radius: 8px; background: #d7efff; }
+.art-dev-row b.is-accent { background: var(--sun); }
+
+.art-dev-code {
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: 0.15rem 0.55rem;
+  color: #ffd25e;
+  background: #14213d;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* Logic Gate Builder tile */
+
+.art-logic { width: 88%; height: auto; overflow: visible; }
+.art-logic-wire { fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; }
+.art-logic-wire.is-on { stroke: #ffc93c; stroke-width: 4; }
+.art-logic-switch { fill: #2e9e6b; stroke: var(--ink); stroke-width: 3; }
+.art-logic-knob { fill: #fff; stroke: var(--ink); stroke-width: 2.5; }
+.art-logic-gate { fill: #fff; stroke: var(--ink); stroke-width: 3.5; stroke-linejoin: round; }
+.art-logic-label { fill: #1b2a49; font-family: var(--font-display); font-size: 15px; font-weight: 800; text-anchor: middle; }
+.art-logic-bulb { fill: #ffc93c; stroke: var(--ink); stroke-width: 3.5; filter: drop-shadow(0 0 10px rgb(255 201 60 / 90%)); }
+.art-logic-base { fill: #8b94a3; stroke: var(--ink); stroke-width: 3; }
 
 /* ---------- "share Math Hero" strip: the way into /share/math-hero ---------- */
 

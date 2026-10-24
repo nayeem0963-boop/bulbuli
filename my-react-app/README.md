@@ -10,6 +10,10 @@ device. Every game works in English and Bangla.
 | Memory Match | `/games/memory-match` | memory, then matching pictures to written words |
 | Pattern Quest | `/games/pattern-quest` | number and shape patterns, quick sums |
 | Type Runner | `/games/type-runner` | keyboard letters (Speed Keys), then typing words |
+| Code Critter | `/games/code-critter` | first coding: sequencing blocks, loops, and "if path blocked" |
+| Bug Hunter | `/games/bug-hunter` | debugging: find and fix a wrong turn, loop count, missing block or condition |
+| DevCraft Studio | `/games/devcraft-studio` | ages 12+: real CSS (flexbox, grid, spacing, card styling) matched to a target design |
+| Logic Gate Builder | `/games/logic-gate-builder` | ages 12+: Boolean logic with AND, OR, NOT, XOR and NAND gates and truth tables |
 
 To add a game, see [`src/games/README.md`](src/games/README.md).
 

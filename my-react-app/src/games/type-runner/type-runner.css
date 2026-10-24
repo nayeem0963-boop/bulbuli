@@ -157,7 +157,7 @@
 
 .tr-track-lane {
   /* the runner is the bulbul picture (src/assets/bulbul-runner.webp), facing the flag */
-  --runner-w: 104px;
+  --runner-w: 92px;
   position: absolute;
   left: 0.75rem;
   right: calc(0.75rem + 2.5rem); /* room for the flag */
@@ -463,14 +463,14 @@
   .tr-count { flex: 1; }
   .tr-target { min-height: 9rem; }
   .forest { --scene-h: 150px; }
-  .tr-track-lane { --runner-w: 84px; height: 60px; }
+  .tr-track-lane { --runner-w: 76px; height: 60px; }
 }
 
 /* short laptop screens (e.g. 1366 x 768): a slimmer forest and target box keep the whole
    keyboard on screen while racing */
 @media (max-height: 820px) and (min-width: 521px) {
   .forest { --scene-h: 128px; }
-  .tr-track-lane { --runner-w: 76px; height: 54px; }
+  .tr-track-lane { --runner-w: 68px; height: 54px; }
   .tr-header.is-compact { margin-bottom: 0.4rem; }
   .tr-header.is-compact h1 { font-size: 1.7rem; }
   .tr-track,
