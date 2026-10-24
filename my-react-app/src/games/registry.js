@@ -6,6 +6,10 @@ import CodeCritterArt from './code-critter/Art.jsx'
 import BugHunterArt from './bug-hunter/Art.jsx'
 import DevCraftArt from './devcraft-studio/Art.jsx'
 import LogicGateArt from './logic-gate-builder/Art.jsx'
+import Bulbuli3DArt from './bulbuli-3d/Art.jsx'
+import ShapeHuntArt from './shape-hunt/Art.jsx'
+import ShapeSortingArt from './shape-sorting/Art.jsx'
+import SkyRunnerArt from './sky-runner/Art.jsx'
 
 /**
  * Every game in the arcade, in the order it appears on the home page.
@@ -112,6 +116,54 @@ export const GAMES = [
     color: 'sun',
     Art: LogicGateArt,
     load: () => import('./logic-gate-builder/index.jsx'),
+    isNew: true,
+  },
+  {
+    id: 'bulbuli-3d',
+    title: { en: 'Bulbuli 3D', bn: 'বুলবুলি ৩ডি' },
+    tagline: { en: 'Tap the 3D bird to collect stars.', bn: '৩ডি পাখিটাকে ছুঁয়ে তারা জমাও।' },
+    skill: { en: 'Tapping & 3D play', bn: 'ছোঁয়া ও ৩ডি খেলা' },
+    ages: '3–8',
+    color: 'sky',
+    Art: Bulbuli3DArt,
+    // three.js + the 3 MB model load only when this game is opened.
+    load: () => import('./bulbuli-3d/index.jsx'),
+    isNew: true,
+  },
+  {
+    id: 'shape-hunt',
+    title: { en: 'Shape Hunt 3D', bn: 'আকার খোঁজ ৩ডি' },
+    tagline: { en: 'Find the cube, cone or sphere Bulbuli asks for.', bn: 'বুলবুলি যে ঘনক, কোণক বা গোলক চায়, খুঁজে বের করো।' },
+    skill: { en: '3D shapes', bn: 'ত্রিমাত্রিক আকার' },
+    ages: '4–8',
+    color: 'leaf',
+    Art: ShapeHuntArt,
+    // three.js loads only when the game is opened.
+    load: () => import('./shape-hunt/index.jsx'),
+    isNew: true,
+  },
+  {
+    id: 'shape-sorting',
+    title: { en: 'Shape Sorting Factory', bn: 'আকার সাজানোর কারখানা' },
+    tagline: { en: 'Drag each shape into the right bin before it falls off the belt.', bn: 'বেল্ট থেকে পড়ার আগে প্রতিটা আকার ঠিক ঝুড়িতে রাখো।' },
+    skill: { en: 'Shapes, colours & sorting', bn: 'আকার, রং ও সাজানো' },
+    ages: '4–8',
+    color: 'grape',
+    Art: ShapeSortingArt,
+    // three.js loads only when the game is opened; the 3D scene itself is lazy-loaded inside.
+    load: () => import('./shape-sorting/index.jsx'),
+    isNew: true,
+  },
+    {
+    id: 'sky-runner',
+    title: { en: "Bulbuli's Sky Runner", bn: 'বুলবুলির আকাশ দৌড়' },
+    tagline: { en: 'Fly through the sky, collect stars and dodge the rain clouds.', bn: 'আকাশে উড়ে তারা জমাও, বৃষ্টির মেঘ এড়িয়ে চলো।' },
+    skill: { en: 'Reflexes & left / right', bn: 'দ্রুত সাড়া ও বাঁ / ডান' },
+    ages: '4–9',
+    color: 'sky',
+    Art: SkyRunnerArt,
+    // three.js and the Bulbuli model load only when a run starts.
+    load: () => import('./sky-runner/index.jsx'),
     isNew: true,
   },
 ]

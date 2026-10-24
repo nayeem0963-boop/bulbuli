@@ -1,0 +1,66 @@
+/* The 3D canvas and the HTML labels drawn over it (drei <Html>). */
+.ssf-canvas {
+  position: absolute;
+  inset: 0;
+  /* Dragging a shape must not scroll or zoom the page. The rest of the page still scrolls. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ssf-canvas canvas { display: block; outline: none; }
+
+.ssf-fallback {
+  display: grid;
+  height: 100%;
+  margin: 0;
+  padding: 1.5rem;
+  place-items: center;
+  text-align: center;
+  font-weight: 800;
+}
+
+/* Labels never take taps: those belong to the big invisible hit areas in 3D. */
+.ssf-bin-label,
+.ssf-item-label,
+.ssf-3d-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 2px solid #1b2a49;
+  border-radius: 999px;
+  color: #1b2a49;
+  background: #fff;
+  font: 800 1rem/1.2 var(--font-display, system-ui), sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ssf-bin-label {
+  padding: 0.2rem 0.75rem;
+  box-shadow: 0 3px 0 #1b2a49;
+}
+
+.ssf-item-label {
+  padding: 0.12rem 0.6rem;
+  font-size: 0.9rem;
+  background: #ffc93c;
+  animation: ssf-label-in 250ms ease-out both;
+}
+
+.ssf-3d-loading { padding: 0.4rem 1rem; }
+
+@keyframes ssf-label-in {
+  from { transform: translateY(6px) scale(0.8); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  .ssf-bin-label { font-size: 0.85rem; padding: 0.15rem 0.55rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ssf-item-label { animation: none; }
+}

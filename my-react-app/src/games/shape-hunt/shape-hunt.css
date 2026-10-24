@@ -1,0 +1,195 @@
+/* Shape Hunt 3D — follows the toy look of the other arcade games (tokens from src/styles/global.css). */
+.sh {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-top: 1rem;
+}
+
+.sh-header { margin-bottom: 1.25rem; }
+.sh-header h1 { margin: 0 0 0.35rem; font-size: clamp(2.2rem, 6vw, 3.3rem); line-height: 1; }
+.sh-header p { margin: 0; font-size: 1.15rem; }
+.sh-header.is-compact { margin-bottom: 0.75rem; }
+.sh-header.is-compact h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); }
+.sh-header.is-compact p { color: var(--text-muted); font-weight: 700; }
+
+.sh-setup { margin-bottom: 1.5rem; }
+.sh-setup h2 { margin: 0 0 0.75rem; font-size: 1.4rem; }
+
+.sh-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 0.85rem;
+}
+
+/* Every Shape Hunt control resets the site-wide button look first. */
+.sh button {
+  border: var(--toy-border);
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.sh button:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.sh button:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+.sh button:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
+
+.sh .sh-choice {
+  display: grid;
+  min-height: 5.25rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.2rem;
+  border-radius: 22px;
+  padding: 0.75rem 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.sh .sh-choice:hover { background: var(--sky-soft); }
+.sh .sh-choice[aria-pressed='true'] { background: var(--sky); color: #fff; }
+.sh-choice-hint { font-family: var(--font-body); font-size: 0.9rem; font-weight: 700; }
+
+.sh .sh-primary {
+  min-height: 3.6rem;
+  border-radius: 999px;
+  padding: 0 2rem;
+  color: #fff;
+  background: var(--berry);
+  font-size: 1.45rem;
+}
+
+.sh .sh-primary:hover { color: #fff; background: #e23744; }
+.app-shell[data-theme='dark'] .sh .sh-primary { color: #1a0509; }
+
+.sh .sh-secondary {
+  min-height: 2.9rem;
+  border-radius: 999px;
+  padding: 0 1.1rem;
+  font-size: 1.05rem;
+}
+
+.sh .sh-secondary:hover { background: var(--sun-soft); }
+.sh-start { width: 100%; max-width: 22rem; }
+
+/* stars */
+.sh-stars { display: inline-flex; gap: 0.1rem; line-height: 1; }
+.sh-stars span { color: color-mix(in srgb, var(--ink) 18%, transparent); }
+.sh-stars span.is-on { color: #f5a500; text-shadow: 0 2px 0 var(--ink); }
+.sh-stars.is-sm { font-size: 1.05rem; }
+.sh-stars.is-lg { font-size: 3.2rem; }
+.app-shell[data-theme='dark'] .sh-choice .sh-stars span:not(.is-on) { color: #c9d3e6; }
+
+/* prompt bar */
+.sh-prompt {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: var(--toy-border);
+  border-radius: 22px;
+  padding: 0.5rem 0.6rem 0.5rem 1rem;
+  background: var(--surface);
+}
+
+.sh-prompt-text {
+  flex: 1;
+  min-height: 1.3em;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 4.5vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.sh-prompt-text.is-solved { color: var(--leaf); }
+.sh .sh-hear { min-width: 3rem; padding: 0 0.6rem; font-size: 1.3rem; }
+
+/* 3D view */
+.sh-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 72svh;
+  border: var(--toy-border);
+  border-radius: 28px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 20%, #ffffff 0%, var(--sky-soft) 60%, #b9e1ff 100%);
+  /* Taps go to the shapes; a swipe still scrolls the page; no double-tap zoom. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 640px) {
+  .sh-canvas { aspect-ratio: 4 / 3; }
+}
+
+.sh-canvas canvas { display: block; outline: none; }
+
+.sh-fallback {
+  display: grid;
+  height: 100%;
+  margin: 0;
+  padding: 1.5rem;
+  place-items: center;
+  text-align: center;
+  font-weight: 800;
+}
+
+/* name pill under a tapped shape */
+.sh-label {
+  display: inline-block;
+  border: 2px solid #1b2a49;
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  color: #1b2a49;
+  background: #fff;
+  font: 800 0.95rem/1.2 var(--font-display, system-ui), sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sh-label.is-correct { color: #fff; background: #2e9e6b; }
+.sh-label.is-wrong { opacity: 0.85; }
+.sh-label.is-badge { background: #ffc93c; }
+
+.sh-tip { margin: 0.5rem 0 0.75rem; color: var(--text-muted); font-weight: 700; text-align: center; }
+
+/* keyboard buttons */
+.sh-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.sh-keys-hint { width: 100%; color: var(--text-muted); font-size: 0.9rem; font-weight: 700; text-align: center; }
+.sh .sh-key { min-height: 2.6rem; border-radius: 14px; padding: 0 0.9rem; font-size: 0.95rem; }
+.sh .sh-key[aria-disabled='true'] { opacity: 0.45; box-shadow: none; transform: none; }
+
+/* result */
+.sh-result {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  margin: 1rem auto;
+  border: var(--toy-border);
+  border-radius: 28px;
+  padding: 2rem 1.25rem;
+  background: var(--surface);
+  box-shadow: var(--toy-lift);
+  text-align: center;
+}
+
+.sh-result h1 { margin: 0; font-size: clamp(2rem, 6vw, 2.8rem); }
+.sh-result p { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.sh-xp { color: var(--grape); font-family: var(--font-display); font-size: 1.6rem !important; }
+.sh-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 0.75rem; }

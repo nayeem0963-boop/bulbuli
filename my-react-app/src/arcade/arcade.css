@@ -1071,3 +1071,107 @@
 @media (prefers-reduced-motion: no-preference) {
   .loading-bird { animation: egg-wobble 1.2s ease-in-out infinite; }
 }
+
+/* Bulbuli 3D tile: a bird circling on an orbit ring */
+.art-bulbuli-3d { font-size: 3.2rem; }
+.art-b3d-orbit {
+  position: absolute;
+  width: 120px;
+  height: 46px;
+  border: 3px dashed currentColor;
+  border-radius: 50%;
+  opacity: 0.35;
+  transform: translateY(24px);
+}
+.art-b3d-bird { position: relative; animation: art-b3d-bob 2.4s ease-in-out infinite; }
+.art-b3d-star { position: absolute; top: 14%; right: 24%; font-size: 1.4rem; }
+@keyframes art-b3d-bob {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-8px) rotate(6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-b3d-bird { animation: none; }
+}
+
+/* Shape Hunt 3D tile: a shaded cube, ball and cone */
+.art-shape-hunt { gap: 0.9rem; align-items: flex-end; padding-bottom: 0.4rem; }
+.art-sh-cube {
+  width: 52px;
+  height: 52px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffd27a 0 50%, #ffb347 50%);
+  transform: rotate(-8deg);
+}
+.art-sh-ball {
+  width: 58px;
+  height: 58px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 8%, #6bcb77 30%, #2e9e6b 100%);
+  animation: art-sh-bounce 1.8s ease-in-out infinite;
+}
+.art-sh-cone {
+  width: 0;
+  height: 0;
+  border-right: 28px solid transparent;
+  border-bottom: 62px solid #4d96ff;
+  border-left: 28px solid transparent;
+}
+@keyframes art-sh-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-sh-ball { animation: none; }
+}
+
+/* Shape Sorting Factory tile: a cube and ball riding a belt towards a bin */
+.art-shape-sorting { gap: 0.6rem; align-items: flex-end; padding-bottom: 0.4rem; }
+.art-ss-belt {
+  position: relative;
+  display: flex;
+  width: 104px;
+  height: 14px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: repeating-linear-gradient(90deg, #3d4a63 0 10px, #5b6886 10px 14px);
+  margin-bottom: 18px;
+}
+.art-ss-cube,
+.art-ss-ball {
+  position: absolute;
+  bottom: 12px;
+  border: 3px solid var(--ink);
+  animation: art-ss-ride 2.4s linear infinite;
+}
+.art-ss-cube {
+  left: 4px;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ffd27a 0 50%, #ffb347 50%);
+}
+.art-ss-ball {
+  left: 46px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 8%, #4d96ff 35%, #2d6fd6 100%);
+  animation-delay: -1.2s;
+}
+.art-ss-bin {
+  width: 50px;
+  height: 40px;
+  border: 3px solid var(--ink);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, #a77bff, #7f5ae0);
+}
+@keyframes art-ss-ride {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(14px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-ss-cube, .art-ss-ball { animation: none; }
+}

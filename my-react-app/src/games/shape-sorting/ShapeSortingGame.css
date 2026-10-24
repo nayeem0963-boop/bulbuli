@@ -1,0 +1,282 @@
+/* Shape Sorting Factory — toy look shared with the other arcade games (tokens from src/styles/global.css). */
+.ssf {
+  max-width: 820px;
+  margin: 0 auto;
+  padding-top: 1rem;
+}
+
+.ssf-header { margin-bottom: 1.25rem; }
+.ssf-header h1 { margin: 0 0 0.35rem; font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; }
+.ssf-header p { margin: 0; font-size: 1.15rem; }
+.ssf-header.is-compact { margin-bottom: 0.65rem; }
+.ssf-header.is-compact h1 { font-size: clamp(1.5rem, 4.6vw, 2.2rem); }
+.ssf-header.is-compact p { color: var(--text-muted); font-weight: 700; }
+
+.ssf-setup { margin-bottom: 1.5rem; }
+.ssf-setup h2 { margin: 0 0 0.75rem; font-size: 1.4rem; }
+
+.ssf-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 0.85rem;
+}
+
+/* Every control resets the site-wide button look first. */
+.ssf button {
+  border: var(--toy-border);
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.ssf button:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.ssf button:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+.ssf button:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
+
+.ssf .ssf-choice {
+  display: grid;
+  min-height: 5.25rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.2rem;
+  border-radius: 22px;
+  padding: 0.75rem 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.ssf .ssf-choice:hover { background: var(--grape-soft, var(--sky-soft)); }
+.ssf .ssf-choice[aria-pressed='true'] { background: var(--grape); color: #fff; }
+.ssf-choice-hint { font-family: var(--font-body); font-size: 0.9rem; font-weight: 700; text-align: center; }
+
+.ssf .ssf-primary {
+  min-height: 3.6rem;
+  border-radius: 999px;
+  padding: 0 2rem;
+  color: #fff;
+  background: var(--berry);
+  font-size: 1.45rem;
+}
+
+.ssf .ssf-primary:hover { color: #fff; background: #e23744; }
+.app-shell[data-theme='dark'] .ssf .ssf-primary { color: #1a0509; }
+
+.ssf .ssf-secondary {
+  min-height: 2.9rem;
+  border-radius: 999px;
+  padding: 0 1.1rem;
+  font-size: 1.05rem;
+}
+
+.ssf .ssf-secondary:hover { background: var(--sun-soft); }
+.ssf-start { width: 100%; max-width: 22rem; }
+
+/* stars */
+.ssf-stars { display: inline-flex; gap: 0.1rem; line-height: 1; }
+.ssf-stars span { color: color-mix(in srgb, var(--ink) 18%, transparent); }
+.ssf-stars span.is-on { color: #f5a500; text-shadow: 0 2px 0 var(--ink); }
+.ssf-stars.is-sm { font-size: 1.05rem; }
+.ssf-stars.is-lg { font-size: 3.2rem; }
+.ssf-choice[aria-pressed='true'] .ssf-stars span:not(.is-on) { color: rgb(255 255 255 / 45%); }
+.app-shell[data-theme='dark'] .ssf-choice .ssf-stars span:not(.is-on) { color: #c9d3e6; }
+
+/* HUD: progress, points, pause */
+.ssf-hud {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.65rem;
+}
+
+.ssf-progress {
+  flex: 1;
+  height: 1.1rem;
+  border: var(--toy-border);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.ssf-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--leaf), #9be37a);
+  transition: width 400ms ease;
+}
+
+.ssf-points {
+  min-width: 5.5rem;
+  color: var(--grape);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ssf .ssf-pause { min-height: 2.6rem; padding: 0 0.9rem; font-size: 0.95rem; white-space: nowrap; }
+
+/* prompt bar */
+.ssf-prompt {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: var(--toy-border);
+  border-radius: 22px;
+  padding: 0.5rem 0.6rem 0.5rem 1rem;
+  background: var(--surface);
+}
+
+.ssf-prompt-text {
+  flex: 1;
+  min-height: 2.4em;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.ssf-prompt-text.is-solved { color: var(--leaf); }
+.ssf .ssf-hear { min-width: 3rem; padding: 0 0.6rem; font-size: 1.3rem; }
+
+/* 3D stage: holds the Suspense loader, the canvas and the pause overlay */
+.ssf-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.08;
+  max-height: 74svh;
+  border: var(--toy-border);
+  border-radius: 28px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fdfcf7 0%, #e6f3ff 55%, #cfe6fb 100%);
+}
+
+@media (min-width: 640px) {
+  .ssf-stage { aspect-ratio: 16 / 9; }
+}
+
+.ssf-stage-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.ssf-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 6px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  border-top-color: var(--grape);
+  border-radius: 50%;
+  animation: ssf-spin 0.9s linear infinite;
+}
+
+@keyframes ssf-spin { to { transform: rotate(360deg); } }
+
+.ssf .ssf-paused {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.6rem;
+  border: 0;
+  border-radius: 0;
+  color: #fff;
+  background: rgb(27 42 73 / 55%);
+  box-shadow: none;
+  font-size: 1.6rem;
+}
+
+.ssf .ssf-paused:hover,
+.ssf .ssf-paused:active { color: #fff; transform: none; box-shadow: none; }
+
+.ssf-paused-cta {
+  justify-self: center;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0.4rem 1.2rem;
+  color: var(--ink);
+  background: var(--sun, #ffc93c);
+  font-size: 1.2rem;
+}
+
+.ssf-tip { margin: 0.5rem 0 0.75rem; color: var(--text-muted); font-weight: 700; text-align: center; }
+
+/* keyboard buttons */
+.ssf-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.ssf-keys-hint { width: 100%; color: var(--text-muted); font-size: 0.9rem; font-weight: 700; text-align: center; }
+
+.ssf .ssf-key {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 14px;
+  padding: 0 1rem;
+  font-size: 1rem;
+}
+
+.ssf .ssf-key[aria-disabled='true'] { opacity: 0.45; box-shadow: none; transform: none; cursor: default; }
+
+/* result */
+.ssf-result {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  margin: 1rem auto;
+  border: var(--toy-border);
+  border-radius: 28px;
+  padding: 2rem 1.25rem;
+  background: var(--surface);
+  box-shadow: var(--toy-lift);
+  text-align: center;
+}
+
+.ssf-result-badge { font-size: 3rem; line-height: 1; animation: ssf-pop 600ms cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+.ssf-result h1 { margin: 0; font-size: clamp(1.9rem, 6vw, 2.7rem); }
+.ssf-result p { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.ssf-points-line { color: var(--text-muted); }
+.ssf-xp { color: var(--grape); font-family: var(--font-display); font-size: 1.6rem !important; }
+.ssf-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 0.75rem; }
+
+@keyframes ssf-pop {
+  from { transform: scale(0.3) rotate(-20deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.ssf-swatch {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid #1b2a49;
+  border-radius: 50%;
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ssf-spinner { animation-duration: 2.5s; }
+  .ssf-result-badge { animation: none; }
+  .ssf-progress span { transition: none; }
+}

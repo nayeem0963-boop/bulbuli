@@ -1,0 +1,93 @@
+/* Bulbuli's Sky Runner — the 3D play area. Toy look tokens come from src/styles/global.css. */
+.sr-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 78svh;
+  border: var(--toy-border, 3px solid #1b2a49);
+  border-radius: 28px;
+  overflow: hidden;
+  /* The sky lives in CSS (the canvas is transparent), so it costs the GPU nothing. */
+  background:
+    radial-gradient(circle at 78% 14%, rgb(255 244 200 / 95%) 0 5%, rgb(255 236 170 / 35%) 9%, transparent 20%),
+    linear-gradient(180deg, #7cc4ff 0%, #a9dbff 40%, #dff1ff 70%, #f4faff 100%);
+  /* Swipes steer Bulbuli: no page scroll, zoom or text selection inside the play area. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .sr-canvas { aspect-ratio: 16 / 10; }
+}
+
+.sr-canvas canvas { display: block; outline: none; }
+
+.sr-canvas.is-paused { cursor: default; }
+.sr-canvas.is-paused canvas { filter: saturate(0.6) brightness(0.95); }
+
+/* Night theme: a dusk sky so the canvas doesn't glare in the dark app. */
+.app-shell[data-theme='dark'] .sr-canvas {
+  background:
+    radial-gradient(circle at 78% 14%, rgb(255 236 200 / 70%) 0 4%, transparent 14%),
+    linear-gradient(180deg, #3b4f8f 0%, #6c7fc4 45%, #b6c4ec 80%, #dfe6fa 100%);
+}
+
+.sr-fallback {
+  display: grid;
+  height: 100%;
+  margin: 0;
+  padding: 1.5rem;
+  place-items: center;
+  color: var(--ink, #1b2a49);
+  text-align: center;
+  font-weight: 800;
+}
+
+.sr-loading {
+  display: inline-block;
+  border: 2px solid #1b2a49;
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  color: #1b2a49;
+  background: #fff;
+  font: 800 1rem/1.2 var(--font-display, system-ui), sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Tap-left / tap-right hints along the bottom edge. */
+.sr-hints {
+  position: absolute;
+  inset: auto 0 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1rem;
+  pointer-events: none;
+}
+
+.sr-hint {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border: 3px solid #1b2a49;
+  border-radius: 50%;
+  color: #1b2a49;
+  background: rgb(255 255 255 / 75%);
+  font-size: 1.2rem;
+  animation: sr-hint-pulse 1.6s ease-in-out infinite;
+}
+
+.sr-hint.is-right { animation-delay: 0.8s; }
+
+@keyframes sr-hint-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.75; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-hint { animation: none; }
+}
