@@ -37,6 +37,23 @@
     <loc>https://bulbuli.org/games/shape-sorting</loc>
   </url>
   <url>
+    <loc>https://bulbuli.org/games/skyward-explorer</loc>
+  </url>
+  <url>
     <loc>https://bulbuli.org/share/math-hero</loc>
   </url>
 </urlset>
+
+<!-- 3D Adventure Games -->
+  <url>
+    <loc>https://lovebird-pics.netlify.app/play/skyward-explorer</loc>
+    <lastmod>2026-10-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lovebird-pics.netlify.app/play/sky-runner</loc>
+    <lastmod>2026-10-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>

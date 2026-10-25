@@ -1,10 +1,10 @@
 import { useRef } from 'react'
-import { LEARN_TRACKS, useLearnTrack, useZone, ZONES } from './zone.js'
+import { LEARN_TRACKS, PLAY_CATEGORIES, useGameCategory, useLearnTrack, useZone, ZONES } from './zone.js'
 
 /**
  * A two-way sliding switch. A thumb slides under the active option.
  * It is a radio group: Tab reaches it, the arrow keys switch, Enter/Space or a click picks one.
- * Both the Play | Learn and the Coding | Grammar switches are built from it.
+ * The Play | Learn, Coding | Grammar and Educational | Adventure switches are all built from it.
  */
 function SlideToggle({ options, value, onChange, label, className }) {
   const buttons = useRef({})
@@ -49,6 +49,7 @@ function SlideToggle({ options, value, onChange, label, className }) {
 
 const ZONE_ICONS = { play: '🎮', learn: '📘' }
 const TRACK_ICONS = { coding: '💻', grammar: '✏️' }
+const CATEGORY_ICONS = { educational: '🧠', adventure: '🗺️' }
 
 /** Play | Learn. */
 export default function ZoneToggle({ text }) {
@@ -77,6 +78,25 @@ export function TrackToggle({ text }) {
       value={track}
       onChange={setTrack}
       options={LEARN_TRACKS.map((id) => ({ id, icon: TRACK_ICONS[id], label: labels[id] }))}
+    />
+  )
+}
+
+/**
+ * Educational | Adventure. Play's twin of the Coding | Grammar switch: same component, same look
+ * (it shares the is-track styles). Shown only on the Play home page; renders nothing anywhere else.
+ */
+export function CategoryToggle({ text }) {
+  const [category, setCategory] = useGameCategory()
+  if (!category) return null
+  const labels = { educational: text.categoryEducational, adventure: text.categoryAdventure }
+  return (
+    <SlideToggle
+      className="is-track is-category"
+      label={text.categoryLabel}
+      value={category}
+      onChange={setCategory}
+      options={PLAY_CATEGORIES.map((id) => ({ id, icon: CATEGORY_ICONS[id], label: labels[id] }))}
     />
   )
 }

@@ -1,6 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { DEFAULT_TRACK, DEFAULT_ZONE, homePlace, trackFromSearch, zoneFromSearch, zonePath } from './zone.js'
+import {
+  categoryFromSearch, DEFAULT_CATEGORY, DEFAULT_TRACK, DEFAULT_ZONE, homePlace, launchedGameFromSearch, launchPath,
+  trackFromSearch, zoneFromSearch, zonePath,
+} from './zone.js'
 
 test('Bulbuli opens in Play unless the address asks for Learn', () => {
   assert.equal(DEFAULT_ZONE, 'play')
@@ -29,9 +32,40 @@ test('Learn opens on Coding; Grammar has its own address', () => {
 })
 
 test('the Coding | Grammar switch only exists in Learn', () => {
-  assert.deepEqual(homePlace('/', ''), { zone: 'play', track: null })
-  assert.deepEqual(homePlace('/', '?track=grammar'), { zone: 'play', track: null })
-  assert.deepEqual(homePlace('/', '?zone=learn'), { zone: 'learn', track: 'coding' })
-  assert.deepEqual(homePlace('/', '?zone=learn&track=grammar'), { zone: 'learn', track: 'grammar' })
-  assert.deepEqual(homePlace('/games/memory-match', '?zone=learn'), { zone: 'play', track: null })
+  assert.equal(homePlace('/', '').track, null)
+  assert.equal(homePlace('/', '?track=grammar').track, null)
+  assert.equal(homePlace('/', '?zone=learn').track, 'coding')
+  assert.equal(homePlace('/', '?zone=learn&track=grammar').track, 'grammar')
+  assert.equal(homePlace('/games/memory-match', '?zone=learn').track, null)
+})
+
+test('Play opens on Educational; Adventure has its own address', () => {
+  assert.equal(DEFAULT_CATEGORY, 'educational')
+  assert.equal(categoryFromSearch(''), 'educational')
+  assert.equal(categoryFromSearch('?category=adventure'), 'adventure')
+  assert.equal(categoryFromSearch('?category=nonsense'), 'educational')
+  assert.equal(zonePath('play', 'educational'), '/')
+  assert.equal(zonePath('play', 'adventure'), '/?category=adventure')
+  // a category means nothing in Learn
+  assert.equal(zonePath('learn', 'adventure'), '/?zone=learn')
+  for (const category of ['educational', 'adventure']) {
+    assert.equal(categoryFromSearch(zonePath('play', category).replace('/', '')), category)
+  }
+})
+
+test('the Educational | Adventure switch only exists on the Play home page', () => {
+  assert.deepEqual(homePlace('/', ''), { zone: 'play', track: null, category: 'educational' })
+  assert.deepEqual(homePlace('/', '?category=adventure'), { zone: 'play', track: null, category: 'adventure' })
+  assert.deepEqual(homePlace('/', '?zone=learn&category=adventure'), { zone: 'learn', track: 'coding', category: null })
+  assert.deepEqual(homePlace('/games/sky-runner', '?category=adventure'), { zone: 'play', track: null, category: null })
+})
+
+test('a game opened in the launcher has its own address on its side of the Play switch', () => {
+  assert.equal(launchPath('adventure', 'skyward-explorer'), '/?category=adventure&play=skyward-explorer')
+  assert.equal(launchPath('educational', 'math-hero'), '/?play=math-hero')
+  const search = launchPath('adventure', 'skyward-explorer').replace('/', '')
+  assert.equal(launchedGameFromSearch(search), 'skyward-explorer')
+  assert.equal(categoryFromSearch(search), 'adventure') // the grid behind it stays on Adventure
+  assert.equal(launchedGameFromSearch(''), null)
+  assert.equal(launchedGameFromSearch('?play=<script>'), null)
 })

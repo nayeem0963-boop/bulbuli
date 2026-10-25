@@ -1,26 +1,37 @@
-import { lazy, Suspense } from 'react'
-import { Link } from 'react-router-dom'
+import { lazy, Suspense, useCallback } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import mascot from '../assets/mascot.webp'
 import mathHeroMascot from '../assets/math-hero-mascot-cutout.webp'
-import { GAMES } from '../games/registry.js'
+import { GAMES, gamesInCategory, getGame } from '../games/registry.js'
 import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
 import { formatDigits } from '../utils/mathHeroText.js'
 import ArcadeHeader from './ArcadeHeader.jsx'
 import LearnZone from './LearnZone.jsx'
 import { useLanguage } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
-import { useLearnTrack, useZone } from './zone.js'
+import { launchedGameFromSearch, launchPath, useGameCategory, useLearnTrack, useZone, zonePath } from './zone.js'
 import './arcade.css'
 
 // Grammar carries 60 questions; load them only when someone opens the Grammar track.
 const GrammarZone = lazy(() => import('../grammar/GrammarZone.jsx'))
+// The game launcher (and the game inside it) load only when a launcher tile is opened.
+const GameModal = lazy(() => import('./GameModal.jsx'))
 
 function GameTile({ game, language, text }) {
   const { Art } = game
   const title = game.title[language]
+  // launcher games open in a dialog on this page (see GameModal.jsx); the rest open their own page
+  const modal = game.launch === 'modal'
+  const to = modal ? launchPath(game.category, game.id) : `/games/${game.id}`
   return (
     <li className={`game-tile is-${game.color}`}>
-      <Link className="game-tile-link" to={`/games/${game.id}`} aria-label={text.playGame(title)}>
+      <Link
+        className="game-tile-link"
+        to={to}
+        state={modal ? { fromTile: true } : undefined}
+        aria-label={text.playGame(title)}
+        aria-haspopup={modal ? 'dialog' : undefined}
+      >
         <div className="game-tile-art">
           <Art />
           {game.isNew && <span className="game-tile-badge">{text.newBadge}</span>}
@@ -39,10 +50,33 @@ function GameTile({ game, language, text }) {
   )
 }
 
-/** The Play zone: the games, and the Math Hero ad (shown only here). */
-function PlayZone({ language, text, playerId }) {
+/** The launcher dialog for '?play=<id>', when that game opens in one. */
+function Launcher({ language, text, playerId, category }) {
+  const { search, state } = useLocation()
+  const navigate = useNavigate()
+  const game = getGame(launchedGameFromSearch(search))
+  const close = useCallback(() => {
+    // opened from a tile: step back, so Back after closing doesn't reopen it; opened from a link: just leave
+    if (state?.fromTile) navigate(-1)
+    else navigate(zonePath('play', category), { replace: true })
+  }, [navigate, state, category])
+  if (!game || game.launch !== 'modal') return null
+  return (
+    <Suspense fallback={null}>
+      <GameModal game={game} playerId={playerId} language={language} text={text} onClose={close} />
+    </Suspense>
+  )
+}
+
+/**
+ * The Play zone: the games in the chosen category (Educational or Adventure),
+ * and the Math Hero ad (shown only here).
+ */
+function PlayZone({ language, text, playerId, category }) {
   const { gamification } = useTutorialProgress(playerId)
   const xp = formatDigits(gamification.totalXp, language)
+  const games = gamesInCategory(GAMES, category)
+  const categoryName = category === 'adventure' ? text.categoryAdventure : text.categoryEducational
 
   return (
     <>
@@ -59,9 +93,9 @@ function PlayZone({ language, text, playerId }) {
       </section>
 
       <section className="arcade-games" aria-labelledby="games-heading">
-        <h2 id="games-heading" className="visually-hidden">{text.gamesHeading}</h2>
+        <h2 id="games-heading" className="visually-hidden">{text.gamesHeadingFor(categoryName)}</h2>
         <ul className="game-grid">
-          {GAMES.map((game) => <GameTile key={game.id} game={game} language={language} text={text} />)}
+          {games.map((game) => <GameTile key={game.id} game={game} language={language} text={text} />)}
           <li className="game-tile is-hatching" aria-label={text.hatchingTitle}>
             <span className="hatching-egg" aria-hidden="true">🥚</span>
             <h3>{text.hatchingTitle}</h3>
@@ -84,7 +118,8 @@ function PlayZone({ language, text, playerId }) {
 
 /**
  * The home page. The Play | Learn toggle in the header picks the zone (see zone.js);
- * Play is the default. In Learn, a second Coding | Grammar toggle picks the track.
+ * Play is the default. A second toggle picks within the zone:
+ * Educational | Adventure in Play, Coding | Grammar in Learn.
  * Each zone has its own look, set by data-zone on the page.
  */
 export default function ArcadeHome({ session, playerId, theme, onToggleTheme }) {
@@ -92,14 +127,15 @@ export default function ArcadeHome({ session, playerId, theme, onToggleTheme }) 
   const text = ARCADE_TEXT[language]
   const [zone] = useZone()
   const [track] = useLearnTrack()
+  const [category] = useGameCategory()
 
   return (
-    <div className="arcade" data-zone={zone} data-track={track ?? undefined} lang={language}>
+    <div className="arcade" data-zone={zone} data-track={track ?? undefined} data-category={category ?? undefined} lang={language}>
       <ArcadeHeader theme={theme} onToggleTheme={onToggleTheme} />
 
-      {/* Re-keyed per zone and track, so each switch plays the entrance animation. */}
-      <main id="main" key={`${zone}-${track}`} className={`arcade-main zone-panel is-${zone}`}>
-        {zone === 'play' && <PlayZone language={language} text={text} playerId={playerId} />}
+      {/* Re-keyed per zone, track and category, so each switch plays the entrance animation. */}
+      <main id="main" key={`${zone}-${track}-${category}`} className={`arcade-main zone-panel is-${zone}`}>
+        {zone === 'play' && <PlayZone language={language} text={text} playerId={playerId} category={category} />}
         {track === 'coding' && <LearnZone session={session} text={text} />}
         {track === 'grammar' && (
           <Suspense fallback={<p className="game-message" role="status">{text.loadingGame}</p>}>
@@ -107,6 +143,9 @@ export default function ArcadeHome({ session, playerId, theme, onToggleTheme }) 
           </Suspense>
         )}
       </main>
+
+      {/* Outside <main>: its entrance animation uses a transform, which would trap a fixed dialog inside it. */}
+      {zone === 'play' && <Launcher language={language} text={text} playerId={playerId} category={category} />}
 
       <footer className="arcade-footer">
         <p>{text.footer}</p>

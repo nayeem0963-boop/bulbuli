@@ -10,6 +10,7 @@ import Bulbuli3DArt from './bulbuli-3d/Art.jsx'
 import ShapeHuntArt from './shape-hunt/Art.jsx'
 import ShapeSortingArt from './shape-sorting/Art.jsx'
 import SkyRunnerArt from './sky-runner/Art.jsx'
+import SkywardExplorerArt from './skyward-explorer/Art.jsx'
 
 /**
  * Every game in the arcade, in the order it appears on the home page.
@@ -22,10 +23,15 @@ import SkyRunnerArt from './sky-runner/Art.jsx'
  *   skill         { en, bn } what the game practises (shown to grown-ups on the tile).
  *   ages          age range, e.g. '5–9'.
  *   color         tile colour: 'sun' | 'sky' | 'leaf' | 'berry' | 'grape'.
+ *   category      which side of the Play switch the tile shows on: 'educational' | 'adventure' (see categories.js).
  *   Art           small component drawn on the tile. Keep it light: it loads with the home page.
  *   load          () => import('./<id>/index.jsx'). The game itself loads only when opened.
  *   ownControls   true when the game draws its own language / sound buttons, so the frame hides them.
  *   isNew         shows a "New" badge on the tile.
+ *   hidden        true keeps the tile off the home page; the game still opens at /games/<id> (for work in progress).
+ *   launch        'modal' opens the game in the launcher dialog on the Play page (GameModal.jsx), embedded or
+ *                 full screen; the game gets { embedded, autoStart }. Without it the tile opens /games/<id>.
+ *   controls      { en, bn } one line on how to play, shown on the launcher.
  *
  * A game component receives { playerId, language } and should save through useTutorialProgress(playerId).
  */
@@ -37,6 +43,7 @@ export const GAMES = [
     skill: { en: 'Addition & subtraction', bn: 'যোগ ও বিয়োগ' },
     ages: '6–10',
     color: 'sun',
+    category: 'educational',
     Art: MathHeroArt,
     load: () => import('./math-hero/index.jsx'),
   },
@@ -47,6 +54,7 @@ export const GAMES = [
     skill: { en: 'Memory & first words', bn: 'স্মৃতি ও প্রথম শব্দ' },
     ages: '4–9',
     color: 'leaf',
+    category: 'educational',
     Art: MemoryMatchArt,
     load: () => import('./memory-match/index.jsx'),
     isNew: true,
@@ -58,6 +66,7 @@ export const GAMES = [
     skill: { en: 'Number & shape patterns', bn: 'সংখ্যা ও আকারের নকশা' },
     ages: '7–11',
     color: 'sky',
+    category: 'educational',
     Art: PatternQuestArt,
     load: () => import('./pattern-quest/index.jsx'),
     ownControls: true,
@@ -70,6 +79,7 @@ export const GAMES = [
     skill: { en: 'Typing & Speed Keys', bn: 'টাইপিং ও স্পিড কী' },
     ages: '6–11',
     color: 'berry',
+    category: 'adventure',
     Art: TypeRunnerArt,
     load: () => import('./type-runner/index.jsx'),
     isNew: true,
@@ -81,6 +91,7 @@ export const GAMES = [
     skill: { en: 'Coding & Logic', bn: 'কোডিং ও যুক্তি' },
     ages: '7–12',
     color: 'grape',
+    category: 'educational',
     Art: CodeCritterArt,
     load: () => import('./code-critter/index.jsx'),
     isNew: true,
@@ -92,6 +103,7 @@ export const GAMES = [
     skill: { en: 'Debugging & Logic', bn: 'ডিবাগিং ও যুক্তি' },
     ages: '7–12',
     color: 'leaf',
+    category: 'educational',
     Art: BugHunterArt,
     load: () => import('./bug-hunter/index.jsx'),
     isNew: true,
@@ -103,6 +115,7 @@ export const GAMES = [
     skill: { en: 'Web Dev & CSS', bn: 'ওয়েব ডেভ ও CSS' },
     ages: '12+',
     color: 'sky',
+    category: 'educational',
     Art: DevCraftArt,
     load: () => import('./devcraft-studio/index.jsx'),
     isNew: true,
@@ -114,6 +127,7 @@ export const GAMES = [
     skill: { en: 'Logic & Circuits', bn: 'লজিক ও সার্কিট' },
     ages: '12+',
     color: 'sun',
+    category: 'educational',
     Art: LogicGateArt,
     load: () => import('./logic-gate-builder/index.jsx'),
     isNew: true,
@@ -125,6 +139,7 @@ export const GAMES = [
     skill: { en: 'Tapping & 3D play', bn: 'ছোঁয়া ও ৩ডি খেলা' },
     ages: '3–8',
     color: 'sky',
+    category: 'adventure',
     Art: Bulbuli3DArt,
     // three.js + the 3 MB model load only when this game is opened.
     load: () => import('./bulbuli-3d/index.jsx'),
@@ -137,6 +152,7 @@ export const GAMES = [
     skill: { en: '3D shapes', bn: 'ত্রিমাত্রিক আকার' },
     ages: '4–8',
     color: 'leaf',
+    category: 'adventure',
     Art: ShapeHuntArt,
     // three.js loads only when the game is opened.
     load: () => import('./shape-hunt/index.jsx'),
@@ -149,23 +165,45 @@ export const GAMES = [
     skill: { en: 'Shapes, colours & sorting', bn: 'আকার, রং ও সাজানো' },
     ages: '4–8',
     color: 'grape',
+    category: 'educational',
     Art: ShapeSortingArt,
     // three.js loads only when the game is opened; the 3D scene itself is lazy-loaded inside.
     load: () => import('./shape-sorting/index.jsx'),
     isNew: true,
   },
-    {
+  {
     id: 'sky-runner',
     title: { en: "Bulbuli's Sky Runner", bn: 'বুলবুলির আকাশ দৌড়' },
     tagline: { en: 'Fly through the sky, collect stars and dodge the rain clouds.', bn: 'আকাশে উড়ে তারা জমাও, বৃষ্টির মেঘ এড়িয়ে চলো।' },
     skill: { en: 'Reflexes & left / right', bn: 'দ্রুত সাড়া ও বাঁ / ডান' },
     ages: '4–9',
     color: 'sky',
+    category: 'adventure',
     Art: SkyRunnerArt,
     // three.js and the Bulbuli model load only when a run starts.
     load: () => import('./sky-runner/index.jsx'),
     isNew: true,
   },
+  {
+    id: 'skyward-explorer',
+    title: { en: 'Bulbuli: Skyward Explorer 3D', bn: 'বুলবুলি: আকাশ অভিযাত্রী ৩ডি' },
+    tagline: { en: 'Climb floating islands and gather energy crystals.', bn: 'ভাসমান দ্বীপ বেয়ে ওঠো, শক্তি-স্ফটিক জমাও।' },
+    skill: { en: '3D parkour & exploring', bn: '৩ডি পার্কুর ও অভিযান' },
+    ages: '12+',
+    color: 'sky',
+    category: 'adventure',
+    Art: SkywardExplorerArt,
+    // three.js and the scene load only when the game is opened.
+    load: () => import('./skyward-explorer/index.jsx'),
+    launch: 'modal',
+    controls: {
+      en: 'WASD or arrows to run · Space to jump, hold it in the air to glide · drag to look. On touch screens: stick to move, button to jump.',
+      bn: 'WASD বা তীর চিহ্নে দৌড়াও · Space-এ লাফ, শূন্যে চেপে ধরলে গ্লাইড · টেনে চারপাশ দেখো। টাচ স্ক্রিনে: স্টিকে চলো, বোতামে লাফাও।',
+    },
+    isNew: true,
+  },
 ]
 
 export const getGame = (id) => GAMES.find((game) => game.id === id) ?? null
+
+export { GAME_CATEGORIES, DEFAULT_CATEGORY, categoryOf, gamesInCategory } from './categories.js'

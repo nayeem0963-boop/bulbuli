@@ -51,6 +51,7 @@ Add an entry to `GAMES` in `registry.js` (the fields are documented there):
   skill: { en: 'What it practises', bn: '…' },
   ages: '5–9',
   color: 'berry',            // sun | sky | leaf | berry | grape
+  category: 'educational',   // educational | adventure: which side of the Play switch it shows on
   Art: MyGameArt,
   load: () => import('./my-game/index.jsx'),
   isNew: true,
@@ -58,6 +59,19 @@ Add an entry to `GAMES` in `registry.js` (the fields are documented there):
 ```
 
 Also add `https://bulbuli.org/games/my-game` to `public/sitemap.xml`.
+
+### Opening in the launcher instead of a page
+
+Add `launch: 'modal'` (and a one-line `controls: { en, bn }`) to open the game from its tile
+in the launcher dialog on the Play page (`src/arcade/GameModal.jsx`), embedded or full screen.
+The address becomes `/?category=<category>&play=<id>`, so Back closes it; `/games/<id>` still works.
+The game then also receives:
+
+| prop        | what it is |
+|-------------|------------|
+| `embedded`  | `true` in the launcher: skip your page header and fill the parent's height. |
+| `autoStart` | `true` in the launcher: the player already pressed Start, so skip your own start screen. |
+
 
 ## Shared helpers
 

@@ -1175,3 +1175,193 @@
 @media (prefers-reduced-motion: reduce) {
   .art-ss-cube, .art-ss-ball { animation: none; }
 }
+
+/* ---------- the game launcher (GameModal.jsx) ---------- */
+
+.game-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  background: rgba(14, 28, 52, 0.55);
+  animation: game-modal-fade 200ms ease-out;
+}
+
+.game-modal {
+  --tile-bg: var(--sky-soft);
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 44rem);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+  border: var(--toy-border);
+  border-radius: 1.5rem;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: 0 8px 0 var(--ink);
+  animation: game-modal-pop 300ms cubic-bezier(0.3, 1.35, 0.5, 1);
+}
+.game-modal.is-sky { --tile-bg: #8fd0f7; }
+.game-modal.is-sun { --tile-bg: var(--sun); }
+.game-modal.is-leaf { --tile-bg: var(--leaf-soft); }
+.game-modal.is-berry { --tile-bg: var(--berry-soft); }
+.game-modal.is-grape { --tile-bg: var(--grape-soft); }
+
+/* playing embedded: a big window; full screen: everything */
+.game-modal.is-playing {
+  width: min(100%, 75rem);
+  height: min(calc(100vh - 2rem), 52rem);
+  height: min(calc(100dvh - 2rem), 52rem);
+}
+.game-modal.is-fullscreen,
+.game-modal:fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.game-modal:fullscreen { background: var(--surface); }
+
+.game-modal-bar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem 0.55rem 1.1rem;
+  border-bottom: 3px solid var(--ink);
+  background: var(--tile-bg);
+  color: var(--ink);
+}
+.game-modal-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 3.2vw, 1.5rem);
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arcade .game-modal-icon,
+.game-modal-icon {
+  display: inline-grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 3px 0 var(--ink);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.game-modal-icon:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.game-modal-icon:focus-visible,
+.game-modal button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* launch card */
+.game-modal-launch {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: 1.25rem;
+  align-items: center;
+  overflow: auto;
+  padding: 1.4rem;
+}
+.game-modal-art {
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+  border: var(--toy-border);
+  border-radius: 1.2rem;
+  padding: 1rem;
+  background: var(--tile-bg);
+}
+.game-modal-copy p { margin: 0 0 0.75rem; }
+.game-modal-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.game-modal-meta span {
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  color: var(--ink);
+  background: var(--surface-muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.game-modal-tagline { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; line-height: 1.2; }
+.game-modal-controls { color: var(--text-muted); font-weight: 700; }
+.game-modal-hint { color: var(--text-muted); font-size: 0.92rem; }
+.game-modal-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 0.75rem; }
+
+.arcade .game-modal-start,
+.arcade .game-modal-secondary {
+  min-height: 3rem;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0 1.3rem;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 4px 0 var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.arcade .game-modal-start { background: var(--sun); }
+.arcade .game-modal-start:active,
+.arcade .game-modal-secondary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+
+/* the game fills whatever is left under the bar */
+.game-modal-body {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  outline: none;
+}
+.game-modal-body > * { flex: 1 1 auto; min-height: 0; }
+
+@keyframes game-modal-fade { from { opacity: 0; } }
+@keyframes game-modal-pop { from { opacity: 0; transform: translateY(14px) scale(0.96); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .game-modal-backdrop, .game-modal { animation: none; }
+}
+
+@media (max-width: 640px) {
+  /* phones: the launcher is the whole screen */
+  .game-modal-backdrop { padding: 0; }
+  .game-modal,
+  .game-modal.is-playing {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .game-modal-launch { grid-template-columns: 1fr; padding: 1rem; }
+  .game-modal-art { max-width: 11rem; margin: 0 auto; }
+}
+
+/* phones held sideways: keep the bar slim so the game gets the height */
+@media (max-height: 500px) and (orientation: landscape) {
+  .game-modal-bar { padding-block: 0.3rem; }
+  .game-modal-icon { width: 2.4rem; height: 2.4rem; }
+}
