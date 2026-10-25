@@ -1,0 +1,116 @@
+.sky-typewriter-hud-root {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sky-typewriter-hud {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: max(0.8rem, env(safe-area-inset-top)) max(0.8rem, env(safe-area-inset-right)) 0.8rem max(0.8rem, env(safe-area-inset-left));
+  color: var(--ink, #1b2a49);
+  font-family: var(--font-display, 'Baloo 2', ui-rounded, system-ui, sans-serif);
+  pointer-events: none;
+}
+
+.sky-typewriter-hud__stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.sky-typewriter-hud__pill,
+.sky-typewriter-hud__pause {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 3px solid var(--ink, #1b2a49);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 3px 0 var(--ink, #1b2a49);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sky-typewriter-hud__label {
+  font-size: 0.84rem;
+  opacity: 0.75;
+}
+
+.sky-typewriter-hud__value {
+  font-variant-numeric: tabular-nums;
+}
+
+.sky-typewriter-hud__lives {
+  gap: 0.2rem;
+  color: #c8d0dc;
+  font-size: 1.2rem;
+}
+
+.sky-typewriter-hud__lives .is-alive {
+  color: var(--berry, #d42a37);
+  text-shadow: 0 1px 0 var(--ink, #1b2a49);
+}
+
+.sky-typewriter-hud__combo.is-active {
+  background: var(--sun, #ffc93c);
+}
+
+.sky-typewriter-hud__pause {
+  min-width: 6.2rem;
+  color: var(--ink, #1b2a49);
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.sky-typewriter-hud__pause:hover {
+  transform: translateY(-2px);
+}
+
+.sky-typewriter-hud__pause:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink, #1b2a49);
+}
+
+.sky-typewriter-hud__pause:focus-visible {
+  outline: 4px solid var(--sky, #3fa3ec);
+  outline-offset: 4px;
+}
+
+@media (max-width: 520px) {
+  .sky-typewriter-hud {
+    gap: 0.35rem;
+    padding: max(0.55rem, env(safe-area-inset-top)) max(0.55rem, env(safe-area-inset-right)) 0.55rem max(0.55rem, env(safe-area-inset-left));
+  }
+
+  .sky-typewriter-hud__stats {
+    gap: 0.35rem;
+  }
+
+  .sky-typewriter-hud__pill,
+  .sky-typewriter-hud__pause {
+    min-height: 2.4rem;
+    gap: 0.25rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .sky-typewriter-hud__label {
+    font-size: 0.72rem;
+  }
+
+  .sky-typewriter-hud__pause {
+    min-width: 5rem;
+  }
+}

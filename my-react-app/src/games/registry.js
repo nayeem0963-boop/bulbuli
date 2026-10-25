@@ -11,6 +11,7 @@ import ShapeHuntArt from './shape-hunt/Art.jsx'
 import ShapeSortingArt from './shape-sorting/Art.jsx'
 import SkyRunnerArt from './sky-runner/Art.jsx'
 import SkywardExplorerArt from './skyward-explorer/Art.jsx'
+import SkyTypewriterArt from './sky-typewriter/Art.jsx'
 
 /**
  * Every game in the arcade, in the order it appears on the home page.
@@ -213,6 +214,25 @@ export const GAMES = [
     controls: {
       en: 'WASD or arrows to run · Space to jump, hold it in the air to glide · drag to look. On touch screens: stick to move, button to jump.',
       bn: 'WASD বা তীর চিহ্নে দৌড়াও · Space-এ লাফ, শূন্যে চেপে ধরলে গ্লাইড · টেনে চারপাশ দেখো। টাচ স্ক্রিনে: স্টিকে চলো, বোতামে লাফাও।',
+    },
+    isNew: true,
+  },
+  {
+    id: 'sky-typewriter',
+    title: { en: 'SkyTypewriter 3D', bn: 'স্কাই টাইপরাইটার ৩ডি' },
+    tagline: { en: 'Type the flying words before they reach Bulbuli.', bn: 'উড়ে আসা শব্দগুলো বুলবুলির কাছে পৌঁছানোর আগেই টাইপ করো।' },
+    skill: { en: 'Typing & spelling', bn: 'টাইপিং ও বানান' },
+    ages: '7–12',
+    color: 'sky',
+    icon: '⌨️',
+    category: 'adventure',
+    Art: SkyTypewriterArt,
+    // three.js and the scene load only when the game is opened.
+    load: () => import('./sky-typewriter/index.jsx'),
+    launch: 'modal',
+    controls: {
+      en: 'Type the letters of a flying word to zap it · Esc to pause. Needs a keyboard.',
+      bn: 'উড়ন্ত শব্দের অক্ষর টাইপ করে সেটাকে ধরো · Esc চাপলে থামবে। কিবোর্ড লাগবে।',
     },
     isNew: true,
   },

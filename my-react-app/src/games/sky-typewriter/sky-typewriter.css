@@ -1,0 +1,300 @@
+/* SkyTypewriter 3D: the screen around the canvas, start card, pause cover and finish dialog.
+   The in-flight HUD pills are in ../sky-typewriter-hud.css. */
+
+.stw {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  font-family: var(--font-display, 'Baloo 2', ui-rounded, system-ui, sans-serif);
+  color: var(--ink, #1b2a49);
+}
+
+.stw.is-embedded {
+  height: 100%;
+  gap: 0;
+}
+
+.stw-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  text-align: center;
+}
+
+.stw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.stw-stage {
+  position: relative;
+  width: 100%;
+  height: min(78vh, 720px);
+  min-height: 420px;
+  overflow: hidden;
+  border: 4px solid var(--ink, #1b2a49);
+  border-radius: 1.5rem;
+  background: #87ceeb;
+  box-shadow: 0 6px 0 var(--ink, #1b2a49);
+  outline: none;
+}
+
+.stw.is-embedded .stw-stage {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* drei's <Html> HUD uses a very large z-index; keep it inside the canvas's own layer
+   so the start card, pause cover and finish dialog always sit on top. */
+.stw-canvas {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+/* ---------- start card / finish dialog ---------- */
+
+.stw-finish-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  overflow-y: auto;
+  background: rgb(27 42 73 / 45%);
+  backdrop-filter: blur(3px);
+  animation: stw-fade 220ms ease-out both;
+}
+
+.stw-finish {
+  width: min(100%, 30rem);
+  border: 4px solid var(--ink, #1b2a49);
+  border-radius: 1.75rem;
+  padding: 1.5rem 1.4rem 1.4rem;
+  background: #fffdf6;
+  box-shadow: 0 8px 0 var(--ink, #1b2a49);
+  text-align: center;
+  animation: stw-pop 380ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.stw-finish.is-victory { background: linear-gradient(180deg, #fff6cf 0%, #fffdf6 55%); }
+.stw-finish.is-game-over { background: linear-gradient(180deg, #e3f2ff 0%, #fffdf6 55%); }
+
+.stw-finish__icon {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+.stw-finish.is-victory .stw-finish__icon { animation: stw-bounce 1.6s ease-in-out infinite; }
+
+.stw-finish__eyebrow {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  opacity: 0.7;
+}
+
+.stw-finish__title {
+  margin: 0.15rem 0 0.35rem;
+  font-size: clamp(1.7rem, 6vw, 2.3rem);
+  line-height: 1.1;
+}
+
+.stw-finish__copy {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.stw-finish__copy.is-small {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.stw-finish__stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.stw-finish__stats > div {
+  border: 3px solid var(--ink, #1b2a49);
+  border-radius: 1rem;
+  padding: 0.5rem 0.4rem;
+  background: #fff;
+}
+
+.stw-finish__stats dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.stw-finish__stats dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin: 0.1rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.stw-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  background: var(--berry, #d42a37);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.stw-badge.is-inline {
+  margin: 0 0 1rem;
+  background: var(--sun, #ffc93c);
+  color: var(--ink, #1b2a49);
+  font-size: 0.9rem;
+}
+
+.stw-finish__xp {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0 0 1.1rem;
+  border: 3px solid var(--ink, #1b2a49);
+  border-radius: 1.1rem;
+  padding: 0.7rem;
+  background: var(--sun, #ffc93c);
+}
+
+.stw-finish__xp-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.stw-finish__xp-value {
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stw-finish__xp-total {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stw-finish__saved {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.stw-finish__saved.is-error {
+  color: var(--berry, #d42a37);
+  font-weight: 700;
+  opacity: 1;
+}
+
+.stw-finish__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+/* ---------- buttons ---------- */
+
+.stw-btn {
+  display: inline-flex;
+  min-height: 3rem;
+  flex: 1 1 10rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 3px solid var(--ink, #1b2a49);
+  border-radius: 999px;
+  padding: 0.55rem 1.3rem;
+  box-shadow: 0 4px 0 var(--ink, #1b2a49);
+  color: var(--ink, #1b2a49);
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.stw-btn.is-primary { background: var(--leaf, #5cc96b); }
+.stw-btn.is-secondary { background: #fff; }
+
+.stw-btn:hover { transform: translateY(-2px); }
+
+.stw-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--ink, #1b2a49);
+}
+
+.stw-btn:focus-visible {
+  outline: 4px solid var(--sky, #3fa3ec);
+  outline-offset: 4px;
+}
+
+.stw-btn[aria-disabled='true'] { cursor: default; }
+
+/* ---------- pause cover ---------- */
+
+.stw-paused {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  border: 0;
+  background: rgb(27 42 73 / 35%);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.stw-paused__label {
+  font-size: 2rem;
+  font-weight: 800;
+  text-shadow: 0 3px 0 var(--ink, #1b2a49);
+}
+
+.stw-paused .stw-btn { flex: 0 0 auto; }
+
+/* ---------- animation ---------- */
+
+@keyframes stw-fade { from { opacity: 0; } }
+@keyframes stw-pop { from { opacity: 0; transform: scale(0.85) translateY(12px); } }
+@keyframes stw-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .stw-finish-backdrop,
+  .stw-finish,
+  .stw-finish.is-victory .stw-finish__icon { animation: none; }
+}
+
+@media (max-width: 520px) {
+  .stw-stage { min-height: 360px; border-radius: 1rem; }
+  .stw-finish { padding: 1.1rem 0.9rem 1rem; border-radius: 1.3rem; }
+  .stw-finish__icon { font-size: 2.5rem; }
+  .stw-finish__stats dd { font-size: 1.25rem; }
+  .stw-finish__xp-value { font-size: 1.7rem; }
+}

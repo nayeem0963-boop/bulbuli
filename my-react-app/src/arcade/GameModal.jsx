@@ -187,7 +187,7 @@ export default function GameModal({ game, playerId, language, text, onClose }) {
           <div className="game-modal-body" tabIndex={-1}>
             <GameErrorBoundary key={game.id} text={text}>
               <Suspense fallback={<p className="game-message" role="status">{text.loadingGame}</p>}>
-                <GameComponent key={playerId} playerId={playerId} language={language} game={game} embedded autoStart />
+                <GameComponent key={playerId} playerId={playerId} language={language} game={game} embedded autoStart onExit={close} />
               </Suspense>
             </GameErrorBoundary>
           </div>

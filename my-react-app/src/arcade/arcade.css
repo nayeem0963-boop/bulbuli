@@ -926,6 +926,30 @@
   .art-b3d-bird { animation: none; }
 }
 
+/* SkyTypewriter 3D tile: a word flying at the bird */
+.art-sky-typewriter { font-size: 3rem; }
+.art-stw-word {
+  position: absolute;
+  top: 16%;
+  left: 18%;
+  border: 3px solid currentColor;
+  border-radius: 0.6rem;
+  padding: 0 0.45rem;
+  background: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  animation: art-stw-fly 2.6s ease-in-out infinite;
+}
+.art-stw-bird { position: relative; }
+.art-stw-key { position: absolute; bottom: 10%; right: 18%; font-size: 1.5rem; }
+@keyframes art-stw-fly {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(10px, 6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-stw-word { animation: none; }
+}
+
 /* Shape Hunt 3D tile: a shaded cube, ball and cone */
 .art-shape-hunt { gap: 0.9rem; align-items: flex-end; padding-bottom: 0.4rem; }
 .art-sh-cube {
