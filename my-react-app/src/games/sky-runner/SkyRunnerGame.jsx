@@ -12,10 +12,10 @@
  *   • Every collected star → useScoreSync.addPoints(1) (signed-in players'
  *     profiles.total_score). The hook batches the writes; we flush when the run ends,
  *     and it flushes by itself if the player leaves mid-run.
- *   • XP, best stars, best points and best distance per level → useTutorialProgress.
+ *   • XP, best stars, best points and best distance per level → useGameProgress.
  */
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
 import { isMuted, playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
@@ -90,7 +90,7 @@ export default function SkyRunnerGame({ playerId, language }) {
   const text = SKY_RUNNER_TEXT[language] ?? SKY_RUNNER_TEXT.en
   const n = useCallback((value) => formatDigits(value, language), [language])
 
-  const { games, saveGameResult, storageError } = useTutorialProgress(playerId)
+  const { games, saveGameResult, storageError } = useGameProgress(playerId)
   const { addPoints, flush } = useScoreSync({ userId: playerId })
   const record = games[GAME_ID] ?? {}
 

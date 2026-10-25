@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import runnerBird from '../../assets/bulbul-runner.webp'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import {
@@ -192,7 +192,7 @@ function LiveCss({ level, values, results, text }) {
 export default function DevCraftStudio({ playerId, language }) {
   const text = DEVCRAFT_TEXT[language]
   const n = (value) => formatDigits(value, language)
-  const { games, saveGameResult, storageError } = useTutorialProgress(playerId)
+  const { games, saveGameResult, storageError } = useGameProgress(playerId)
   const record = games[GAME_ID] ?? {}
   const bestStars = record.bestStars ?? {}
 

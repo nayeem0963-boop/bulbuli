@@ -2,7 +2,7 @@
 
 Bulbuli is a free learning arcade for children under 12, built with React and
 Vite. Games are open to everyone (no sign-in); progress and XP are saved on the
-device. Every game works in English and Bangla.
+device, and optionally to a free account. Every game works in English and Bangla.
 
 | Game | Route | Practises |
 |------|-------|-----------|
@@ -34,73 +34,32 @@ change the forest**, replace the pictures in `design/forest-source/` and run the
 Don't put full scenes straight into `public/forest/`: an opaque picture in a front layer covers
 the bird.
 
-## Play and Learn zones
+## Home page and navigation
 
-The home page has two zones, switched with the **Play | Learn** toggle in the header
-(`src/arcade/ZoneToggle.jsx`):
+Bulbuli is games only. The header (`src/arcade/ArcadeHeader.jsx`) shows the brand, the **Play**
+tab with its **Educational | Adventure** switch (`src/arcade/PlayNav.jsx`), the language switch,
+and the profile button (Sign in, or the player's avatar linking to `/dashboard`). On a game page
+the navigation becomes a big "All games" button, and sound and day/night join the controls.
 
-- **Play** (default): the games and the Math Hero ad. Sky blue, sunny, toy-like.
-- **Learn**: the five coding courses (HTML, CSS, JavaScript, GitHub, React) and their exams, for
-  teens and grown-ups (`src/arcade/LearnZone.jsx`). Mint and teal on squared paper, flatter cards.
-  Courses and exams need a Supabase sign-in; `/developer` is the signed-in course home.
-
-The zone lives in the address: `/` is Play, `/?zone=learn` is Learn (`src/arcade/zone.js`,
-`useZone()`). So Bulbuli always opens in Play, the Back button steps between zones, and a Learn
-link can be shared. The Math Hero ad is part of the Play zone only.
-
-### Coding and Grammar (inside Learn)
-
-In Learn, a second switch, **Coding | Grammar**, appears beside Play | Learn. It is not shown in
-Play. Both switches are the same `SlideToggle` in `src/arcade/ZoneToggle.jsx`, so they share
-keyboard support (Tab, then the arrow keys).
+The category and an open launcher game live in the address (`src/arcade/zone.js`):
 
 | Address | Shows |
-| --- | --- |
-| `/` | Play |
-| `/?zone=learn` | Learn, Coding (the default track) |
-| `/?zone=learn&track=grammar` | Learn, Grammar |
-| `/grammar/<tense-id>` | one tense: rule recap, then 5 questions |
+|---------|-------|
+| `/` | Educational games (the default) |
+| `/?category=adventure` | Adventure games |
+| `/?category=adventure&play=<id>` | that game open in the launcher |
+| `/games/<id>` | a game on its own page |
+| `/dashboard` | a signed-in player's level, XP and per-game activity |
 
-`useZone()` and `useLearnTrack()` in `src/arcade/zone.js` read and set these. Opening Learn always
-starts on Coding.
+Old Learn, course, exam and grammar links (`/?zone=learn`, `/tutorials/…`, `/grammar/…`) land on
+the games.
 
-### Grammar: the 12 tense quizzes
+## Saved progress and accounts
 
-Everything for Grammar is in `src/grammar/`:
-
-- `tenses.json`: the 12 modules (Simple Present … Future Perfect Continuous). Each has a recap
-  (when to use it, how to make it, signal words, examples and a tip) and 5 questions. Every
-  question has 4 choices, the right answer's letter, an `explanation`, and a `why` on each wrong
-  choice.
-- `tenses.schema.json`: the JSON Schema for that file.
-- `tenseModules.js`: helpers (groups, look-up, next module, stars).
-- `GrammarZone.jsx`: the list of tenses. `GrammarQuizPage.jsx`: the recap and quiz.
-- `progress.js`: best stars per tense, saved on this device (no sign-in needed).
-
-To change a question, edit `tenses.json` and run `npm test`. `grammar.test.js` checks the file
-against the schema and checks that every question has exactly one right answer and a `why` for
-each wrong choice. The quiz code loads only when Grammar is opened, so Play stays light.
-
-### More grammar courses
-
-A course picker sits at the top of the Grammar page: **12 Tenses** (the default), then nine
-courses in `src/grammar/courses/`, each one JSON file shaped by `course.schema.json`:
-Subject-Verb Agreement, Articles & Prepositions, Active vs. Passive Voice, Punctuation &
-Sentence Structure, Modals, Conditionals, Reported Speech, Relative Clauses, and
-Comparatives & Superlatives. Each has 3 sections and 8 topic cards; every card has a title, a short
-`badge` (the formula shown on the card, 40 characters at most), a rule recap and 3 questions.
-
-`src/grammar/catalog.js` puts the tenses and the courses into one shape, so the Grammar page
-(`GrammarZone.jsx`) and the quiz screen (`GrammarQuizPage.jsx`) treat them all alike.
-
-| Address | Shows |
-| --- | --- |
-| `/?zone=learn&track=grammar&course=<id>` | one course's cards (no `course` = the tenses) |
-| `/grammar/<course>/<card>` | a card's rule recap, then its quiz |
-| `/grammar/<tense>` | a tense (the original short links still work) |
-
-To add a course: put a new JSON file in `src/grammar/courses/`, add it to `courses/index.js`,
-give it an icon in `catalog.js`, and run `npm test`.
+Progress is kept per player on the device by `useGameProgress(playerId)`
+(`src/hooks/useGameProgress.js`): each game's record, Math Hero's run, and total XP. Signing in is
+optional; signed-in players' XP is also saved to their Supabase profile (`src/lib/xp.js`, the
+`award_xp()` function in `supabase/migrations/`), and `/dashboard` shows it.
 
 ## Math Hero ad card
 
@@ -143,9 +102,9 @@ is unused and can be deleted: `renderAdVideo.js`, `videoTimeline.js` (+ test),
 `public/audio/math-hero-ad-bn.mp3`, `renderAdGif.js`, `gifEncoder.js` (+ test), `gifTimeline.js`,
 `fileLinks.js`, and `renderAdCardBlob` / `buildVideoShareData`.
 
-## Shared quiz feedback
+## Shared answer feedback (Math Hero)
 
-Reusable feedback primitives are available to quiz, course, and exam screens:
+Math Hero builds its question card from reusable feedback pieces:
 
 ```jsx
 import AnimatedAnswerOption from './components/AnimatedAnswerOption.jsx'
@@ -157,26 +116,10 @@ import useQuizFeedback from './hooks/useQuizFeedback.js'
 const { feedback, milestone, triggerCorrect, triggerWrong, triggerBonus } = useQuizFeedback()
 ```
 
-Pass `feedback` to the animated card and answer options; use the life counter
-and milestone banner for game-specific events. The hook also exposes
-`triggerClick`, `triggerLevelUp`, and `triggerGameOver`. Sound and animation
-timings/colors are managed by `src/utils/sound.js` and
-`src/utils/feedbackConfig.js`. The shared tutorial quiz flow uses these
-primitives across all five courses, and timed exam screens use the animated
-card/options with click sounds while keeping answer correctness hidden until
-submission.
-The sound manager currently maps the bonus chime to `correct.mp3` and both
-level-up/game-over fanfares to `complete.mp3`; dedicated files can be added
-later by changing the source map in `src/utils/sound.js`.
-
-## Guided tutorials
-
-Open **Tutorials** from the learning home page to browse the five topics. Each
-tutorial is organized into modules with optional reading material and a
-five-minute module quiz (the full-tutorial quiz remains fifteen minutes). A
-module or tutorial is completed only after every question is answered
-correctly; incomplete attempts can be retried. Quiz answers and module results
-are saved in localStorage separately for each signed-in user on that device.
+Pass `feedback` to the animated card and answer options; use the life counter and milestone
+banner for game events. The hook also exposes `triggerClick`, `triggerLevelUp` and
+`triggerGameOver`. Sound and animation timings/colours live in `src/utils/sound.js` and
+`src/utils/feedbackConfig.js`.
 
 ## Development
 

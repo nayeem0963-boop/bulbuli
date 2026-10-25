@@ -23,6 +23,7 @@ import SkywardExplorerArt from './skyward-explorer/Art.jsx'
  *   skill         { en, bn } what the game practises (shown to grown-ups on the tile).
  *   ages          age range, e.g. '5–9'.
  *   color         tile colour: 'sun' | 'sky' | 'leaf' | 'berry' | 'grape'.
+ *   icon          one emoji standing for the game in small places (the dashboard's activity list).
  *   category      which side of the Play switch the tile shows on: 'educational' | 'adventure' (see categories.js).
  *   Art           small component drawn on the tile. Keep it light: it loads with the home page.
  *   load          () => import('./<id>/index.jsx'). The game itself loads only when opened.
@@ -33,7 +34,7 @@ import SkywardExplorerArt from './skyward-explorer/Art.jsx'
  *                 full screen; the game gets { embedded, autoStart }. Without it the tile opens /games/<id>.
  *   controls      { en, bn } one line on how to play, shown on the launcher.
  *
- * A game component receives { playerId, language } and should save through useTutorialProgress(playerId).
+ * A game component receives { playerId, language } and should save through useGameProgress(playerId).
  */
 export const GAMES = [
   {
@@ -43,6 +44,7 @@ export const GAMES = [
     skill: { en: 'Addition & subtraction', bn: 'যোগ ও বিয়োগ' },
     ages: '6–10',
     color: 'sun',
+    icon: '➕',
     category: 'educational',
     Art: MathHeroArt,
     load: () => import('./math-hero/index.jsx'),
@@ -54,6 +56,7 @@ export const GAMES = [
     skill: { en: 'Memory & first words', bn: 'স্মৃতি ও প্রথম শব্দ' },
     ages: '4–9',
     color: 'leaf',
+    icon: '🃏',
     category: 'educational',
     Art: MemoryMatchArt,
     load: () => import('./memory-match/index.jsx'),
@@ -66,6 +69,7 @@ export const GAMES = [
     skill: { en: 'Number & shape patterns', bn: 'সংখ্যা ও আকারের নকশা' },
     ages: '7–11',
     color: 'sky',
+    icon: '🔷',
     category: 'educational',
     Art: PatternQuestArt,
     load: () => import('./pattern-quest/index.jsx'),
@@ -79,6 +83,7 @@ export const GAMES = [
     skill: { en: 'Typing & Speed Keys', bn: 'টাইপিং ও স্পিড কী' },
     ages: '6–11',
     color: 'berry',
+    icon: '⌨️',
     category: 'adventure',
     Art: TypeRunnerArt,
     load: () => import('./type-runner/index.jsx'),
@@ -91,6 +96,7 @@ export const GAMES = [
     skill: { en: 'Coding & Logic', bn: 'কোডিং ও যুক্তি' },
     ages: '7–12',
     color: 'grape',
+    icon: '🦎',
     category: 'educational',
     Art: CodeCritterArt,
     load: () => import('./code-critter/index.jsx'),
@@ -103,6 +109,7 @@ export const GAMES = [
     skill: { en: 'Debugging & Logic', bn: 'ডিবাগিং ও যুক্তি' },
     ages: '7–12',
     color: 'leaf',
+    icon: '🐞',
     category: 'educational',
     Art: BugHunterArt,
     load: () => import('./bug-hunter/index.jsx'),
@@ -115,6 +122,7 @@ export const GAMES = [
     skill: { en: 'Web Dev & CSS', bn: 'ওয়েব ডেভ ও CSS' },
     ages: '12+',
     color: 'sky',
+    icon: '🎨',
     category: 'educational',
     Art: DevCraftArt,
     load: () => import('./devcraft-studio/index.jsx'),
@@ -127,6 +135,7 @@ export const GAMES = [
     skill: { en: 'Logic & Circuits', bn: 'লজিক ও সার্কিট' },
     ages: '12+',
     color: 'sun',
+    icon: '💡',
     category: 'educational',
     Art: LogicGateArt,
     load: () => import('./logic-gate-builder/index.jsx'),
@@ -139,6 +148,7 @@ export const GAMES = [
     skill: { en: 'Tapping & 3D play', bn: 'ছোঁয়া ও ৩ডি খেলা' },
     ages: '3–8',
     color: 'sky',
+    icon: '🐦',
     category: 'adventure',
     Art: Bulbuli3DArt,
     // three.js + the 3 MB model load only when this game is opened.
@@ -152,6 +162,7 @@ export const GAMES = [
     skill: { en: '3D shapes', bn: 'ত্রিমাত্রিক আকার' },
     ages: '4–8',
     color: 'leaf',
+    icon: '🔺',
     category: 'adventure',
     Art: ShapeHuntArt,
     // three.js loads only when the game is opened.
@@ -165,6 +176,7 @@ export const GAMES = [
     skill: { en: 'Shapes, colours & sorting', bn: 'আকার, রং ও সাজানো' },
     ages: '4–8',
     color: 'grape',
+    icon: '🧩',
     category: 'educational',
     Art: ShapeSortingArt,
     // three.js loads only when the game is opened; the 3D scene itself is lazy-loaded inside.
@@ -178,6 +190,7 @@ export const GAMES = [
     skill: { en: 'Reflexes & left / right', bn: 'দ্রুত সাড়া ও বাঁ / ডান' },
     ages: '4–9',
     color: 'sky',
+    icon: '☁️',
     category: 'adventure',
     Art: SkyRunnerArt,
     // three.js and the Bulbuli model load only when a run starts.
@@ -191,6 +204,7 @@ export const GAMES = [
     skill: { en: '3D parkour & exploring', bn: '৩ডি পার্কুর ও অভিযান' },
     ages: '12+',
     color: 'sky',
+    icon: '🏝️',
     category: 'adventure',
     Art: SkywardExplorerArt,
     // three.js and the scene load only when the game is opened.

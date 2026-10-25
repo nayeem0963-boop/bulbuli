@@ -7,12 +7,12 @@
  * appears at once while three.js downloads).
  *
  * Saving, like the other arcade games:
- *   • XP + best stars per level → useTutorialProgress (home-page XP total).
+ *   • XP + best stars per level → useGameProgress (home-page XP total).
  *   • Stars earned for the level → useScoreSync (signed-in players' profiles.total_score),
  *     flushed as soon as the level is complete.
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
 import { playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
@@ -61,7 +61,7 @@ export default function ShapeSortingGame({ playerId, language }) {
     [text, nameOf],
   )
 
-  const { games, saveGameResult, storageError } = useTutorialProgress(playerId)
+  const { games, saveGameResult, storageError } = useGameProgress(playerId)
   const { addPoints, flush } = useScoreSync({ userId: playerId })
   const record = games[GAME_ID] ?? {}
 

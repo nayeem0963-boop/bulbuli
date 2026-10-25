@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { isMuted, playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import { DECKS, getDeck } from './decks.js'
@@ -65,7 +65,7 @@ function Card({ card, index, faceUp, matched, language, text, onFlip }) {
 export default function MemoryMatch({ playerId, language }) {
   const text = MEMORY_MATCH_TEXT[language]
   const n = (value) => formatDigits(value, language)
-  const { games, saveGameResult, storageError } = useTutorialProgress(playerId)
+  const { games, saveGameResult, storageError } = useGameProgress(playerId)
   const record = games[GAME_ID] ?? {}
 
   const [deckId, setDeckId] = useState(() => getDeck(record.deckId).id)

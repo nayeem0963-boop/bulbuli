@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import GridMap from '../../shared/ui/GridMap.jsx'
@@ -136,7 +136,7 @@ function CodeBlock({ block, index, count, ctx }) {
 export default function CodeCritter({ playerId, language }) {
   const text = CODE_CRITTER_TEXT[language]
   const n = (value) => formatDigits(value, language)
-  const { games, saveGameResult, storageError } = useTutorialProgress(playerId)
+  const { games, saveGameResult, storageError } = useGameProgress(playerId)
   const record = games[GAME_ID] ?? {}
   const bestStars = record.bestStars ?? {}
 

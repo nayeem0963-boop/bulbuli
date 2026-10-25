@@ -9,7 +9,7 @@
  *
  * Saving, like the other arcade games:
  *   • each crystal → useScoreSync.addPoints(1) (signed-in profiles), flushed when the run ends
- *   • plays, wins, best score and fastest clear → useTutorialProgress, plus XP
+ *   • plays, wins, best score and fastest clear → useGameProgress, plus XP
  * Two ways in:
  *   • its own page, /games/skyward-explorer: header, then the Ready card with the controls
  *   • the launcher on the Play page (src/arcade/GameModal.jsx): `embedded` fills the dialog,
@@ -18,7 +18,7 @@
  */
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import HUD from './HUD.jsx'
 import { useInputState, useKeyboardInput } from './input.js'
@@ -55,7 +55,7 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
   const text = SKYWARD_TEXT[language] ?? SKYWARD_TEXT.en
   const n = useCallback((value) => formatDigits(value, language), [language])
 
-  const { games, saveGameResult } = useTutorialProgress(playerId)
+  const { games, saveGameResult } = useGameProgress(playerId)
   const { addPoints, flush } = useScoreSync({ userId: playerId })
   const record = games[GAME_ID] ?? {}
 

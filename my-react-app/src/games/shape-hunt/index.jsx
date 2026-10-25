@@ -2,12 +2,12 @@
  * Shape Hunt 3D — Bulbuli names a 3D shape; the child taps it.
  *
  * Rules live in engine.js (tested), the 3D view in ShapeScene.jsx.
- * Saves like every arcade game: stars + XP through useTutorialProgress.
+ * Saves like every arcade game: stars + XP through useGameProgress.
  * Signed-in players also get one Supabase star per correct answer
  * (useScoreSync → profiles.total_score), batched so it's one request per few taps.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
 import { isMuted, playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
@@ -49,7 +49,7 @@ export default function ShapeHunt({ playerId, language }) {
   const n = useCallback((value) => formatDigits(value, language), [language])
   const shapeName = useCallback((id) => getShape(id)?.name[language] ?? id, [language])
 
-  const { games, saveGameResult, storageError } = useTutorialProgress(playerId)
+  const { games, saveGameResult, storageError } = useGameProgress(playerId)
   const { addPoints } = useScoreSync({ userId: playerId })
   const record = games[GAME_ID] ?? {}
 

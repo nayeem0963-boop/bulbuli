@@ -20,7 +20,7 @@ src/games/my-game/
 
 | prop       | what it is |
 |------------|------------|
-| `playerId` | signed-in user ID, or `'guest'`. Pass it to `useTutorialProgress(playerId)`. |
+| `playerId` | signed-in user ID, or `'guest'`. Pass it to `useGameProgress(playerId)`. |
 | `language` | `'en'` or `'bn'`. Re-renders when the player switches language. |
 | `game`     | the game's own registry entry. |
 
@@ -30,7 +30,7 @@ its own `<h1>` inside a `<div>`.
 ## 2. Save progress and XP
 
 ```js
-const { games, saveGameResult } = useTutorialProgress(playerId)
+const { games, saveGameResult } = useGameProgress(playerId)
 const record = games['my-game'] ?? {}
 saveGameResult('my-game', (previous) => ({ ...previous, best: 10 }), xpEarned)
 ```
@@ -38,6 +38,24 @@ saveGameResult('my-game', (previous) => ({ ...previous, best: 10 }), xpEarned)
 `saveGameResult` stores any plain object under the game's ID and adds
 `xpEarned` to the player's total XP shown on the home page. Progress is kept in
 localStorage, per player, on this device.
+
+**Signed-in players' XP is also saved to their account automatically.** You don't
+need to do anything: `saveGameResult` calls `awardXp(playerId, gameId, xpEarned)`
+from `src/lib/xp.js`, which does nothing for guests and, for signed-in players,
+batches the award and sends it to the `award_xp()` SQL function (retried safely,
+never counted twice). Games must never check whether someone is signed in.
+
+For an activity that isn't a game (say, a daily challenge), call it directly:
+
+```js
+import { awardXp } from '../../lib/xp.js'
+
+function onChallengeFinished(playerId, correctAnswers) {
+  const xp = correctAnswers * 10
+  showStars(xp)                              // guests see their reward too
+  awardXp(playerId, 'daily-challenge', xp)   // saved only if signed in
+}
+```
 
 ## 3. Register it
 

@@ -1,7 +1,8 @@
 {
-  "name": "Bulbuli: Learning Games for Kids",
+  "id": "/",
+  "name": "Bulbuli Games",
   "short_name": "Bulbuli",
-  "description": "Free learning games for children under 12, in English and Bangla.",
+  "description": "A free web arcade of educational mini-games for kids: counting, matching, typing, patterns and logic puzzles. Earn XP and level up, in English or Bangla.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -9,7 +10,8 @@
   "background_color": "#eaf6ff",
   "theme_color": "#8fd0f7",
   "lang": "en",
-  "categories": ["education", "games", "kids"],
+  "dir": "ltr",
+  "categories": ["games", "education"],
   "icons": [
     { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },

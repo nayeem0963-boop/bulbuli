@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import runnerBird from '../../assets/bulbul-runner.webp'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import GridMap from '../../shared/ui/GridMap.jsx'
@@ -96,7 +96,7 @@ function Line({ block, ctx }) {
 export default function BugHunter({ playerId, language }) {
   const text = BUG_HUNTER_TEXT[language]
   const n = (value) => formatDigits(value, language)
-  const { games, saveGameResult, storageError } = useTutorialProgress(playerId)
+  const { games, saveGameResult, storageError } = useGameProgress(playerId)
   const record = games[GAME_ID] ?? {}
   const bestStars = record.bestStars ?? {}
 

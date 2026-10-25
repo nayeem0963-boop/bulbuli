@@ -7,7 +7,7 @@ import MathHeroMascot from '../components/MathHeroMascot.jsx'
 import MilestoneBanner from '../components/MilestoneBanner.jsx'
 import useSoundToggle from '../hooks/useSoundToggle.js'
 import useQuizFeedback from '../hooks/useQuizFeedback.js'
-import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../hooks/useGameProgress.js'
 import { FEEDBACK_TIMING, getFeedbackStyle } from '../utils/feedbackConfig.js'
 import {
   applyMathHeroCorrectAnswer,
@@ -59,7 +59,7 @@ function MathHero({ userId }) {
     mathHeroProgress: savedProgress,
     saveMathHeroProgress,
     storageError,
-  } = useTutorialProgress(userId)
+  } = useGameProgress(userId)
   const [gameProgress, setGameProgress] = useState(
     () => savedProgress ?? createInitialMathHeroProgress(),
   )

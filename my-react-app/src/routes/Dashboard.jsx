@@ -1,123 +1,338 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../supabaseClient.js'
-import TutorialCard from '../components/TutorialCard.jsx'
-import { tutorialCatalog } from '../data/tutorialCatalog.js'
-import { useTutorialProgress } from '../hooks/useTutorialProgress.js'
-import { useComprehensiveExam } from '../hooks/useComprehensiveExam.js'
-import { EXAM_CONFIGS } from '../utils/comprehensiveExam.js'
-import { getCurrentStreak } from '../utils/gamification.js'
-import { getTutorialCardAction } from '../utils/tutorialCardAction.js'
-import ThemeToggle from '../components/ThemeToggle.jsx'
+import { useEffect, useId, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import BrandMark from '../arcade/BrandMark.jsx'
+import { useAuth } from '../auth/AuthContext.jsx'
+import { activityRows, describeSource, formatDate, formatNumber, timeAgo } from '../dashboard/format.js'
+import { getGame } from '../games/registry.js'
+import { levelProgress } from '../lib/levels.js'
+import './Dashboard.css'
 
-function formatJoinedDate(createdAt) {
-  if (!createdAt) return 'Not available'
+/*
+ * /dashboard: a signed-in player's game progress (App.jsx sends guests to sign in first).
+ * Data comes from their public.profiles row: avatar, username, xp, level, activities, stats.
+ *
+ * Styling: plain CSS in Dashboard.css (this project has no Tailwind). Class names are
+ * prefixed `db-`, and every rule is scoped under `.db`, so global styles can't break it.
+ * Each block notes the Tailwind utilities it mirrors.
+ */
 
-  const date = new Date(createdAt)
-  return Number.isNaN(date.getTime())
-    ? 'Not available'
-    : date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
-}
-
-function SubjectExamCard({ examConfig, progress }) {
-  const scorePercent = Math.round((progress.highScore / examConfig.questionCount) * 100)
-
+/* ---------- icons (inline SVG: crisp, no icon library needed) ---------- */
+function Icon({ name }) {
+  const paths = {
+    star: <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" />,
+    trophy: (
+      <>
+        <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+        <path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />
+      </>
+    ),
+    gamepad: (
+      <>
+        <rect x="2" y="7" width="20" height="11" rx="5" />
+        <path d="M7 11v3M5.5 12.5h3" />
+        <circle cx="15.5" cy="11.5" r="1" fill="currentColor" />
+        <circle cx="18" cy="13.5" r="1" fill="currentColor" />
+      </>
+    ),
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </>
+    ),
+    moon: <path d="M20.2 15.6A8.5 8.5 0 0 1 8.4 3.8a8.5 8.5 0 1 0 11.8 11.8Z" />,
+    sun: (
+      <>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      </>
+    ),
+    pencil: (
+      <>
+        <path d="M4 20h4L19 9l-4-4L4 16v4Z" />
+        <path d="m13.5 6.5 4 4" />
+      </>
+    ),
+  }
   return (
-    <article className={`card subject-exam-card subject-exam-${examConfig.id}`}>
-      <div className="subject-exam-card-top">
-        <span className="subject-exam-icon" aria-hidden="true">{examConfig.symbol}</span>
-        {progress.completed && <span className="subject-exam-complete" aria-label="Certification earned">✓</span>}
-      </div>
-      <p className="eyebrow">{examConfig.eyebrow}</p>
-      <h3>{examConfig.title}</h3>
-      <p className="subject-exam-meta">{examConfig.questionCount} questions · {Math.round(examConfig.durationSeconds / 60)} minutes · {examConfig.passPercent}% to pass</p>
-      <div
-        className="subject-exam-progress"
-        role="progressbar"
-        aria-label={`${examConfig.title} best score`}
-        aria-valuemin="0"
-        aria-valuemax="100"
-        aria-valuenow={scorePercent}
-      >
-        <span style={{ width: `${scorePercent}%` }} />
-      </div>
-      <div className="subject-exam-card-footer">
-        <span>{progress.completed ? `Certified · ${scorePercent}% best` : progress.attempts.length ? `${scorePercent}% best score` : 'Not attempted'}</span>
-        <Link className="button-secondary" to={`/exams/${examConfig.id}`}>
-          {progress.activeAttempt ? 'Resume exam' : progress.completed ? 'View result' : 'Take Exam'}
-          <span aria-hidden="true">→</span>
-        </Link>
-      </div>
-      {progress.storageError && <p className="notice" role="alert">{progress.storageError}</p>}
-    </article>
+    <svg className="db-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      {paths[name]}
+    </svg>
   )
 }
 
-function Dashboard({ session, theme, onToggleTheme }) {
-  const navigate = useNavigate()
-  const [user, setUser] = useState(session.user)
-  const [loading, setLoading] = useState(true)
-  const [profileError, setProfileError] = useState('')
-  const [logoutError, setLogoutError] = useState('')
-  const [signingOut, setSigningOut] = useState(false)
-  const [refreshCount, setRefreshCount] = useState(0)
+/* ---------- header bar: logo left; All games, Dark mode, Log out right ---------- */
+function DashboardHeader({ theme, onToggleTheme, onLogout, signingOut }) {
+  const dark = theme === 'dark'
+  return (
+    <header className="db-header">
+      <Link className="db-logo" to="/" aria-label="Bulbuli: back to the games">
+        <BrandMark size={36} />
+        <span>bulbuli</span>
+      </Link>
+      <nav className="db-header-actions" aria-label="Dashboard">
+        <Link className="db-btn db-btn-ghost" to="/">
+          <span aria-hidden="true">‹</span> All games
+        </Link>
+        <button type="button" className="db-btn db-btn-ghost" onClick={onToggleTheme} aria-pressed={dark}>
+          <Icon name={dark ? 'sun' : 'moon'} />
+          {dark ? 'Light mode' : 'Dark mode'}
+        </button>
+        <button type="button" className="db-btn db-btn-dark" onClick={onLogout} disabled={signingOut}>
+          {signingOut ? 'Logging out…' : 'Log out'}
+        </button>
+      </nav>
+    </header>
+  )
+}
+
+/* ---------- profile: avatar + level badge, name + Edit, level progress ---------- */
+function ProfileSection({ displayName, avatarUrl, username, progress, onSaveName }) {
   const [avatarFailed, setAvatarFailed] = useState(false)
-  const {
-    completedTutorials,
-    gamification,
-    quizProgress,
-    startedTutorialIds,
-    storageError: tutorialProgressError,
-    userActivity,
-  } = useTutorialProgress(session.user.id)
-  const examProgress = useComprehensiveExam(session.user.id)
-  const subjectExamProgress = {
-    html: useComprehensiveExam(session.user.id, EXAM_CONFIGS.html),
-    css: useComprehensiveExam(session.user.id, EXAM_CONFIGS.css),
-    javascript: useComprehensiveExam(session.user.id, EXAM_CONFIGS.javascript),
-    github: useComprehensiveExam(session.user.id, EXAM_CONFIGS.github),
-    react: useComprehensiveExam(session.user.id, EXAM_CONFIGS.react),
-  }
-  const totalExamXp = Object.values({ preparation: examProgress, ...subjectExamProgress })
-    .reduce((total, progress) => total + (Number(progress.totalXp) || 0), 0)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [barWidth, setBarWidth] = useState(0)
+  const inputId = useId()
 
+  // fill the bar from 0 after mount, so it animates in
   useEffect(() => {
-    let isMounted = true
+    const frame = requestAnimationFrame(() => setBarWidth(progress.percent))
+    return () => cancelAnimationFrame(frame)
+  }, [progress.percent])
 
-    async function loadUser() {
-      setLoading(true)
-      setProfileError('')
-
-      try {
-        const { data, error } = await supabase.auth.getUser()
-        if (error) throw error
-        if (!data.user) throw new Error('No authenticated user was returned.')
-        if (isMounted) setUser(data.user)
-      } catch (error) {
-        console.error('Unable to fetch the current Bulbuli user.', error)
-        if (isMounted) {
-          setProfileError('Your latest profile details could not be loaded. Showing the information from your current session.')
-        }
-      } finally {
-        if (isMounted) setLoading(false)
-      }
+  const save = async (event) => {
+    event.preventDefault()
+    const name = draft.trim()
+    if (name.length < 2 || name.length > 32) {
+      setError('Use 2 to 32 characters.')
+      return
     }
-
-    loadUser()
-    return () => {
-      isMounted = false
+    setSaving(true)
+    setError('')
+    try {
+      await onSaveName(name)
+      setEditing(false)
+    } catch (err) {
+      setError(err?.message || 'Could not save. Please try again.')
+    } finally {
+      setSaving(false)
     }
-  }, [refreshCount])
+  }
+
+  return (
+    <section className="db-profile" aria-labelledby="db-name">
+      <div className="db-profile-top">
+        <div className="db-avatar" title={`Level ${progress.level}`}>
+          {avatarUrl && !avatarFailed
+            ? <img src={avatarUrl} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} />
+            : <span aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>}
+          <span className="db-avatar-level" aria-label={`Level ${progress.level}`}>{progress.level}</span>
+        </div>
+
+        <div className="db-identity">
+          {editing ? (
+            <form className="db-name-form" onSubmit={save}>
+              <label className="db-sr-only" htmlFor={inputId}>Your name</label>
+              <input
+                id={inputId}
+                className="db-input"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                maxLength={32}
+                autoComplete="nickname"
+                autoFocus
+              />
+              <button type="submit" className="db-btn db-btn-primary db-btn-sm" disabled={saving}>
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+              <button type="button" className="db-btn db-btn-ghost db-btn-sm" onClick={() => setEditing(false)} disabled={saving}>
+                Cancel
+              </button>
+              {error && <p className="db-message db-message-error" role="alert">{error}</p>}
+            </form>
+          ) : (
+            <div className="db-name-row">
+              <h1 id="db-name" className="db-name">{displayName}</h1>
+              <button
+                type="button"
+                className="db-btn db-btn-ghost db-btn-sm"
+                onClick={() => {
+                  setDraft(username ?? '')
+                  setError('')
+                  setEditing(true)
+                }}
+              >
+                <Icon name="pencil" /> Edit
+              </button>
+            </div>
+          )}
+          <p className="db-subtitle">Player profile</p>
+        </div>
+      </div>
+
+      <div className="db-progress">
+        <div className="db-progress-labels">
+          <span className="db-progress-level">Level {progress.level}</span>
+          <span className="db-progress-xp">
+            {formatNumber(progress.xp)} XP · {formatNumber(progress.xpToNextLevel)} to next level
+          </span>
+        </div>
+        <div
+          className="db-bar"
+          role="progressbar"
+          aria-label={`Progress to level ${progress.level + 1}`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress.percent}
+        >
+          <div className="db-bar-fill" style={{ width: `${barWidth}%` }} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ---------- 4 summary cards ---------- */
+function StatsGrid({ progress, activitiesCompleted, gamesPlayed, lastPlayedAt }) {
+  const ago = timeAgo(lastPlayedAt)
+  const stats = [
+    { key: 'xp', icon: 'star', tone: 'amber', label: 'Total XP', value: formatNumber(progress.xp), note: `${formatNumber(progress.xpToNextLevel)} to level ${progress.level + 1}` },
+    { key: 'level', icon: 'trophy', tone: 'purple', label: 'Current level', value: progress.level, note: `${progress.percent}% to next level` },
+    { key: 'activities', icon: 'gamepad', tone: 'sky', label: 'Activities completed', value: formatNumber(activitiesCompleted), note: gamesPlayed === 1 ? 'in 1 game' : `across ${gamesPlayed} games` },
+    { key: 'last', icon: 'clock', tone: 'emerald', label: 'Last played', value: ago ? ago[0].toUpperCase() + ago.slice(1) : 'Not yet', note: ago ? formatDate(lastPlayedAt) : 'Go play a game!' },
+  ]
+  return (
+    <section className="db-stats" aria-label="Summary">
+      {stats.map((stat) => (
+        <article key={stat.key} className="db-stat">
+          <span className={`db-stat-icon db-tone-${stat.tone}`}><Icon name={stat.icon} /></span>
+          <h2 className="db-stat-label">{stat.label}</h2>
+          <p className="db-stat-value">{stat.value}</p>
+          <p className="db-stat-note">{stat.note}</p>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+/* ---------- game history table ---------- */
+function GameHistory({ stats }) {
+  const rows = activityRows(stats)
+  return (
+    <section className="db-history" aria-labelledby="db-history-title">
+      <h2 id="db-history-title" className="db-section-title">Game history</h2>
+
+      {rows.length === 0 ? (
+        <div className="db-empty">
+          <span aria-hidden="true">🥚</span>
+          <p>No games yet. Finish a game while signed in and it shows up here.</p>
+          <Link className="db-btn db-btn-primary" to="/">Find a game</Link>
+        </div>
+      ) : (
+        <div className="db-table-wrap">
+          <table className="db-table">
+            <thead>
+              <tr>
+                <th scope="col" className="db-col-game">Game</th>
+                <th scope="col" className="db-col-center">XP</th>
+                <th scope="col" className="db-col-center">Times played</th>
+                <th scope="col" className="db-col-right">Last played</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                // registry game → its name, icon and link; 'guest-play' → "Guest stars";
+                // anything else → a readable name from its id
+                const source = describeSource(row.id, getGame(row.id))
+                const ago = timeAgo(row.lastPlayedAt)
+                return (
+                  <tr key={row.id}>
+                    <th scope="row" className="db-col-game">
+                      <span className="db-game">
+                        <span className={`db-game-icon db-tile-${source.color}`} aria-hidden="true">{source.icon}</span>
+                        <span className="db-game-text">
+                          {source.href
+                            ? <Link className="db-game-name" to={source.href}>{source.title}</Link>
+                            : <span className="db-game-name">{source.title}</span>}
+                          {source.subtitle && <span className="db-game-sub">{source.subtitle}</span>}
+                        </span>
+                      </span>
+                    </th>
+                    <td className="db-col-center db-strong">{formatNumber(row.xp)}</td>
+                    <td className="db-col-center">{formatNumber(row.plays)}</td>
+                    <td className="db-col-right db-muted">
+                      {ago ? <time dateTime={row.lastPlayedAt} title={formatDate(row.lastPlayedAt)}>{ago}</time> : '—'}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  )
+}
+
+/* ---------- shown after a password-reset email link ---------- */
+function PasswordPanel({ onSave }) {
+  const [password, setPassword] = useState('')
+  const [status, setStatus] = useState(null)
+  const submit = async (event) => {
+    event.preventDefault()
+    if (password.length < 6) return setStatus({ type: 'error', text: 'Use at least 6 characters.' })
+    try {
+      await onSave(password)
+      setPassword('')
+      setStatus({ type: 'success', text: 'Password updated.' })
+    } catch (error) {
+      setStatus({ type: 'error', text: error?.message || 'Could not update the password.' })
+    }
+  }
+  return (
+    <form className="db-password" id="password" onSubmit={submit}>
+      <h2 className="db-section-title">Choose a new password</h2>
+      <div className="db-password-row">
+        <label className="db-sr-only" htmlFor="db-new-password">New password</label>
+        <input
+          id="db-new-password"
+          className="db-input"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+          placeholder="New password (6+ characters)"
+          minLength={6}
+          required
+        />
+        <button type="submit" className="db-btn db-btn-primary">Save password</button>
+      </div>
+      {status && (
+        <p className={`db-message db-message-${status.type}`} role={status.type === 'error' ? 'alert' : 'status'}>{status.text}</p>
+      )}
+    </form>
+  )
+}
+
+/* ---------- the page ---------- */
+export default function Dashboard({ session, theme, onToggleTheme }) {
+  const navigate = useNavigate()
+  const { hash } = useLocation()
+  const {
+    user, profile, profileLoading, profileError, refreshProfile, updateProfile,
+    passwordRecovery, updatePassword, signOut,
+  } = useAuth()
+  const [signingOut, setSigningOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
 
   const handleLogout = async () => {
     setSigningOut(true)
     setLogoutError('')
-
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      setUser(null)
-      navigate('/login', { replace: true })
+      await signOut() // saves any XP still on its way first
+      navigate('/', { replace: true })
     } catch (error) {
       console.error('Unable to log out of Bulbuli.', error)
       setLogoutError('You could not be logged out. Please try again.')
@@ -125,254 +340,62 @@ function Dashboard({ session, theme, onToggleTheme }) {
     }
   }
 
-  const metadata = user?.user_metadata ?? {}
-  const metadataName = metadata.full_name || metadata.name
-  const fullName = typeof metadataName === 'string' && metadataName.trim()
-    ? metadataName.trim()
-    : user?.email?.split('@')[0] || 'Bulbuli learner'
-  const email = user?.email || 'Email not available'
-  const metadataAvatarUrl = metadata.avatar_url || metadata.picture
-  const avatarUrl = typeof metadataAvatarUrl === 'string' ? metadataAvatarUrl : ''
-  const initials = fullName
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-  const accountIsConfirmed = Boolean(user?.email_confirmed_at || user?.confirmed_at)
-  const completedCount = Object.keys(completedTutorials).length
-  const currentStreak = getCurrentStreak(gamification)
-  const nextTutorial = tutorialCatalog.find((tutorial) => !completedTutorials[tutorial.id])
+  const meta = user?.user_metadata ?? {}
+  const displayName = profile?.username || meta.full_name || meta.name || user?.email?.split('@')[0] || 'Player'
+  const avatarUrl = profile?.avatar_url || meta.avatar_url || meta.picture || ''
+
+  let body
+  if (profileLoading && !profile) {
+    body = <p className="db-status" role="status">Loading your progress…</p>
+  } else if (profileError && !profile) {
+    body = (
+      <div className="db-status" role="alert">
+        <p>{profileError} Your games still work, and your XP is safe.</p>
+        <button type="button" className="db-btn db-btn-ghost" onClick={refreshProfile}>Try again</button>
+      </div>
+    )
+  } else if (profile) {
+    const progress = levelProgress(profile.xp)
+    const stats = profile.stats ?? {}
+    body = (
+      <>
+        <ProfileSection
+          displayName={displayName}
+          avatarUrl={avatarUrl}
+          username={profile.username}
+          progress={progress}
+          onSaveName={(username) => updateProfile({ username })}
+        />
+        <StatsGrid
+          progress={progress}
+          activitiesCompleted={profile.activities_completed ?? 0}
+          gamesPlayed={Object.keys(stats).length}
+          lastPlayedAt={profile.last_played_at}
+        />
+        <GameHistory stats={stats} />
+      </>
+    )
+  }
 
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-layout">
-        <aside className="card dashboard-sidebar" aria-label="Dashboard navigation">
-          <Link className="dashboard-brand" to="/" aria-label="Bulbuli home">bulbuli<span>.</span></Link>
-          <nav className="dashboard-nav" aria-label="Primary navigation">
-            <a className="dashboard-nav-link is-current" href="#overview" aria-current="page">
-              <span className="dashboard-nav-icon" aria-hidden="true">⌂</span>Overview
-            </a>
-            <Link className="dashboard-nav-link" to="/developer">
-              <span className="dashboard-nav-icon" aria-hidden="true">▤</span>Developer Hub
-            </Link>
-            <Link className="dashboard-nav-link" to="/">
-              <span className="dashboard-nav-icon" aria-hidden="true">★</span>Games
-            </Link>
-            <a className="dashboard-nav-link" href="#profile">
-              <span className="dashboard-nav-icon" aria-hidden="true">◉</span>Profile
-            </a>
-          </nav>
-          <div className="dashboard-sidebar-footer">
-            <a className="dashboard-sidebar-user" href="#profile">
-              <div className="dashboard-avatar dashboard-avatar-small" aria-hidden="true">
-                {avatarUrl && !avatarFailed
-                  ? <img src={avatarUrl} alt="" onError={() => setAvatarFailed(true)} />
-                  : initials}
-              </div>
-              <div>
-                <strong>{fullName}</strong>
-                <span>{email}</span>
-              </div>
-            </a>
-            <span className="dashboard-sidebar-caption">Your learning account</span>
+    <div className="db-page">
+      <div className="db">
+        <DashboardHeader theme={theme} onToggleTheme={onToggleTheme} onLogout={handleLogout} signingOut={signingOut} />
+
+        <main id="main">
+          {logoutError && <p className="db-message db-message-error" role="alert">{logoutError}</p>}
+          {(passwordRecovery || hash === '#password') && <PasswordPanel onSave={updatePassword} />}
+          {body}
+
+          <div className="db-footer">
+            <p>
+              Ready for more stars?
+              {session?.user?.email && <span className="db-muted"> Signed in as {session.user.email}</span>}
+            </p>
+            <Link className="db-btn db-btn-primary" to="/">🎮 Play now</Link>
           </div>
-        </aside>
-
-        <div className="dashboard-workspace">
-          <header className="dashboard-workspace-header" id="overview">
-            <div className="dashboard-heading">
-              {!userActivity && <p className="eyebrow">Your learning space</p>}
-              <h1>{userActivity ? 'Your learning overview' : `Welcome back, ${fullName}`}</h1>
-              <p>Five small steps can take you a long way. Pick up where you left off.</p>
-            </div>
-            <div className="dashboard-header-actions" aria-label="Account controls">
-              <ThemeToggle
-                theme={theme}
-                onToggleTheme={onToggleTheme}
-                className="theme-toggle dashboard-theme-toggle"
-              />
-              <button
-                type="button"
-                className="button-secondary dashboard-logout"
-                onClick={handleLogout}
-                disabled={signingOut}
-              >
-                <span aria-hidden="true">↪</span>{signingOut ? 'Logging out…' : 'Logout'}
-              </button>
-            </div>
-          </header>
-
-          <main className="dashboard-main">
-
-          {(profileError || logoutError || tutorialProgressError || examProgress.storageError) && (
-            <div className="notice" role="alert">
-              {profileError || logoutError || tutorialProgressError || examProgress.storageError}
-              {profileError && (
-                <button
-                  className="text-button dashboard-retry"
-                  type="button"
-                  onClick={() => setRefreshCount((count) => count + 1)}
-                  disabled={loading}
-                >
-                  {loading ? 'Refreshing…' : 'Retry'}
-                </button>
-              )}
-            </div>
-          )}
-
-          <section className="dashboard-metrics" aria-label="Learning overview">
-            <article className="card dashboard-metric">
-              <div className="dashboard-metric-top">
-                <span className="dashboard-metric-label">Total XP</span>
-                <span className="dashboard-metric-icon" aria-hidden="true">✦</span>
-              </div>
-              <strong>{(Number(gamification.totalXp) || 0) + totalExamXp}<small> XP</small></strong>
-              <span>Every correct answer adds up</span>
-            </article>
-            <article className="card dashboard-metric">
-              <div className="dashboard-metric-top">
-                <span className="dashboard-metric-label">Day streak</span>
-                <span className="dashboard-metric-icon is-streak" aria-hidden="true">🔥</span>
-              </div>
-              <strong>{currentStreak}<small> days</small></strong>
-              <span>Complete a quiz today to keep it alive</span>
-            </article>
-            <article className="card dashboard-metric">
-              <div className="dashboard-metric-top">
-                <span className="dashboard-metric-label">Courses completed</span>
-                <span className="dashboard-metric-icon is-complete" aria-hidden="true">✓</span>
-              </div>
-              <strong>{completedCount}<small> / {tutorialCatalog.length}</small></strong>
-              <span>{gamification.completedQuizCount} quizzes completed</span>
-            </article>
-          </section>
-
-          <section className="card dashboard-profile" id="profile" aria-labelledby="profile-heading">
-            <div className="dashboard-profile-heading">
-              <div className="dashboard-avatar" aria-hidden="true">
-                {avatarUrl && !avatarFailed
-                  ? <img src={avatarUrl} alt="" onError={() => setAvatarFailed(true)} />
-                  : initials}
-              </div>
-              <div>
-                <p className="eyebrow">Your account</p>
-                <h2 id="profile-heading">{fullName}</h2>
-                <span className={`account-status ${accountIsConfirmed ? 'is-active' : 'is-pending'}`}>
-                  <span aria-hidden="true" />
-                  {accountIsConfirmed ? 'Active' : 'Pending verification'}
-                </span>
-              </div>
-            </div>
-            <dl className="dashboard-profile-details">
-              <div>
-                <dt>Email address</dt>
-                <dd>{email}</dd>
-              </div>
-              <div>
-                <dt>Joined</dt>
-                <dd>{formatJoinedDate(user?.created_at)}</dd>
-              </div>
-              <div>
-                <dt>Account status</dt>
-                <dd>{accountIsConfirmed ? 'Active' : 'Pending verification'}</dd>
-              </div>
-            </dl>
-            {loading && <p className="dashboard-loading" role="status">Refreshing your profile…</p>}
-          </section>
-
-          <section className="card dashboard-next-step" aria-labelledby="next-step-heading">
-            <div>
-              <p className="eyebrow">A good next step</p>
-              <h2 id="next-step-heading">{nextTutorial ? nextTutorial.title : 'You explored every topic!'}</h2>
-              <p>{nextTutorial ? nextTutorial.description : 'All five tutorials are complete. Take another quiz to improve a score.'}</p>
-            </div>
-            <Link className="button" to={nextTutorial ? `/tutorials/${nextTutorial.id}` : '/tutorials'}>
-              {nextTutorial ? 'Continue learning' : 'Review tutorials'}
-            </Link>
-          </section>
-
-          <section className="card dashboard-exam-overview" aria-labelledby="dashboard-exam-heading">
-            <div className="dashboard-exam-copy">
-              <p className="eyebrow">Featured capstone · 15 minutes · 80% to pass</p>
-              <h2 id="dashboard-exam-heading">Frontend Developer Preparation</h2>
-              <p>
-                {examProgress.completed
-                  ? `Passed · personal best ${examProgress.highScore}/${EXAM_CONFIGS.preparation.questionCount}. Keep your achievement shining.`
-                  : examProgress.attempts.length
-                    ? `${examProgress.attempts.length} ${examProgress.attempts.length === 1 ? 'attempt' : 'attempts'} · high score ${examProgress.highScore}/${EXAM_CONFIGS.preparation.questionCount} · ${Math.ceil(EXAM_CONFIGS.preparation.questionCount * EXAM_CONFIGS.preparation.passPercent / 100)} correct to pass.`
-                    : '50 questions across HTML, CSS, JavaScript, GitHub, and React. Can you reach 80%?'}
-              </p>
-            </div>
-            {examProgress.completed && <span className="dashboard-exam-badge" aria-label="Exam completed">🏆</span>}
-            <Link className="button" to="/exam">
-              {examProgress.completed ? 'View achievement' : examProgress.activeAttempt ? 'Resume exam' : 'Start preparation'}
-              <span aria-hidden="true">→</span>
-            </Link>
-          </section>
-
-          <section className="dashboard-subject-exams" aria-labelledby="subject-exams-heading">
-            <div className="tutorial-section-heading">
-              <div>
-                <p className="eyebrow">Focused practice · individual credentials</p>
-                <h2 id="subject-exams-heading">🎯 Subject Exams &amp; Certifications</h2>
-              </div>
-            </div>
-            <div className="subject-exam-grid">
-              {Object.values(EXAM_CONFIGS).filter((examConfig) => examConfig.tutorialId).map((examConfig) => (
-                <SubjectExamCard
-                  key={examConfig.id}
-                  examConfig={examConfig}
-                  progress={subjectExamProgress[examConfig.id]}
-                />
-              ))}
-            </div>
-          </section>
-
-          <section className="dashboard-tutorials" aria-labelledby="tutorials-heading">
-            <div className="tutorial-section-heading">
-              <div>
-                <p className="eyebrow">Five guided paths</p>
-                <h2 id="tutorials-heading">Your tutorials</h2>
-              </div>
-              <Link className="tutorial-text-link" to="/tutorials">
-                View collection <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-            <div className="tutorial-card-grid dashboard-tutorial-grid">
-              {tutorialCatalog.map((tutorial) => {
-                const result = completedTutorials[tutorial.id]
-                const attempt = quizProgress[tutorial.id]
-                const started = startedTutorialIds.includes(tutorial.id)
-                const answered = attempt?.answers.filter((answer) => answer !== null).length ?? 0
-                const progress = result
-                  ? 100
-                  : attempt ? Math.round((answered / attempt.answers.length) * 100) : 0
-                const status = result
-                  ? 'Completed'
-                  : started ? answered ? `${answered} of ${attempt.answers.length} answered` : 'In progress'
-                    : 'Ready to start'
-
-                return (
-                  <TutorialCard
-                    key={tutorial.id}
-                    tutorial={tutorial}
-                    result={result}
-                    progress={progress}
-                    status={status}
-                    action={getTutorialCardAction(tutorial, result, started, attempt?.currentIndex)}
-                    to={`/tutorials/${tutorial.id}`}
-                  />
-                )
-              })}
-            </div>
-          </section>
-          </main>
-        </div>
+        </main>
       </div>
     </div>
   )
 }
-
-export default Dashboard

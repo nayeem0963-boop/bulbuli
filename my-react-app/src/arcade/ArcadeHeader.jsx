@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom'
 import { useLanguage, useMuted } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import BrandMark from './BrandMark.jsx'
-import ZoneToggle, { CategoryToggle, TrackToggle } from './ZoneToggle.jsx'
-import { zonePath } from './zone.js'
+import AccountButton from '../auth/AccountButton.jsx'
+import PlayTab, { CategoryToggle } from './PlayNav.jsx'
+import { playPath } from './zone.js'
 
 function IconButton({ label, pressed, onClick, children, lang }) {
   return (
@@ -23,21 +24,25 @@ function IconButton({ label, pressed, onClick, children, lang }) {
 
 /**
  * The bar across the top of every arcade screen.
- * `game` (optional) turns it into a game bar: a big "All games" button replaces the toggles.
- * `back` ({ to, label }, optional) does the same with another destination (the Grammar quizzes use it).
- * A second switch sits beside Play | Learn: Educational | Adventure in Play, Coding | Grammar in Learn.
- * A game's "All games" button returns to the side of the Play switch the game is on.
+ *
+ * Home page (navigation): the brand, the Play tab with its Educational | Adventure switch,
+ * then the language switch and the profile button. Nothing else.
+ *
+ * Game pages: `game` (or `back` = { to, label }) turns it into a game bar. A big "All games"
+ * button replaces the navigation, and the in-game controls (sound, day/night) join the
+ * language switch and profile button. "All games" returns to the side of the switch the game is on.
  */
 export default function ArcadeHeader({ theme, onToggleTheme, game = null, back = null, showControls = true }) {
   const [language, , toggleLanguage] = useLanguage()
   const { muted, toggleMuted } = useMuted()
   const text = ARCADE_TEXT[language]
 
-  const backLink = back ?? (game ? { to: zonePath('play', game.category), label: text.backToGames } : null)
+  const backLink = back ?? (game ? { to: playPath(game.category), label: text.backToGames } : null)
+  const inGame = Boolean(backLink)
 
   return (
-    <header className={`arcade-header${backLink ? ' is-game' : ''}`}>
-      {backLink ? (
+    <header className={`arcade-header${inGame ? ' is-game' : ''}`}>
+      {inGame ? (
         <Link className="arcade-back" to={backLink.to}>
           <span aria-hidden="true">‹</span> {backLink.label}
         </Link>
@@ -47,11 +52,10 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
             <BrandMark />
             <span>bulbuli</span>
           </Link>
-          <div className="arcade-toggles">
-            <ZoneToggle text={text} />
+          <nav className="arcade-toggles" aria-label={text.navLabel}>
+            <PlayTab text={text} />
             <CategoryToggle text={text} />
-            <TrackToggle text={text} />
-          </div>
+          </nav>
         </>
       )}
 
@@ -67,10 +71,12 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
           >
             {text.switchLanguage}
           </button>
-          <IconButton label={muted ? text.soundOn : text.soundOff} pressed={!muted} onClick={toggleMuted}>
-            <span aria-hidden="true">{muted ? '🔇' : '🔊'}</span>
-          </IconButton>
-          {onToggleTheme && (
+          {inGame && (
+            <IconButton label={muted ? text.soundOn : text.soundOff} pressed={!muted} onClick={toggleMuted}>
+              <span aria-hidden="true">{muted ? '🔇' : '🔊'}</span>
+            </IconButton>
+          )}
+          {inGame && onToggleTheme && (
             <IconButton
               label={theme === 'dark' ? text.themeLight : text.themeDark}
               pressed={theme === 'dark'}
@@ -79,6 +85,7 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
               <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
             </IconButton>
           )}
+          <AccountButton language={language} />
         </div>
       )}
     </header>

@@ -1,0 +1,86 @@
+// Words for sign-in and saved progress. Same { en, bn } shape as src/arcade/text.js.
+// Players are children, so the asks are aimed at the grown-up and never block play.
+
+const en = {
+  modalTitle: 'Save your stars',
+  modalTitleSignUp: 'Make a free account',
+  modalTitleReset: 'Reset your password',
+  modalIntro: 'Grown-ups: sign in to keep XP and levels safe on every device. All games stay free without an account.',
+  close: 'Close',
+  email: 'Email',
+  password: 'Password',
+  passwordHint: 'At least 6 characters',
+  signIn: 'Sign in',
+  signingIn: 'Signing in…',
+  signUp: 'Create account',
+  signingUp: 'Creating account…',
+  google: 'Continue with Google',
+  or: 'or',
+  switchToSignUp: 'New here? Create an account',
+  switchToSignIn: 'Already have an account? Sign in',
+  forgot: 'Forgot password?',
+  sendReset: 'Send reset link',
+  sending: 'Sending…',
+  backToSignIn: 'Back to sign in',
+  resetSent: 'If that email has an account, a reset link is on its way.',
+  confirmEmail: 'Check your email and tap the link to finish. Your XP will be waiting.',
+  keepPlaying: 'Keep playing as a guest',
+  shortPassword: 'Use at least 6 characters.',
+  genericError: 'Something went wrong. Please try again.',
+  // Play page banner
+  bannerTitle: 'Keep your stars!',
+  bannerText: (xp, hasXp) => (hasXp
+    ? `You have ${xp} XP on this device. A grown-up can sign in to save it and level up anywhere.`
+    : 'A grown-up can sign in to save XP and level up on any device.'),
+  bannerButton: 'Sign in to save',
+  bannerDismiss: 'Hide this message',
+  savedTitle: (level) => `Level ${level}`,
+  savedText: (xp) => `${xp} XP saved to your account`,
+  toNextLevel: (n, level) => `${n} XP to level ${level}`,
+  dashboardLink: 'My progress',
+  // header
+  accountSignIn: 'Sign in',
+  accountOpen: 'My progress',
+}
+
+const bn = {
+  modalTitle: 'তোমার তারা জমিয়ে রাখো',
+  modalTitleSignUp: 'বিনামূল্যে অ্যাকাউন্ট খোলো',
+  modalTitleReset: 'পাসওয়ার্ড বদলাও',
+  modalIntro: 'অভিভাবকেরা: সাইন ইন করলে XP আর লেভেল সব ডিভাইসে নিরাপদ থাকবে। অ্যাকাউন্ট ছাড়াও সব খেলা বিনামূল্যে।',
+  close: 'বন্ধ করো',
+  email: 'ইমেইল',
+  password: 'পাসওয়ার্ড',
+  passwordHint: 'কমপক্ষে ৬টি অক্ষর',
+  signIn: 'সাইন ইন',
+  signingIn: 'সাইন ইন হচ্ছে…',
+  signUp: 'অ্যাকাউন্ট খোলো',
+  signingUp: 'অ্যাকাউন্ট খোলা হচ্ছে…',
+  google: 'Google দিয়ে চালিয়ে যাও',
+  or: 'অথবা',
+  switchToSignUp: 'নতুন? অ্যাকাউন্ট খোলো',
+  switchToSignIn: 'আগে থেকেই অ্যাকাউন্ট আছে? সাইন ইন করো',
+  forgot: 'পাসওয়ার্ড ভুলে গেছ?',
+  sendReset: 'রিসেট লিংক পাঠাও',
+  sending: 'পাঠানো হচ্ছে…',
+  backToSignIn: 'সাইন ইনে ফিরে যাও',
+  resetSent: 'এই ইমেইলে অ্যাকাউন্ট থাকলে একটি রিসেট লিংক পাঠানো হচ্ছে।',
+  confirmEmail: 'ইমেইল দেখো আর লিংকে চাপ দাও। তোমার XP অপেক্ষা করছে।',
+  keepPlaying: 'অতিথি হিসেবে খেলতে থাকো',
+  shortPassword: 'কমপক্ষে ৬টি অক্ষর দাও।',
+  genericError: 'কিছু একটা ভুল হয়েছে। আবার চেষ্টা করো।',
+  bannerTitle: 'তোমার তারা রেখে দাও!',
+  bannerText: (xp, hasXp) => (hasXp
+    ? `এই ডিভাইসে তোমার ${xp} XP আছে। অভিভাবক সাইন ইন করলে তা জমা থাকবে, যেকোনো জায়গা থেকে লেভেল বাড়াতে পারবে।`
+    : 'অভিভাবক সাইন ইন করলে XP জমা থাকবে, যেকোনো ডিভাইসে লেভেল বাড়াতে পারবে।'),
+  bannerButton: 'সাইন ইন করে রাখো',
+  bannerDismiss: 'বার্তাটি লুকাও',
+  savedTitle: (level) => `লেভেল ${level}`,
+  savedText: (xp) => `তোমার অ্যাকাউন্টে ${xp} XP জমা আছে`,
+  toNextLevel: (n, level) => `লেভেল ${level} হতে আর ${n} XP`,
+  dashboardLink: 'আমার অগ্রগতি',
+  accountSignIn: 'সাইন ইন',
+  accountOpen: 'আমার অগ্রগতি',
+}
+
+export const AUTH_TEXT = { en, bn }

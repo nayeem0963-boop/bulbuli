@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import runnerBird from '../../assets/bulbul-runner.webp'
 import ForestScene from './ForestScene.jsx'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import { playSound } from '../../utils/sound.js'
 import { createRun, getLevel, LEVELS, nextLetter, pressKey, progress, results } from './engine.js'
@@ -47,7 +47,7 @@ function Keyboard({ next, wrongKey, onPress, text }) {
 export default function TypeRunner({ playerId, language }) {
   const text = TYPE_RUNNER_TEXT[language]
   const n = (value) => formatDigits(value, language)
-  const { games, saveGameResult, storageError } = useTutorialProgress(playerId)
+  const { games, saveGameResult, storageError } = useGameProgress(playerId)
   const record = games[GAME_ID] ?? {}
 
   const [levelId, setLevelId] = useState(() => getLevel(record.levelId).id)

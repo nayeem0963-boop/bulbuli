@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { supabase } from '../supabaseClient.js'
+import { authCallbackUrl, supabase } from '../supabaseClient.js'
+import { rememberReturnPath } from '../auth/returnPath.js'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getAuthRedirectPath } from '../utils/authRedirect.js'
 
@@ -33,7 +34,9 @@ export default function Login() {
     setResetStatus(null)
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(emailToReset)
+      const { error } = await supabase.auth.resetPasswordForEmail(emailToReset, {
+        redirectTo: `${authCallbackUrl()}?next=password`,
+      })
       if (error) {
         setResetStatus({ type: 'error', message: error.message })
       } else {
@@ -69,7 +72,12 @@ export default function Login() {
     setLoading(true)
     setAuthStatus(null)
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      rememberReturnPath(redirectPath)
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: authCallbackUrl() },
+      })
       if (error) throw error
 
       if (data.session) {
@@ -116,10 +124,12 @@ export default function Login() {
     setAuthStatus(null)
 
     try {
+      // Works on localhost and production alike; /auth/callback sends the player back here.
+      rememberReturnPath(redirectPath)
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://bulbuli.org/auth/callback',
+          redirectTo: authCallbackUrl(),
         },
       })
       if (error) throw error
@@ -143,21 +153,18 @@ export default function Login() {
             bulbuli<span>.</span>
           </Link>
           <div className="auth-welcome-copy">
-            <p className="eyebrow">A little progress goes a long way</p>
-            <h1>Make room for your next big idea.</h1>
+            <p className="eyebrow">Every game is free to play</p>
+            <h1>Keep your stars safe.</h1>
             <p>
-              Build practical skills with friendly tutorials in HTML, CSS,
-              JavaScript, GitHub, and React. Learn a little, try a quiz, and
-              keep your progress close.
+              Sign in to save XP and levels to your account, so they follow you
+              to any device. You never need an account to play.
             </p>
           </div>
-          <div className="auth-topic-list" aria-label="Five guided tutorials">
+          <div className="auth-topic-list" aria-label="What an account saves">
             {[
-              ['</>', 'Introduction to HTML'],
-              ['#', 'Introduction to CSS'],
-              ['JS', 'Introduction to JavaScript'],
-              ['GH', 'GitHub'],
-              ['⚛', 'Introduction to React'],
+              ['⭐', 'XP from every game'],
+              ['🏅', 'Your level'],
+              ['🎮', 'Progress in each game'],
             ].map(([symbol, title]) => (
               <span className="auth-topic-pill" key={title}>
                 <strong aria-hidden="true">{symbol}</strong>
@@ -165,7 +172,7 @@ export default function Login() {
               </span>
             ))}
           </div>
-          <p className="auth-welcome-footnote">Five friendly paths. One step at a time.</p>
+          <p className="auth-welcome-footnote">Grown-ups: sign in for your young player.</p>
         </aside>
 
         <section className="card login-card auth-card">
@@ -214,14 +221,14 @@ export default function Login() {
             </>
           ) : (
             <>
-              <p className="eyebrow">{authMode === 'login' ? 'Welcome back' : 'Start your learning journey'}</p>
+              <p className="eyebrow">{authMode === 'login' ? 'Welcome back' : 'Save your progress'}</p>
               <h2 className="auth-card-title">
                 {authMode === 'login' ? 'Good to see you again.' : 'Let’s get you started.'}
               </h2>
               <p className="auth-card-description">
                 {authMode === 'login'
-                  ? 'Log in to pick up where you left off across HTML, CSS, JavaScript, GitHub, and React.'
-                  : 'Create your account and explore five guided tutorials in HTML, CSS, JavaScript, GitHub, and React.'}
+                  ? 'Log in to pick up your XP and level where you left off.'
+                  : 'Create a free account to keep XP and levels on every device.'}
               </p>
               <form
                 onSubmit={authMode === 'login' ? handleLogin : handleSignUp}

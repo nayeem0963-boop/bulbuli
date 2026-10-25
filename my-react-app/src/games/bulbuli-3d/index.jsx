@@ -4,14 +4,14 @@
  * Two kinds of reward, kept separate on purpose:
  *   • Stars: one per tap. Signed-in players' stars are saved to Supabase
  *     (profiles.total_score) by useScoreSync, debounced and batched.
- *   • XP: the arcade's own XP (useTutorialProgress → home page total).
+ *   • XP: the arcade's own XP (useGameProgress → home page total).
  *     1 XP per TAPS_PER_XP taps, capped per day so tapping can't swamp the
  *     XP earned in the learning games.
  */
 import { useCallback, useRef } from 'react'
 import GameCanvas from '../../components/game/GameCanvas.jsx'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
-import { useTutorialProgress } from '../../hooks/useTutorialProgress.js'
+import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import { BULBULI_3D_TEXT } from './text.js'
@@ -28,7 +28,7 @@ export default function Bulbuli3D({ playerId, language }) {
   const n = (value) => formatDigits(value, language)
 
   const { score, addPoints, status } = useScoreSync({ userId: playerId })
-  const { games, saveGameResult } = useTutorialProgress(playerId)
+  const { games, saveGameResult } = useGameProgress(playerId)
 
   const record = games[GAME_ID] ?? {}
   const xpToday = record.xpDate === today() ? record.xpToday ?? 0 : 0
