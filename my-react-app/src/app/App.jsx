@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import React, { lazy, Suspense, useEffect, useRef } from 'react';
 import { CATEGORIES, LEVELS } from '../core/questions/index.js';
 import { MODES } from '../core/modes.js';
 import { useI18n } from '../shared/i18n/index.jsx';
@@ -14,12 +14,14 @@ import { navigate, useLocation } from './router.js';
 import { resolve } from './route-utils.js';
 import './shell.css';
 
+import VehicleGame from '../components/3d_procedural_driving_game';
+
 // The leaderboard is only needed on demand, so it ships as its own chunk.
 const loadLeaderboard = () => import('../features/leaderboard/LeaderboardScreen.jsx');
 const LeaderboardScreen = lazy(loadLeaderboard);
-
 const ROUTES = [
-  { path: '/', titleKey: null, render: () => <HomeScreen /> },
+  { path: '/', titleKey: null, render: () => <VehicleGame /> },
+  { path: '/drive', titleKey: null, render: () => <VehicleGame /> },
   {
     path: '/play/:mode',
     titleKey: null,
@@ -28,14 +30,12 @@ const ROUTES = [
       const category = CATEGORIES.includes(query.get('cat')) ? query.get('cat') : 'mixed';
       const level = LEVELS.includes(Number(query.get('lvl'))) ? Number(query.get('lvl')) : 1;
       if (!mode) return <Redirect to="/" />;
-      // `run` changes on every "Play again", which remounts the screen and starts a fresh game
       return <GameScreen key={query.get('run') || '0'} mode={mode} category={category} level={level} />;
     },
   },
   { path: '/results', titleKey: null, render: () => <ResultsScreen /> },
   { path: '/leaderboard', titleKey: 'lb.title', render: () => <LeaderboardScreen /> },
 ];
-
 function Redirect({ to }) {
   useEffect(() => { navigate(to, { replace: true, animate: false }); }, [to]);
   return null;
