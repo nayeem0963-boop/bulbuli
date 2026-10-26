@@ -32,7 +32,7 @@ function IconButton({ label, pressed, onClick, children, lang }) {
  * button replaces the navigation, and the in-game controls (sound, day/night) join the
  * language switch and profile button. "All games" returns to the side of the switch the game is on.
  */
-export default function ArcadeHeader({ theme, onToggleTheme, game = null, back = null, showControls = true }) {
+export default function ArcadeHeader({ theme, onToggleTheme, game = null, back = null, showControls = true, onBack = null }) {
   const [language, , toggleLanguage] = useLanguage()
   const { muted, toggleMuted } = useMuted()
   const text = ARCADE_TEXT[language]
@@ -43,7 +43,16 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
   return (
     <header className={`arcade-header${inGame ? ' is-game' : ''}`}>
       {inGame ? (
-        <Link className="arcade-back" to={backLink.to}>
+        <Link
+          className="arcade-back"
+          to={backLink.to}
+          onClick={onBack ? (event) => {
+            // keep ctrl/cmd-click "open in new tab" working
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+            event.preventDefault()
+            onBack(backLink.to)
+          } : undefined}
+        >
           <span aria-hidden="true">‹</span> {backLink.label}
         </Link>
       ) : (

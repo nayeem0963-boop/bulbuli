@@ -10,6 +10,7 @@ import Mascot, { sayKey } from '../../shared/ui/Mascot.jsx';
 import { Confetti } from '../../shared/ui/Particles.jsx';
 import { addEntry, lastResult } from '../../state/scores.js';
 import { settings } from '../../state/settings.js';
+import { reportRoundCompleteFromFrame } from '../../session/roundEvents.js';
 import './results.css';
 
 export default function ResultsScreen() {
@@ -33,6 +34,8 @@ function Body({ result, t, n }) {
   const [saved, setSaved] = useState(null);
 
   useEffect(() => { play(cheer ? 'win' : 'click'); }, [cheer]);
+  // Inside the arcade's frame: a finished run counts as a round (feedback card, game_completed).
+  useEffect(() => { reportRoundCompleteFromFrame('pattern-quest', { score }); }, [score]);
 
   const save = (e) => {
     e.preventDefault();

@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from './auth/AuthContext.jsx'
+import { FavoritesProvider } from './favorites/FavoritesContext.jsx'
 import AuthModal from './auth/AuthModal.jsx'
 import AuthCallback from './auth/AuthCallback.jsx'
 import { getAuthRedirectPath } from './utils/authRedirect.js'
@@ -121,36 +122,39 @@ function App() {
   )
 
   return (
-    <div className="app-shell" data-theme={theme}>
-      {loading ? (
-        <main className="loading-state" role="status">
-          <span className="loading-bird" aria-hidden="true">🐦</span>
-        </main>
-      ) : (
-        <BrowserRouter>
-          <AppThemeToggle theme={theme} onToggleTheme={toggleTheme} />
-          <RouteTitle />
-          {/* Optional sign-in, opened from the Play banner or the header. Never required to play. */}
-          <AuthModal />
-          <Routes>
-            <Route path="/" element={
-              <ArcadeHome key={playerId} playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
-            } />
-            <Route path="/games/:gameId" element={
-              <GamePage playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
-            } />
-            <Route path="/share/math-hero" element={<AdCardPage theme={theme} onToggleTheme={toggleTheme} />} />
-            <Route path="/math-hero" element={<Navigate to="/games/math-hero" replace />} />
-            <Route path="/login" element={<LoginRoute session={session} />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/dashboard" element={member(
-              <Dashboard session={session} theme={theme} onToggleTheme={toggleTheme} />,
-            )} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      )}
-    </div>
+    // Favourite games (hearts on the tiles): device-only for guests, on the account when signed in.
+    <FavoritesProvider>
+      <div className="app-shell" data-theme={theme}>
+        {loading ? (
+          <main className="loading-state" role="status">
+            <span className="loading-bird" aria-hidden="true">🐦</span>
+          </main>
+        ) : (
+          <BrowserRouter>
+            <AppThemeToggle theme={theme} onToggleTheme={toggleTheme} />
+            <RouteTitle />
+            {/* Optional sign-in, opened from the Play banner or the header. Never required to play. */}
+            <AuthModal />
+            <Routes>
+              <Route path="/" element={
+                <ArcadeHome key={playerId} playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
+              } />
+              <Route path="/games/:gameId" element={
+                <GamePage playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
+              } />
+              <Route path="/share/math-hero" element={<AdCardPage theme={theme} onToggleTheme={toggleTheme} />} />
+              <Route path="/math-hero" element={<Navigate to="/games/math-hero" replace />} />
+              <Route path="/login" element={<LoginRoute session={session} />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/dashboard" element={member(
+                <Dashboard session={session} theme={theme} onToggleTheme={toggleTheme} />,
+              )} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        )}
+      </div>
+    </FavoritesProvider>
   )
 }
 

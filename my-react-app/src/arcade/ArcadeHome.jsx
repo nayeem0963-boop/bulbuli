@@ -5,6 +5,7 @@ import mathHeroMascot from '../assets/math-hero-mascot-cutout.webp'
 import { GAMES, gamesInCategory, getGame } from '../games/registry.js'
 import { useGameProgress } from '../hooks/useGameProgress.js'
 import { useAuth } from '../auth/AuthContext.jsx'
+import FavoriteButton from '../favorites/FavoriteButton.jsx'
 import SaveProgressBanner from '../auth/SaveProgressBanner.jsx'
 import InstallPwaBanner from '../pwa/InstallPwaBanner.jsx'
 import { formatDigits } from '../utils/mathHeroText.js'
@@ -46,6 +47,8 @@ function GameTile({ game, language, text }) {
         </div>
         <span className="game-tile-play" aria-hidden="true">{text.play}</span>
       </Link>
+      {/* beside the link, not inside it: a button can't live in a link, and tapping it must not open the game */}
+      <FavoriteButton gameId={game.id} gameTitle={title} language={language} className="is-on-tile" />
     </li>
   )
 }

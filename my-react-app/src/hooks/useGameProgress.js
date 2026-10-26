@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MATH_HERO_QUESTIONS_PER_LEVEL } from '../utils/mathHero.js'
 import { awardXp } from '../lib/xp.js'
+import { reportRoundComplete } from '../session/roundEvents.js'
 
 /**
  * A player's game progress on this device: each game's own record, Math Hero's saved run,
@@ -195,11 +196,15 @@ export function useGameProgress(playerId) {
     }
     // Signed-in players also get it on their account; for guests this does nothing.
     if (xpEarned > 0) awardXp(playerId, 'math-hero', xpEarned)
-    return saveProgress((current) => ({
+    // a run that just ended counts as a finished round (feedback card + game_completed)
+    const runEnded = Boolean(mathHeroProgress.gameOver) && !progressRef.current.mathHeroProgress?.gameOver
+    const saved = saveProgress((current) => ({
       ...current,
       mathHeroProgress,
       gamification: addXp(current, xpEarned),
     }))
+    if (runEnded) reportRoundComplete('math-hero', { score: mathHeroProgress.gameOver.finalScore })
+    return saved
   }, [saveProgress, playerId])
 
   /**
@@ -211,11 +216,15 @@ export function useGameProgress(playerId) {
       throw new TypeError('A game result needs a valid game ID and a whole, non-negative XP amount.')
     }
     if (xpEarned > 0) awardXp(playerId, gameId, xpEarned)
-    return saveProgress((current) => ({
+    const saved = saveProgress((current) => ({
       ...current,
       games: { ...current.games, [gameId]: update(current.games?.[gameId] ?? {}) },
       gamification: addXp(current, xpEarned),
     }))
+    // Games save once, when a level / board / run ends, so this is "a round finished".
+    // (Games without rounds, like Bulbuli 3D, are skipped in roundEvents.js.)
+    reportRoundComplete(gameId, { xp: xpEarned })
+    return saved
   }, [saveProgress, playerId])
 
   return {

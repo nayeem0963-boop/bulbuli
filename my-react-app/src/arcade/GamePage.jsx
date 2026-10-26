@@ -1,6 +1,8 @@
 import { Suspense, useEffect, useMemo } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getGame } from '../games/registry.js'
+import FeedbackModal from '../feedback/FeedbackModal.jsx'
+import useGameSession from '../session/useGameSession.js'
 import ArcadeHeader from './ArcadeHeader.jsx'
 import { GameErrorBoundary, getLazyGame } from './gameLoader.jsx'
 import { useLanguage } from './preferences.js'
@@ -13,6 +15,9 @@ export default function GamePage({ playerId, theme, onToggleTheme }) {
   const [language] = useLanguage()
   const text = ARCADE_TEXT[language]
   const GameComponent = useMemo(() => (game ? getLazyGame(game) : null), [game])
+  const navigate = useNavigate()
+  // analytics (started / completed / exited) and when to ask "How was it?"
+  const session = useGameSession(game, { surface: 'page', language })
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -25,6 +30,7 @@ export default function GamePage({ playerId, theme, onToggleTheme }) {
         onToggleTheme={onToggleTheme}
         game={game}
         showControls={!game?.ownControls}
+        onBack={(to) => session.requestExit(() => navigate(to))}
       />
       <main id="main" className="game-stage">
         {!game ? (
@@ -36,11 +42,25 @@ export default function GamePage({ playerId, theme, onToggleTheme }) {
           <GameErrorBoundary key={game.id} text={text}>
             <Suspense fallback={<p className="game-message" role="status">{text.loadingGame}</p>}>
               {/* Remount when the player changes, so a game never mixes two players' saves. */}
-              <GameComponent key={playerId} playerId={playerId} language={language} game={game} />
+              <GameComponent
+                key={playerId}
+                playerId={playerId}
+                language={language}
+                game={game}
+                onRoundComplete={session.roundComplete}
+              />
             </Suspense>
           </GameErrorBoundary>
         )}
       </main>
+
+      <FeedbackModal
+        open={session.feedback.open}
+        trigger={session.feedback.trigger}
+        game={game}
+        language={language}
+        onClose={session.closeFeedback}
+      />
     </div>
   )
 }

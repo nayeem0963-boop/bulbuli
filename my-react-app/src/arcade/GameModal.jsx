@@ -18,6 +18,8 @@
  */
 import { Suspense, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { formatDigits } from '../utils/mathHeroText.js'
+import FeedbackModal from '../feedback/FeedbackModal.jsx'
+import useGameSession from '../session/useGameSession.js'
 import { GameErrorBoundary, getLazyGame, prefetchGame } from './gameLoader.jsx'
 import { useMuted } from './preferences.js'
 
@@ -66,6 +68,9 @@ export default function GameModal({ game, playerId, language, text, onClose }) {
   const [phase, setPhase] = useState('launch') // 'launch' | 'playing'
   const { muted, toggleMuted } = useMuted()
   const { isFullscreen, enter, exit } = useFullscreen(dialog)
+  // the session (and its clock) starts when the game does, not on the launch card
+  const session = useGameSession(game, { active: phase === 'playing', surface: 'launcher', language })
+  const { requestExit } = session
   const GameComponent = getLazyGame(game)
   const { Art } = game
   const title = game.title[language]
@@ -90,10 +95,13 @@ export default function GameModal({ game, playerId, language, text, onClose }) {
     first?.focus({ preventScroll: true })
   }, [phase])
 
+  // while playing, ✕ (or the game's own Exit) may show the feedback card first; it closes after
   const close = useCallback(() => {
-    exit()
-    onClose()
-  }, [exit, onClose])
+    requestExit(() => {
+      exit()
+      onClose()
+    })
+  }, [requestExit, exit, onClose])
 
   // Esc closes the launch card; Tab stays inside the dialog
   const onKeyDown = (event) => {
@@ -187,11 +195,29 @@ export default function GameModal({ game, playerId, language, text, onClose }) {
           <div className="game-modal-body" tabIndex={-1}>
             <GameErrorBoundary key={game.id} text={text}>
               <Suspense fallback={<p className="game-message" role="status">{text.loadingGame}</p>}>
-                <GameComponent key={playerId} playerId={playerId} language={language} game={game} embedded autoStart onExit={close} />
+                <GameComponent
+                  key={playerId}
+                  playerId={playerId}
+                  language={language}
+                  game={game}
+                  embedded
+                  autoStart
+                  onExit={close}
+                  onRoundComplete={session.roundComplete}
+                />
               </Suspense>
             </GameErrorBoundary>
           </div>
         )}
+
+        {/* inside the dialog, so it also shows in full screen */}
+        <FeedbackModal
+          open={session.feedback.open}
+          trigger={session.feedback.trigger}
+          game={game}
+          language={language}
+          onClose={session.closeFeedback}
+        />
       </div>
     </div>
   )

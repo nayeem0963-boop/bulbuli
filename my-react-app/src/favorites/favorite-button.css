@@ -1,0 +1,47 @@
+/* The favourite heart (FavoriteButton.jsx). */
+
+.fav-button {
+  display: grid;
+  width: 2.75rem; /* 44px: an easy target for small fingers */
+  height: 2.75rem;
+  place-items: center;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0;
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 3px 0 var(--ink);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fav-button:hover { transform: scale(1.08); }
+.fav-button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.fav-button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.app-shell[data-theme='dark'] .fav-button { background: rgb(255 255 255 / 92%); }
+.app-shell[data-theme='dark'] .fav-button:focus-visible { outline-color: #fff; }
+
+.fav-button.is-pop { animation: fav-pop 360ms ease; }
+
+@keyframes fav-pop {
+  40% { transform: scale(1.3); }
+}
+
+/* ---------- on a game tile ---------- */
+
+/* .game-tile is already position: relative; the heart sits over the art's top-right corner */
+.game-tile .fav-button.is-on-tile {
+  position: absolute;
+  top: calc(0.6rem + 3px);
+  right: calc(0.6rem + 3px);
+  z-index: 2;
+}
+
+/* the "New" badge moves left of the heart so the two never overlap */
+.game-tile:has(.fav-button.is-on-tile) .game-tile-badge { right: 4.1rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fav-button, .fav-button.is-pop { transition: none; animation: none; }
+}
