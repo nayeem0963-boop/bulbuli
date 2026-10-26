@@ -12,6 +12,7 @@ import ShapeSortingArt from './shape-sorting/Art.jsx'
 import SkyRunnerArt from './sky-runner/Art.jsx'
 import SkywardExplorerArt from './skyward-explorer/Art.jsx'
 import SkyTypewriterArt from './sky-typewriter/Art.jsx'
+import NeonVelocityArt from './neon-velocity/Art.jsx'
 
 /**
  * Every game in the arcade, in the order it appears on the home page.
@@ -214,6 +215,28 @@ export const GAMES = [
     controls: {
       en: 'WASD or arrows to run · Space to jump, hold it in the air to glide · drag to look. On touch screens: stick to move, button to jump.',
       bn: 'WASD বা তীর চিহ্নে দৌড়াও · Space-এ লাফ, শূন্যে চেপে ধরলে গ্লাইড · টেনে চারপাশ দেখো। টাচ স্ক্রিনে: স্টিকে চলো, বোতামে লাফাও।',
+    },
+    isNew: true,
+  },
+  {
+    id: 'neon-velocity',
+    title: { en: 'Bulbuli: Neon Velocity', bn: 'বুলবুলি: নিয়ন ভেলোসিটি' },
+    tagline: {
+      en: 'High-speed 3D parkour and speedrunning through neon skyways.',
+      bn: 'নিয়ন আকাশপথে দুর্দান্ত গতির ৩ডি পার্কুর আর স্পিডরান।',
+    },
+    skill: { en: '3D parkour & speedrun', bn: '৩ডি পার্কুর ও স্পিডরান' },
+    ages: '13+',
+    color: 'grape',
+    icon: '⚡',
+    category: 'adventure',
+    Art: NeonVelocityArt,
+    // three.js, Rapier physics and the post-processing load only when the game is opened.
+    load: () => import('./neon-velocity/index.jsx'),
+    launch: 'modal',
+    controls: {
+      en: 'A/D or arrows to switch lanes · W/Space to jump (again in the air to double jump, hold to glide) · S to slide · Esc to pause. On touch screens: swipe or use the buttons.',
+      bn: 'A/D বা তীর চিহ্নে লেন বদলাও · W/Space-এ লাফ (শূন্যে আবার চাপলে ডাবল জাম্প, চেপে ধরলে গ্লাইড) · S-এ স্লাইড · Esc-এ থামাও। টাচ স্ক্রিনে: সোয়াইপ করো বা বোতাম চাপো।',
     },
     isNew: true,
   },
