@@ -13,7 +13,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function plausible(d) {
+    function plausible(d, boardId) {
       return d.keys().hasAll(['name', 'score', 'distance', 'timeMs', 'crystals', 'maxSpeedKmh', 'surges'])
         && d.name is string && d.name.size() >= 1 && d.name.size() <= 16
         && d.score is int && d.distance is int && d.timeMs is int && d.crystals is int
@@ -21,17 +21,21 @@ service cloud.firestore {
         && d.timeMs >= 1000
         // max run speed ≈ 18 m/s × 2.2 × 1.6 (surge) ≈ 64 m/s → allow 70
         && d.distance <= d.timeMs / 1000 * 70
-        // score = distance + crystal points (≤ 100 per crystal incl. surge doubling)
-        && d.score <= d.distance + d.crystals * 100
+        // score = (distance + crystal points) × difficulty multiplier
+        // (≤ 100 points per crystal incl. surge doubling; multiplier 1× / 1.5× / 2×)
+        && d.score <= (d.distance + d.crystals * 100) * 2
+        // boards are split by difficulty: the entry's mode must match its board
+        && (!d.keys().hasAny(['difficulty']) || d.difficulty in ['easy', 'medium', 'hard'])
+        && (!d.keys().hasAny(['difficulty']) || boardId.matches('.*-' + d.difficulty + '$'))
         && d.maxSpeedKmh <= 260;
     }
 
     match /boards/{boardId}/entries/{uid} {
       allow read: if true;
       allow create: if request.auth != null && request.auth.uid == uid
-        && plausible(request.resource.data);
+        && plausible(request.resource.data, boardId);
       allow update: if request.auth != null && request.auth.uid == uid
-        && plausible(request.resource.data)
+        && plausible(request.resource.data, boardId)
         && request.resource.data.score > resource.data.score;
       allow delete: if false;
     }

@@ -7,7 +7,7 @@ import { formatInt, formatTime } from '../../../utils/format'
 
 /**
  * Leaderboard table for one board (today's daily course or endless).
- * Global (Firestore) when configured, plus a "This device" view.
+ * Global (Supabase) when configured, plus a "This device" view.
  * Your row is highlighted; if you're outside the top 50 it's pinned at the bottom.
  */
 export function Rankings({ boardId, label }) {

@@ -18,9 +18,10 @@ import { ghostRecorder } from '../systems/runStats'
 export function useRunLifecycle() {
   useEffect(() => {
     const preloadGhost = () => {
-      const { courseMode, raceGhost } = useGameStore.getState()
+      const { courseMode, raceGhost, difficulty } = useGameStore.getState()
       if (courseMode !== CourseMode.DAILY || raceGhost === 'off') return
-      useLeaderboardStore.getState().loadGhost(courseFor(CourseMode.DAILY).boardId, raceGhost)
+      // ghosts are per difficulty: today's Chill ghost never races an Overdrive run
+      useLeaderboardStore.getState().loadGhost(courseFor(CourseMode.DAILY, difficulty).boardId, raceGhost)
     }
     preloadGhost()
 
@@ -43,8 +44,8 @@ export function useRunLifecycle() {
       }
     })
 
-    // Re-load when the player changes ghost/course settings on the start screen
-    const offSettings = useGameStore.subscribe((s) => `${s.courseMode}|${s.raceGhost}`, preloadGhost)
+    // Re-load when the player changes ghost/course/difficulty settings on the start screen
+    const offSettings = useGameStore.subscribe((s) => `${s.courseMode}|${s.raceGhost}|${s.difficulty}`, preloadGhost)
     return () => { off(); offSettings() }
   }, [])
 }

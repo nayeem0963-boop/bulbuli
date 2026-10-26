@@ -39,10 +39,17 @@ const en = {
   fullscreenExit: 'Leave full screen',
   closeGame: 'Close the game',
   launcherHint: 'Full screen plays best. On a phone, turn it sideways.',
-  // the Educational | Adventure switch
-  categoryLabel: 'Kind of game',
-  categoryEducational: 'Educational',
-  categoryAdventure: 'Adventure',
+  // the audience pills above the game grid
+  filterLabel: 'Show games for',
+  filters: {
+    all: 'All Games',
+    young: 'Young Learners',
+    logic: 'Logic & Typing',
+    arcade: 'Arcade & Dev Studio',
+  },
+  gameCount: (n) => (n === '1' ? '1 game' : `${n} games`),
+  showingGames: (n, filter) => `Showing ${n} ${n === '1' ? 'game' : 'games'}: ${filter}`,
+  emptyFilter: 'No games here yet. Try All Games!',
   footer: 'Bulbuli · Learning games for kids',
 }
 
@@ -83,9 +90,16 @@ const bn = {
   fullscreenExit: 'পুরো স্ক্রিন থেকে বেরোও',
   closeGame: 'খেলা বন্ধ করো',
   launcherHint: 'পুরো স্ক্রিনে খেলতে সবচেয়ে ভালো। ফোনে হলে আড়াআড়ি করে ধরো।',
-  categoryLabel: 'খেলার ধরন',
-  categoryEducational: 'শিক্ষামূলক',
-  categoryAdventure: 'অ্যাডভেঞ্চার',
+  filterLabel: 'কাদের জন্য খেলা দেখাবে',
+  filters: {
+    all: 'সব খেলা',
+    young: 'ছোট্ট শিক্ষার্থী',
+    logic: 'যুক্তি ও টাইপিং',
+    arcade: 'আর্কেড ও ডেভ স্টুডিও',
+  },
+  gameCount: (n) => `${n}টি খেলা`,
+  showingGames: (n, filter) => `${filter}: ${n}টি খেলা দেখানো হচ্ছে`,
+  emptyFilter: 'এখানে এখনো কোনো খেলা নেই। সব খেলা দেখো!',
   footer: 'বুলবুলি · ছোটদের শেখার খেলা',
 }
 

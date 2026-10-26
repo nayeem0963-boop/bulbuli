@@ -12,7 +12,7 @@ import { useProfileStore } from './useProfileStore'
  *   submission                   = result of the last run's submit (rank, improved, …)
  *   ghosts[boardId]              = decoded ghost ready for <GhostRunner/>
  *
- * scope 'global' uses Firestore when configured, else transparently falls back
+ * scope 'global' uses Supabase (public.leaderboards) when configured, else transparently falls back
  * to 'local'. Every run is always saved locally as well.
  */
 

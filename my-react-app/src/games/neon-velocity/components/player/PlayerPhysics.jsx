@@ -3,14 +3,15 @@ import { useFrame } from '@react-three/fiber'
 import { MathUtils } from 'three'
 import {
   BASE_SPEED, COLORS, COYOTE_TIME, DOUBLE_JUMP_VELOCITY, FALL_DEATH_Y,
-  FALL_GRAVITY, FOOT_RADIUS, FREE_LIMIT, GRAVITY, FREE_STEER_SPEED, GLIDE_DELAY, GLIDE_GRAVITY,
+  FOOT_RADIUS, FREE_LIMIT, GRAVITY, FREE_STEER_SPEED, GLIDE_DELAY, GLIDE_GRAVITY,
   GLIDE_MAX_FALL, GRIND_SPEED_BONUS, HEAD_OFFSET, HEAD_RADIUS, HIT_INVULNERABILITY,
   HIT_MOMENTUM, JUMP_BUFFER, JUMP_CUT, JUMP_VELOCITY, LANES, LANE_SNAP, MOMENTUM_RECOVERY,
   RAIL_CAPTURE_ABOVE, RAIL_CAPTURE_BELOW, RAIL_CAPTURE_DX, RAIL_CAPTURE_MAX_VY,
-  MAX_SPEED_MULTIPLIER, RISE_HOLD_GRAVITY, SLAM_VELOCITY, SLIDE_DURATION, STEERING_MODES,
+  MAX_SPEED_MULTIPLIER, SLAM_VELOCITY, SLIDE_DURATION, STEERING_MODES,
   SURGE_SPEED, WALLRUN_DURATION,
   WALL_CAPTURE_X, WALL_JUMP_VELOCITY, WALL_KICK, WALL_THICKNESS, WALL_X,
 } from '../../config/constants'
+import { difficultyConfig } from '../../config/difficulty'
 import { input } from '../../stores/inputStore'
 import { runtime } from '../../stores/runtime'
 import { DeathCause, GameStatus, useGameStore } from '../../stores/useGameStore'
@@ -39,6 +40,9 @@ const nearestLane = (x) =>
  *   4. moveBody(): integrate with gravity and resolve against the AABB collision world
  *      (systems/collisionWorld.js); hazards and pickups fire their sensors from there
  *   5. copy the result onto the avatar group and into runtime for camera / VFX
+ *
+ * Difficulty (config/difficulty.js) scales forward speed, gravity, jump launch,
+ * coyote/buffer windows and wall-run time. Hard = all multipliers 1.
  */
 export function PlayerPhysics() {
   const root = useRef()
@@ -81,6 +85,11 @@ export function PlayerPhysics() {
     const pos = b.pos
     const vel = b.vel
     const lanesMode = game.steeringMode === STEERING_MODES.LANES
+    const tune = difficultyConfig(game.course?.difficulty ?? game.difficulty)
+    const jumpBuffer = JUMP_BUFFER * tune.jumpWindow
+    const coyoteTime = COYOTE_TIME * tune.jumpWindow
+    const baseSpeed = BASE_SPEED * tune.speedScale
+    const wallRunDuration = WALLRUN_DURATION * tune.wallRunTime
 
     const at = () => [pos.x, pos.y, pos.z]
     const emit = (type, payload) => GameEvents.emit(type, payload)
@@ -93,12 +102,12 @@ export function PlayerPhysics() {
     }
 
     // ── 1. Input edges ──
-    // Jump buffer: a press stays valid for JUMP_BUFFER seconds, but always for at least one
+    // Jump buffer: a press stays valid for jumpBuffer seconds, but always for at least one
     // frame, so a quick tap is never lost on a slow device (one frame can be longer than the buffer).
     const realNow = performance.now() / 1000
     const lastFrame = s.lastFrameReal ?? realNow
     s.lastFrameReal = realNow
-    if (input.jumpPressed && realNow - input.jumpPressTime > JUMP_BUFFER && input.jumpPressTime < lastFrame) {
+    if (input.jumpPressed && realNow - input.jumpPressTime > jumpBuffer && input.jumpPressTime < lastFrame) {
       input.jumpPressed = false
     }
     let jumpWanted = input.jumpPressed
@@ -118,7 +127,7 @@ export function PlayerPhysics() {
       s.lastGrounded = now
       s.jumpsUsed = 0
     }
-    const coyote = now - s.lastGrounded <= COYOTE_TIME && s.jumpsUsed === 0
+    const coyote = now - s.lastGrounded <= coyoteTime && s.jumpsUsed === 0
 
     let mode = s.mode
     let vy = vel.y
@@ -126,7 +135,7 @@ export function PlayerPhysics() {
 
     const groundJump = () => {
       useJump()
-      vy = JUMP_VELOCITY
+      vy = JUMP_VELOCITY * tune.jumpScale
       s.jumpsUsed = 1
       s.lastJumpTime = now
       s.jumpCutArmed = true
@@ -193,7 +202,7 @@ export function PlayerPhysics() {
       if (jumpWanted) {
         // Wall jump: up and away, refunds the double jump
         useJump()
-        vy = WALL_JUMP_VELOCITY
+        vy = WALL_JUMP_VELOCITY * tune.jumpScale
         s.jumpsUsed = 1
         s.lastJumpTime = now
         s.jumpCutArmed = true
@@ -212,7 +221,7 @@ export function PlayerPhysics() {
         leaveWall()
       } else {
         // Rise slightly at first, then sink — a readable wall-run arc
-        const t = 1 - s.wallTimer / WALLRUN_DURATION
+        const t = 1 - s.wallTimer / wallRunDuration
         vy = MathUtils.lerp(1.2, -1.8, t)
         gravityScale = 0
       }
@@ -240,7 +249,7 @@ export function PlayerPhysics() {
       } else if (jumpWanted && !grounded && s.jumpsUsed < 2 && mode !== M.RUN && mode !== M.SLIDE) {
         // Double jump (also the single air jump if you walked off a ledge)
         useJump()
-        vy = DOUBLE_JUMP_VELOCITY
+        vy = DOUBLE_JUMP_VELOCITY * tune.jumpScale
         s.jumpsUsed = 2
         s.lastJumpTime = now
         s.jumpCutArmed = true
@@ -293,7 +302,7 @@ export function PlayerPhysics() {
           mode = M.WALLRUN
           s.wallId = id
           s.wallSide = w.side
-          s.wallTimer = WALLRUN_DURATION
+          s.wallTimer = wallRunDuration
           s.jumpsUsed = 0
           vy = Math.max(vy, 1.2)
           s.slamming = false
@@ -310,7 +319,7 @@ export function PlayerPhysics() {
 
       // Gravity shaping
       if (mode === M.AIR) {
-        gravityScale = vy > 0 ? (input.jumpHeld ? RISE_HOLD_GRAVITY : 1) : FALL_GRAVITY
+        gravityScale = vy > 0 ? (input.jumpHeld ? tune.riseHoldGravity : 1) : tune.fallGravity
       } else if (mode === M.GLIDE) {
         gravityScale = GLIDE_GRAVITY
         if (vy < -GLIDE_MAX_FALL) vy = MathUtils.lerp(vy, -GLIDE_MAX_FALL, 1 - Math.exp(-dt * 8))
@@ -320,7 +329,7 @@ export function PlayerPhysics() {
     input.jumpReleased = false
 
     // ── 5. Velocity ──
-    const runSpeed = BASE_SPEED * game.speedMultiplier * s.momentum
+    const runSpeed = baseSpeed * game.speedMultiplier * s.momentum
       * (mode === M.GRIND ? GRIND_SPEED_BONUS : 1)
     const speed = runSpeed * (game.boosting ? SURGE_SPEED : 1)
 
@@ -346,7 +355,7 @@ export function PlayerPhysics() {
 
     // ── 5. Move + collide (low profile while sliding, so overhead bars clear) ──
     vel.set(vx, vy, -speed)
-    moveBody(b, dt, mode === M.SLIDE ? SLIDE : STAND, GRAVITY * gravityScale)
+    moveBody(b, dt, mode === M.SLIDE ? SLIDE : STAND, GRAVITY * tune.gravityScale * gravityScale)
     if (root.current) root.current.position.copy(pos)
 
     // ── 6. Publish ──
@@ -355,7 +364,8 @@ export function PlayerPhysics() {
     s.mode = mode
     runtime.playerPosition.set(pos.x, pos.y, pos.z)
     runtime.speed = speed
-    runtime.speedFactor = MathUtils.clamp((runSpeed / BASE_SPEED - 1) / (MAX_SPEED_MULTIPLIER - 1), 0, 1)
+    // relative to this mode's base speed, so speed VFX/music still build up in every mode
+    runtime.speedFactor = MathUtils.clamp((runSpeed / baseSpeed - 1) / (MAX_SPEED_MULTIPLIER - 1), 0, 1)
     runtime.playerMode = mode
     runtime.wallSide = mode === M.WALLRUN ? s.wallSide : 0
     game.setPlayerMode(mode)

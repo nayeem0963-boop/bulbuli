@@ -4,6 +4,9 @@ import {
   ACCELERATION, BASE_SPEED, HIT_METER_LOSS, HIT_MULTIPLIER_LOSS, MAX_HEARTS,
   MAX_SPEED_MULTIPLIER, SPEED_TIER_STEP, STEERING_MODES, SURGE_DURATION, SURGE_SPEED,
 } from '../config/constants'
+import {
+  DEFAULT_DIFFICULTY, DIFFICULTY_ORDER, DifficultyId, difficultyConfig, isDifficulty,
+} from '../config/difficulty'
 import { EV, GameEvents } from '../systems/events'
 import { ghostRecorder, runStats } from '../systems/runStats'
 import { highlightRecorder } from '../clip/highlightRecorder'
@@ -55,13 +58,37 @@ const freshRun = () => ({
   deathCause: null,
 })
 
+// ── Difficulty ──
+const initialDifficulty = () => {
+  const saved = load('neonVelocity.difficulty', DEFAULT_DIFFICULTY)
+  return isDifficulty(saved) ? saved : DEFAULT_DIFFICULTY
+}
+
+/**
+ * Personal bests, one per difficulty. The single pre-difficulty best was set
+ * with Overdrive physics, so it seeds the hard slot (at 1×, so it's easy to beat).
+ */
+const loadBestScores = () => {
+  const saved = load('neonVelocity.bestScores', null)
+  const bests = Object.fromEntries(DIFFICULTY_ORDER.map((id) => [id, Number(saved?.[id]) || 0]))
+  if (!saved) bests[DifficultyId.HARD] = load('neonVelocity.bestScore', 0)
+  return bests
+}
+
+/** Distance + crystal points, scaled by the mode's multiplier. */
+export const scoreFor = (distance, crystalPoints, difficulty) =>
+  Math.floor((Math.floor(distance) + crystalPoints) * difficultyConfig(difficulty).scoreMultiplier)
+
 const tierOf = (m) => Math.floor((m - 1) / SPEED_TIER_STEP + 1e-6)
 
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
     status: GameStatus.START,
     runId: 0,
-    bestScore: load('neonVelocity.bestScore', 0),
+    // ── Difficulty (chosen on the start screen; locked for the duration of a run) ──
+    difficulty: initialDifficulty(),                           // 'easy' | 'medium' | 'hard'
+    bestScores: loadBestScores(),                              // { easy, medium, hard }
+    bestScore: 0,                                              // best for the current difficulty (kept in sync)
     steeringMode: STEERING_MODES.LANES,
 
     // ── Course / competition ──
@@ -85,7 +112,7 @@ export const useGameStore = create(
       runStats.reset()
       ghostRecorder.reset()
       highlightRecorder.reset()
-      const course = courseFor(get().courseMode)
+      const course = courseFor(get().courseMode, get().difficulty)
       set((s) => ({ ...freshRun(), course, lastRun: null, status: GameStatus.PLAYING, runId: s.runId + 1 }))
     },
     pause: () => {
@@ -105,8 +132,11 @@ export const useGameStore = create(
     endGame: (cause = DeathCause.CRASH) => {
       const s = get()
       if (s.status !== GameStatus.PLAYING) return
-      const isNewBest = s.score > s.bestScore
-      if (isNewBest) save('neonVelocity.bestScore', s.score)
+      const difficulty = s.course?.difficulty ?? s.difficulty
+      const previousBest = s.bestScores[difficulty] ?? 0
+      const isNewBest = s.score > previousBest
+      const bestScores = isNewBest ? { ...s.bestScores, [difficulty]: s.score } : s.bestScores
+      if (isNewBest) save('neonVelocity.bestScores', bestScores)
       if (s.boosting) GameEvents.emit(EV.SURGE_END)
       highlightRecorder.finalize()
       const lastRun = {
@@ -118,8 +148,10 @@ export const useGameStore = create(
         timeMs: runtime.gameTime * 1000,
         cause,
         mode: s.course?.mode,
+        difficulty,
+        scoreMultiplier: difficultyConfig(difficulty).scoreMultiplier,
         seed: s.course?.seed,
-        boardId: s.course?.boardId ?? 'endless',
+        boardId: s.course?.boardId ?? `endless-${difficulty}`,
         courseLabel: s.course?.label,
         endedAt: Date.now(),
       }
@@ -127,7 +159,8 @@ export const useGameStore = create(
         status: GameStatus.GAME_OVER,
         deathCause: cause,
         isNewBest,
-        bestScore: isNewBest ? s.score : s.bestScore,
+        bestScores,
+        bestScore: bestScores[s.difficulty] ?? 0,
         boosting: false,
         lastRun,
       })
@@ -166,7 +199,7 @@ export const useGameStore = create(
         speedMultiplier,
         speedTier: Math.max(s.speedTier, speedTier),
         distance,
-        score: Math.floor(distance) + s.crystalPoints,
+        score: scoreFor(distance, s.crystalPoints, s.difficulty),
         boostMeter,
         boosting,
       })
@@ -210,6 +243,14 @@ export const useGameStore = create(
 
     // ── Settings ──
     setSteeringMode: (steeringMode) => set({ steeringMode }),
+    /** Only from the menu: a run's physics, course and board are fixed when it starts. */
+    setDifficulty: (difficulty) => {
+      if (!isDifficulty(difficulty)) return
+      const { status, bestScores } = get()
+      if (status !== GameStatus.START && status !== GameStatus.GAME_OVER) return
+      save('neonVelocity.difficulty', difficulty)
+      set({ difficulty, bestScore: bestScores[difficulty] ?? 0 })
+    },
     setCourseMode: (courseMode) => { save('neonVelocity.courseMode', courseMode); set({ courseMode }) },
     setRaceGhost: (raceGhost) => { save('neonVelocity.raceGhost', raceGhost); set({ raceGhost }) },
     toggleMute: () => set((s) => { save('neonVelocity.muted', !s.muted); return { muted: !s.muted } }),
@@ -219,6 +260,11 @@ export const useGameStore = create(
   })),
 )
 
+// keep `bestScore` consistent with the restored difficulty
+useGameStore.setState((s) => ({ bestScore: s.bestScores[s.difficulty] ?? 0 }))
+
+export const selectDifficultyConfig = (s) => difficultyConfig(s.difficulty)
 export const selectSpeedKmh = (s) =>
-  Math.round(BASE_SPEED * s.speedMultiplier * (s.boosting ? SURGE_SPEED : 1) * 3.6)
+  Math.round(BASE_SPEED * difficultyConfig(s.difficulty).speedScale
+    * s.speedMultiplier * (s.boosting ? SURGE_SPEED : 1) * 3.6)
 export const selectDistance = (s) => Math.floor(s.distance)

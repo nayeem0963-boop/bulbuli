@@ -1,5 +1,6 @@
-import { DIFFICULTY_RAMP, LANES, PLATFORM_WIDTH, WALL_X } from '../../config/constants'
-import { createRng } from '../../utils/random'
+import { LANES, PLATFORM_WIDTH, WALL_X } from '../../config/constants.js'
+import { DIFFICULTIES, DifficultyId } from '../../config/difficulty.js'
+import { createRng } from '../../utils/random.js'
 
 /*
  * Procedural segment generator.
@@ -23,21 +24,28 @@ import { createRng } from '../../utils/random'
  *   - every hazard row leaves at least one lane open (or is jump/slide-able)
  *   - gap sizes stay inside what a single jump clears at base speed;
  *     long gaps always offer a wall, rail or ramp
+ *
+ * Difficulty (config/difficulty.js) scales gaps, island width, hazard density,
+ * laser speed and how fast/far the ramp climbs. With the hard tuning every
+ * multiplier is 1 and no extra RNG draws happen, so a hard course is identical
+ * to the pre-difficulty generator for the same seed.
  */
 
 const OUTER = { [-1]: 0, [1]: LANES.length - 1 }
 
-export function createSegmentGenerator(seed) {
+const ISLAND_WIDTH = 3.6
+
+export function createSegmentGenerator(seed, tuning = DIFFICULTIES[DifficultyId.HARD]) {
   const rng = createRng(seed)
   let cursor = 12          // the start platform begins slightly behind the player
   let index = 0
   let lastType = null
 
   function next() {
-    const difficulty = Math.min(1, Math.max(0, -cursor / DIFFICULTY_RAMP))
-    const type = index === 0 ? 'start' : pickType(rng, difficulty, lastType)
+    const difficulty = Math.min(tuning.maxRamp, Math.max(0, -cursor / tuning.rampDistance))
+    const type = index === 0 ? 'start' : pickType(rng, difficulty, lastType, tuning)
     const id = `seg${index}`
-    const ctx = createContext(rng, id, cursor, difficulty)
+    const ctx = createContext(rng, id, cursor, difficulty, tuning)
     BUILDERS[type](ctx)
     const segment = { id, type, z0: cursor, z1: ctx.z, pieces: ctx.pieces }
     cursor = ctx.z
@@ -49,13 +57,14 @@ export function createSegmentGenerator(seed) {
   return { next }
 }
 
-function pickType(rng, d, last) {
+function pickType(rng, d, last, tuning) {
+  const long = tuning.longGapWeight
   const weights = [
     ['runway', 3],
     ['gap', 2],
-    ['ramp', 1.4],
-    ['rail', 1.3],
-    ['wallrun', d > 0.05 ? 1.3 : 0],
+    ['ramp', 1.4 * long],
+    ['rail', 1.3 * long],
+    ['wallrun', d > 0.05 ? 1.3 * long : 0],
     ['islands', d > 0.1 ? 1.5 : 0],
   ]
   let type = rng.weighted(weights)
@@ -64,11 +73,17 @@ function pickType(rng, d, last) {
 }
 
 /** Builder context: a moving z cursor plus helpers that emit pieces. */
-function createContext(rng, segId, z, difficulty) {
+function createContext(rng, segId, z, difficulty, tuning) {
   let n = 0
   const ctx = {
     rng,
     d: difficulty,
+    t: tuning,
+    /** Optional hazard row (after gaps / rails): fewer of them on lighter densities. */
+    maybeHazardRow(zRow) {
+      // `density >= 1` short-circuits, so full density spends no extra RNG draws
+      if (tuning.hazardDensity >= 1 || rng.chance(tuning.hazardDensity)) hazardRow(ctx, zRow)
+    },
     z,                      // advances toward −z as pieces are laid
     pieces: [],
     uid: (p) => `${segId}-${p}${n++}`,
@@ -101,7 +116,8 @@ function createContext(rng, segId, z, difficulty) {
       }
     },
     /** Hazard rows spread along a platform section. */
-    hazardRows(zStart, length, spacing = 15) {
+    hazardRows(zStart, length, baseSpacing = 15) {
+      const spacing = baseSpacing / tuning.hazardDensity
       for (let zr = zStart - 12; zr > zStart - length + 8; zr -= spacing + rng.range(-2, 3)) {
         hazardRow(ctx, zr)
       }
@@ -112,7 +128,7 @@ function createContext(rng, segId, z, difficulty) {
 
 /** One row of hazards across the track at depth z. Always passable. */
 function hazardRow(ctx, z) {
-  const { rng, d } = ctx
+  const { rng, d, t } = ctx
   const pattern = rng.weighted([
     ['blocks', 3],
     ['pillars', 1 + d * 2],
@@ -123,7 +139,7 @@ function hazardRow(ctx, z) {
   const laneOrder = rng.shuffle(LANES.map((_, i) => i))
 
   if (pattern === 'blocks' || pattern === 'pillars') {
-    const count = rng.chance(0.3 + d * 0.4) ? 2 : 1
+    const count = rng.chance((0.3 + d * 0.4) * t.hazardDensity) ? 2 : 1
     const blocked = laneOrder.slice(0, count)
     const open = laneOrder.slice(count)
     blocked.forEach((li) => {
@@ -142,7 +158,7 @@ function hazardRow(ctx, z) {
       x: 0,
       z,
       phase: rng.range(0, Math.PI * 2),
-      speed: 0.8 + d * 0.7,
+      speed: (0.8 + d * 0.7) * t.laserSpeed,
     })
   }
 }
@@ -166,18 +182,18 @@ const BUILDERS = {
 
   /** Gap you jump (or double-jump) across. */
   gap(ctx) {
-    const { rng, d } = ctx
+    const { rng, d, t } = ctx
     ctx.platform(8)
-    const g = rng.range(6, 9) + d * 6
+    const g = (rng.range(6, 9) + d * 6) * t.gapScale
     const zGap = ctx.gap(g)
     ctx.crystalArc(LANES[rng.int(0, LANES.length - 1)], zGap + 2, g + 4, 1, 2.2, 6)
     const zLand = ctx.platform(30)
-    if (d > 0.35) hazardRow(ctx, zLand - 20)
+    if (d > 0.35) ctx.maybeHazardRow(zLand - 20)
   },
 
   /** Ramp launch over a long gap — jump off the top, double-jump, glide. */
   ramp(ctx) {
-    const { rng, d } = ctx
+    const { rng, d, t } = ctx
     ctx.platform(10)
     const length = 12
     const rise = 2.6
@@ -185,7 +201,7 @@ const BUILDERS = {
     ctx.add({ kind: 'ramp', x: 0, z0, length, rise, w: PLATFORM_WIDTH })
     ctx.z -= length
     ctx.crystalLine(0, rise * 0.5 + 1, z0 - 2, 3, 3.5)
-    const g = 15 + d * 9
+    const g = (15 + d * 9) * t.gapScale
     const zGap = ctx.gap(g)
     ctx.crystalArc(0, zGap, g, rise + 1.2, 2.5, 7)
     ctx.pickup(LANES[rng.chance(0.5) ? 0 : 2], rise + 2.5, zGap - g * 0.5, 'prism')
@@ -194,12 +210,12 @@ const BUILDERS = {
 
   /** Long gap bridged by one or two wall-run panels. */
   wallrun(ctx) {
-    const { rng, d } = ctx
+    const { rng, d, t } = ctx
     const sides = d > 0.5 && rng.chance(0.5) ? [-1, 1] : [rng.chance(0.5) ? -1 : 1]
     const zLead = ctx.platform(16)
     // guide crystals into the outer lane on the lead-in
     ctx.crystalLine(LANES[OUTER[sides[0]]], 1, zLead - 3, 3)
-    const g = 28 + d * 8
+    const g = (28 + d * 8) * t.gapScale
     const zGap = ctx.gap(g)
     sides.forEach((side) => {
       ctx.add({ kind: 'wall', side, z0: zGap - 1, z1: zGap - g + 1, yMin: -1.5, yMax: 4.5 })
@@ -212,12 +228,12 @@ const BUILDERS = {
 
   /** Grind rail starting on the lead platform and crossing a gap. */
   rail(ctx) {
-    const { rng, d } = ctx
+    const { rng, d, t } = ctx
     const li = rng.int(0, LANES.length - 1)
     const x = LANES[li]
     const railY = 1.3
     const zLead = ctx.platform(18)
-    const g = 24 + d * 10
+    const g = (24 + d * 10) * t.gapScale
     const zGap = ctx.gap(g)
     const zRailStart = zLead - 8
     const zRailEnd = zGap - g - 5
@@ -226,24 +242,24 @@ const BUILDERS = {
     // a block in front of the rail start encourages jumping onto it
     ctx.add({ kind: 'hazard', variant: 'block', x, z: zRailStart + 3 })
     const zLand = ctx.platform(28)
-    if (d > 0.3) hazardRow(ctx, zLand - 18)
+    if (d > 0.3) ctx.maybeHazardRow(zLand - 18)
   },
 
   /** Staggered floating islands at varying heights and lanes. */
   islands(ctx) {
-    const { rng, d } = ctx
+    const { rng, d, t } = ctx
     ctx.platform(8)
     const count = 3 + (d > 0.5 ? 1 : 0)
     let li = rng.int(0, LANES.length - 1)
     let y = 0
     for (let i = 0; i < count; i++) {
-      ctx.gap(rng.range(4, 5.5) + d * 1.5)
+      ctx.gap((rng.range(4, 5.5) + d * 1.5) * t.gapScale)
       li = Math.max(0, Math.min(LANES.length - 1, li + rng.pick([-1, 0, 1])))
       y = Math.max(0, Math.min(1.4, y + rng.pick([-0.7, 0, 0.7])))
-      const z0 = ctx.platform(9, { x: LANES[li], y, w: 3.6 })
+      const z0 = ctx.platform(9, { x: LANES[li], y, w: ISLAND_WIDTH * t.islandWidth })
       ctx.crystalLine(LANES[li], y + 1, z0 - 2, 2, 4)
     }
-    ctx.gap(4)
+    ctx.gap(4 * t.gapScale)
     ctx.platform(26)
   },
 }

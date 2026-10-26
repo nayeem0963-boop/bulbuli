@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import mascot from '../assets/mascot.webp'
 import mathHeroMascot from '../assets/math-hero-mascot-cutout.webp'
-import { GAMES, gamesInCategory, getGame } from '../games/registry.js'
+import { CATEGORY_FILTERS, categoryCounts, GAMES, gamesInCategory, getGame } from '../games/registry.js'
 import { useGameProgress } from '../hooks/useGameProgress.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 import FavoriteButton from '../favorites/FavoriteButton.jsx'
@@ -10,6 +10,7 @@ import SaveProgressBanner from '../auth/SaveProgressBanner.jsx'
 import InstallPwaBanner from '../pwa/InstallPwaBanner.jsx'
 import { formatDigits } from '../utils/mathHeroText.js'
 import ArcadeHeader from './ArcadeHeader.jsx'
+import CategoryPills from './CategoryPills.jsx'
 import { useLanguage } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import { launchedGameFromSearch, launchPath, playPath, useGameCategory } from './zone.js'
@@ -18,14 +19,23 @@ import './arcade.css'
 // The game launcher (and the game inside it) load only when a launcher tile is opened.
 const GameModal = lazy(() => import('./GameModal.jsx'))
 
-function GameTile({ game, language, text }) {
+// Counted once: the registry doesn't change while the page is open.
+const COUNTS = categoryCounts(GAMES)
+
+function GameTile({ game, language, text, category, search, index }) {
   const { Art } = game
   const title = game.title[language]
-  // launcher games open in a dialog on this page (see GameModal.jsx); the rest open their own page
+  // launcher games open in a dialog over the grid as it is now filtered (see GameModal.jsx);
+  // the rest open their own page
   const modal = game.launch === 'modal'
-  const to = modal ? launchPath(game.category, game.id) : `/games/${game.id}`
+  const to = modal ? launchPath(category, game.id, search) : `/games/${game.id}`
   return (
-    <li className={`game-tile is-${game.color}`}>
+    <li
+      className={`game-tile is-${game.color}`}
+      // a stable name per game lets a view transition glide each card to its new place
+      // when the filter changes; --i staggers the fallback entrance animation
+      style={{ viewTransitionName: `game-${game.id}`, '--i': index }}
+    >
       <Link
         className="game-tile-link"
         to={to}
@@ -61,8 +71,8 @@ function Launcher({ language, text, playerId, category }) {
   const close = useCallback(() => {
     // opened from a tile: step back, so Back after closing doesn't reopen it; opened from a link: just leave
     if (state?.fromTile) navigate(-1)
-    else navigate(playPath(category), { replace: true })
-  }, [navigate, state, category])
+    else navigate(playPath(category, search), { replace: true })
+  }, [navigate, state, category, search])
   if (!game || game.launch !== 'modal') return null
   return (
     <Suspense fallback={null}>
@@ -72,16 +82,18 @@ function Launcher({ language, text, playerId, category }) {
 }
 
 /**
- * The Play zone: the games in the chosen category (Educational or Adventure),
- * and the Math Hero ad (shown only here).
+ * The Play zone: the audience pills, the games for the chosen pill, and the Math Hero ad.
  */
 function PlayZone({ language, text, playerId, category }) {
   const { gamification } = useGameProgress(playerId)
   const { profile } = useAuth()
+  const { search } = useLocation()
   // Signed in: the account's XP (every device). Guest: the XP kept on this device.
   const xp = formatDigits(profile?.xp ?? gamification.totalXp, language)
-  const games = gamesInCategory(GAMES, category)
-  const categoryName = category === 'adventure' ? text.categoryAdventure : text.categoryEducational
+  const filter = CATEGORY_FILTERS.includes(category) ? category : 'all'
+  const games = gamesInCategory(GAMES, filter)
+  const filterName = text.filters[filter]
+  const count = formatDigits(games.length, language)
 
   return (
     <>
@@ -100,10 +112,17 @@ function PlayZone({ language, text, playerId, category }) {
       <SaveProgressBanner language={language} localXp={gamification.totalXp} />
 
       <section className="arcade-games" aria-labelledby="games-heading">
-        <h2 id="games-heading" className="visually-hidden">{text.gamesHeadingFor(categoryName)}</h2>
-        <ul className="game-grid">
-          {games.map((game) => <GameTile key={game.id} game={game} language={language} text={text} />)}
-          <li className="game-tile is-hatching" aria-label={text.hatchingTitle}>
+        <h2 id="games-heading" className="visually-hidden">{text.gamesHeadingFor(filterName)}</h2>
+        <CategoryPills category={filter} counts={COUNTS} text={text} language={language} />
+        {/* announces the new count when a pill is picked */}
+        <p className="visually-hidden" role="status" aria-live="polite">{text.showingGames(count, filterName)}</p>
+        {/* re-keyed per filter so browsers without view transitions still get the staggered entrance */}
+        <ul key={filter} className="game-grid" data-filter={filter}>
+          {games.map((game, index) => (
+            <GameTile key={game.id} game={game} language={language} text={text} category={filter} search={search} index={index} />
+          ))}
+          {games.length === 0 && <li className="game-grid-empty">{text.emptyFilter}</li>}
+          <li className="game-tile is-hatching" aria-label={text.hatchingTitle} style={{ viewTransitionName: 'game-hatching' }}>
             <span className="hatching-egg" aria-hidden="true">🥚</span>
             <h3>{text.hatchingTitle}</h3>
             <p>{text.hatchingText}</p>
@@ -124,8 +143,8 @@ function PlayZone({ language, text, playerId, category }) {
 }
 
 /**
- * The home page: the games. The Educational | Adventure switch in the header picks the category
- * (in the address, see zone.js); a launcher game opens in a dialog over the grid.
+ * The home page: the games. The audience pills above the grid pick a filter (in the address,
+ * ?category=young|logic|arcade, see zone.js); a launcher game opens in a dialog over the grid.
  */
 export default function ArcadeHome({ playerId, theme, onToggleTheme }) {
   const [language] = useLanguage()
@@ -138,8 +157,8 @@ export default function ArcadeHome({ playerId, theme, onToggleTheme }) {
     <div className="arcade" data-zone="play" data-category={category ?? undefined} lang={language}>
       <ArcadeHeader theme={theme} onToggleTheme={onToggleTheme} />
 
-      {/* Re-keyed per category, so each switch plays the entrance animation. */}
-      <main id="main" key={category} className="arcade-main zone-panel is-play">
+      {/* Not re-keyed per filter: only the grid animates when a pill is picked, the hero stays put. */}
+      <main id="main" className="arcade-main zone-panel is-play">
         <PlayZone language={language} text={text} playerId={playerId} category={category} />
       </main>
 

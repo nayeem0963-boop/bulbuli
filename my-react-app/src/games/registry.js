@@ -26,7 +26,8 @@ import NeonVelocityArt from './neon-velocity/Art.jsx'
  *   ages          age range, e.g. '5–9'.
  *   color         tile colour: 'sun' | 'sky' | 'leaf' | 'berry' | 'grape'.
  *   icon          one emoji standing for the game in small places (the dashboard's activity list).
- *   category      which side of the Play switch the tile shows on: 'educational' | 'adventure' (see categories.js).
+ *   category      the audience pill the tile shows under: 'young' (3–8) | 'logic' (6–12) | 'arcade' (12+)
+ *                 (see categories.js). Every game also shows under All Games.
  *   Art           small component drawn on the tile. Keep it light: it loads with the home page.
  *   load          () => import('./<id>/index.jsx'). The game itself loads only when opened.
  *   ownControls   true when the game draws its own language / sound buttons, so the frame hides them.
@@ -47,7 +48,7 @@ export const GAMES = [
     ages: '6–10',
     color: 'sun',
     icon: '➕',
-    category: 'educational',
+    category: 'logic',
     Art: MathHeroArt,
     load: () => import('./math-hero/index.jsx'),
   },
@@ -59,7 +60,7 @@ export const GAMES = [
     ages: '4–9',
     color: 'leaf',
     icon: '🃏',
-    category: 'educational',
+    category: 'young',
     Art: MemoryMatchArt,
     load: () => import('./memory-match/index.jsx'),
     isNew: true,
@@ -72,7 +73,7 @@ export const GAMES = [
     ages: '7–11',
     color: 'sky',
     icon: '🔷',
-    category: 'educational',
+    category: 'logic',
     Art: PatternQuestArt,
     load: () => import('./pattern-quest/index.jsx'),
     ownControls: true,
@@ -86,7 +87,7 @@ export const GAMES = [
     ages: '6–11',
     color: 'berry',
     icon: '⌨️',
-    category: 'adventure',
+    category: 'logic',
     Art: TypeRunnerArt,
     load: () => import('./type-runner/index.jsx'),
     isNew: true,
@@ -99,7 +100,7 @@ export const GAMES = [
     ages: '7–12',
     color: 'grape',
     icon: '🦎',
-    category: 'educational',
+    category: 'logic',
     Art: CodeCritterArt,
     load: () => import('./code-critter/index.jsx'),
     isNew: true,
@@ -112,7 +113,7 @@ export const GAMES = [
     ages: '7–12',
     color: 'leaf',
     icon: '🐞',
-    category: 'educational',
+    category: 'logic',
     Art: BugHunterArt,
     load: () => import('./bug-hunter/index.jsx'),
     isNew: true,
@@ -125,7 +126,7 @@ export const GAMES = [
     ages: '12+',
     color: 'sky',
     icon: '🎨',
-    category: 'educational',
+    category: 'arcade',
     Art: DevCraftArt,
     load: () => import('./devcraft-studio/index.jsx'),
     isNew: true,
@@ -138,7 +139,7 @@ export const GAMES = [
     ages: '12+',
     color: 'sun',
     icon: '💡',
-    category: 'educational',
+    category: 'arcade',
     Art: LogicGateArt,
     load: () => import('./logic-gate-builder/index.jsx'),
     isNew: true,
@@ -151,7 +152,7 @@ export const GAMES = [
     ages: '3–8',
     color: 'sky',
     icon: '🐦',
-    category: 'adventure',
+    category: 'young',
     Art: Bulbuli3DArt,
     // three.js + the 3 MB model load only when this game is opened.
     load: () => import('./bulbuli-3d/index.jsx'),
@@ -165,7 +166,7 @@ export const GAMES = [
     ages: '4–8',
     color: 'leaf',
     icon: '🔺',
-    category: 'adventure',
+    category: 'young',
     Art: ShapeHuntArt,
     // three.js loads only when the game is opened.
     load: () => import('./shape-hunt/index.jsx'),
@@ -179,7 +180,7 @@ export const GAMES = [
     ages: '4–8',
     color: 'grape',
     icon: '🧩',
-    category: 'educational',
+    category: 'young',
     Art: ShapeSortingArt,
     // three.js loads only when the game is opened; the 3D scene itself is lazy-loaded inside.
     load: () => import('./shape-sorting/index.jsx'),
@@ -193,7 +194,7 @@ export const GAMES = [
     ages: '4–9',
     color: 'sky',
     icon: '☁️',
-    category: 'adventure',
+    category: 'young',
     Art: SkyRunnerArt,
     // three.js and the Bulbuli model load only when a run starts.
     load: () => import('./sky-runner/index.jsx'),
@@ -207,7 +208,7 @@ export const GAMES = [
     ages: '12+',
     color: 'sky',
     icon: '🏝️',
-    category: 'adventure',
+    category: 'arcade',
     Art: SkywardExplorerArt,
     // three.js and the scene load only when the game is opened.
     load: () => import('./skyward-explorer/index.jsx'),
@@ -229,7 +230,7 @@ export const GAMES = [
     ages: '13+',
     color: 'grape',
     icon: '⚡',
-    category: 'adventure',
+    category: 'arcade',
     Art: NeonVelocityArt,
     // three.js, Rapier physics and the post-processing load only when the game is opened.
     load: () => import('./neon-velocity/index.jsx'),
@@ -248,7 +249,7 @@ export const GAMES = [
     ages: '7–12',
     color: 'sky',
     icon: '⌨️',
-    category: 'adventure',
+    category: 'logic',
     Art: SkyTypewriterArt,
     // three.js and the scene load only when the game is opened.
     load: () => import('./sky-typewriter/index.jsx'),
@@ -263,4 +264,7 @@ export const GAMES = [
 
 export const getGame = (id) => GAMES.find((game) => game.id === id) ?? null
 
-export { GAME_CATEGORIES, DEFAULT_CATEGORY, categoryOf, gamesInCategory } from './categories.js'
+export {
+  ALL_GAMES, CATEGORY_AGES, CATEGORY_FILTERS, CATEGORY_ICONS, DEFAULT_FILTER, GAME_CATEGORIES,
+  categoryCounts, categoryOf, gamesInCategory,
+} from './categories.js'

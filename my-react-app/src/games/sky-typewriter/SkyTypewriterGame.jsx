@@ -78,7 +78,7 @@ export default function SkyTypewriterGame({
     playSound('click')
     resetGame()
     if (onExit) onExit() // launcher dialog closes itself
-    else navigate(playPath('adventure'))
+    else navigate(playPath('logic')) // its audience pill: Logic & Typing
   }, [navigate, onExit, resetGame])
 
   // The launcher already had its own Start button.

@@ -7,7 +7,7 @@
  *   2. The game itself, started straight away (it gets `embedded` and `autoStart`).
  *      The bar on top keeps sound, full screen and close within reach.
  *
- * The dialog is opened by an address ('/?category=adventure&play=<id>', see zone.js), so the
+ * The dialog is opened by an address ('/?category=arcade&play=<id>', see zone.js), so the
  * Back button closes it. It is loaded lazily by ArcadeHome: none of this, and none of the
  * game, is in the Play page's bundle.
  *

@@ -46,6 +46,7 @@ export function PostGameScreen() {
           <p className="nv-final-score">{formatInt(run.score)}</p>
           <div className="nv-postgame__badges">
             {isNewBest && <span className="nv-badge">New best</span>}
+            {run.scoreMultiplier > 1 && <span className="nv-badge nv-badge--muted">{run.scoreMultiplier.toFixed(1)}× score</span>}
             {rank && <span className="nv-badge nv-badge--rank">#{rank} {rankScope}</span>}
             {submission?.status === 'saving' && <span className="nv-badge nv-badge--muted">Saving…</span>}
             {run.earned > 0 && <span className="nv-badge nv-badge--crystal">+{run.earned} ◆ banked</span>}

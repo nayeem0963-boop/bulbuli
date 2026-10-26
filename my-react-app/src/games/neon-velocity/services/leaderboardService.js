@@ -1,4 +1,4 @@
-import { FirebaseRestClient, firebaseConfig } from './firestoreRest'
+import { createSupabaseLeaderboard } from './supabaseLeaderboard.js'
 
 /*
  * Leaderboard service — one interface, two backends.
@@ -8,11 +8,9 @@ import { FirebaseRestClient, firebaseConfig } from './firestoreRest'
  *   rankOf(boardId, score)         → 1-based rank a score would have
  *   ghost(boardId, entryId)        → packed ghost or null
  *
- * Data layout (Firestore):
- *   boards/{boardId}/entries/{uid}   best run per player per board
- *     { name, score, distance, timeMs, crystals, maxSpeedKmh, surges, skin, trail, wings,
- *       ghostId, version, createdAt }
- *   ghosts/{boardId}_{uid}            { uid, boardId, score, ghost: { v, hz, count, data } }
+ * Global backend: Supabase, table public.leaderboards (services/supabaseLeaderboard.js),
+ * one best run per (board_id, user_id) with its ghost. Boards are split by difficulty.
+ * The old Firestore REST backend (firestoreRest.js, firestore.rules) is no longer used.
  *
  * The local backend mirrors the same shapes in localStorage (top 50 per board,
  * one personal-best ghost per board), so the UI never cares which one it's using.
@@ -81,61 +79,15 @@ export class LocalLeaderboard {
   }
 }
 
-// ─── Firestore ───────────────────────────────────────────────────
-
-export class FirestoreLeaderboard {
-  constructor(client) {
-    this.client = client
-    this.isGlobal = true
-    this.label = 'Global'
-  }
-
-  async submit(boardId, entry, ghost) {
-    const { client } = this
-    await client.token() // ensures uid
-    const uid = client.uid
-    const path = `boards/${boardId}/entries/${uid}`
-    const existing = await client.getDoc(path)
-    const improved = !existing || entry.score > existing.score
-
-    if (improved) {
-      const ghostId = ghost ? `${boardId}_${uid}` : null
-      if (ghost) {
-        await client.setDoc(`ghosts/${ghostId}`, { uid, boardId, score: entry.score, ghost, createdAt: new Date() })
-      }
-      await client.setDoc(path, { ...entry, ghostId, version: ENTRY_VERSION, createdAt: new Date() })
-    }
-    const best = improved ? entry.score : existing.score
-    const rank = (await client.countGreater(`boards/${boardId}`, 'entries', 'score', best)) + 1
-    return { id: uid, rank, improved, bestScore: best }
-  }
-
-  async top(boardId, limit = 50) {
-    return this.client.query(`boards/${boardId}`, 'entries', { orderBy: 'score', limit })
-  }
-
-  async rankOf(boardId, score) {
-    return (await this.client.countGreater(`boards/${boardId}`, 'entries', 'score', score)) + 1
-  }
-
-  async ghost(boardId, entryId) {
-    const doc = await this.client.getDoc(`ghosts/${boardId}_${entryId}`)
-    return doc?.ghost ?? null
-  }
-
-  get uid() { return this.client.uid }
-}
-
 // ─── Selection ───────────────────────────────────────────────────
 
 let globalBackend
 export const localLeaderboard = new LocalLeaderboard()
 
-/** Firestore backend if configured via env vars, otherwise null (local only). */
+/** Supabase backend when VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are set, otherwise null (local only). */
 export function getGlobalLeaderboard() {
   if (globalBackend !== undefined) return globalBackend
-  const config = firebaseConfig()
-  globalBackend = config ? new FirestoreLeaderboard(new FirebaseRestClient(config)) : null
+  globalBackend = createSupabaseLeaderboard()
   return globalBackend
 }
 
@@ -149,6 +101,7 @@ export function buildEntry(run, profile) {
     crystals: run.crystals,
     maxSpeedKmh: Math.round(run.maxSpeedKmh),
     surges: run.surges,
+    difficulty: run.difficulty ?? 'hard',
     skin: profile.equipped.skin,
     trail: profile.equipped.trail,
     wings: profile.equipped.wings,

@@ -3,7 +3,7 @@ import { useLanguage, useMuted } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import BrandMark from './BrandMark.jsx'
 import AccountButton from '../auth/AccountButton.jsx'
-import PlayTab, { CategoryToggle } from './PlayNav.jsx'
+import PlayTab from './PlayNav.jsx'
 import { playPath } from './zone.js'
 
 function IconButton({ label, pressed, onClick, children, lang }) {
@@ -30,14 +30,14 @@ function IconButton({ label, pressed, onClick, children, lang }) {
  *
  * Game pages: `game` (or `back` = { to, label }) turns it into a game bar. A big "All games"
  * button replaces the navigation, and the in-game controls (sound, day/night) join the
- * language switch and profile button. "All games" returns to the side of the switch the game is on.
+ * language switch and profile button. "All games" returns to the full grid.
  */
 export default function ArcadeHeader({ theme, onToggleTheme, game = null, back = null, showControls = true, onBack = null }) {
   const [language, , toggleLanguage] = useLanguage()
   const { muted, toggleMuted } = useMuted()
   const text = ARCADE_TEXT[language]
 
-  const backLink = back ?? (game ? { to: playPath(game.category), label: text.backToGames } : null)
+  const backLink = back ?? (game ? { to: playPath('all'), label: text.backToGames } : null)
   const inGame = Boolean(backLink)
 
   return (
@@ -63,7 +63,6 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
           </Link>
           <nav className="arcade-toggles" aria-label={text.navLabel}>
             <PlayTab text={text} />
-            <CategoryToggle text={text} />
           </nav>
         </>
       )}

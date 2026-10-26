@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { DESPAWN_BEHIND, SPAWN_AHEAD } from '../../config/constants'
+import { difficultyConfig } from '../../config/difficulty'
 import { runtime } from '../../stores/runtime'
 import { useGameStore } from '../../stores/useGameStore'
 import { createSegmentGenerator } from './segmentGenerator'
@@ -26,9 +27,11 @@ export function TrackSegmentManager() {
 
   const compute = useCallback(() => {
     if (!generator.current) {
-      // Daily course → shared deterministic seed (fair rankings, ghosts line up); otherwise random
-      const seed = useGameStore.getState().course?.seed ?? ((Math.random() * 2 ** 31) | 0)
-      generator.current = createSegmentGenerator(seed)
+      // Daily course → shared deterministic seed (fair rankings, ghosts line up); otherwise random.
+      // The difficulty shapes the layout too, so each mode's daily course is its own fixed track.
+      const { course, difficulty } = useGameStore.getState()
+      const seed = course?.seed ?? ((Math.random() * 2 ** 31) | 0)
+      generator.current = createSegmentGenerator(seed, difficultyConfig(course?.difficulty ?? difficulty))
     }
     const pz = runtime.playerPosition.z
     const list = segments.current

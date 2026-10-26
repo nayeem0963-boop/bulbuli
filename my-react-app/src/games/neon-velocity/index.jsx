@@ -2,8 +2,10 @@
  * Bulbuli: Neon Velocity — arcade entry point (loaded lazily by registry.js → load()).
  *
  * Two ways in, like the other launcher games:
- *   • the launcher on the Play page (src/arcade/GameModal.jsx): `embedded` fills the dialog and
- *     `autoStart` skips the title screen, because the player already pressed Start there
+ *   • the launcher on the Play page (src/arcade/GameModal.jsx): `embedded` fills the dialog.
+ *     `autoStart` is NOT used to skip the title screen any more: that screen is where the
+ *     player picks a difficulty (Chill Skyward / Neon Surge / Velocity Overdrive) before the
+ *     run, so the launcher always lands on it, with Run focused (Enter starts).
  *   • its own page, /games/neon-velocity: a fixed-height game box with the title screen
  *
  * The game keeps its own state in Zustand stores (./stores). This wrapper connects it to
@@ -33,7 +35,7 @@ function loadFontsOnce() {
   document.head.appendChild(link)
 }
 
-export default function NeonVelocity({ playerId, embedded = false, autoStart = false }) {
+export default function NeonVelocity({ playerId, embedded = false }) {
   const { saveGameResult } = useGameProgress(playerId)
   const { muted } = useMuted()
 
@@ -42,11 +44,13 @@ export default function NeonVelocity({ playerId, embedded = false, autoStart = f
   // the arcade's sound switch wins over the game's own mute while the game is open
   useEffect(() => { useGameStore.setState({ muted }) }, [muted])
 
-  // launcher: straight into a run. Leaving: back to the title screen for next time.
+  // Always open on the title screen (difficulty picker). Leaving: back to it for next time.
+  // The launcher's `autoStart` prop is deliberately not read: auto-starting a run skipped
+  // the START overlay, so the difficulty cards never rendered.
   useEffect(() => {
-    if (autoStart) useGameStore.getState().start()
+    useGameStore.getState().goToMenu()
     return () => useGameStore.getState().goToMenu()
-  }, [autoStart])
+  }, [])
 
   // save each finished run to the arcade profile
   useEffect(() => useGameStore.subscribe((s) => s.status, (status) => {
