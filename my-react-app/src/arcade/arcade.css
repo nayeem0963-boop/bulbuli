@@ -598,6 +598,95 @@
   box-shadow: none;
 }
 
+/* ---------- age zones: Play & Learn · Build & Create ----------
+   Two sections of the same arcade. Each is told apart by its icon, heading and age label,
+   with only a light tint and accent edge in its colour (never colour alone). */
+
+.game-zone {
+  --zone-accent: var(--teal);
+  margin-top: clamp(1rem, 2.6vw, 1.5rem);
+  border: 2px solid color-mix(in srgb, var(--zone-accent) 32%, transparent);
+  border-radius: var(--radius-panel);
+  padding: clamp(0.9rem, 2.4vw, 1.4rem) clamp(0.75rem, 2.4vw, 1.4rem) clamp(1.25rem, 3vw, 1.75rem);
+  background: color-mix(in srgb, var(--zone-accent) 7%, transparent);
+}
+.game-zone:first-of-type { margin-top: 0; }
+.game-zone.is-play-learn { --zone-accent: var(--teal); }
+.game-zone.is-build-create { --zone-accent: var(--grape); }
+
+.game-zone-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+  margin-bottom: clamp(0.9rem, 2.2vw, 1.25rem);
+}
+
+.game-zone-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border: var(--toy-border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 4px 0 var(--zone-accent);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.game-zone-copy { min-width: 0; }
+.game-zone h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.5rem, 3.6vw, 2rem);
+  line-height: 1.1;
+}
+.app-shell[data-theme='dark'] .game-zone h2 { color: var(--text); }
+.game-zone-text {
+  max-width: 44rem;
+  margin: 0.2rem 0 0;
+  color: var(--text);
+  font-size: clamp(0.98rem, 2vw, 1.05rem);
+  line-height: 1.45;
+}
+
+.game-zone-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin: 0;
+}
+.game-zone-ages,
+.game-zone-count {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.game-zone-ages {
+  border: 2px solid var(--ink);
+  color: #fff;
+  background: var(--zone-accent);
+}
+.app-shell[data-theme='dark'] .game-zone-ages { color: #10141f; }
+.game-zone-count {
+  border: 2px solid color-mix(in srgb, var(--zone-accent) 45%, transparent);
+  color: var(--text);
+  background: var(--surface);
+}
+
+@media (max-width: 640px) {
+  .game-zone-head { grid-template-columns: auto minmax(0, 1fr); }
+  .game-zone-icon { width: 2.6rem; height: 2.6rem; font-size: 1.35rem; }
+  .game-zone-tags { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
 /* ---------- "share Math Hero" strip: the way into /share/math-hero ---------- */
 
 .share-strip {
@@ -1081,6 +1170,8 @@
 
 .arcade .category-pill {
   --pill-accent: var(--teal);
+  /* holds its visually-hidden count inside the sideways scroller; without it that text widened phone pages */
+  position: relative;
   display: inline-flex;
   min-height: 3rem;
   align-items: center;

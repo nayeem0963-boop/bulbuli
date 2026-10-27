@@ -9,6 +9,7 @@ import SkywardExplorerArt from './skyward-explorer/Art.jsx'
 import SkyTypewriterArt from './sky-typewriter/Art.jsx'
 import NeonVelocityArt from './neon-velocity/Art.jsx'
 import HTMLArchitectArt from './html-architect/Art.jsx'
+import MathMasterArt from './math-master/Art.jsx'
 
 /**
  * Every game in the arcade, in the order it appears on the home page.
@@ -24,6 +25,8 @@ import HTMLArchitectArt from './html-architect/Art.jsx'
  *   icon          one emoji standing for the game in small places (the dashboard's activity list).
  *   category      the audience pill the tile shows under: 'young' (3–8) | 'logic' (6–12) | 'arcade' (12+)
  *                 (see categories.js). Every game also shows under All Games.
+ *   zone          the home-page section the tile sits in: 'play-learn' (Play & Learn, ages up to 12) |
+ *                 'build-create' (Build & Create, ages 12+: coding, typing, advanced challenges). See categories.js.
  *   Art           small component drawn on the tile. Keep it light: it loads with the home page.
  *   load          () => import('./<id>/index.jsx'). The game itself loads only when opened.
  *   ownControls   true when the game draws its own language / sound buttons, so the frame hides them.
@@ -47,6 +50,7 @@ export const GAMES = [
     color: 'sun',
     icon: '➕',
     category: 'logic',
+    zone: 'play-learn',
     Art: MathHeroArt,
     load: () => import('./math-hero/index.jsx'),
   },
@@ -59,6 +63,7 @@ export const GAMES = [
     color: 'leaf',
     icon: '🃏',
     category: 'young',
+    zone: 'play-learn',
     Art: MemoryMatchArt,
     load: () => import('./memory-match/index.jsx'),
     isNew: true,
@@ -72,6 +77,7 @@ export const GAMES = [
     color: 'sky',
     icon: '🔷',
     category: 'logic',
+    zone: 'play-learn',
     Art: PatternQuestArt,
     load: () => import('./pattern-quest/index.jsx'),
     ownControls: true,
@@ -86,6 +92,7 @@ export const GAMES = [
     color: 'sky',
     icon: '🐦',
     category: 'young',
+    zone: 'play-learn',
     Art: Bulbuli3DArt,
     // three.js + the 3 MB model load only when this game is opened.
     load: () => import('./bulbuli-3d/index.jsx'),
@@ -100,6 +107,7 @@ export const GAMES = [
     color: 'leaf',
     icon: '🔺',
     category: 'young',
+    zone: 'play-learn',
     Art: ShapeHuntArt,
     // three.js loads only when the game is opened.
     load: () => import('./shape-hunt/index.jsx'),
@@ -114,6 +122,7 @@ export const GAMES = [
     color: 'grape',
     icon: '🧩',
     category: 'young',
+    zone: 'play-learn',
     Art: ShapeSortingArt,
     // three.js loads only when the game is opened; the 3D scene itself is lazy-loaded inside.
     load: () => import('./shape-sorting/index.jsx'),
@@ -128,6 +137,7 @@ export const GAMES = [
     color: 'sky',
     icon: '☁️',
     category: 'young',
+    zone: 'play-learn',
     Art: SkyRunnerArt,
     // three.js and the Bulbuli model load only when a run starts.
     load: () => import('./sky-runner/index.jsx'),
@@ -142,6 +152,7 @@ export const GAMES = [
     color: 'sky',
     icon: '🏝️',
     category: 'arcade',
+    zone: 'build-create',
     Art: SkywardExplorerArt,
     // three.js and the scene load only when the game is opened.
     load: () => import('./skyward-explorer/index.jsx'),
@@ -164,6 +175,7 @@ export const GAMES = [
     color: 'grape',
     icon: '⚡',
     category: 'arcade',
+    zone: 'build-create',
     Art: NeonVelocityArt,
     // three.js, Rapier physics and the post-processing load only when the game is opened.
     load: () => import('./neon-velocity/index.jsx'),
@@ -183,6 +195,7 @@ export const GAMES = [
     color: 'sky',
     icon: '⌨️',
     category: 'logic',
+    zone: 'build-create',
     Art: SkyTypewriterArt,
     // three.js and the scene load only when the game is opened.
     load: () => import('./sky-typewriter/index.jsx'),
@@ -205,10 +218,29 @@ export const GAMES = [
     color: 'grape',
     icon: '🏗️',
     category: 'logic',
+    zone: 'build-create',
     Art: HTMLArchitectArt,
     path: '/play/html-architect',
     // three.js and the code editor load only when the game is opened.
     load: () => import('./html-architect/index.jsx'),
+    isNew: true,
+  },
+  {
+    id: 'math-master',
+    title: { en: 'Math Master', bn: 'ম্যাথ মাস্টার' },
+    tagline: {
+      en: 'Master mathematics through challenging puzzles, interactive 3D challenges and progressively harder questions.',
+      bn: 'চ্যালেঞ্জিং ধাঁধা, ইন্টারঅ্যাকটিভ ৩ডি চ্যালেঞ্জ আর ধাপে ধাপে কঠিন প্রশ্নে গণিতে দক্ষ হও।',
+    },
+    skill: { en: 'Algebra, geometry & problem solving', bn: 'বীজগণিত, জ্যামিতি ও সমস্যা সমাধান' },
+    ages: '12+',
+    color: 'grape',
+    icon: '📐',
+    category: 'arcade',
+    zone: 'build-create',
+    Art: MathMasterArt,
+    // three.js and the 3D lab load only when the game is opened. Separate from Math Hero (ages 6–10).
+    load: () => import('./math-master/index.jsx'),
     isNew: true,
   },
 ]
@@ -224,4 +256,5 @@ export const getGame = (id) => GAMES.find((game) => game.id === id) ?? null
 export {
   ALL_GAMES, CATEGORY_AGES, CATEGORY_FILTERS, CATEGORY_ICONS, DEFAULT_FILTER, GAME_CATEGORIES,
   categoryCounts, categoryOf, gamesInCategory,
+  GAME_ZONES, ZONE_ICONS, gamesInZone, zoneOf,
 } from './categories.js'

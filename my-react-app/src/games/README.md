@@ -69,7 +69,8 @@ Add an entry to `GAMES` in `registry.js` (the fields are documented there):
   skill: { en: 'What it practises', bn: '…' },
   ages: '5–9',
   color: 'berry',            // sun | sky | leaf | berry | grape
-  category: 'educational',   // educational | adventure: which side of the Play switch it shows on
+  category: 'young',         // young | logic | arcade: the audience pill it shows under
+  zone: 'play-learn',        // play-learn (ages up to 12) | build-create (12+): its home-page section
   Art: MyGameArt,
   load: () => import('./my-game/index.jsx'),
   isNew: true,

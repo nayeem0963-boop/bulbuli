@@ -2,8 +2,11 @@ import { lazy, Suspense, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import mascot from '../assets/mascot.webp'
 import mathHeroMascot from '../assets/math-hero-mascot-cutout.webp'
-import { CATEGORY_FILTERS, categoryCounts, GAMES, gamePath, gamesInCategory, getGame } from '../games/registry.js'
+import {
+  CATEGORY_FILTERS, categoryCounts, GAME_ZONES, GAMES, gamePath, gamesInCategory, gamesInZone, getGame, ZONE_ICONS,
+} from '../games/registry.js'
 import { useGameProgress } from '../hooks/useGameProgress.js'
+import { COURSE_CATALOG } from '../courses/catalog.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 import FavoriteButton from '../favorites/FavoriteButton.jsx'
 import SaveProgressBanner from '../auth/SaveProgressBanner.jsx'
@@ -23,6 +26,8 @@ const GameModal = lazy(() => import('./GameModal.jsx'))
 // Counted once: the registry doesn't change while the page is open.
 // The HTML quiz tile isn't a registry game but sits in the grid, so the pills count it too.
 const COUNTS = withQuizTile(categoryCounts(GAMES))
+// The zone the HTML Course tile sits in, set in courses/catalog.js like a registry game's `zone`.
+const QUIZ_ZONE = COURSE_CATALOG.find((course) => course.id === 'html')?.zone ?? 'build-create'
 
 function GameTile({ game, language, text, category, search, index }) {
   const { Art } = game
@@ -83,8 +88,55 @@ function Launcher({ language, text, playerId, category }) {
   )
 }
 
+/** The "More games are hatching" card: shown once, at the end of the last zone on the page. */
+function HatchingTile({ text }) {
+  return (
+    <li className="game-tile is-hatching" aria-label={text.hatchingTitle} style={{ viewTransitionName: 'game-hatching' }}>
+      <span className="hatching-egg" aria-hidden="true">🥚</span>
+      <h3>{text.hatchingTitle}</h3>
+      <p>{text.hatchingText}</p>
+    </li>
+  )
+}
+
 /**
- * The Play zone: the audience pills, the games for the chosen pill, and the Math Hero ad.
+ * One age zone (Play & Learn or Build & Create): its heading, age label, a short description
+ * and its own game grid. Which games sit here comes from each game's `zone` in registry.js.
+ */
+function GameZone({ zone, games, withQuiz, last, language, text, filter, search }) {
+  const copy = text.zones[zone]
+  const headingId = `zone-${zone}-title`
+  const count = formatDigits(games.length + (withQuiz ? 1 : 0), language)
+  return (
+    <section className={`game-zone is-${zone}`} aria-labelledby={headingId} data-zone={zone}>
+      <header className="game-zone-head">
+        <span className="game-zone-icon" aria-hidden="true">{ZONE_ICONS[zone]}</span>
+        <div className="game-zone-copy">
+          <h2 id={headingId}>{copy.title}</h2>
+          <p className="game-zone-text">{copy.text}</p>
+        </div>
+        <p className="game-zone-tags">
+          <span className="game-zone-ages">{copy.ages}</span>
+          <span className="game-zone-count">{text.gameCount(count)}</span>
+        </p>
+      </header>
+      {/* re-keyed per filter so browsers without view transitions still get the staggered entrance */}
+      <ul key={filter} className="game-grid" data-filter={filter}>
+        {games.map((game, index) => (
+          <GameTile key={game.id} game={game} language={language} text={text} category={filter} search={search} index={index} />
+        ))}
+        {/* the standalone HTML course page (not a registry game, so it opens as its own page) */}
+        {withQuiz && <QuizTile language={language} text={text} index={games.length} />}
+        {last && <HatchingTile text={text} />}
+      </ul>
+    </section>
+  )
+}
+
+/**
+ * The Play page: the audience pills, then the games split into two age zones
+ * (Play & Learn, Build & Create), then the Math Hero ad. The pills filter both zones;
+ * a zone with nothing to show under the chosen pill is left out.
  */
 function PlayZone({ language, text, playerId, category }) {
   const { gamification } = useGameProgress(playerId)
@@ -94,8 +146,12 @@ function PlayZone({ language, text, playerId, category }) {
   const xp = formatDigits(profile?.xp ?? gamification.totalXp, language)
   const filter = CATEGORY_FILTERS.includes(category) ? category : 'all'
   const games = gamesInCategory(GAMES, filter)
+  const quizShown = showQuizTile(filter)
   const filterName = text.filters[filter]
-  const count = formatDigits(games.length + (showQuizTile(filter) ? 1 : 0), language)
+  const count = formatDigits(games.length + (quizShown ? 1 : 0), language)
+  const zones = GAME_ZONES
+    .map((zone) => ({ zone, games: gamesInZone(games, zone), withQuiz: quizShown && QUIZ_ZONE === zone }))
+    .filter(({ games: zoneGames, withQuiz }) => zoneGames.length > 0 || withQuiz)
 
   return (
     <>
@@ -113,26 +169,30 @@ function PlayZone({ language, text, playerId, category }) {
 
       <SaveProgressBanner language={language} localXp={gamification.totalXp} />
 
-      <section className="arcade-games" aria-labelledby="games-heading">
-        <h2 id="games-heading" className="visually-hidden">{text.gamesHeadingFor(filterName)}</h2>
+      <div className="arcade-games" role="region" aria-label={text.gamesHeadingFor(filterName)}>
         <CategoryPills category={filter} counts={COUNTS} text={text} language={language} />
         {/* announces the new count when a pill is picked */}
         <p className="visually-hidden" role="status" aria-live="polite">{text.showingGames(count, filterName)}</p>
-        {/* re-keyed per filter so browsers without view transitions still get the staggered entrance */}
-        <ul key={filter} className="game-grid" data-filter={filter}>
-          {games.map((game, index) => (
-            <GameTile key={game.id} game={game} language={language} text={text} category={filter} search={search} index={index} />
-          ))}
-          {/* the standalone HTML quiz page (not a registry game, so it opens as its own page) */}
-          {showQuizTile(filter) && <QuizTile language={language} text={text} index={games.length} />}
-          {games.length === 0 && <li className="game-grid-empty">{text.emptyFilter}</li>}
-          <li className="game-tile is-hatching" aria-label={text.hatchingTitle} style={{ viewTransitionName: 'game-hatching' }}>
-            <span className="hatching-egg" aria-hidden="true">🥚</span>
-            <h3>{text.hatchingTitle}</h3>
-            <p>{text.hatchingText}</p>
-          </li>
-        </ul>
-      </section>
+        {zones.map(({ zone, games: zoneGames, withQuiz }, index) => (
+          <GameZone
+            key={zone}
+            zone={zone}
+            games={zoneGames}
+            withQuiz={withQuiz}
+            last={index === zones.length - 1}
+            language={language}
+            text={text}
+            filter={filter}
+            search={search}
+          />
+        ))}
+        {zones.length === 0 && (
+          <ul className="game-grid" data-filter={filter}>
+            <li className="game-grid-empty">{text.emptyFilter}</li>
+            <HatchingTile text={text} />
+          </ul>
+        )}
+      </div>
 
       <section className="share-strip" aria-labelledby="share-strip-title">
         <img src={mathHeroMascot} alt="" width="64" height="78" loading="lazy" />

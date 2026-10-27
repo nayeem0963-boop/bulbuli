@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import {
   CATEGORY_FILTERS, categoryCounts, categoryOf, DEFAULT_FILTER, GAME_CATEGORIES, gamesInCategory,
+  GAME_ZONES, gamesInZone, zoneOf,
 } from './categories.js'
+import { COURSE_CATALOG } from '../courses/catalog.js'
 
 const games = [
   { id: 'a', category: 'young' },
@@ -48,4 +50,45 @@ test('every game in the registry has an audience category', () => {
     const category = entry.match(/\n\s*category: '([^']+)'/)?.[1]
     assert.ok(GAME_CATEGORIES.includes(category), `${id} needs category: 'young', 'logic' or 'arcade'`)
   }
+})
+
+test('the home page has two zones; every game lands in exactly one', () => {
+  assert.deepEqual(GAME_ZONES, ['play-learn', 'build-create'])
+  const zoned = [{ id: 'a', zone: 'play-learn' }, { id: 'b', zone: 'build-create' }, { id: 'c' }, { id: 'd', zone: 'x' }]
+  assert.deepEqual(gamesInZone(zoned, 'play-learn').map((g) => g.id), ['a', 'c', 'd'])
+  assert.deepEqual(gamesInZone(zoned, 'build-create').map((g) => g.id), ['b'])
+  assert.equal(zoneOf({}), 'play-learn')
+  const total = GAME_ZONES.reduce((n, zone) => n + gamesInZone(zoned, zone).length, 0)
+  assert.equal(total, zoned.length)
+})
+
+// The zone each home-page card sits in. Changing a game's zone is a deliberate choice: update this too.
+const EXPECTED_ZONES = {
+  'math-hero': 'play-learn',
+  'memory-match': 'play-learn',
+  'pattern-quest': 'play-learn',
+  'bulbuli-3d': 'play-learn',
+  'shape-hunt': 'play-learn',
+  'shape-sorting': 'play-learn',
+  'sky-runner': 'play-learn',
+  'skyward-explorer': 'build-create',
+  'neon-velocity': 'build-create',
+  'sky-typewriter': 'build-create',
+  'html-architect': 'build-create',
+  'math-master': 'build-create',
+}
+
+test('every game in the registry names a zone, and the HTML Course sits in Build & Create', () => {
+  const source = readFileSync(new URL('./registry.js', import.meta.url), 'utf8')
+  const entries = source.split(/\n\s*\{\n\s*id: '/).slice(1)
+  const found = {}
+  for (const entry of entries) {
+    const id = entry.slice(0, entry.indexOf("'"))
+    const zone = entry.match(/\n\s*zone: '([^']+)'/)?.[1]
+    assert.ok(GAME_ZONES.includes(zone), `${id} needs zone: 'play-learn' or 'build-create'`)
+    found[id] = zone
+  }
+  assert.deepEqual(found, EXPECTED_ZONES)
+  for (const course of COURSE_CATALOG) assert.ok(GAME_ZONES.includes(course.zone), `course ${course.id} needs a zone`)
+  assert.equal(COURSE_CATALOG.find((c) => c.id === 'html').zone, 'build-create')
 })

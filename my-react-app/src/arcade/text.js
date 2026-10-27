@@ -52,6 +52,19 @@ const en = {
   gameCount: (n) => (n === '1' ? '1 game' : `${n} games`),
   showingGames: (n, filter) => `Showing ${n} ${n === '1' ? 'game' : 'games'}: ${filter}`,
   emptyFilter: 'No games here yet. Try All Games!',
+  // the two age zones on the home page (src/games/categories.js)
+  zones: {
+    'play-learn': {
+      title: 'Play & Learn',
+      ages: 'Ages up to 12',
+      text: 'Play fun games, solve puzzles, and discover new skills through interactive adventures.',
+    },
+    'build-create': {
+      title: 'Build & Create',
+      ages: 'Ages 12+',
+      text: 'Explore coding, develop new skills, and create projects through interactive learning experiences.',
+    },
+  },
   footer: 'Pro Coder · Learning games for kids',
 }
 
@@ -104,6 +117,18 @@ const bn = {
   gameCount: (n) => `${n}টি খেলা`,
   showingGames: (n, filter) => `${filter}: ${n}টি খেলা দেখানো হচ্ছে`,
   emptyFilter: 'এখানে এখনো কোনো খেলা নেই। সব খেলা দেখো!',
+  zones: {
+    'play-learn': {
+      title: 'খেলো ও শেখো',
+      ages: 'বয়স ১২ পর্যন্ত',
+      text: 'মজার খেলা খেলো, ধাঁধা মেলাও, আর ইন্টারঅ্যাকটিভ অভিযানে নতুন দক্ষতা আবিষ্কার করো।',
+    },
+    'build-create': {
+      title: 'বানাও ও সৃষ্টি করো',
+      ages: 'বয়স ১২+',
+      text: 'কোডিং শেখো, নতুন দক্ষতা গড়ো, আর ইন্টারঅ্যাকটিভ শেখার মধ্য দিয়ে নিজের প্রজেক্ট তৈরি করো।',
+    },
+  },
   footer: 'Pro Coder · ছোটদের শেখার খেলা',
 }
 

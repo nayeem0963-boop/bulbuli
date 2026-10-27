@@ -31,3 +31,23 @@ export function gamesInCategory(games, filter) {
 export function categoryCounts(games) {
   return Object.fromEntries(CATEGORY_FILTERS.map((filter) => [filter, gamesInCategory(games, filter).length]))
 }
+
+// ---------- age zones ----------
+// The home page also splits its games into two zones, each with its own heading and grid:
+//   play-learn     Play & Learn      ages up to 12  puzzles, memory, maths, shapes, first 3D play
+//   build-create   Build & Create    ages 12+       coding, typing, technical skills, advanced 3D challenges
+// Each game names its zone with `zone` in registry.js. The ages describe who a zone is for;
+// they never lock a game. The audience pills above still filter both zones.
+
+export const GAME_ZONES = ['play-learn', 'build-create']
+export const ZONE_ICONS = { 'play-learn': '🎈', 'build-create': '🛠️' }
+
+/** A game's zone. A game without a valid one falls into Play & Learn, so it is never lost. */
+export function zoneOf(game) {
+  return GAME_ZONES.includes(game?.zone) ? game.zone : GAME_ZONES[0]
+}
+
+/** The games of one zone, in the order given (registry order). */
+export function gamesInZone(games, zone) {
+  return games.filter((game) => zoneOf(game) === zone)
+}

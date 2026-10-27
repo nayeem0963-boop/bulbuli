@@ -10,5 +10,6 @@ export const COURSE_CATALOG = [
     levelCount: 10,
     skill: { en: 'Web Dev & HTML', bn: 'ওয়েব ডেভ ও HTML' },
     ages: '9–12',
+    zone: 'build-create', // home-page section (see src/games/categories.js)
   },
 ]
