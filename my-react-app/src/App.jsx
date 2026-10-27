@@ -12,6 +12,7 @@ import AdCardPage from './promo/AdCardPage.jsx'
 import { useLanguage } from './arcade/preferences.js'
 import { getGame, getGameByPath } from './games/registry.js'
 import Login from './routes/Login.jsx'
+import QuizRedirect from './routes/QuizRedirect.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import { GUEST_PLAYER_ID } from './hooks/useGameProgress.js'
 
@@ -157,6 +158,8 @@ function App() {
                 <Dashboard session={session} theme={theme} onToggleTheme={toggleTheme} />,
               )} />
               <Route path="/drive" element={<Suspense fallback={null}><VehicleGame /></Suspense>} />
+              {/* The HTML quiz is its own page (quiz/index.html); this only catches the app loading at /quiz. */}
+              <Route path="/quiz" element={<QuizRedirect />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>

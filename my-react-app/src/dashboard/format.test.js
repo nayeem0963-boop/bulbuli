@@ -24,11 +24,11 @@ test('registry games use their own title, skill, icon and link', () => {
 
 test('activity rows are ranked by XP with a share of the top score', () => {
   const rows = activityRows({
-    'type-runner': { xp: 50, plays: 2 },
+    'shape-hunt': { xp: 50, plays: 2 },
     'math-hero': { xp: 200, plays: 9, last_played_at: '2026-10-20T00:00:00Z' },
     broken: null,
   })
-  assert.deepEqual(rows.map((r) => [r.id, r.rank, r.share]), [['math-hero', 1, 100], ['type-runner', 2, 25]])
+  assert.deepEqual(rows.map((r) => [r.id, r.rank, r.share]), [['math-hero', 1, 100], ['shape-hunt', 2, 25]])
   assert.deepEqual(activityRows(undefined), [])
 })
 

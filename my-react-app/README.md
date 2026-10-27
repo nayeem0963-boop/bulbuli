@@ -9,30 +9,10 @@ device, and optionally to a free account. Every game works in English and Bangla
 | Math Hero | `/games/math-hero` | addition and subtraction against the clock |
 | Memory Match | `/games/memory-match` | memory, then matching pictures to written words |
 | Pattern Quest | `/games/pattern-quest` | number and shape patterns, quick sums |
-| Type Runner | `/games/type-runner` | keyboard letters (Speed Keys), then typing words |
-| Code Critter | `/games/code-critter` | first coding: sequencing blocks, loops, and "if path blocked" |
-| Bug Hunter | `/games/bug-hunter` | debugging: find and fix a wrong turn, loop count, missing block or condition |
 | DevCraft Studio | `/games/devcraft-studio` | ages 12+: real CSS (flexbox, grid, spacing, card styling) matched to a target design |
 | Logic Gate Builder | `/games/logic-gate-builder` | ages 12+: Boolean logic with AND, OR, NOT, XOR and NAND gates and truth tables |
 
 To add a game, see [`src/games/README.md`](src/games/README.md).
-
-### Type Runner's forest
-
-The bulbul (`src/assets/bulbul-runner.webp`) runs along a forest path that scrolls in two layers
-(parallax): misty hills far away (`public/forest/back.webp`, slow) and the big trees and path
-(`public/forest/front.webp`, moving with the runner). The forest drifts during a race and rushes
-forward on every correct key; one animation loop sets a CSS variable, `--scroll`, and each layer
-moves by it times its own speed (`src/games/type-runner/ForestScene.jsx`, `forestLayers.js`).
-While racing, the bird bounces, leans and kicks up dust; at the finish he stands and breathes.
-Everything stays still when "reduce motion" is on.
-
-The layers are built from the painted scenes in `design/forest-source/` by
-`python3 tools/build-forest-layers.py` (Pillow + NumPy): it crops them to the path band, makes the
-trees layer's sky see-through, and joins the pictures so they loop without a visible seam. **To
-change the forest**, replace the pictures in `design/forest-source/` and run the script again.
-Don't put full scenes straight into `public/forest/`: an opaque picture in a front layer covers
-the bird.
 
 ## Home page and navigation
 

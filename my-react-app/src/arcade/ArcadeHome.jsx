@@ -11,6 +11,7 @@ import InstallPwaBanner from '../pwa/InstallPwaBanner.jsx'
 import { formatDigits } from '../utils/mathHeroText.js'
 import ArcadeHeader from './ArcadeHeader.jsx'
 import CategoryPills from './CategoryPills.jsx'
+import QuizTile, { showQuizTile, withQuizTile } from './QuizTile.jsx'
 import { useLanguage } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import { launchedGameFromSearch, launchPath, playPath, useGameCategory } from './zone.js'
@@ -20,7 +21,8 @@ import './arcade.css'
 const GameModal = lazy(() => import('./GameModal.jsx'))
 
 // Counted once: the registry doesn't change while the page is open.
-const COUNTS = categoryCounts(GAMES)
+// The HTML quiz tile isn't a registry game but sits in the grid, so the pills count it too.
+const COUNTS = withQuizTile(categoryCounts(GAMES))
 
 function GameTile({ game, language, text, category, search, index }) {
   const { Art } = game
@@ -93,7 +95,7 @@ function PlayZone({ language, text, playerId, category }) {
   const filter = CATEGORY_FILTERS.includes(category) ? category : 'all'
   const games = gamesInCategory(GAMES, filter)
   const filterName = text.filters[filter]
-  const count = formatDigits(games.length, language)
+  const count = formatDigits(games.length + (showQuizTile(filter) ? 1 : 0), language)
 
   return (
     <>
@@ -121,6 +123,8 @@ function PlayZone({ language, text, playerId, category }) {
           {games.map((game, index) => (
             <GameTile key={game.id} game={game} language={language} text={text} category={filter} search={search} index={index} />
           ))}
+          {/* the standalone HTML quiz page (not a registry game, so it opens as its own page) */}
+          {showQuizTile(filter) && <QuizTile language={language} text={text} index={games.length} />}
           {games.length === 0 && <li className="game-grid-empty">{text.emptyFilter}</li>}
           <li className="game-tile is-hatching" aria-label={text.hatchingTitle} style={{ viewTransitionName: 'game-hatching' }}>
             <span className="hatching-egg" aria-hidden="true">🥚</span>

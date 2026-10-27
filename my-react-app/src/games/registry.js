@@ -1,9 +1,6 @@
 import MathHeroArt from './math-hero/Art.jsx'
 import MemoryMatchArt from './memory-match/Art.jsx'
 import PatternQuestArt from './pattern-quest/Art.jsx'
-import TypeRunnerArt from './type-runner/Art.jsx'
-import CodeCritterArt from './code-critter/Art.jsx'
-import BugHunterArt from './bug-hunter/Art.jsx'
 import DevCraftArt from './devcraft-studio/Art.jsx'
 import LogicGateArt from './logic-gate-builder/Art.jsx'
 import Bulbuli3DArt from './bulbuli-3d/Art.jsx'
@@ -80,45 +77,6 @@ export const GAMES = [
     Art: PatternQuestArt,
     load: () => import('./pattern-quest/index.jsx'),
     ownControls: true,
-    isNew: true,
-  },
-  {
-    id: 'type-runner',
-    title: { en: 'Type Runner', bn: 'টাইপ রানার' },
-    tagline: { en: 'Press the right keys and race to the flag.', bn: 'ঠিক কী চেপে পতাকা পর্যন্ত দৌড়াও।' },
-    skill: { en: 'Typing & Speed Keys', bn: 'টাইপিং ও স্পিড কী' },
-    ages: '6–11',
-    color: 'berry',
-    icon: '⌨️',
-    category: 'logic',
-    Art: TypeRunnerArt,
-    load: () => import('./type-runner/index.jsx'),
-    isNew: true,
-  },
-  {
-    id: 'code-critter',
-    title: { en: 'Code Critter', bn: 'কোড ক্রিটার' },
-    tagline: { en: 'Line up code blocks to guide Bulbuli home.', bn: 'কোড ব্লক সাজিয়ে বুলবুলিকে বাসায় ফেরাও।' },
-    skill: { en: 'Coding & Logic', bn: 'কোডিং ও যুক্তি' },
-    ages: '7–12',
-    color: 'grape',
-    icon: '🦎',
-    category: 'logic',
-    Art: CodeCritterArt,
-    load: () => import('./code-critter/index.jsx'),
-    isNew: true,
-  },
-  {
-    id: 'bug-hunter',
-    title: { en: 'Bug Hunter', bn: 'বাগ হান্টার' },
-    tagline: { en: 'Find the bug in Bulbuli\'s code and fix it.', bn: 'বুলবুলির কোডের বাগ খুঁজে ঠিক করো।' },
-    skill: { en: 'Debugging & Logic', bn: 'ডিবাগিং ও যুক্তি' },
-    ages: '7–12',
-    color: 'leaf',
-    icon: '🐞',
-    category: 'logic',
-    Art: BugHunterArt,
-    load: () => import('./bug-hunter/index.jsx'),
     isNew: true,
   },
   {
