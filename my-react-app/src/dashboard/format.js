@@ -20,7 +20,7 @@ const SPECIAL_SOURCES = {
  */
 export function describeSource(id, game) {
   if (game) {
-    return { title: game.title.en, subtitle: game.skill?.en ?? '', icon: game.icon ?? '🎮', color: game.color ?? 'sky', href: `/games/${game.id}` }
+    return { title: game.title.en, subtitle: game.skill?.en ?? '', icon: game.icon ?? '🎮', color: game.color ?? 'sky', href: game.path ?? `/games/${game.id}` }
   }
   if (SPECIAL_SOURCES[id]) return { ...SPECIAL_SOURCES[id], href: null }
   return { title: humanizeId(id), subtitle: 'Activity', icon: '🎮', color: 'sky', href: null }

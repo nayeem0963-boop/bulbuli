@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import mascot from '../assets/mascot.webp'
 import mathHeroMascot from '../assets/math-hero-mascot-cutout.webp'
-import { CATEGORY_FILTERS, categoryCounts, GAMES, gamesInCategory, getGame } from '../games/registry.js'
+import { CATEGORY_FILTERS, categoryCounts, GAMES, gamePath, gamesInCategory, getGame } from '../games/registry.js'
 import { useGameProgress } from '../hooks/useGameProgress.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 import FavoriteButton from '../favorites/FavoriteButton.jsx'
@@ -28,7 +28,7 @@ function GameTile({ game, language, text, category, search, index }) {
   // launcher games open in a dialog over the grid as it is now filtered (see GameModal.jsx);
   // the rest open their own page
   const modal = game.launch === 'modal'
-  const to = modal ? launchPath(category, game.id, search) : `/games/${game.id}`
+  const to = modal ? launchPath(category, game.id, search) : gamePath(game)
   return (
     <li
       className={`game-tile is-${game.color}`}

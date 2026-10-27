@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from './auth/AuthContext.jsx'
 import { FavoritesProvider } from './favorites/FavoritesContext.jsx'
 import AuthModal from './auth/AuthModal.jsx'
@@ -10,14 +10,17 @@ import ArcadeHome from './arcade/ArcadeHome.jsx'
 import GamePage from './arcade/GamePage.jsx'
 import AdCardPage from './promo/AdCardPage.jsx'
 import { useLanguage } from './arcade/preferences.js'
-import { getGame } from './games/registry.js'
+import { getGame, getGameByPath } from './games/registry.js'
 import Login from './routes/Login.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import { GUEST_PLAYER_ID } from './hooks/useGameProgress.js'
 
+// The 3D driving game pulls in three.js, so it loads only when /drive is visited.
+const VehicleGame = lazy(() => import('./components/3d_procedural_driving_game.jsx'))
+
 const SITE_TITLE = 'Bulbuli - Fun & Free Educational Games for Kids'
 const SITE_DESCRIPTION = 'Play free mini-games with Bulbuli the bird: counting, matching, typing, patterns and logic puzzles. Earn XP and level up, in English or Bangla.'
-const isArcadePath = (pathname) => pathname === '/' || ['/games/', '/share/'].some((start) => pathname.startsWith(start))
+const isArcadePath = (pathname) => pathname === '/' || ['/games/', '/play/', '/share/'].some((start) => pathname.startsWith(start))
 
 
 
@@ -26,7 +29,7 @@ function RouteTitle() {
   const [language] = useLanguage()
 
   useEffect(() => {
-    const game = getGame(pathname.match(/^\/games\/([^/]+)$/)?.[1])
+    const game = getGame(pathname.match(/^\/games\/([^/]+)$/)?.[1]) ?? getGameByPath(pathname)
     let title = SITE_TITLE
     let description = SITE_DESCRIPTION
 
@@ -142,6 +145,10 @@ function App() {
               <Route path="/games/:gameId" element={
                 <GamePage playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
               } />
+              <Route path="/play/html-architect" element={
+                <GamePage gameId="html-architect" playerId={playerId} theme={theme} onToggleTheme={toggleTheme} />
+              } />
+              <Route path="/games/html-architect" element={<Navigate to="/play/html-architect" replace />} />
               <Route path="/share/math-hero" element={<AdCardPage theme={theme} onToggleTheme={toggleTheme} />} />
               <Route path="/math-hero" element={<Navigate to="/games/math-hero" replace />} />
               <Route path="/login" element={<LoginRoute session={session} />} />
@@ -149,6 +156,7 @@ function App() {
               <Route path="/dashboard" element={member(
                 <Dashboard session={session} theme={theme} onToggleTheme={toggleTheme} />,
               )} />
+              <Route path="/drive" element={<Suspense fallback={null}><VehicleGame /></Suspense>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>

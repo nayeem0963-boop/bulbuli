@@ -13,6 +13,7 @@ import SkyRunnerArt from './sky-runner/Art.jsx'
 import SkywardExplorerArt from './skyward-explorer/Art.jsx'
 import SkyTypewriterArt from './sky-typewriter/Art.jsx'
 import NeonVelocityArt from './neon-velocity/Art.jsx'
+import HTMLArchitectArt from './html-architect/Art.jsx'
 
 /**
  * Every game in the arcade, in the order it appears on the home page.
@@ -36,6 +37,8 @@ import NeonVelocityArt from './neon-velocity/Art.jsx'
  *   launch        'modal' opens the game in the launcher dialog on the Play page (GameModal.jsx), embedded or
  *                 full screen; the game gets { embedded, autoStart }. Without it the tile opens /games/<id>.
  *   controls      { en, bn } one line on how to play, shown on the launcher.
+ *   path          the game's own address instead of /games/<id> (the tile and dashboard link there;
+ *                 App.jsx must have a matching route, and /games/<id> redirects to it).
  *
  * A game component receives { playerId, language } and should save through useGameProgress(playerId).
  */
@@ -260,7 +263,31 @@ export const GAMES = [
     },
     isNew: true,
   },
+  {
+    id: 'html-architect',
+    title: { en: 'Bulbuli’s HTML Architect 3D', bn: 'বুলবুলির HTML আর্কিটেক্ট ৩ডি' },
+    tagline: {
+      en: 'Write real HTML tags and watch Bulbuli’s building rise in 3D.',
+      bn: 'আসল HTML ট্যাগ লেখো, আর দেখো বুলবুলির দালান ৩ডিতে গড়ে উঠছে।',
+    },
+    skill: { en: 'Web Dev & HTML', bn: 'ওয়েব ডেভ ও HTML' },
+    ages: '8–12',
+    color: 'grape',
+    icon: '🏗️',
+    category: 'logic',
+    Art: HTMLArchitectArt,
+    path: '/play/html-architect',
+    // three.js and the code editor load only when the game is opened.
+    load: () => import('./html-architect/index.jsx'),
+    isNew: true,
+  },
 ]
+
+/** Where a game's page lives: its own `path`, or /games/<id>. */
+export const gamePath = (game) => game?.path ?? `/games/${game?.id}`
+
+/** The game whose own `path` is this address, if any. */
+export const getGameByPath = (pathname) => GAMES.find((game) => game.path && game.path === pathname) ?? null
 
 export const getGame = (id) => GAMES.find((game) => game.id === id) ?? null
 

@@ -9,8 +9,10 @@ import { useLanguage } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import './arcade.css'
 
-export default function GamePage({ playerId, theme, onToggleTheme }) {
-  const { gameId } = useParams()
+export default function GamePage({ playerId, theme, onToggleTheme, gameId: fixedGameId }) {
+  // /games/:gameId, or a game with its own route (e.g. /play/html-architect) passes its id
+  const { gameId: routeGameId } = useParams()
+  const gameId = fixedGameId ?? routeGameId
   const game = getGame(gameId)
   const [language] = useLanguage()
   const text = ARCADE_TEXT[language]

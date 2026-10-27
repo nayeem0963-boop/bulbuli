@@ -1,0 +1,22 @@
+/* HTML Architect inside the arcade game page (GamePage adds .game-page-html-architect). */
+
+/* The 60/40 split needs more room than the arcade's 1120px column. */
+.arcade.game-page-html-architect .game-stage,
+.arcade.game-page-html-architect .arcade-header {
+  width: min(100% - 2rem, 1560px);
+}
+.arcade.game-page-html-architect .game-stage { padding-bottom: 1rem; }
+
+.html-architect-page { padding-top: 0.5rem; }
+
+.html-architect-note {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted, #6c6788);
+}
+
+@media (max-width: 640px) {
+  .arcade.game-page-html-architect .game-stage { width: 100%; }
+  .html-architect-page .ha-game--in-page { border-radius: 0; border-left: 0; border-right: 0; }
+}

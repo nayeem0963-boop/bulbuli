@@ -8,6 +8,12 @@ import { registerServiceWorker } from './pwa/installPrompt.js'
 // and register the service worker that makes Bulbuli installable.
 registerServiceWorker()
 
+// Old arcade links like /#/drive -> /drive (the arcade uses BrowserRouter, which ignores the hash).
+// Only at the site root: the Pattern Quest embed runs its own hash router (/embed/pattern-quest#/play/...).
+if (window.location.pathname === '/' && window.location.hash.startsWith('#/')) {
+  window.history.replaceState(null, '', window.location.hash.slice(1))
+}
+
 const root = document.getElementById('root')
 
 if (window.location.pathname.startsWith('/embed/pattern-quest')) {

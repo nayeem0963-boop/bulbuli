@@ -10,17 +10,18 @@ import { settings, setMuted } from '../state/settings.js';
 import HomeScreen from '../features/home/HomeScreen.jsx';
 import GameScreen from '../features/game/GameScreen.jsx';
 import ResultsScreen from '../features/results/ResultsScreen.jsx';
+// three.js is heavy: load the driving game only when /drive is opened.
+const VehicleGame = lazy(() => import('../components/3d_procedural_driving_game.jsx'));
 import { navigate, useLocation } from './router.js';
 import { resolve } from './route-utils.js';
 import './shell.css';
 
-import VehicleGame from '../components/3d_procedural_driving_game';
-
 // The leaderboard is only needed on demand, so it ships as its own chunk.
 const loadLeaderboard = () => import('../features/leaderboard/LeaderboardScreen.jsx');
 const LeaderboardScreen = lazy(loadLeaderboard);
+
 const ROUTES = [
-  { path: '/', titleKey: null, render: () => <VehicleGame /> },
+  { path: '/', titleKey: null, render: () => <HomeScreen /> },
   { path: '/drive', titleKey: null, render: () => <VehicleGame /> },
   {
     path: '/play/:mode',
@@ -36,6 +37,7 @@ const ROUTES = [
   { path: '/results', titleKey: null, render: () => <ResultsScreen /> },
   { path: '/leaderboard', titleKey: 'lb.title', render: () => <LeaderboardScreen /> },
 ];
+
 function Redirect({ to }) {
   useEffect(() => { navigate(to, { replace: true, animate: false }); }, [to]);
   return null;
@@ -49,13 +51,13 @@ export default function App() {
   const screen = useRef(null);
   const first = useRef(true);
 
-  // Warm the leaderboard chunk when the browser is idle, so opening it never shows a spinner.
+  // Warm the leaderboard chunk when the browser is idle
   useEffect(() => {
     const idle = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 1500));
     idle(loadLeaderboard);
   }, []);
 
-  // Tab title follows the screen; focus moves to the new screen for keyboard and screen-reader users.
+  // Update tab title based on current screen
   useEffect(() => {
     const sub = match?.route.titleKey ? `${t(match.route.titleKey)} · ` : '';
     document.title = `${sub}${t('title')}`;
@@ -73,10 +75,28 @@ export default function App() {
 
       <header className="topbar">
         <FullscreenButton />
-        <Button variant="pill" lang={lang === 'en' ? 'bn' : 'en'} onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}>
+
+        <Button 
+          variant="pill" 
+          onClick={() => navigate('/drive')}
+          style={{ background: '#f97316', color: '#ffffff' }}
+        >
+          Play 3D Drive 🚗
+        </Button>
+
+        <Button 
+          variant="pill" 
+          lang={lang === 'en' ? 'bn' : 'en'} 
+          onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
+        >
           {t('lang.other')}
         </Button>
-        <Button variant="pill" aria-pressed={!muted} onClick={() => setMuted(!muted)}>
+
+        <Button 
+          variant="pill" 
+          aria-pressed={!muted} 
+          onClick={() => setMuted(!muted)}
+        >
           {t(muted ? 'sound.off' : 'sound.on')}
         </Button>
       </header>
