@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from './auth/AuthContext.jsx'
 import { FavoritesProvider } from './favorites/FavoritesContext.jsx'
@@ -10,6 +10,11 @@ import ArcadeHome from './arcade/ArcadeHome.jsx'
 import GamePage from './arcade/GamePage.jsx'
 import AdCardPage from './promo/AdCardPage.jsx'
 import { useLanguage } from './arcade/preferences.js'
+import { GameErrorBoundary } from './arcade/gameLoader.jsx'
+import { ARCADE_TEXT } from './arcade/text.js'
+// VoxelCraft UGC Studio (src/features/voxelcraft): lazy, like the driving game below, so three.js
+// and the studio's styles load only when /game is visited.
+import { VoxelCraftStudioLazy as VoxelCraftStudio } from './features/voxelcraft/lazy.js'
 import { getGame, getGameByPath } from './games/registry.js'
 import Login from './routes/Login.jsx'
 import QuizRedirect from './routes/QuizRedirect.jsx'
@@ -19,7 +24,7 @@ import { GUEST_PLAYER_ID } from './hooks/useGameProgress.js'
 // The 3D driving game pulls in three.js, so it loads only when /drive is visited.
 const VehicleGame = lazy(() => import('./components/3d_procedural_driving_game.jsx'))
 
-const SITE_TITLE = 'Bulbuli - Fun & Free Educational Games for Kids'
+const SITE_TITLE = 'Pro Coder - Fun & Free Educational Games for Kids'
 const SITE_DESCRIPTION = 'Play free mini-games with Bulbuli the bird: counting, matching, typing, patterns and logic puzzles. Earn XP and level up, in English or Bangla.'
 const isArcadePath = (pathname) => pathname === '/' || ['/games/', '/play/', '/share/'].some((start) => pathname.startsWith(start))
 
@@ -35,17 +40,20 @@ function RouteTitle() {
     let description = SITE_DESCRIPTION
 
     if (pathname === '/share/math-hero') {
-      title = 'Math Hero: Play to Learn on Bulbuli'
-      description = 'Hey Explorer! Join Math Hero on Bulbuli to master math, solve fun puzzles and level up, through free learning games for kids.'
+      title = 'Math Hero: Play to Learn on Pro Coder'
+      description = 'Hey Explorer! Join Math Hero on Pro Coder to master math, solve fun puzzles and level up, through free learning games for kids.'
     } else if (game) {
-      title = `${game.title.en}: Free Educational Game for Kids | Bulbuli Games`
+      title = `${game.title.en}: Free Educational Game for Kids | Pro Coder`
       description = `${game.tagline.en} A free ${game.skill.en.toLowerCase()} game for ages ${game.ages}, in English or Bangla.`
     } else if (pathname === '/login') {
-      title = 'Sign in or Sign up | Bulbuli Games'
-      description = 'Sign in to Bulbuli to save game XP and levels on every device. All games are free without an account.'
+      title = 'Sign in or Sign up | Pro Coder'
+      description = 'Sign in to Pro Coder to save game XP and levels on every device. All games are free without an account.'
     } else if (pathname === '/dashboard') {
-      title = 'My Progress | Bulbuli Games'
-      description = 'Your Bulbuli level, XP and game activity.'
+      title = 'My Progress | Pro Coder'
+      description = 'Your Pro Coder level, XP and game activity.'
+    } else if (pathname === '/game') {
+      title = 'VoxelCraft: 3D Game Studio | Pro Coder'
+      description = 'Build your own 3D voxel levels, play levels made by other players and vote for the best.'
     }
 
     document.title = title
@@ -84,9 +92,29 @@ function LoginRoute({ session }) {
 function AppThemeToggle({ theme, onToggleTheme }) {
   const { pathname } = useLocation()
   // The arcade has its own day/night button in its header; the dashboard has one in its sidebar.
-  if (pathname === '/dashboard' || isArcadePath(pathname)) return null
+  // The 3D Game Studio is always dark and has its own header.
+  if (pathname === '/dashboard' || pathname === '/game' || isArcadePath(pathname)) return null
 
   return <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} className="theme-toggle app-theme-toggle" />
+}
+
+/** /game: the VoxelCraft UGC Studio, full page. Its "‹ Pro Coder" link comes back to the arcade. */
+function GameStudioRoute() {
+  const navigate = useNavigate()
+  const [language] = useLanguage()
+  const text = ARCADE_TEXT[language]
+
+  return (
+    <GameErrorBoundary text={text}>
+      <Suspense fallback={
+        <main className="loading-state" role="status" style={{ minHeight: '100dvh', background: '#0f172a', color: '#cbd5e1' }}>
+          {text.loadingGame}
+        </main>
+      }>
+        <VoxelCraftStudio exitLabel={text.studioExit} onExit={() => navigate('/')} />
+      </Suspense>
+    </GameErrorBoundary>
+  )
 }
 
 function App() {
@@ -97,7 +125,7 @@ function App() {
       const savedTheme = window.localStorage.getItem('bulbuli.theme')
       if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme
     } catch (error) {
-      console.error('Unable to load Bulbuli theme preference.', error)
+      console.error('Unable to load Pro Coder theme preference.', error)
     }
 
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -110,7 +138,7 @@ function App() {
     try {
       window.localStorage.setItem('bulbuli.theme', nextTheme)
     } catch (error) {
-      console.error('Unable to save Bulbuli theme preference.', error)
+      console.error('Unable to save Pro Coder theme preference.', error)
     }
   }
 
@@ -158,6 +186,7 @@ function App() {
                 <Dashboard session={session} theme={theme} onToggleTheme={toggleTheme} />,
               )} />
               <Route path="/drive" element={<Suspense fallback={null}><VehicleGame /></Suspense>} />
+              <Route path="/game" element={<GameStudioRoute />} />
               {/* The HTML quiz is its own page (quiz/index.html); this only catches the app loading at /quiz. */}
               <Route path="/quiz" element={<QuizRedirect />} />
               <Route path="*" element={<Navigate to="/" replace />} />

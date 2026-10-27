@@ -11,6 +11,9 @@
  *   useSkyTypewriterResult saves XP + the game record once per finished run (localStorage,
  *                          Play page XP counter, signed-in account)
  *
+ * The 3D scene (SkyTypewriterScene.jsx: three.js, R3F, drei) is a separate chunk, so the start card
+ * shows at once while the sky downloads behind it under a <GameViewport> spinner.
+ *
  * The <Canvas> stays mounted across Play Again (no WebGL context churn); a new runId is
  * enough to reset the sky. Leaving the game unmounts it and R3F disposes the renderer and
  * stops its requestAnimationFrame loop. Every listener and timer here is removed in cleanup.
@@ -20,16 +23,17 @@ import { useNavigate } from 'react-router-dom'
 import { playPath } from '../../arcade/zone.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import { playSound } from '../../utils/sound.js'
-import InfiniteSkyEnvironment from '../InfiniteSkyEnvironment.jsx'
-import PlayerBird3D from '../PlayerBird3D.jsx'
-import SkyTypewriter3D from '../SkyTypewriter3D.jsx'
+import GameViewport from '../../components/game/GameViewport.jsx'
+import { lazyWithPreload } from '../../shared/lib/lazyWithPreload.js'
 import useSkyTypewriterGame, { SKY_TYPEWRITER_STATUS } from '../useSkyTypewriterGame.js'
 import useWordTyping from '../useWordTyping.js'
-import WordSpawner from '../WordSpawner.jsx'
 import GameOverModal from './GameOverModal.jsx'
 import { SKY_TYPEWRITER_TEXT, SKY_TYPEWRITER_WORDS } from './text.js'
 import useSkyTypewriterResult from './useSkyTypewriterResult.js'
 import './sky-typewriter.css'
+
+// three.js, R3F and the sky scene load only when this game opens.
+const SkyTypewriterScene = lazyWithPreload(() => import('./SkyTypewriterScene.jsx'))
 
 /** World speed behind the summary: a slow drift instead of a frozen sky. */
 const FINISHED_DRIFT_SPEED = 1.5
@@ -137,27 +141,25 @@ export default function SkyTypewriterGame({
       <h1 className={embedded ? 'stw-sr-only' : 'stw-title'}>{text.title}</h1>
 
       <div ref={stageRef} className="stw-stage" tabIndex={-1} aria-label={text.stage}>
-        <SkyTypewriter3D
-          className="stw-canvas"
-          effectsRef={effectsRef}
-          score={game.score}
-          lives={game.lives}
-          combo={game.combo}
-          paused={paused}
-          status={status}
-          onTogglePause={togglePause}
-        >
-          <InfiniteSkyEnvironment speed={worldSpeed} />
-          <PlayerBird3D />
-          <WordSpawner
-            words={SKY_TYPEWRITER_WORDS}
+        <GameViewport label={text.loading}>
+          <SkyTypewriterScene
+            className="stw-canvas"
+            effectsRef={effectsRef}
             score={game.score}
+            lives={game.lives}
+            combo={game.combo}
+            paused={paused}
+            status={status}
+            onTogglePause={togglePause}
+            worldSpeed={worldSpeed}
+            words={SKY_TYPEWRITER_WORDS}
             runId={runId}
             active={active}
             wordsRef={wordsRef}
             onMiss={onMiss}
+            loadingLabel={text.loading}
           />
-        </SkyTypewriter3D>
+        </GameViewport>
 
         {status === SKY_TYPEWRITER_STATUS.IDLE && (
           <div className="stw-finish-backdrop">

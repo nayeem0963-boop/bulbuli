@@ -1,6 +1,6 @@
 // Pure helpers for the dashboard (no React, no registry), so they can be tested with node --test.
 
-/** 'logic-gate-builder' → 'Logic Gate Builder' */
+/** 'shape-hunt' → 'Shape Hunt' */
 export function humanizeId(id) {
   return String(id ?? '')
     .split('-')

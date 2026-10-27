@@ -9,13 +9,19 @@
  *     XP earned in the learning games.
  */
 import { useCallback, useRef } from 'react'
-import GameCanvas from '../../components/game/GameCanvas.jsx'
+import GameViewport from '../../components/game/GameViewport.jsx'
+import { lazyWithPreload } from '../../shared/lib/lazyWithPreload.js'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
 import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import { BULBULI_3D_TEXT } from './text.js'
 import './bulbuli-3d.css'
+// The canvas frame's styles load with the page, so the loading box has the same size as the scene.
+import '../../components/game/GameCanvas.css'
+
+// three.js, R3F, drei and the glTF bird load only when this game opens.
+const GameCanvas = lazyWithPreload(() => import('../../components/game/GameCanvas.jsx'))
 
 const GAME_ID = 'bulbuli-3d'
 const TAPS_PER_XP = 10
@@ -86,7 +92,9 @@ export default function Bulbuli3D({ playerId, language }) {
         <span>✨ {text.xp}: <strong>{n(xpToday)}/{n(DAILY_XP_CAP)}</strong></span>
       </div>
 
-      <GameCanvas onTap={handleTap} pointsPerTap={1} labels={text.canvas} />
+      <GameViewport label={text.loadingScene} frameClassName="bulbuli-canvas">
+        <GameCanvas onTap={handleTap} pointsPerTap={1} labels={text.canvas} />
+      </GameViewport>
 
       <p className="b3d-status" role="status">{statusText}</p>
     </div>

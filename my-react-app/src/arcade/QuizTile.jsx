@@ -1,19 +1,23 @@
 import { formatDigits } from '../utils/mathHeroText.js'
+import { COURSE_CATALOG } from '../courses/catalog.js'
 
 /**
- * Home-page tile for the HTML Learning Quiz. The quiz is not a registry game: it is its own
- * standalone page (quiz/index.html at the project root), served at /quiz/ by vite.config.js in
- * dev and built to dist/quiz/. So this tile uses a plain <a> (a full page load), not <Link>.
+ * Home-page tile for the Pro Coder HTML Course. The course is not a registry game: it is played
+ * on its own standalone page (quiz/index.html at the project root, data in src/courses/), served
+ * at /quiz/ by vite.config.js in dev and built to dist/quiz/. So this tile uses a plain <a>
+ * (a full page load), not <Link>. Its numbers come from src/courses/catalog.js, which the tests
+ * keep in step with the real question bank.
  */
+const HTML_COURSE = COURSE_CATALOG.find((c) => c.id === 'html')
 const QUIZ = {
-  href: '/quiz/',
-  title: { en: 'HTML Learning Quiz', bn: 'HTML শেখার কুইজ' },
+  href: HTML_COURSE.href,
+  title: HTML_COURSE.title,
   tagline: {
-    en: '19 questions from <html> to forms and video, each with a mini-lesson.',
-    bn: '<html> থেকে ফর্ম আর ভিডিও পর্যন্ত ১৯টি প্রশ্ন, প্রতিটির সাথে ছোট্ট পাঠ (ইংরেজিতে)।',
+    en: `${HTML_COURSE.questionCount} questions in ${HTML_COURSE.levelCount} levels, from <html> to forms, semantic HTML and accessibility. Each has a mini-lesson.`,
+    bn: `<html> থেকে ফর্ম, সেমান্টিক HTML আর অ্যাক্সেসিবিলিটি পর্যন্ত ${formatDigits(String(HTML_COURSE.levelCount), 'bn')}টি লেভেলে ${formatDigits(String(HTML_COURSE.questionCount), 'bn')}টি প্রশ্ন, প্রতিটির সাথে ছোট্ট পাঠ (ইংরেজিতে)।`,
   },
-  skill: { en: 'Web Dev & HTML', bn: 'ওয়েব ডেভ ও HTML' },
-  ages: '9–12',
+  skill: HTML_COURSE.skill,
+  ages: HTML_COURSE.ages,
 }
 
 /** The audience pills the quiz tile shows under ('all' = All Games). */

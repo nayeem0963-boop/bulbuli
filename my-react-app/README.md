@@ -1,6 +1,6 @@
-# Bulbuli
+# Pro Coder
 
-Bulbuli is a free learning arcade for children under 12, built with React and
+Pro Coder is a free learning arcade for children under 12, built with React and
 Vite. Games are open to everyone (no sign-in); progress and XP are saved on the
 device, and optionally to a free account. Every game works in English and Bangla.
 
@@ -9,15 +9,27 @@ device, and optionally to a free account. Every game works in English and Bangla
 | Math Hero | `/games/math-hero` | addition and subtraction against the clock |
 | Memory Match | `/games/memory-match` | memory, then matching pictures to written words |
 | Pattern Quest | `/games/pattern-quest` | number and shape patterns, quick sums |
-| DevCraft Studio | `/games/devcraft-studio` | ages 12+: real CSS (flexbox, grid, spacing, card styling) matched to a target design |
-| Logic Gate Builder | `/games/logic-gate-builder` | ages 12+: Boolean logic with AND, OR, NOT, XOR and NAND gates and truth tables |
 
 To add a game, see [`src/games/README.md`](src/games/README.md).
 
+**HTML Course** (`/quiz/`): a 70-question, 10-level HTML course (fundamentals → forms, semantic
+HTML, metadata and accessibility), each question with a hint and a mini-lesson. The page is
+`quiz/index.html` + `quiz/engine.js`; the curriculum and questions live in `src/courses/`, so CSS
+and JavaScript courses can be added later and played by the same engine (`/quiz/?course=<id>`).
+See [`src/courses/README.md`](src/courses/README.md).
+
+> The product was renamed from Bulbuli to **Pro Coder**. Bulbuli is still the name of the bird
+> mascot in the games. The domain (`bulbuli.org`), localStorage keys and asset file names keep
+> their old names so links and saved progress keep working.
+
+**3D Game Studio** (`/game`): VoxelCraft, a build-and-play voxel level studio for older players,
+lives in its own feature folder. See [3D Game Studio (VoxelCraft)](#3d-game-studio-voxelcraft).
+
 ## Home page and navigation
 
-Bulbuli is games only. The header (`src/arcade/ArcadeHeader.jsx`) shows the brand, the **Play**
-tab with its **Educational | Adventure** switch (`src/arcade/PlayNav.jsx`), the language switch,
+The home page lists the games and the HTML Course tile. The header (`src/arcade/ArcadeHeader.jsx`) shows the brand, the **Play**
+tab with its **Educational | Adventure** switch (`src/arcade/PlayNav.jsx`), the **3D Game Studio**
+tab (`/game`), the language switch,
 and the profile button (Sign in, or the player's avatar linking to `/dashboard`). On a game page
 the navigation becomes a big "All games" button, and sound and day/night join the controls.
 
@@ -30,6 +42,7 @@ The category and an open launcher game live in the address (`src/arcade/zone.js`
 | `/?category=adventure&play=<id>` | that game open in the launcher |
 | `/games/<id>` | a game on its own page |
 | `/dashboard` | a signed-in player's level, XP and per-game activity |
+| `/game` | the 3D Game Studio (VoxelCraft), full page |
 
 Old Learn, course, exam and grammar links (`/?zone=learn`, `/tutorials/…`, `/grammar/…`) land on
 the games.
@@ -44,7 +57,7 @@ optional; signed-in players' XP is also saved to their Supabase profile (`src/li
 ## Math Hero ad card
 
 `/share/math-hero` shows a shareable Math Hero advert (`src/promo/MathHeroAdCard.jsx`).
-**Download & Share** saves a 1080 × 1350 PNG (`Bulbuli-MathHero-Ad.png`); on phones and
+**Download & Share** saves a 1080 × 1350 PNG (`ProCoder-MathHero-Ad.png`); on phones and
 tablets it opens the share sheet instead (Web Share API), with **Save image only** as a
 fallback. The PNG is painted on a canvas from the same layout as the card
 (`src/promo/adContent.js`), so change text, colours or positions there.
@@ -65,8 +78,8 @@ Under the card there is one button, **Share with Friends** (`shareLink` in
 `src/promo/MathHeroAdCard.jsx`). It opens the phone's or computer's share sheet
 (`navigator.share`) with:
 
-- title: `Math Hero on Bulbuli`
-- text: `Hey Explorer! 🚀 Play Math Hero with me for free on Bulbuli!`
+- title: `Math Hero on Pro Coder`
+- text: `Hey Explorer! 🚀 Play Math Hero with me for free on Pro Coder!`
 - url: `https://bulbuli.org/share/math-hero`
 
 (Bangla title and text when the page is in Bangla; see `src/promo/adContent.js` and
@@ -101,6 +114,22 @@ banner for game events. The hook also exposes `triggerClick`, `triggerLevelUp` a
 `triggerGameOver`. Sound and animation timings/colours live in `src/utils/sound.js` and
 `src/utils/feedbackConfig.js`.
 
+## 3D Game Studio (VoxelCraft)
+
+`src/features/voxelcraft/` holds the whole game: React Three Fiber viewport, platformer physics,
+community gallery, contests, profile and shop. `src/App.jsx` mounts its entry component,
+`VoxelCraftStudio`, at `/game` (lazily, so three.js loads only there), and its "‹ Pro Coder" link
+navigates back. Details: [`src/features/voxelcraft/README.md`](src/features/voxelcraft/README.md).
+
+It's isolated from the rest of Pro Coder:
+
+- **State:** its providers live inside `VoxelCraftStudio`; no Pro Coder context is used or changed.
+- **Storage:** every key starts with `bulbuli_voxelcraft_` (`state/storageKeys.js`).
+- **Styles:** the game uses Tailwind, Pro Coder doesn't. Its CSS is precompiled into
+  `styles/voxelcraft.css` with every rule scoped to `#voxelcraft-root`, so it can't change the
+  arcade, and the arcade's global `button` / `a` / heading styles can't change the game. After
+  editing the game's Tailwind classes, run `npm run build:voxelcraft-css`.
+
 ## Development
 
 ```sh
@@ -114,4 +143,5 @@ npm run dev
 npm run lint
 npm test
 npm run build   # dist/ should contain share/math-hero/index.html too
+npm run check:voxelcraft-levels   # optional, slow: every built-in VoxelCraft level is beatable
 ```

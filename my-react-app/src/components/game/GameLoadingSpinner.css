@@ -1,0 +1,118 @@
+/* GameLoadingSpinner: Bulbuli the bulbul bobbing above three dots. Pure CSS, no WebGL. */
+.bgl {
+  --bgl-ink: var(--ink, #1b2a49);
+  --bgl-card: rgba(255, 255, 255, 0.88);
+  --bgl-text: var(--ink, #1b2a49);
+  --bgl-accent: var(--sun, #ffc93c);
+  --bgl-body: #8a6a4f;   /* red-whiskered bulbul: warm brown back */
+  --bgl-belly: #fff6e5;
+  --bgl-head: #2b2321;
+  --bgl-cheek: #e4333f;  /* the red "whisker" patch */
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  padding: 2rem 1rem;
+  opacity: 0;
+  animation: bgl-in 220ms ease-out var(--bgl-delay, 150ms) forwards;
+}
+
+.bgl--fill {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-height: 0;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.55), transparent 60%),
+    linear-gradient(var(--sky-top, #86cbf4), var(--sky-bottom, #4f9fdc));
+}
+
+.bgl--dark {
+  --bgl-card: rgba(16, 6, 36, 0.78);
+  --bgl-text: #f4ecff;
+  --bgl-ink: #ff2bd6;
+  --bgl-accent: #22f3ff;
+  --bgl-belly: #f4ecff;
+}
+.bgl--dark.bgl--fill { background: radial-gradient(circle at 50% 45%, #2a0a4a, #07020f 70%); }
+
+.bgl__card {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  padding: 1.1rem 1.5rem 1rem;
+  max-width: min(320px, 100%);
+  border: 3px solid var(--bgl-ink);
+  border-radius: 22px;
+  background: var(--bgl-card);
+  box-shadow: 0 5px 0 var(--bgl-ink);
+  color: var(--bgl-text);
+  text-align: center;
+}
+
+.bgl__label {
+  margin: 0;
+  font-family: var(--font-display, 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* ---------- the bird ---------- */
+.bgl__bird { width: 72px; height: 72px; overflow: visible; }
+.bgl__body { animation: bgl-bob 1.1s ease-in-out infinite; transform-origin: 32px 40px; }
+.bgl__belly { fill: var(--bgl-belly); stroke: var(--bgl-ink); stroke-width: 2.5; }
+.bgl__head, .bgl__crest { fill: var(--bgl-head); }
+.bgl__beak { fill: var(--bgl-accent); stroke: var(--bgl-ink); stroke-width: 1.5; stroke-linejoin: round; }
+.bgl__eye { fill: #fff; }
+.bgl__cheek { fill: var(--bgl-cheek); }
+.bgl__wing { fill: var(--bgl-body); stroke: var(--bgl-ink); stroke-width: 2; stroke-linejoin: round; }
+.bgl__wing--back { opacity: 0.7; }
+.bgl__wing--front { animation: bgl-flap 0.36s ease-in-out infinite alternate; transform-origin: 33px 38px; }
+.bgl__shadow { fill: rgba(0, 0, 0, 0.18); animation: bgl-shadow 1.1s ease-in-out infinite; transform-origin: 32px 58px; }
+
+/* ---------- busy dots / progress bar ---------- */
+.bgl__dots { display: flex; gap: 0.4rem; }
+.bgl__dots span {
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 2px solid var(--bgl-ink);
+  border-radius: 50%;
+  background: var(--bgl-accent);
+  animation: bgl-dot 0.9s ease-in-out infinite;
+}
+.bgl__dots span:nth-child(2) { animation-delay: 0.15s; }
+.bgl__dots span:nth-child(3) { animation-delay: 0.3s; }
+
+.bgl__bar {
+  width: 180px;
+  max-width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border: 2px solid var(--bgl-ink);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.bgl__bar span { display: block; height: 100%; background: var(--bgl-accent); transition: width 200ms ease-out; }
+
+.bgl__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes bgl-in { to { opacity: 1; } }
+@keyframes bgl-bob { 50% { transform: translateY(-6px); } }
+@keyframes bgl-flap { to { transform: rotate(-24deg); } }
+@keyframes bgl-shadow { 50% { transform: scaleX(0.75); opacity: 0.6; } }
+@keyframes bgl-dot { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+@keyframes bgl-fade { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bgl { animation-duration: 1ms; }
+  .bgl__body, .bgl__wing--front, .bgl__shadow { animation: none; }
+  .bgl__dots span { animation-name: bgl-fade; animation-duration: 1.6s; }
+}

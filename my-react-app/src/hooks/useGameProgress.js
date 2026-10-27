@@ -150,7 +150,7 @@ function loadProgress(storageKey) {
       storageError: '',
     }
   } catch (error) {
-    console.error('Unable to load Bulbuli game progress from localStorage.', error)
+    console.error('Unable to load Pro Coder game progress from localStorage.', error)
     return { progress: EMPTY_PROGRESS, storageError: 'Your game progress could not be loaded from this browser.' }
   }
 }
@@ -180,7 +180,7 @@ export function useGameProgress(playerId) {
       window.dispatchEvent(new CustomEvent(PROGRESS_EVENT, { detail: { storageKey, progress: nextProgress } }))
       return true
     } catch (error) {
-      console.error('Unable to save Bulbuli game progress to localStorage.', error)
+      console.error('Unable to save Pro Coder game progress to localStorage.', error)
       setState((current) => ({
         ...current,
         storageError: 'Your game progress could not be saved. Check your browser storage settings and try again.',

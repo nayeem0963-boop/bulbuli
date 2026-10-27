@@ -1,11 +1,11 @@
 // Two entry points share this page:
 //  - /embed/pattern-quest loads Pattern Quest on its own, inside the arcade's game frame;
-//  - everything else loads the Bulbuli arcade.
+//  - everything else loads the Pro Coder arcade.
 // Each one imports only its own styles, so the two never clash.
 import { registerServiceWorker } from './pwa/installPrompt.js'
 
 // Start listening for the browser's install prompt right away (it can fire before React renders),
-// and register the service worker that makes Bulbuli installable.
+// and register the service worker that makes Pro Coder installable.
 registerServiceWorker()
 
 // Old arcade links like /#/drive -> /drive (the arcade uses BrowserRouter, which ignores the hash).

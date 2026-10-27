@@ -7,7 +7,7 @@ import { CATEGORY_FILTERS, DEFAULT_FILTER } from '../games/categories.js'
 //   /                                   All Games
 //   /?category=young                    Young Learners      (ages 3–8)
 //   /?category=logic                    Logic & Typing      (ages 6–12)
-//   /?category=arcade                   Arcade & Dev Studio (ages 12+)
+//   /?category=arcade                   Arcade (ages 12+)
 //   /?category=arcade&play=neon-velocity  that game open in the launcher over its filtered grid
 // so the Back button steps between them, and campaign links can land on any of them.
 // Other query parameters (utm_source, utm_campaign, …) are kept when switching pills.

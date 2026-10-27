@@ -19,6 +19,7 @@
 import { Suspense, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { formatDigits } from '../utils/mathHeroText.js'
 import FeedbackModal from '../feedback/FeedbackModal.jsx'
+import GameLoadingSpinner from '../components/game/GameLoadingSpinner.jsx'
 import useGameSession from '../session/useGameSession.js'
 import { GameErrorBoundary, getLazyGame, prefetchGame } from './gameLoader.jsx'
 import { useMuted } from './preferences.js'
@@ -194,7 +195,7 @@ export default function GameModal({ game, playerId, language, text, onClose }) {
         ) : (
           <div className="game-modal-body" tabIndex={-1}>
             <GameErrorBoundary key={game.id} text={text}>
-              <Suspense fallback={<p className="game-message" role="status">{text.loadingGame}</p>}>
+              <Suspense fallback={<GameLoadingSpinner label={text.loadingGame} />}>
                 <GameComponent
                   key={playerId}
                   playerId={playerId}

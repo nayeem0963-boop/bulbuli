@@ -49,6 +49,18 @@ function quizPagePlugin() {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), quizPagePlugin()],
+  // The 3D stack is only reached through lazy import()s (registry.js → a game → its scene).
+  // Pre-bundling it up front means the first time a 3D game is opened in `vite` dev, Vite doesn't
+  // discover "new" dependencies, re-optimize and force a full page reload, which would wipe
+  // HMR/Fast Refresh state mid-session. Keep the list to packages a lazy scene imports directly.
+  optimizeDeps: {
+    include: [
+      'three',
+      '@react-three/fiber',
+      '@react-three/drei',
+      'three/examples/jsm/controls/OrbitControls.js',
+    ],
+  },
   build: {
     chunkSizeWarningLimit: 1000, // raises the warning limit to 1000 kB
     rolldownOptions: {

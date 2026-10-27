@@ -1,0 +1,7 @@
+/* Compiled by @tailwindcss/vite. Swapped for tailwind-fallback.css when Tailwind isn't installed. */
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}

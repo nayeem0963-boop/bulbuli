@@ -1,0 +1,17 @@
+/*
+ * Source for voxelcraft.css (the file the app imports). Bulbuli itself doesn't use Tailwind, so
+ * this is compiled ahead of time and then scoped to #voxelcraft-root:
+ *
+ *   npm run build:voxelcraft-css
+ *
+ * Only the VoxelCraft feature folder is scanned for class names.
+ */
+@import "tailwindcss" source(none);
+@source "../";
+
+@theme {
+  --font-display: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@import "./voxelcraft-base.css";

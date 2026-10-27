@@ -18,13 +18,13 @@ export default function QuizRedirect() {
   if (!hasSlash) return null
   return (
     <main style={{ padding: '3rem 1.5rem', textAlign: 'center', maxWidth: 560, margin: '0 auto' }}>
-      <h1>HTML Learning Quiz</h1>
+      <h1>Pro Coder HTML Course</h1>
       <p>
-        The quiz page didn&apos;t load. If you&apos;re running the dev server, stop it and
+        The course page didn&apos;t load. If you&apos;re running the dev server, stop it and
         run <code>npm run dev</code> again, then reload this page.
       </p>
       <p>
-        <a href="/quiz/index.html">Open the quiz</a> · <a href="/">Back to the games</a>
+        <a href="/quiz/index.html">Open the HTML course</a> · <a href="/">Back to the games</a>
       </p>
     </main>
   )

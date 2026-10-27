@@ -1,0 +1,11 @@
+/*
+ * Intentionally almost empty. Used only when @tailwindcss/vite isn't installed: Tailwind's browser
+ * build (injected by vite.config.js) generates the utilities at runtime instead. The two theme
+ * fonts are mirrored as plain classes here so headings keep their typeface in that mode.
+ */
+.font-display {
+  font-family: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+}
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}

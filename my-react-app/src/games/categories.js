@@ -1,7 +1,7 @@
 // The home page groups its games by audience, picked with the pills above the game grid:
 //   young    Young Learners       ages 3–8   tapping, shapes, first words, reflexes
 //   logic    Logic & Typing       ages 6–12  maths, patterns, typing, coding and debugging
-//   arcade   Arcade & Dev Studio  ages 12+   fast 3D action, web dev and circuit building
+//   arcade   Arcade               ages 12+   fast 3D action and exploration
 // Each game names its own group with `category` in registry.js. "All Games" is not a
 // category a game can have: it is the default filter and shows every game.
 

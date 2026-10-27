@@ -17,5 +17,5 @@ export function submitFeedback({ gameId, reaction, tags, trigger, language }) {
   supabase
     .from('game_feedback')
     .insert({ game_id: gameId, reaction, tags: cleanTags, trigger, language })
-    .then(({ error }) => { if (error) console.warn('Bulbuli feedback was not saved.', error) })
+    .then(({ error }) => { if (error) console.warn('Pro Coder feedback was not saved.', error) })
 }

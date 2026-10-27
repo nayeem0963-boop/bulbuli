@@ -16,7 +16,9 @@
  *     `autoStart` skips the Ready card because the launcher already showed the controls
  * The arcade loads every game from <id>/index.jsx (see src/games/README.md).
  */
-import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Component, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import GameViewport from '../../components/game/GameViewport.jsx'
+import { lazyWithPreload } from '../../shared/lib/lazyWithPreload.js'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
 import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
@@ -28,8 +30,7 @@ import { SKYWARD_TEXT } from './text.js'
 import './skyward-explorer.css'
 
 // three.js and the scene load only when this screen opens.
-const loadCanvas = () => import('./SkywardExplorerCanvas.jsx')
-const SkywardExplorerCanvas = lazy(loadCanvas)
+const SkywardExplorerCanvas = lazyWithPreload(() => import('./SkywardExplorerCanvas.jsx'))
 
 const GAME_ID = 'skyward-explorer'
 const ROUND_SECONDS = 60
@@ -78,7 +79,7 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
   inputActive.current = gameStatus === 'playing' && !paused
   useKeyboardInput(input, inputActive)
 
-  useEffect(() => { loadCanvas().catch(() => {}) }, [])
+  useEffect(() => { SkywardExplorerCanvas.preload().catch(() => {}) }, [])
   // launched straight into play: the click on the launcher is the start
   useEffect(() => { if (autoStart) sfx.start() }, [autoStart])
 
@@ -196,7 +197,7 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
 
       <div className="skx-stage">
         <CanvasBoundary message={text.noWebgl}>
-          <Suspense fallback={<p className="skx-message" role="status">{text.loading}</p>}>
+          <GameViewport label={text.loading}>
             <SkywardExplorerCanvas
               key={runId}
               seed={seed}
@@ -207,7 +208,7 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
               onCollect={handleCollect}
               onTimeUp={handleTimeUp}
             />
-          </Suspense>
+          </GameViewport>
         </CanvasBoundary>
 
         <HUD

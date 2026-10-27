@@ -1,8 +1,6 @@
 import MathHeroArt from './math-hero/Art.jsx'
 import MemoryMatchArt from './memory-match/Art.jsx'
 import PatternQuestArt from './pattern-quest/Art.jsx'
-import DevCraftArt from './devcraft-studio/Art.jsx'
-import LogicGateArt from './logic-gate-builder/Art.jsx'
 import Bulbuli3DArt from './bulbuli-3d/Art.jsx'
 import ShapeHuntArt from './shape-hunt/Art.jsx'
 import ShapeSortingArt from './shape-sorting/Art.jsx'
@@ -77,32 +75,6 @@ export const GAMES = [
     Art: PatternQuestArt,
     load: () => import('./pattern-quest/index.jsx'),
     ownControls: true,
-    isNew: true,
-  },
-  {
-    id: 'devcraft-studio',
-    title: { en: 'DevCraft Studio', bn: 'ডেভক্রাফট স্টুডিও' },
-    tagline: { en: 'Style real CSS until your design matches the target.', bn: 'আসল CSS দিয়ে ডিজাইনকে টার্গেটের মতো বানাও।' },
-    skill: { en: 'Web Dev & CSS', bn: 'ওয়েব ডেভ ও CSS' },
-    ages: '12+',
-    color: 'sky',
-    icon: '🎨',
-    category: 'arcade',
-    Art: DevCraftArt,
-    load: () => import('./devcraft-studio/index.jsx'),
-    isNew: true,
-  },
-  {
-    id: 'logic-gate-builder',
-    title: { en: 'Logic Gate Builder', bn: 'লজিক গেট বিল্ডার' },
-    tagline: { en: 'Wire logic gates to light the bulb and open the door.', bn: 'লজিক গেট জুড়ে বাল্ব জ্বালাও, দরজা খোলো।' },
-    skill: { en: 'Logic & Circuits', bn: 'লজিক ও সার্কিট' },
-    ages: '12+',
-    color: 'sun',
-    icon: '💡',
-    category: 'arcade',
-    Art: LogicGateArt,
-    load: () => import('./logic-gate-builder/index.jsx'),
     isNew: true,
   },
   {

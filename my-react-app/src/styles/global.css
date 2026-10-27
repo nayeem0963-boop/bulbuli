@@ -3,7 +3,6 @@
      The Bangla cuts (Baloo Da 2, Hind Siliguri) follow right after so Bangla text matches. */
   --font-display: 'Baloo 2', 'Baloo Da 2', 'Trebuchet MS', ui-rounded, system-ui, sans-serif;
   --font-body: 'Nunito', 'Hind Siliguri', ui-rounded, system-ui, 'Segoe UI', sans-serif;
-  --font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, Consolas, monospace;
   font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;

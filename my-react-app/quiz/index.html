@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HTML Learning Quiz</title>
+  <title>HTML Course | Pro Coder</title>
+  <meta name="description" content="Pro Coder's free HTML course: 70 questions in 10 levels, from your first tag to forms, semantic HTML and accessibility. Every question comes with a hint and a mini-lesson." />
+  <meta name="application-name" content="Pro Coder" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <style>
     /* ===== Design tokens ===== */
     :root {
@@ -22,11 +26,8 @@
       --radius: 12px;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       --mono: "Fira Code", Consolas, "Courier New", monospace;
-      /* Level colours */
-      --lvl1: #38bdf8;
-      --lvl2: #a78bfa;
-      --lvl3: #f472b6;
-      --lvl4: #fb923c;
+      /* Level colours come from the course data (src/courses/<id>/index.js) as --lvl-color. */
+      --lvl-color: #38bdf8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,6 +52,83 @@
 
     .app { width: 100%; max-width: 1100px; }
     [hidden] { display: none !important; }
+
+    :focus-visible { outline: 3px solid #a5b4fc; outline-offset: 2px; }
+
+    /* ===== Brand Bar ===== */
+    .brand-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 0.01em;
+    }
+    .brand-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 2rem; height: 2rem;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .brand:hover .brand-mark { background: var(--accent-hover); }
+    .brand-course { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+
+    /* ===== Course Overview (intro) ===== */
+    .intro-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(1.25rem, 3vw, 2.25rem);
+      animation: slideIn 0.4s ease;
+    }
+    .intro-eyebrow { color: #a5b4fc; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .intro-card h1 { font-size: clamp(1.7rem, 3vw, 2.3rem); line-height: 1.2; margin: 4px 0 6px; }
+    .intro-tagline { font-size: 1.1rem; color: #c7d2fe; margin-bottom: 12px; }
+    .intro-text { color: var(--muted); max-width: 70ch; margin-bottom: 16px; }
+    .intro-stats { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin-bottom: 20px; }
+    .intro-stats li {
+      font-size: 0.85rem;
+      padding: 4px 12px;
+      border-radius: 99px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+    .intro-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
+    .intro-keys { color: var(--muted); font-size: 0.85rem; }
+    .intro-card h2 { font-size: 1.05rem; margin-bottom: 10px; }
+    .intro-levels {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .intro-level {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border-left: 3px solid var(--lvl-color);
+    }
+    .intro-level-icon { font-size: 1.3rem; width: 1.6rem; text-align: center; flex-shrink: 0; }
+    .intro-level-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .intro-level-name { font-weight: 600; font-size: 0.95rem; }
+    .intro-level-meta { color: var(--muted); font-size: 0.8rem; }
 
     /* ===== Header Bar ===== */
     .header-bar {
@@ -151,8 +229,9 @@
       margin: 0.75rem 0;
       line-height: 1.55;
     }
-    code { font-family: var(--mono); font-size: 0.9rem; color: #a5f3fc; }
+    code, kbd { font-family: var(--mono); font-size: 0.9rem; color: #a5f3fc; }
     :not(pre) > code { background: var(--surface-2); padding: 1px 6px; border-radius: 4px; }
+    kbd { border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
 
     /* ===== Options Grid ===== */
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.2vw, 16px); }
@@ -213,6 +292,10 @@
       border-radius: var(--radius);
       border: none;
       cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       transition: background 0.15s, opacity 0.15s;
     }
     .btn-primary { background: var(--accent); color: #fff; }
@@ -220,6 +303,7 @@
     .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { border-color: var(--warning); }
+    .btn-small { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 8px; flex-shrink: 0; }
 
     .score-bump { animation: bump 0.5s ease; display: inline-block; }
 
@@ -263,7 +347,7 @@
     .drawer-body ul, .drawer-body ol { padding-left: 22px; }
     .drawer-body li { margin-bottom: 4px; }
     .drawer-body table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-    .drawer-body th, .drawer-body td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
+    .drawer-body th, .drawer-body td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; }
     .drawer-body th { background: var(--surface-2); }
     .tip {
       background: rgba(99, 102, 241, 0.1);
@@ -300,7 +384,7 @@
       animation: slideIn 0.4s ease;
     }
     .results-card h2 { font-size: 1.6rem; margin-bottom: 4px; }
-    .results-sub { color: var(--muted); margin-bottom: 20px; }
+    .results-sub { color: var(--muted); margin: 0 auto 20px; max-width: 60ch; }
     .badge {
       display: inline-flex;
       flex-direction: column;
@@ -334,8 +418,8 @@
     .section-title { text-align: left; font-size: 1rem; margin: 6px 0 10px; }
     .level-bars { text-align: left; margin-bottom: 22px; }
     .level-row { margin-bottom: 10px; }
-    .level-row-top { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; }
-    .level-row-top .meta { color: var(--muted); font-family: var(--mono); }
+    .level-row-top { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9rem; margin-bottom: 4px; }
+    .level-row-top .meta { color: var(--muted); font-family: var(--mono); white-space: nowrap; }
     .bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
     .bar-fill { height: 100%; width: 0; background: var(--lvl-color); border-radius: 99px; transition: width 0.8s ease; }
 
@@ -347,6 +431,18 @@
       padding: 8px 4px; border-bottom: 1px solid var(--border); font-size: 0.9rem;
     }
     .review-list .meta { color: var(--muted); white-space: nowrap; font-family: var(--mono); font-size: 0.8rem; }
+    .results-next {
+      margin: 0 auto 20px;
+      padding: 10px 14px;
+      max-width: 60ch;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.1);
+      color: #c7d2fe;
+    }
+    .results-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    .site-footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: 0.8rem; }
+    .site-footer a { color: inherit; }
 
     /* ===== Animations ===== */
     @keyframes pop     { 0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); } }
@@ -360,6 +456,9 @@
     }
 
     /* ===== Responsive ===== */
+    @media (max-width: 760px) {
+      .intro-levels { grid-template-columns: 1fr; }
+    }
     @media (max-width: 560px) {
       .options-grid { grid-template-columns: 1fr; }
       .header-bar { flex-wrap: wrap; font-size: 0.9rem; }
@@ -367,28 +466,59 @@
       .header-right { margin-left: auto; }
       .action-bar .btn { flex: 1; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
+      .intro-actions .btn { flex: 1; }
+      .results-actions .btn { flex: 1 1 100%; }
+      .brand-course { display: none; }
     }
   </style>
 </head>
 <body>
   <div class="app">
 
-    <!-- ===== Header Bar ===== -->
-    <header class="header-bar">
-      <div class="stat" id="progress">Question <span id="current-num">1</span> of <span id="total-num">0</span></div>
-      <div class="stat score">⭐ Score: <span id="score">0</span></div>
-      <div class="header-right">
-        <div class="stat timer" id="timer" title="Time left"><span id="timer-icon">⏱</span> <span id="timer-value">00:30</span></div>
-        <button class="fs-btn" id="fs-btn" type="button" aria-pressed="false" title="Fullscreen (F)" hidden>
-          <span class="fs-icon" id="fs-icon" aria-hidden="true">⛶</span><span class="fs-label" id="fs-label"> Fullscreen</span>
-        </button>
-      </div>
-    </header>
+    <!-- ===== Brand Bar ===== -->
+    <nav class="brand-bar" aria-label="Pro Coder">
+      <a class="brand" href="/" title="Pro Coder home">
+        <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+        <span>Pro Coder</span>
+      </a>
+      <span class="brand-course" id="course-name">HTML Course</span>
+    </nav>
 
-    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <!-- ===== Course Overview ===== -->
+    <main id="intro-view">
+      <section class="intro-card" aria-labelledby="intro-title">
+        <p class="intro-eyebrow">Pro Coder course</p>
+        <h1 id="intro-title">HTML Course</h1>
+        <p class="intro-tagline" id="intro-tagline"></p>
+        <p class="intro-text" id="intro-text"></p>
+        <ul class="intro-stats" id="intro-stats"></ul>
+        <div class="intro-actions">
+          <button class="btn btn-primary" id="start-btn" type="button">▶ Start the course</button>
+          <span class="intro-keys">Keys: A–D or 1–4 to answer · H for the lesson · Enter for next · F for fullscreen</span>
+        </div>
+        <h2>Course levels</h2>
+        <ol class="intro-levels" id="intro-levels"></ol>
+      </section>
+    </main>
+
+    <!-- ===== Header Bar ===== -->
+    <div id="quiz-chrome" hidden>
+      <header class="header-bar">
+        <div class="stat" id="progress">Question <span id="current-num">1</span> of <span id="total-num">0</span></div>
+        <div class="stat score">⭐ Score: <span id="score">0</span></div>
+        <div class="header-right">
+          <div class="stat timer" id="timer" title="Time left"><span id="timer-icon">⏱</span> <span id="timer-value">00:30</span></div>
+          <button class="fs-btn" id="fs-btn" type="button" aria-pressed="false" title="Fullscreen (F)" hidden>
+            <span class="fs-icon" id="fs-icon" aria-hidden="true">⛶</span><span class="fs-label" id="fs-label"> Fullscreen</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="progress-track" id="progress-track" role="progressbar" aria-label="Course progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
 
     <!-- ===== Quiz View ===== -->
-    <main id="quiz-view">
+    <main id="quiz-view" hidden>
       <section class="question-card" aria-live="polite">
         <div class="level-banner" id="level-banner" hidden></div>
         <div class="tags">
@@ -398,7 +528,7 @@
         <div class="question-text" id="question-text">Loading question…</div>
       </section>
 
-      <section class="options-grid" id="options-grid"></section>
+      <section class="options-grid" id="options-grid" aria-label="Answers"></section>
 
       <p class="feedback" id="feedback" role="status"></p>
 
@@ -411,7 +541,7 @@
     <!-- ===== Results View ===== -->
     <section id="results-view" hidden>
       <div class="results-card">
-        <h2>🎉 Quiz Complete!</h2>
+        <h2 id="results-title">🎉 Course Complete!</h2>
         <p class="results-sub" id="results-sub"></p>
 
         <div class="badge" id="badge">
@@ -435,9 +565,19 @@
           <ul class="review-list" id="review-list"></ul>
         </details>
 
-        <button class="btn btn-primary" id="restart-btn" type="button">↻ Restart Quiz</button>
+        <p class="results-next" id="results-next"></p>
+
+        <div class="results-actions">
+          <button class="btn btn-primary" id="restart-btn" type="button">↻ Restart</button>
+          <button class="btn btn-secondary" id="overview-btn" type="button">☰ Course overview</button>
+          <a class="btn btn-secondary" href="/">⌂ Pro Coder home</a>
+        </div>
       </div>
     </section>
+
+    <footer class="site-footer">
+      <a href="/">Pro Coder</a> · Learn to code, one question at a time
+    </footer>
   </div>
 
   <!-- ===== Reading Drawer ===== -->
@@ -455,1020 +595,7 @@
     </div>
   </aside>
 
-  <script>
-  /* =========================================================
-     CURRICULUM
-     Each question: id, level (1–4), topic, question (HTML),
-     options (4 plain strings), correctIndex (0–3), hint, lesson (HTML).
-     In question/lesson HTML, write "<" as &lt; inside code.
-     ========================================================= */
-  const LEVELS = {
-    1: { name: "Absolute Beginner",  color: "var(--lvl1)", icon: "🌱" },
-    2: { name: "Attributes & Links", color: "var(--lvl2)", icon: "🔗" },
-    3: { name: "Lists & Grouping",   color: "var(--lvl3)", icon: "📋" },
-    4: { name: "Advanced Beginner",  color: "var(--lvl4)", icon: "🚀" },
-  };
-
-  const QUESTIONS = [
-    /* ---------------- LEVEL 1: Absolute Beginner ---------------- */
-    {
-      id: 1, level: 1, topic: "DOCTYPE",
-      question: `<p>What does this line at the very top of an HTML file do?</p>
-<pre><code>&lt;!DOCTYPE html&gt;</code></pre>`,
-      options: [
-        "Creates the page's main heading",
-        "Tells the browser the page uses modern HTML5",
-        "Links a CSS stylesheet",
-        "Sets the text shown in the browser tab",
-      ],
-      correctIndex: 1,
-      hint: "It's a declaration about which version of HTML the document follows.",
-      lesson: `
-        <h3>The DOCTYPE declaration</h3>
-        <p><code>&lt;!DOCTYPE html&gt;</code> is <strong>not an HTML tag</strong>. It is an instruction to the browser: <em>"read this page using the modern HTML5 rules."</em></p>
-        <p>Without it, browsers fall back to <strong>"quirks mode"</strong>, an old compatibility mode where layouts can behave strangely.</p>
-        <pre><code>&lt;!DOCTYPE html&gt;   &lt;!-- always line 1 --&gt;
-&lt;html lang="en"&gt;
-  ...
-&lt;/html&gt;</code></pre>
-        <ul>
-          <li>It must be the <strong>very first line</strong> of the file.</li>
-          <li>It is not case-sensitive, but lowercase <code>html</code> is the convention.</li>
-          <li>It has no closing tag.</li>
-        </ul>
-        <p class="tip">💡 In most code editors, typing <code>!</code> and pressing Tab generates the whole starter skeleton, DOCTYPE included.</p>`,
-    },
-    {
-      id: 2, level: 1, topic: "<html> root",
-      question: `<p>Which element is the <strong>root</strong> that wraps all other content of an HTML page?</p>`,
-      options: ["<body>", "<root>", "<html>", "<head>"],
-      correctIndex: 2,
-      hint: "It shares its name with the language itself.",
-      lesson: `
-        <h3>The root element</h3>
-        <p>Every HTML page is a tree of elements. The top of that tree, the <strong>root</strong>, is <code>&lt;html&gt;</code>. Everything except the DOCTYPE lives inside it.</p>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-  &lt;head&gt; ... &lt;/head&gt;
-  &lt;body&gt; ... &lt;/body&gt;
-&lt;/html&gt;</code></pre>
-        <p>The <code>lang="en"</code> attribute tells browsers, search engines and screen readers which language the page is written in.</p>
-        <p class="tip">💡 <code>&lt;html&gt;</code> has exactly two children: <code>&lt;head&gt;</code> and <code>&lt;body&gt;</code>.</p>`,
-    },
-    {
-      id: 3, level: 1, topic: "<head> vs <body>",
-      question: `<p>Where should the <code>&lt;title&gt;</code> element go?</p>
-<pre><code>&lt;html&gt;
-  &lt;head&gt; ??? &lt;/head&gt;
-  &lt;body&gt; ??? &lt;/body&gt;
-&lt;/html&gt;</code></pre>`,
-      options: ["Inside <body>", "Inside <head>", "After </html>", "Inside an <h1>"],
-      correctIndex: 1,
-      hint: "The title shows in the browser tab, not on the page itself. Where does invisible information go?",
-      lesson: `
-        <h3>&lt;head&gt; vs &lt;body&gt;</h3>
-        <table>
-          <tr><th>&lt;head&gt;</th><th>&lt;body&gt;</th></tr>
-          <tr><td>Information <em>about</em> the page</td><td>The content people <em>see</em></td></tr>
-          <tr><td><code>&lt;title&gt;</code>, <code>&lt;meta&gt;</code>, <code>&lt;link&gt;</code>, <code>&lt;style&gt;</code></td><td>Headings, paragraphs, images, links, forms…</td></tr>
-        </table>
-        <pre><code>&lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;title&gt;My First Page&lt;/title&gt;  &lt;!-- shows in the tab --&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;h1&gt;Welcome!&lt;/h1&gt;              &lt;!-- shows on the page --&gt;
-&lt;/body&gt;</code></pre>
-        <p class="tip">💡 The <code>&lt;title&gt;</code> is also what appears in search results and bookmarks, so make it descriptive.</p>`,
-    },
-    {
-      id: 4, level: 1, topic: "Headings",
-      question: `<p>Which heading element is the <strong>largest and most important</strong> by default?</p>`,
-      options: ["<h6>", "<heading>", "<h1>", "<head>"],
-      correctIndex: 2,
-      hint: "Headings are numbered by rank. Think \"number one\".",
-      lesson: `
-        <h3>Headings: &lt;h1&gt; to &lt;h6&gt;</h3>
-        <p>HTML has six heading levels. <code>&lt;h1&gt;</code> is the most important (and largest by default), and <code>&lt;h6&gt;</code> is the least.</p>
-        <pre><code>&lt;h1&gt;Cooking Basics&lt;/h1&gt;       &lt;!-- page title --&gt;
-&lt;h2&gt;Knife Skills&lt;/h2&gt;         &lt;!-- section --&gt;
-&lt;h3&gt;Dicing an Onion&lt;/h3&gt;      &lt;!-- sub-section --&gt;</code></pre>
-        <h3>Good habits</h3>
-        <ul>
-          <li>Use <strong>one</strong> <code>&lt;h1&gt;</code> per page for its main topic.</li>
-          <li>Don't skip levels (go h1 → h2 → h3, not h1 → h4).</li>
-          <li>Pick headings for <strong>meaning</strong>, not size. Change size with CSS.</li>
-        </ul>
-        <p class="tip">⚠️ Don't confuse <code>&lt;h1&gt;</code> (a heading on the page) with <code>&lt;head&gt;</code> (the invisible metadata section).</p>`,
-    },
-    {
-      id: 5, level: 1, topic: "Paragraphs & <br>",
-      question: `<p>How does this code render in the browser?</p>
-<pre><code>&lt;p&gt;Roses are red&lt;br&gt;Violets are blue&lt;/p&gt;</code></pre>`,
-      options: [
-        "Two separate paragraphs with a big gap",
-        "One paragraph split across two lines",
-        "One line: \"Roses are redViolets are blue\"",
-        "An error, because <br> has no closing tag",
-      ],
-      correctIndex: 1,
-      hint: "<br> stands for \"break\", and it stays inside the same paragraph.",
-      lesson: `
-        <h3>Paragraphs: &lt;p&gt;</h3>
-        <p><code>&lt;p&gt;</code> wraps a block of text. Browsers add space above and below each paragraph automatically.</p>
-        <h3>Line breaks: &lt;br&gt;</h3>
-        <p><code>&lt;br&gt;</code> forces a new line <em>inside</em> the same block. It is an <strong>empty (void) element</strong>: it has no content and no closing tag.</p>
-        <pre><code>&lt;p&gt;Roses are red&lt;br&gt;Violets are blue&lt;/p&gt;</code></pre>
-        <h3>Whitespace collapses!</h3>
-        <p>Pressing Enter in your code does <strong>not</strong> create a new line on the page. Browsers collapse extra spaces and line breaks into one space:</p>
-        <pre><code>&lt;p&gt;Hello
-      World&lt;/p&gt;   →  Hello World</code></pre>
-        <p class="tip">💡 Use <code>&lt;br&gt;</code> for addresses or poems. For spacing between sections, use separate paragraphs or CSS instead.</p>`,
-    },
-
-    /* ---------------- LEVEL 2: Attributes & Links ---------------- */
-    {
-      id: 6, level: 2, topic: "Attribute syntax",
-      question: `<p>Which line uses <strong>correct</strong> attribute syntax?</p>`,
-      options: [
-        '<img src="cat.jpg" alt="A cat">',
-        '<img src: "cat.jpg">',
-        '<img "src"=cat.jpg>',
-        '<img (src="cat.jpg")>',
-      ],
-      correctIndex: 0,
-      hint: "Attributes look like name=\"value\", separated by spaces.",
-      lesson: `
-        <h3>What are attributes?</h3>
-        <p>Attributes add extra information to an element. They always go inside the <strong>opening tag</strong>.</p>
-        <pre><code>&lt;tag name="value" another="value"&gt;</code></pre>
-        <ul>
-          <li><strong>name</strong>: the attribute, e.g. <code>src</code>, <code>href</code>, <code>class</code></li>
-          <li><strong>=</strong>: an equals sign, not a colon</li>
-          <li><strong>"value"</strong>: in quotes (double quotes are the convention)</li>
-          <li>Several attributes are separated by <strong>spaces</strong></li>
-        </ul>
-        <pre><code>&lt;a href="https://example.com" title="Go to Example"&gt;Example&lt;/a&gt;
-&lt;p class="intro" id="welcome"&gt;Hi!&lt;/p&gt;</code></pre>
-        <p class="tip">💡 Some attributes are <strong>boolean</strong> and need no value: <code>&lt;input required&gt;</code> or <code>&lt;video controls&gt;</code>.</p>`,
-    },
-    {
-      id: 7, level: 2, topic: "<img> alt",
-      question: `<p>Which attribute provides alternative text for an image, read by screen readers and shown if the image fails to load?</p>`,
-      options: ["title", "src", "desc", "alt"],
-      correctIndex: 3,
-      hint: "It's short for \"alternative\".",
-      lesson: `
-        <h3>The alt attribute</h3>
-        <p><code>alt</code> describes what an image shows, in words.</p>
-        <pre><code>&lt;img src="cat.jpg" alt="An orange cat asleep on a sofa"&gt;</code></pre>
-        <h3>Why it matters</h3>
-        <ul>
-          <li><strong>Accessibility:</strong> screen readers read it aloud for blind users.</li>
-          <li><strong>Broken images:</strong> the browser shows the alt text instead.</li>
-          <li><strong>SEO:</strong> search engines use it to understand the image.</li>
-        </ul>
-        <h3>Writing good alt text</h3>
-        <ul>
-          <li>✅ <code>alt="Bar chart: sales doubled in 2025"</code>, which describes the meaning</li>
-          <li>❌ <code>alt="image"</code> or <code>alt="photo.jpg"</code>, which tells the user nothing</li>
-          <li>For purely decorative images, use an empty <code>alt=""</code> so screen readers skip them.</li>
-        </ul>`,
-    },
-    {
-      id: 8, level: 2, topic: "<img> src",
-      question: `<p>In this code, what does <code>src</code> tell the browser?</p>
-<pre><code>&lt;img src="images/logo.png" alt="Company logo"&gt;</code></pre>`,
-      options: [
-        "The image's caption",
-        "The image's width and height",
-        "Where to find the image file",
-        "The text read by screen readers",
-      ],
-      correctIndex: 2,
-      hint: "src is short for \"source\".",
-      lesson: `
-        <h3>The &lt;img&gt; element</h3>
-        <p><code>&lt;img&gt;</code> embeds a picture. Like <code>&lt;br&gt;</code>, it is a <strong>void element</strong>: no closing tag.</p>
-        <pre><code>&lt;img src="images/logo.png" alt="Company logo" width="200"&gt;</code></pre>
-        <h3>src = source</h3>
-        <p><code>src</code> is the path (or URL) to the image file:</p>
-        <ul>
-          <li><strong>Relative path:</strong> <code>src="images/logo.png"</code> means look in the <code>images</code> folder next to this HTML file.</li>
-          <li><strong>Absolute URL:</strong> <code>src="https://example.com/logo.png"</code> loads it from the web.</li>
-        </ul>
-        <p class="tip">💡 Paths are case-sensitive on most web servers: <code>Logo.PNG</code> ≠ <code>logo.png</code>. A wrong path is the #1 cause of broken images.</p>`,
-    },
-    {
-      id: 9, level: 2, topic: "Hyperlinks",
-      question: `<p>What will this code produce?</p>
-<pre><code>&lt;a href="https://example.com"&gt;Visit&lt;/a&gt;</code></pre>`,
-      options: [
-        "An image linking to example.com",
-        "A button that downloads a file",
-        "Plain text that says https://example.com",
-        "A clickable link with the text \"Visit\"",
-      ],
-      correctIndex: 3,
-      hint: "The \"a\" stands for anchor, and href holds the destination.",
-      lesson: `
-        <h3>Anchor tags: &lt;a&gt;</h3>
-        <p>The <code>&lt;a&gt;</code> element creates a hyperlink. <code>href</code> (hypertext reference) is where it goes, and the content between the tags is what the user clicks.</p>
-        <pre><code>&lt;a href="https://example.com"&gt;Visit&lt;/a&gt;</code></pre>
-        <h3>Kinds of href</h3>
-        <ul>
-          <li><code>href="https://site.com"</code>: another website</li>
-          <li><code>href="about.html"</code>: another page on your site</li>
-          <li><code>href="#contact"</code>: jump to the element with <code>id="contact"</code> on this page</li>
-          <li><code>href="mailto:hi@site.com"</code>: open an email app</li>
-        </ul>
-        <p class="tip">💡 Use descriptive link text. "Read our pricing guide" beats "click here" for both accessibility and SEO.</p>`,
-    },
-    {
-      id: 10, level: 2, topic: "target=\"_blank\"",
-      question: `<p>Which attribute makes a link open in a <strong>new browser tab</strong>?</p>`,
-      options: ['href="_new"', 'target="_blank"', 'open="tab"', 'new="true"'],
-      correctIndex: 1,
-      hint: "It names the target window for the link, and that target is a blank one.",
-      lesson: `
-        <h3>Opening links in a new tab</h3>
-        <pre><code>&lt;a href="https://developer.mozilla.org" target="_blank" rel="noopener"&gt;
-  MDN Docs
-&lt;/a&gt;</code></pre>
-        <ul>
-          <li><code>target="_blank"</code> opens the link in a new tab or window.</li>
-          <li><code>target="_self"</code> (the default) opens it in the same tab.</li>
-        </ul>
-        <h3>What's rel="noopener"?</h3>
-        <p>It stops the new page from controlling your original page through JavaScript. Modern browsers apply it automatically, but adding it is a good habit.</p>
-        <p class="tip">💡 Use new tabs sparingly, for example for external sites or documents. Users expect links within your own site to stay in the same tab.</p>`,
-    },
-
-    /* ---------------- LEVEL 3: Lists & Grouping ---------------- */
-    {
-      id: 11, level: 3, topic: "<ul> vs <ol>",
-      question: `<p>You're writing recipe steps where the <strong>order matters</strong>. Which list should you use?</p>`,
-      options: ["<ul>", "<ol>", "<li>", "<dl>"],
-      correctIndex: 1,
-      hint: "One list type is \"unordered\" (bullets) and the other is \"ordered\" (numbers).",
-      lesson: `
-        <h3>Unordered vs ordered lists</h3>
-        <table>
-          <tr><th>&lt;ul&gt; unordered</th><th>&lt;ol&gt; ordered</th></tr>
-          <tr><td>Bullet points •</td><td>Numbers 1, 2, 3…</td></tr>
-          <tr><td>Order doesn't matter</td><td>Order matters</td></tr>
-          <tr><td>Shopping list, features</td><td>Steps, rankings, instructions</td></tr>
-        </table>
-        <pre><code>&lt;ul&gt;
-  &lt;li&gt;Eggs&lt;/li&gt;
-  &lt;li&gt;Milk&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Crack the eggs&lt;/li&gt;
-  &lt;li&gt;Whisk with milk&lt;/li&gt;
-&lt;/ol&gt;</code></pre>
-        <p class="tip">💡 <code>&lt;ol&gt;</code> has useful attributes: <code>start="5"</code> begins counting at 5, <code>reversed</code> counts down, and <code>type="A"</code> uses letters.</p>`,
-    },
-    {
-      id: 12, level: 3, topic: "List items",
-      question: `<p>Which element must <strong>directly</strong> wrap each item inside a <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code>?</p>`,
-      options: ["<item>", "<list>", "<li>", "<p>"],
-      correctIndex: 2,
-      hint: "Its name is short for \"list item\".",
-      lesson: `
-        <h3>List items: &lt;li&gt;</h3>
-        <p>The only element allowed as a direct child of <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code> is <code>&lt;li&gt;</code>.</p>
-        <pre><code>&lt;!-- ❌ wrong --&gt;
-&lt;ul&gt;
-  Apples
-  &lt;p&gt;Pears&lt;/p&gt;
-&lt;/ul&gt;
-
-&lt;!-- ✅ right --&gt;
-&lt;ul&gt;
-  &lt;li&gt;Apples&lt;/li&gt;
-  &lt;li&gt;Pears&lt;/li&gt;
-&lt;/ul&gt;</code></pre>
-        <h3>Nesting lists</h3>
-        <p>To make a sub-list, put a new list <strong>inside an &lt;li&gt;</strong>:</p>
-        <pre><code>&lt;ul&gt;
-  &lt;li&gt;Fruit
-    &lt;ul&gt;
-      &lt;li&gt;Apple&lt;/li&gt;
-      &lt;li&gt;Mango&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;</code></pre>`,
-    },
-    {
-      id: 13, level: 3, topic: "<div> vs <span>",
-      question: `<p>What is the key difference between <code>&lt;div&gt;</code> and <code>&lt;span&gt;</code>?</p>`,
-      options: [
-        "<div> is block-level (starts on a new line); <span> is inline",
-        "<span> is for images; <div> is for text",
-        "They behave exactly the same",
-        "<div> can only be used inside a <span>",
-      ],
-      correctIndex: 0,
-      hint: "One stacks like building blocks; the other flows within a line of text.",
-      lesson: `
-        <h3>Generic containers</h3>
-        <p>Neither <code>&lt;div&gt;</code> nor <code>&lt;span&gt;</code> has any meaning on its own. They are "boxes" used to group content so you can style or script it.</p>
-        <table>
-          <tr><th>&lt;div&gt; (block)</th><th>&lt;span&gt; (inline)</th></tr>
-          <tr><td>Starts on a new line</td><td>Stays inside the line of text</td></tr>
-          <tr><td>Takes the full available width</td><td>Only as wide as its content</td></tr>
-          <tr><td>Groups sections: cards, rows, wrappers</td><td>Styles a word or phrase</td></tr>
-        </table>
-        <pre><code>&lt;div class="card"&gt;
-  &lt;h2&gt;Profile&lt;/h2&gt;
-  &lt;p&gt;Status: &lt;span class="online"&gt;Online&lt;/span&gt;&lt;/p&gt;
-&lt;/div&gt;</code></pre>
-        <p class="tip">💡 Other block elements: <code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code>, <code>&lt;ul&gt;</code>. Other inline elements: <code>&lt;a&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;img&gt;</code>.</p>`,
-    },
-    {
-      id: 14, level: 3, topic: "Inline grouping",
-      question: `<p>Why is <code>&lt;span&gt;</code> used here instead of <code>&lt;div&gt;</code>?</p>
-<pre><code>&lt;p&gt;My favourite colour is &lt;span class="blue"&gt;blue&lt;/span&gt;.&lt;/p&gt;</code></pre>`,
-      options: [
-        "<div> can't have a class attribute",
-        "<span> automatically makes text bold",
-        "To style one word without breaking the sentence onto a new line",
-        "<div> is deprecated in HTML5",
-      ],
-      correctIndex: 2,
-      hint: "What would happen to the sentence's layout if a block element were dropped into the middle of it?",
-      lesson: `
-        <h3>Picking the right container</h3>
-        <p>If you wrapped "blue" in a <code>&lt;div&gt;</code>, it would jump onto its own line and split the sentence:</p>
-        <pre><code>My favourite colour is
-blue
-.</code></pre>
-        <p>A <code>&lt;span&gt;</code> is <strong>inline</strong>, so the sentence stays intact and you can still target "blue" with CSS:</p>
-        <pre><code>&lt;style&gt;
-  .blue { color: royalblue; font-weight: bold; }
-&lt;/style&gt;</code></pre>
-        <h3>Rule of thumb</h3>
-        <ul>
-          <li>Grouping <strong>blocks</strong> of content (sections, cards, columns)? Use <code>&lt;div&gt;</code>.</li>
-          <li>Marking a <strong>piece of text</strong> inside a line? Use <code>&lt;span&gt;</code>.</li>
-          <li>Is there a tag with real meaning, like <code>&lt;strong&gt;</code> or <code>&lt;nav&gt;</code>? Prefer that (see Level 4!).</li>
-        </ul>`,
-    },
-
-    /* ---------------- LEVEL 4: Advanced Beginner ---------------- */
-    {
-      id: 15, level: 4, topic: "Semantic: <nav>",
-      question: `<p>Which semantic element is meant for a block of the page's main <strong>navigation links</strong>?</p>`,
-      options: ["<nav>", "<header>", "<links>", "<menu-bar>"],
-      correctIndex: 0,
-      hint: "Its name is a short form of \"navigation\".",
-      lesson: `
-        <h3>Semantic HTML</h3>
-        <p><strong>Semantic</strong> tags describe the <em>meaning</em> of their content, not just how it looks. A <code>&lt;div&gt;</code> says nothing; a <code>&lt;nav&gt;</code> says "these are navigation links".</p>
-        <pre><code>&lt;nav&gt;
-  &lt;a href="/"&gt;Home&lt;/a&gt;
-  &lt;a href="/courses"&gt;Courses&lt;/a&gt;
-  &lt;a href="/contact"&gt;Contact&lt;/a&gt;
-&lt;/nav&gt;</code></pre>
-        <h3>Why bother?</h3>
-        <ul>
-          <li><strong>Screen readers</strong> let users jump straight to the navigation.</li>
-          <li><strong>Search engines</strong> understand your page structure better.</li>
-          <li><strong>Developers</strong> (including future you) can read the code more easily.</li>
-        </ul>
-        <p class="tip">💡 Use <code>&lt;nav&gt;</code> for <em>major</em> navigation blocks, not for every single link on the page.</p>`,
-    },
-    {
-      id: 16, level: 4, topic: "Semantic layout",
-      question: `<p>Which tag should replace <code>???</code> to hold the page's unique, main content?</p>
-<pre><code>&lt;body&gt;
-  &lt;header&gt;Logo + nav&lt;/header&gt;
-  &lt;???&gt;Articles go here&lt;/???&gt;
-  &lt;footer&gt;© 2026&lt;/footer&gt;
-&lt;/body&gt;</code></pre>`,
-      options: ["<section>", "<body>", "<content>", "<main>"],
-      correctIndex: 3,
-      hint: "Its name literally means \"the primary part\".",
-      lesson: `
-        <h3>The semantic page layout</h3>
-        <pre><code>&lt;body&gt;
-  &lt;header&gt;  &lt;!-- logo, site title, often the nav --&gt;
-  &lt;nav&gt;     &lt;!-- main navigation links --&gt;
-  &lt;main&gt;    &lt;!-- the unique content of THIS page --&gt;
-    &lt;article&gt; ... &lt;/article&gt;
-    &lt;section&gt; ... &lt;/section&gt;
-  &lt;/main&gt;
-  &lt;footer&gt;  &lt;!-- copyright, contact, small links --&gt;
-&lt;/body&gt;</code></pre>
-        <table>
-          <tr><th>Tag</th><th>Use it for</th></tr>
-          <tr><td><code>&lt;header&gt;</code></td><td>Intro content: logo, title, nav</td></tr>
-          <tr><td><code>&lt;main&gt;</code></td><td>The page's central content. Only <strong>one</strong> per page.</td></tr>
-          <tr><td><code>&lt;section&gt;</code></td><td>A themed group of content, usually with a heading</td></tr>
-          <tr><td><code>&lt;article&gt;</code></td><td>Self-contained content: a blog post, a news story</td></tr>
-          <tr><td><code>&lt;footer&gt;</code></td><td>Closing info: copyright, links, contact</td></tr>
-        </table>
-        <p class="tip">💡 Repeated parts (header, nav, footer) go <em>outside</em> <code>&lt;main&gt;</code>.</p>`,
-    },
-    {
-      id: 17, level: 4, topic: "Forms: <label>",
-      question: `<p>In this form, what does the <code>for</code> attribute on the label do?</p>
-<pre><code>&lt;form&gt;
-  &lt;label for="email"&gt;Email&lt;/label&gt;
-  &lt;input id="email" type="email"&gt;
-  &lt;button type="submit"&gt;Sign up&lt;/button&gt;
-&lt;/form&gt;</code></pre>`,
-      options: [
-        "Sets the input's default value",
-        "Connects the label to the input whose id is \"email\"",
-        "Makes the field required",
-        "Repeats the input for each email address",
-      ],
-      correctIndex: 1,
-      hint: "Compare the value of for with the input's id.",
-      lesson: `
-        <h3>Building a form</h3>
-        <pre><code>&lt;form action="/signup" method="post"&gt;
-  &lt;label for="name"&gt;Name&lt;/label&gt;
-  &lt;input id="name" name="name" type="text" required&gt;
-
-  &lt;label for="email"&gt;Email&lt;/label&gt;
-  &lt;input id="email" name="email" type="email"&gt;
-
-  &lt;button type="submit"&gt;Sign up&lt;/button&gt;
-&lt;/form&gt;</code></pre>
-        <ul>
-          <li><code>&lt;form&gt;</code> wraps the fields. <code>action</code> is where data is sent, and <code>method</code> is how (get or post).</li>
-          <li><code>&lt;label for="x"&gt;</code> links to the <code>&lt;input id="x"&gt;</code>.</li>
-          <li><code>name</code> is the key the server receives for that field's value.</li>
-          <li><code>&lt;button type="submit"&gt;</code> sends the form.</li>
-        </ul>
-        <h3>Why labels matter</h3>
-        <p>A linked label means that <strong>clicking the label focuses the input</strong> (a bigger click target) and screen readers announce the label when the input is focused.</p>
-        <p class="tip">💡 You can also link a label by wrapping the input inside it: <code>&lt;label&gt;Email &lt;input type="email"&gt;&lt;/label&gt;</code>.</p>`,
-    },
-    {
-      id: 18, level: 4, topic: "Input types",
-      question: `<p>Which input type <strong>hides the characters</strong> as the user types?</p>`,
-      options: ['type="hidden"', 'type="secret"', 'type="password"', 'type="text"'],
-      correctIndex: 2,
-      hint: "Think of the field you fill in when you log in.",
-      lesson: `
-        <h3>Common input types</h3>
-        <table>
-          <tr><th>type</th><th>What it does</th></tr>
-          <tr><td><code>text</code></td><td>Single line of text (the default)</td></tr>
-          <tr><td><code>password</code></td><td>Masks characters as •••</td></tr>
-          <tr><td><code>email</code></td><td>Checks for an @ and shows an email keyboard on phones</td></tr>
-          <tr><td><code>number</code></td><td>Numbers only, with up/down arrows</td></tr>
-          <tr><td><code>checkbox</code></td><td>On/off tick box</td></tr>
-          <tr><td><code>radio</code></td><td>Pick one option from a group (same <code>name</code>)</td></tr>
-          <tr><td><code>date</code></td><td>Date picker</td></tr>
-          <tr><td><code>hidden</code></td><td>Not shown at all; sends a value silently</td></tr>
-        </table>
-        <pre><code>&lt;input type="password" placeholder="Your password" minlength="8"&gt;</code></pre>
-        <p class="tip">⚠️ <code>type="password"</code> only hides the text <em>on screen</em>. It doesn't encrypt anything; secure sites rely on HTTPS for that.</p>`,
-    },
-    {
-      id: 19, level: 4, topic: "Video & audio",
-      question: `<p>Which attribute adds the browser's play, pause and volume buttons?</p>
-<pre><code>&lt;video src="intro.mp4" ???&gt;&lt;/video&gt;</code></pre>`,
-      options: ["play", "controls", "buttons", "player"],
-      correctIndex: 1,
-      hint: "It's a boolean attribute. The word describes the buttons that let you control playback.",
-      lesson: `
-        <h3>Embedding video</h3>
-        <pre><code>&lt;video controls width="640" poster="thumb.jpg"&gt;
-  &lt;source src="intro.webm" type="video/webm"&gt;
-  &lt;source src="intro.mp4"  type="video/mp4"&gt;
-  Sorry, your browser can't play this video.
-&lt;/video&gt;</code></pre>
-        <h3>Embedding audio</h3>
-        <pre><code>&lt;audio controls src="podcast.mp3"&gt;&lt;/audio&gt;</code></pre>
-        <h3>Useful attributes</h3>
-        <ul>
-          <li><code>controls</code>: shows play, pause, volume and fullscreen. Without it, users can't control the media!</li>
-          <li><code>autoplay</code>: starts automatically. Browsers usually only allow this when combined with <code>muted</code>.</li>
-          <li><code>loop</code>: restarts when finished.</li>
-          <li><code>poster</code> (video only): the image shown before playing.</li>
-        </ul>
-        <p class="tip">💡 Multiple <code>&lt;source&gt;</code> tags let the browser pick the first format it supports. The text inside shows only if none work.</p>`,
-    },
-  ];
-
-  /* =========================================================
-     CONFIG
-     ========================================================= */
-  const CONFIG = {
-    secondsPerQuestion: 30,
-    lowTimeThreshold: 10,
-    basePoints: 10,       // first-try correct answer
-    wrongPenalty: 3,      // minus per wrong attempt on a question
-    minPoints: 1,         // floor for any correct answer (incl. after time-up)
-    letters: ["A", "B", "C", "D"],
-    sound: true,
-  };
-
-  // Mastery badges, by percentage of the maximum score (checked top-down)
-  const BADGES = [
-    { min: 90, icon: "🏆", title: "HTML Junior Dev",  color: "var(--success)", desc: "Outstanding! You're ready to build real pages. CSS is your next adventure." },
-    { min: 70, icon: "🎓", title: "HTML Apprentice",  color: "var(--lvl2)",    desc: "Solid foundations. Review the levels below that aren't full yet to level up." },
-    { min: 40, icon: "📘", title: "HTML Learner",     color: "var(--lvl1)",    desc: "Good progress! Re-read the lessons for questions you missed and try again." },
-    { min: 0,  icon: "🌱", title: "HTML Novice",      color: "var(--warning)", desc: "Every expert started here. Open the lessons as you go; that's what they're for." },
-  ];
-
-  /* =========================================================
-     STATE
-     ========================================================= */
-  const state = {
-    index: 0,
-    score: 0,
-    answerState: "idle",   // "idle" | "correct" | "finished"
-    drawerOpen: false,
-    history: [],           // one entry per completed question
-    q: null,               // per-question state, see newQuestionState()
-  };
-
-  function newQuestionState() {
-    return {
-      wrongAttempts: 0,
-      hintOpened: false,
-      timedOut: false,
-      activeMs: 0,         // time spent with the question visible & unpaused
-      runningSince: null,  // Date.now() when the clock last (re)started, or null if paused
-    };
-  }
-
-  /* =========================================================
-     DOM
-     ========================================================= */
-  const $ = (id) => document.getElementById(id);
-  const els = {
-    currentNum: $("current-num"), totalNum: $("total-num"), score: $("score"),
-    timer: $("timer"), timerIcon: $("timer-icon"), timerValue: $("timer-value"),
-    progressFill: $("progress-fill"),
-    quizView: $("quiz-view"), resultsView: $("results-view"),
-    levelBanner: $("level-banner"), levelTag: $("level-tag"), topic: $("topic"),
-    questionText: $("question-text"), optionsGrid: $("options-grid"), feedback: $("feedback"),
-    hintBtn: $("hint-btn"), nextBtn: $("next-btn"),
-    drawer: $("lesson-drawer"), overlay: $("drawer-overlay"), drawerClose: $("drawer-close"),
-    drawerHint: $("drawer-hint"), drawerBody: $("drawer-body"), backBtn: $("back-btn"),
-    resultsSub: $("results-sub"), badge: $("badge"), badgeIcon: $("badge-icon"),
-    badgeTitle: $("badge-title"), badgeDesc: $("badge-desc"),
-    resScore: $("res-score"), resAccuracy: $("res-accuracy"), resTime: $("res-time"), resFirst: $("res-first"),
-    levelBars: $("level-bars"), reviewList: $("review-list"), restartBtn: $("restart-btn"),
-    fsBtn: $("fs-btn"), fsIcon: $("fs-icon"), fsLabel: $("fs-label"),
-  };
-
-  /* =========================================================
-     CLOCK
-     One stopwatch per question measures ACTIVE time only.
-     The countdown display is derived from it:  left = limit − active.
-     It runs only while: question unanswered, drawer closed, tab visible.
-     So time spent reading the lesson never counts, for the countdown
-     or for the "Total Time Taken" on the results screen.
-     ========================================================= */
-  const Clock = {
-    tickId: null,
-
-    canRun() {
-      return state.answerState === "idle" && !state.drawerOpen && !document.hidden;
-    },
-    isRunning() {
-      return state.q && state.q.runningSince !== null;
-    },
-    activeMs() {
-      if (!state.q) return 0;
-      return state.q.activeMs + (this.isRunning() ? Date.now() - state.q.runningSince : 0);
-    },
-    msLeft() {
-      return Math.max(0, CONFIG.secondsPerQuestion * 1000 - this.activeMs());
-    },
-    /** Start if allowed (safe to call any time). */
-    resume() {
-      if (!state.q || this.isRunning() || !this.canRun()) return this.render();
-      state.q.runningSince = Date.now();
-      if (!this.tickId) this.tickId = setInterval(() => this.tick(), 250);
-      this.render();
-    },
-    /** Bank the elapsed time and freeze. */
-    pause() {
-      if (this.isRunning()) {
-        state.q.activeMs += Date.now() - state.q.runningSince;
-        state.q.runningSince = null;
-      }
-      this.render();
-    },
-    tick() {
-      if (state.answerState === "finished") return; // header shows the total time instead
-      if (state.q && !state.q.timedOut && this.msLeft() === 0) onTimeUp();
-      this.render();
-    },
-    render() {
-      const secs = Math.ceil(this.msLeft() / 1000);
-      els.timerValue.textContent = formatClock(secs);
-      const cls = els.timer.classList;
-      const idle = state.answerState === "idle";
-      cls.toggle("done", !idle);
-      cls.toggle("expired", idle && state.q && state.q.timedOut);
-      cls.toggle("paused", idle && !this.isRunning() && !(state.q && state.q.timedOut));
-      cls.toggle("low", idle && this.isRunning() && secs <= CONFIG.lowTimeThreshold && secs > 0);
-      els.timerIcon.textContent = cls.contains("paused") ? "⏸" : cls.contains("done") ? "✔" : "⏱";
-    },
-  };
-
-  function onTimeUp() {
-    state.q.timedOut = true;
-    setFeedback(`⏰ Time's up! You can still answer, for ${CONFIG.minPoints} point.`, "error");
-  }
-
-  /* =========================================================
-     FULLSCREEN
-     Standard Fullscreen API, with the webkit-prefixed versions for older Safari.
-     The button stays hidden where fullscreen isn't available (e.g. iPhone Safari).
-     ========================================================= */
-  const Fullscreen = {
-    supported: Boolean(document.fullscreenEnabled || document.webkitFullscreenEnabled),
-
-    isOn() {
-      return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
-    },
-
-    async enter() {
-      const el = document.documentElement;
-      if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: "hide" });
-      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-    },
-
-    async exit() {
-      if (document.exitFullscreen) await document.exitFullscreen();
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    },
-
-    async toggle() {
-      try {
-        if (this.isOn()) await this.exit();
-        else await this.enter();
-      } catch (err) {
-        console.warn("Fullscreen request failed:", err);
-      }
-    },
-
-    /** Runs on every change, including leaving with Esc or the browser's own controls. */
-    sync() {
-      const on = this.isOn();
-      document.documentElement.classList.toggle("is-fullscreen", on);
-      els.fsBtn.setAttribute("aria-pressed", String(on));
-      els.fsIcon.textContent = on ? "✕" : "⛶";
-      els.fsLabel.textContent = on ? " Exit Fullscreen" : " Fullscreen";
-      els.fsBtn.title = on ? "Exit fullscreen (F or Esc)" : "Fullscreen (F)";
-      els.fsBtn.setAttribute("aria-label", on ? "Exit fullscreen" : "Enter fullscreen");
-    },
-  };
-
-  /* =========================================================
-     QUIZ FLOW
-     ========================================================= */
-  function renderQuestion() {
-    const q = QUESTIONS[state.index];
-    const lvl = LEVELS[q.level];
-    const prev = QUESTIONS[state.index - 1];
-
-    state.answerState = "idle";
-    state.q = newQuestionState();
-
-    // Header
-    els.currentNum.textContent = state.index + 1;
-    els.totalNum.textContent = QUESTIONS.length;
-    els.score.textContent = state.score;
-    els.progressFill.style.width = `${(state.index / QUESTIONS.length) * 100}%`;
-
-    // Level styling + banner on the first question of each level
-    els.quizView.style.setProperty("--lvl-color", lvl.color);
-    els.levelTag.textContent = `Level ${q.level} · ${lvl.name}`;
-    els.topic.textContent = q.topic;
-    const newLevel = !prev || prev.level !== q.level;
-    els.levelBanner.hidden = !newLevel;
-    if (newLevel) {
-      els.levelBanner.textContent = `${lvl.icon} Level ${q.level}: ${lvl.name}`;
-    }
-
-    // Question + options
-    els.questionText.innerHTML = q.question;
-    els.optionsGrid.innerHTML = "";
-    q.options.forEach((text, i) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "option-btn";
-      btn.dataset.index = i;
-      const letter = document.createElement("span");
-      letter.className = "option-letter";
-      letter.textContent = CONFIG.letters[i];
-      const label = document.createElement("span");
-      label.className = "option-label";
-      // Code-looking options (tags, attributes) get a monospace font
-      if (/^<|^[a-z-]+="|^[a-z]+$/.test(text)) label.classList.add("is-code");
-      label.textContent = text; // literal text, so "<nav>" shows as typed
-      btn.append(letter, label);
-      btn.addEventListener("click", () => checkAnswer(i));
-      els.optionsGrid.appendChild(btn);
-    });
-
-    setFeedback("");
-    els.hintBtn.disabled = false;
-    els.timer.title = "Time left";
-    els.nextBtn.disabled = true;
-    els.nextBtn.textContent = state.index === QUESTIONS.length - 1 ? "See Results 🏁" : "Next Question ➔";
-
-    els.drawerHint.textContent = `💡 Hint: ${q.hint}`;
-    els.drawerBody.innerHTML = q.lesson;
-    els.drawerBody.scrollTop = 0;
-
-    Clock.resume();
-  }
-
-  function pointsForCurrent() {
-    if (state.q.timedOut) return CONFIG.minPoints;
-    return Math.max(CONFIG.minPoints, CONFIG.basePoints - state.q.wrongAttempts * CONFIG.wrongPenalty);
-  }
-
-  function checkAnswer(optionIndex) {
-    if (state.answerState !== "idle" || state.drawerOpen) return;
-    const q = QUESTIONS[state.index];
-    const btn = els.optionsGrid.querySelector(`[data-index="${optionIndex}"]`);
-    if (!btn || btn.disabled) return;
-
-    if (optionIndex === q.correctIndex) {
-      Clock.pause();                      // bank the active time first
-      state.answerState = "correct";
-      Clock.render();
-
-      btn.classList.add("correct");
-      els.optionsGrid.querySelectorAll(".option-btn").forEach((b) => (b.disabled = true));
-
-      const points = pointsForCurrent();
-      addScore(points);
-      playTone(true);
-
-      const perfect = state.q.wrongAttempts === 0 && !state.q.timedOut;
-      setFeedback(`${perfect ? "🎉 Correct! First try!" : "✅ Correct!"} +${points} points`, "success");
-
-      state.history.push({
-        id: q.id, level: q.level, topic: q.topic, points,
-        wrongAttempts: state.q.wrongAttempts,
-        timedOut: state.q.timedOut,
-        hintOpened: state.q.hintOpened,
-        activeMs: state.q.activeMs,
-      });
-
-      els.nextBtn.disabled = false;
-      els.nextBtn.focus();
-    } else {
-      state.q.wrongAttempts++;
-      btn.classList.add("wrong");
-      btn.disabled = true;
-      playTone(false);
-      setFeedback("❌ Not quite. Try again or read the hint!", "error");
-    }
-  }
-
-  function nextQuestion() {
-    if (state.answerState !== "correct") return;
-    closeDrawer({ resume: false });
-    if (state.index < QUESTIONS.length - 1) {
-      state.index++;
-      renderQuestion();
-    } else {
-      showResults();
-    }
-  }
-
-  /* =========================================================
-     LESSON DRAWER (pause / resume)
-     ========================================================= */
-  function openDrawer() {
-    if (state.drawerOpen || state.answerState === "finished") return;
-    state.drawerOpen = true;
-    if (state.answerState === "idle") state.q.hintOpened = true;
-    Clock.pause();                                  // ⏸ PAUSE RULE
-    els.drawer.classList.add("open");
-    els.drawer.setAttribute("aria-hidden", "false");
-    els.overlay.hidden = false;
-    els.backBtn.focus();
-  }
-
-  function closeDrawer({ resume = true } = {}) {
-    if (!state.drawerOpen) return;
-    state.drawerOpen = false;
-    els.drawer.classList.remove("open");
-    els.drawer.setAttribute("aria-hidden", "true");
-    els.overlay.hidden = true;
-    if (resume) {
-      if (state.answerState === "idle") els.hintBtn.focus();
-      Clock.resume();                               // ▶ RESUME RULE
-    }
-  }
-
-  /* =========================================================
-     RESULTS
-     ========================================================= */
-  function showResults() {
-    state.answerState = "finished";
-    Clock.render();
-    els.progressFill.style.width = "100%";
-
-    const total = QUESTIONS.length;
-    const maxScore = total * CONFIG.basePoints;
-    const wrongTotal = state.history.reduce((s, h) => s + h.wrongAttempts, 0);
-    const firstTry = state.history.filter((h) => h.wrongAttempts === 0 && !h.timedOut).length;
-    const accuracy = Math.round((total / (total + wrongTotal)) * 100); // correct picks ÷ all picks
-    const totalMs = state.history.reduce((s, h) => s + h.activeMs, 0);
-    const scorePct = (state.score / maxScore) * 100;
-    const badge = BADGES.find((b) => scorePct >= b.min);
-
-    // Swap views
-    els.quizView.hidden = true;
-    els.resultsView.hidden = false;
-    els.currentNum.textContent = total;
-    els.timerValue.textContent = formatDuration(totalMs);
-    els.timer.title = "Total active time";
-
-    // Headline numbers
-    els.resultsSub.textContent =
-      `You answered all ${total} questions. Reading time in the lessons is not counted.`;
-    els.resScore.textContent = `${state.score}/${maxScore}`;
-    els.resAccuracy.textContent = `${accuracy}%`;
-    els.resTime.textContent = formatDuration(totalMs);
-    els.resFirst.textContent = `${firstTry}/${total}`;
-
-    // Badge
-    els.badge.style.setProperty("--badge-color", badge.color);
-    els.badgeIcon.textContent = badge.icon;
-    els.badgeTitle.textContent = badge.title;
-    els.badgeDesc.textContent = badge.desc;
-
-    // Per-level mastery bars
-    els.levelBars.innerHTML = "";
-    Object.entries(LEVELS).forEach(([lvlNum, lvl]) => {
-      const items = state.history.filter((h) => h.level === Number(lvlNum));
-      if (!items.length) return;
-      const got = items.reduce((s, h) => s + h.points, 0);
-      const max = items.length * CONFIG.basePoints;
-      const pct = Math.round((got / max) * 100);
-      const row = document.createElement("div");
-      row.className = "level-row";
-      row.style.setProperty("--lvl-color", lvl.color);
-      row.innerHTML = `
-        <div class="level-row-top">
-          <span>${lvl.icon} Level ${lvlNum}: ${escapeHTML(lvl.name)}</span>
-          <span class="meta">${got}/${max} · ${pct}%</span>
-        </div>
-        <div class="bar"><div class="bar-fill"></div></div>`;
-      els.levelBars.appendChild(row);
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        row.querySelector(".bar-fill").style.width = pct + "%";
-      }));
-    });
-
-    // Review list
-    els.reviewList.innerHTML = state.history
-      .map((h, i) => {
-        const marks = [
-          h.wrongAttempts ? `${h.wrongAttempts}✗` : "",
-          h.hintOpened ? "💡" : "",
-          h.timedOut ? "⏰" : "",
-        ].filter(Boolean).join(" ");
-        return `<li>
-          <span>${i + 1}. ${escapeHTML(h.topic)}</span>
-          <span class="meta">${marks ? marks + " · " : ""}${formatDuration(h.activeMs)} · ${h.points} pts</span>
-        </li>`;
-      })
-      .join("");
-
-    els.restartBtn.focus();
-  }
-
-  function restartQuiz() {
-    closeDrawer({ resume: false });
-    state.index = 0;
-    state.score = 0;
-    state.history = [];
-    els.resultsView.hidden = true;
-    els.quizView.hidden = false;
-    renderQuestion();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  /* =========================================================
-     HELPERS
-     ========================================================= */
-  function setFeedback(message, type = "") {
-    els.feedback.textContent = message;
-    els.feedback.className = `feedback ${type}`.trim();
-  }
-
-  function addScore(points) {
-    state.score += points;
-    els.score.textContent = state.score;
-    els.score.classList.remove("score-bump");
-    void els.score.offsetWidth; // restart the animation
-    els.score.classList.add("score-bump");
-  }
-
-  function formatClock(totalSecs) {
-    const m = String(Math.floor(totalSecs / 60)).padStart(2, "0");
-    const s = String(totalSecs % 60).padStart(2, "0");
-    return `${m}:${s}`;
-  }
-
-  function formatDuration(ms) {
-    const secs = Math.round(ms / 1000);
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return m ? `${m}m ${String(s).padStart(2, "0")}s` : `${s}s`;
-  }
-
-  function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  }
-
-  let audioCtx = null;
-  function playTone(correct) {
-    if (!CONFIG.sound) return;
-    try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      const now = audioCtx.currentTime;
-      osc.type = correct ? "sine" : "square";
-      osc.frequency.setValueAtTime(correct ? 660 : 180, now);
-      if (correct) osc.frequency.linearRampToValueAtTime(990, now + 0.15);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + (correct ? 0.3 : 0.2));
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start(now);
-      osc.stop(now + 0.3);
-    } catch (_) { /* no audio, visual feedback is enough */ }
-  }
-
-  /* =========================================================
-     EVENTS
-     ========================================================= */
-  els.hintBtn.addEventListener("click", openDrawer);
-  els.drawerClose.addEventListener("click", () => closeDrawer());
-  els.backBtn.addEventListener("click", () => closeDrawer());
-  els.overlay.addEventListener("click", () => closeDrawer());
-  els.nextBtn.addEventListener("click", nextQuestion);
-  els.restartBtn.addEventListener("click", restartQuiz);
-
-  if (Fullscreen.supported) {
-    els.fsBtn.hidden = false;
-    els.fsBtn.addEventListener("click", () => Fullscreen.toggle());
-    document.addEventListener("fullscreenchange", () => Fullscreen.sync());
-    document.addEventListener("webkitfullscreenchange", () => Fullscreen.sync());
-    Fullscreen.sync();
-  }
-
-  // Don't count time while the tab is hidden
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) Clock.pause();
-    else Clock.resume();
-  });
-
-  // Keyboard: A–D / 1–4 answer · H lesson · F fullscreen · Esc close · Enter next/restart
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") return closeDrawer();
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if ((e.key === "f" || e.key === "F") && Fullscreen.supported && !e.repeat) return Fullscreen.toggle();
-    if (state.drawerOpen) return;
-    if (state.answerState === "finished") {
-      if (e.key === "Enter" && document.activeElement !== els.restartBtn) restartQuiz();
-      return;
-    }
-    const key = e.key.length === 1 ? e.key.toUpperCase() : "";
-    let idx = CONFIG.letters.indexOf(key);
-    if (idx === -1) idx = key ? "1234".indexOf(key) : -1;
-
-    if (idx !== -1) checkAnswer(idx);
-    else if (key === "H" && state.answerState === "idle") openDrawer();
-    else if (e.key === "Enter" && !els.nextBtn.disabled && document.activeElement !== els.nextBtn) nextQuestion();
-  });
-
-  /* =========================================================
-     INIT
-     ========================================================= */
-  (function validateQuestions() {
-    QUESTIONS.forEach((q) => {
-      if (q.options.length !== 4 || q.correctIndex < 0 || q.correctIndex > 3 || !LEVELS[q.level]) {
-        console.warn("Check question data:", q.id);
-      }
-    });
-  })();
-
-  renderQuestion();
-  </script>
+  <!-- The quiz engine. Course data (questions, levels, lessons) lives in src/courses/. -->
+  <script type="module" src="./engine.js"></script>
 </body>
 </html>

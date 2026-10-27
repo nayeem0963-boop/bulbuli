@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getGame } from '../games/registry.js'
 import FeedbackModal from '../feedback/FeedbackModal.jsx'
 import useGameSession from '../session/useGameSession.js'
+import GameLoadingSpinner from '../components/game/GameLoadingSpinner.jsx'
 import ArcadeHeader from './ArcadeHeader.jsx'
 import { GameErrorBoundary, getLazyGame } from './gameLoader.jsx'
 import { useLanguage } from './preferences.js'
@@ -42,7 +43,7 @@ export default function GamePage({ playerId, theme, onToggleTheme, gameId: fixed
           </div>
         ) : (
           <GameErrorBoundary key={game.id} text={text}>
-            <Suspense fallback={<p className="game-message" role="status">{text.loadingGame}</p>}>
+            <Suspense fallback={<GameLoadingSpinner label={text.loadingGame} />}>
               {/* Remount when the player changes, so a game never mixes two players' saves. */}
               <GameComponent
                 key={playerId}

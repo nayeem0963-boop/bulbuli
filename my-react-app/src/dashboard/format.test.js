@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { activityRows, describeSource, humanizeId, timeAgo } from './format.js'
 
 test('unknown ids read like names, never as raw slugs', () => {
-  assert.equal(humanizeId('logic-gate-builder'), 'Logic Gate Builder')
+  assert.equal(humanizeId('shape-hunt'), 'Shape Hunt')
   assert.equal(humanizeId(''), 'Game')
   assert.equal(describeSource('daily-challenge').title, 'Daily Challenge')
 })

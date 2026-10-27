@@ -10,6 +10,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html, useCursor } from '@react-three/drei'
 import { Color } from 'three'
 import BulbuliModel from '../../components/game/BulbuliModel.jsx'
+import GameLoadingSpinner from '../../components/game/GameLoadingSpinner.jsx'
+import SceneReady from '../../components/game/SceneReady.jsx'
 
 const TAP_SLOP_PX = 12
 const FADED_COLOR = new Color('#b9c0cc')
@@ -266,15 +268,20 @@ class ViewportBoundary extends Component {
  * @param {(id) => 'idle'|'wrong'|'correct'|'faded'} props.statusOf
  * @param {(id) => string|null} props.labelOf   name shown under a shape (after it's tapped)
  * @param {(index) => string} props.badgeOf     number shown under the keyboard-focused shape
+ * @param {string} [props.loadingLabel]         shown until the first frame (shaders compiled) is on screen
  */
-function ShapeScene({ noWebglMessage, ...sceneProps }) {
+function ShapeScene({ noWebglMessage, loadingLabel, ...sceneProps }) {
   const [reducedMotion] = useState(prefersReducedMotion)
+  const [ready, setReady] = useState(false)
+  const markReady = useCallback(() => setReady(true), [])
   return (
     <div className="sh-canvas">
       <ViewportBoundary message={noWebglMessage}>
         <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 8], fov: 35 }} gl={{ antialias: true }}>
           <Scene {...sceneProps} reducedMotion={reducedMotion} />
+          <SceneReady onReady={markReady} />
         </Canvas>
+        {!ready && <GameLoadingSpinner label={loadingLabel} fill delayMs={0} />}
       </ViewportBoundary>
     </div>
   )

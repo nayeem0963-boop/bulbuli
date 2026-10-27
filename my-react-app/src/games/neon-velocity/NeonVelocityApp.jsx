@@ -1,5 +1,5 @@
-import { Loader } from '@react-three/drei'
-import { GameCanvas } from './components/canvas/GameCanvas'
+import GameViewport from '../../components/game/GameViewport.jsx'
+import { lazyWithPreload } from '../../shared/lib/lazyWithPreload.js'
 import { HUD } from './components/ui/HUD'
 import { Overlays } from './components/ui/Overlays'
 import { TouchControls } from './components/ui/TouchControls'
@@ -9,6 +9,10 @@ import { useAutoPause } from './hooks/useAutoPause'
 import { useAudio } from './hooks/useAudio'
 import { useHaptics } from './hooks/useHaptics'
 import { useRunLifecycle } from './hooks/useRunLifecycle'
+
+// The scene (R3F, drei, post-processing, shaders) is its own chunk: the title screen and the
+// difficulty picker render straight away while it downloads underneath them.
+const NeonScene = lazyWithPreload(() => import('./components/canvas/NeonScene.jsx'))
 
 /** The whole game. Mounted by ./index.jsx inside the arcade (page or launcher). */
 export default function NeonVelocityApp() {
@@ -22,11 +26,12 @@ export default function NeonVelocityApp() {
 
   return (
     <div className="nv-app">
-      <GameCanvas />
+      <GameViewport label="Warming up the neon grid…" tone="dark">
+        <NeonScene />
+      </GameViewport>
       <HUD />
       <TouchControls />
       <Overlays />
-      <Loader containerStyles={{ position: 'absolute', background: '#07020f' }} barStyles={{ background: '#ff2bd6' }} />
     </div>
   )
 }

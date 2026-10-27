@@ -2,9 +2,11 @@
 // Kept short on purpose: many players are just learning to read.
 
 const en = {
-  brandLabel: 'Bulbuli home',
+  brandLabel: 'Pro Coder home',
   navLabel: 'Main',
   navPlay: 'Play',
+  navStudio: '3D Game Studio',
+  studioExit: 'Pro Coder',
   switchLanguage: 'বাংলা',
   switchLanguageLabel: 'বাংলায় দেখুন (Switch to Bangla)',
   soundOn: 'Turn sound on',
@@ -45,18 +47,20 @@ const en = {
     all: 'All Games',
     young: 'Young Learners',
     logic: 'Logic & Typing',
-    arcade: 'Arcade & Dev Studio',
+    arcade: 'Arcade',
   },
   gameCount: (n) => (n === '1' ? '1 game' : `${n} games`),
   showingGames: (n, filter) => `Showing ${n} ${n === '1' ? 'game' : 'games'}: ${filter}`,
   emptyFilter: 'No games here yet. Try All Games!',
-  footer: 'Bulbuli · Learning games for kids',
+  footer: 'Pro Coder · Learning games for kids',
 }
 
 const bn = {
-  brandLabel: 'বুলবুলি হোম',
+  brandLabel: 'Pro Coder হোম',
   navLabel: 'প্রধান',
   navPlay: 'খেলো',
+  navStudio: '৩ডি গেম স্টুডিও',
+  studioExit: 'Pro Coder',
   switchLanguage: 'English',
   switchLanguageLabel: 'Switch to English (ইংরেজিতে দেখুন)',
   soundOn: 'শব্দ চালু করো',
@@ -95,12 +99,12 @@ const bn = {
     all: 'সব খেলা',
     young: 'ছোট্ট শিক্ষার্থী',
     logic: 'যুক্তি ও টাইপিং',
-    arcade: 'আর্কেড ও ডেভ স্টুডিও',
+    arcade: 'আর্কেড',
   },
   gameCount: (n) => `${n}টি খেলা`,
   showingGames: (n, filter) => `${filter}: ${n}টি খেলা দেখানো হচ্ছে`,
   emptyFilter: 'এখানে এখনো কোনো খেলা নেই। সব খেলা দেখো!',
-  footer: 'বুলবুলি · ছোটদের শেখার খেলা',
+  footer: 'Pro Coder · ছোটদের শেখার খেলা',
 }
 
 export const ARCADE_TEXT = { en, bn }

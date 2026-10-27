@@ -22,6 +22,7 @@ const en = {
   nextLevel: 'Next level',
   changeLevel: 'Change level',
   noWebgl: "This device can't show 3D shapes right now.",
+  loading: 'Getting the shapes ready…',
 }
 
 const bn = {
@@ -48,6 +49,7 @@ const bn = {
   nextLevel: 'পরের লেভেল',
   changeLevel: 'লেভেল বদলাও',
   noWebgl: 'এই ডিভাইসে এখন ৩ডি আকার দেখানো যাচ্ছে না।',
+  loading: 'আকারগুলো তৈরি হচ্ছে…',
 }
 
 export const SHAPE_HUNT_TEXT = { en, bn }

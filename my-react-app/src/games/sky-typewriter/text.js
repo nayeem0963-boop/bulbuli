@@ -12,6 +12,7 @@ export const SKY_TYPEWRITER_WORDS = [
 
 const en = {
   title: 'SkyTypewriter 3D',
+  loading: 'Getting the sky ready…',
   intro: 'Words are flying at Bulbuli! Type each word before it reaches you.',
   howTo: 'Type the letters of any word. Esc pauses.',
   goal: (n) => `Reach ${n} points to finish the flight.`,
@@ -45,6 +46,7 @@ const en = {
 
 const bn = {
   title: 'স্কাই টাইপরাইটার ৩ডি',
+  loading: 'আকাশ তৈরি হচ্ছে…',
   intro: 'বুলবুলির দিকে শব্দ উড়ে আসছে! কাছে আসার আগেই প্রতিটা শব্দ টাইপ করো।',
   howTo: 'যেকোনো শব্দের অক্ষরগুলো টাইপ করো। Esc চাপলে থামবে।',
   goal: (n) => `উড়ান শেষ করতে ${n} পয়েন্ট পাও।`,

@@ -30,7 +30,7 @@ async function loadFonts(language, u) {
     document.fonts.load(`800 ${L.title.size * u}px ${f.display}`, AD_TEXT[language].title),
     document.fonts.load(`800 ${L.bubble.size * u}px ${f.body}`, AD_TEXT[language].speech),
     document.fonts.load(`800 ${L.cta.size * u}px ${f.display}`, AD_TEXT[language].cta),
-    document.fonts.load(`800 ${L.brand.size * u}px ${FONTS.en.display}`, 'bulbuli'),
+    document.fonts.load(`800 ${L.brand.size * u}px ${FONTS.en.display}`, 'pro coder'),
   ]).catch(() => {})
   await document.fonts.ready
 }
@@ -383,7 +383,7 @@ export async function renderAdCardBlob({ link, ...options } = {}) {
   })
   if (!link) return blob
   return addPngText(blob, {
-    Title: 'Math Hero on Bulbuli',
+    Title: 'Math Hero on Pro Coder',
     Source: link,
     Comment: `Play Math Hero free: ${link}`,
   })

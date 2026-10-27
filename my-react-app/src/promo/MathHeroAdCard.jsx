@@ -145,7 +145,7 @@ export default function MathHeroAdCard({
 
         <p className="ad-brand" style={{ left: u(brand.x), top: u(brand.y), height: u(brand.mark) }}>
           <BrandMark size={40} />
-          <span className="ad-brand-name" lang="en">bulbuli</span>
+          <span className="ad-brand-name" lang="en">{text.brand}</span>
           <span className="ad-brand-presents">{text.presents}</span>
         </p>
 

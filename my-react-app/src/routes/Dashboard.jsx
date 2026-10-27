@@ -66,9 +66,9 @@ function DashboardHeader({ theme, onToggleTheme, onLogout, signingOut }) {
   const dark = theme === 'dark'
   return (
     <header className="db-header">
-      <Link className="db-logo" to="/" aria-label="Bulbuli: back to the games">
+      <Link className="db-logo" to="/" aria-label="Pro Coder: back to the games">
         <BrandMark size={36} />
-        <span>bulbuli</span>
+        <span>Pro Coder</span>
       </Link>
       <nav className="db-header-actions" aria-label="Dashboard">
         <Link className="db-btn db-btn-ghost" to="/">
@@ -334,7 +334,7 @@ export default function Dashboard({ session, theme, onToggleTheme }) {
       await signOut() // saves any XP still on its way first
       navigate('/', { replace: true })
     } catch (error) {
-      console.error('Unable to log out of Bulbuli.', error)
+      console.error('Unable to log out of Pro Coder.', error)
       setLogoutError('You could not be logged out. Please try again.')
       setSigningOut(false)
     }

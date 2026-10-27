@@ -63,7 +63,7 @@ export function AuthProvider({ children }) {
         setLoading(false)
       })
       .catch((error) => {
-        console.error('Unable to check the Bulbuli sign-in session.', error)
+        console.error('Unable to check the Pro Coder sign-in session.', error)
         if (!active) return
         setAuthError('We could not check if you are signed in. Please try again.')
         setLoading(false)

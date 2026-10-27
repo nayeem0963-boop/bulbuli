@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
-   Bulbuli arcade: the home page (the games) and the game frame.
+   Pro Coder arcade: the home page (the games) and the game frame.
    Toy-like on purpose: thick navy outlines, a hard drop "lift" under
    anything you can press, and big rounded type a young reader can follow.
    ------------------------------------------------------------------ */
@@ -73,6 +73,7 @@
 .app-shell[data-theme='dark'] .arcade-brand { color: var(--text); }
 .arcade-brand:hover { color: inherit; }
 .arcade-brand .brand-mark { width: 2.75rem; height: 2.75rem; }
+.arcade-brand-name { white-space: nowrap; }
 
 /* ---------- navigation: the Play tab and the Educational | Adventure switch ---------- */
 
@@ -203,7 +204,8 @@
 
 .arcade .arcade-icon-button,
 .arcade .arcade-lang,
-.arcade .arcade-back {
+.arcade .arcade-back,
+.arcade .studio-tab {
   display: inline-grid;
   min-width: 3rem;
   min-height: 3rem;
@@ -229,7 +231,8 @@
 
 .arcade .arcade-icon-button:hover,
 .arcade .arcade-lang:hover,
-.arcade .arcade-back:hover {
+.arcade .arcade-back:hover,
+.arcade .studio-tab:hover {
   border-color: var(--ink);
   color: var(--ink);
   background: var(--sun-soft);
@@ -239,7 +242,8 @@
 
 .arcade .arcade-icon-button:active,
 .arcade .arcade-lang:active,
-.arcade .arcade-back:active {
+.arcade .arcade-back:active,
+.arcade .studio-tab:active {
   transform: translateY(3px);
   box-shadow: var(--toy-lift-press);
 }
@@ -252,6 +256,16 @@
 }
 
 .arcade .arcade-back span { font-size: 1.6rem; line-height: 0.6; }
+
+/* "3D Game Studio" (VoxelCraft, /game): the second stop in the nav, a white pill beside Play. */
+.arcade .studio-tab {
+  display: inline-flex;
+  min-height: 3.15rem;
+  gap: 0.4rem;
+  padding: 0 1.2rem;
+  font-size: 1.15rem;
+  white-space: nowrap;
+}
 
 /* ---------- hero ---------- */
 
@@ -584,51 +598,6 @@
   box-shadow: none;
 }
 
-/* DevCraft Studio tile */
-
-.art-dev { flex-direction: column; gap: 0.6rem; }
-
-.art-dev-window {
-  display: grid;
-  width: 150px;
-  overflow: hidden;
-  border: 3px solid var(--ink);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 4px 0 var(--ink);
-}
-
-.art-dev-bar { display: flex; gap: 4px; border-bottom: 3px solid var(--ink); padding: 4px 6px; background: #f2f8fd; }
-.art-dev-bar i { width: 8px; height: 8px; border: 2px solid var(--ink); border-radius: 50%; background: var(--berry); }
-.art-dev-bar i:nth-child(2) { background: var(--sun); }
-.art-dev-bar i:nth-child(3) { background: var(--leaf); }
-.art-dev-row { display: flex; justify-content: center; gap: 8px; padding: 12px 8px; }
-.art-dev-row b { width: 26px; height: 26px; border: 3px solid var(--ink); border-radius: 8px; background: #d7efff; }
-.art-dev-row b.is-accent { background: var(--sun); }
-
-.art-dev-code {
-  border: 3px solid var(--ink);
-  border-radius: 10px;
-  padding: 0.15rem 0.55rem;
-  color: #ffd25e;
-  background: #14213d;
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-/* Logic Gate Builder tile */
-
-.art-logic { width: 88%; height: auto; overflow: visible; }
-.art-logic-wire { fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; }
-.art-logic-wire.is-on { stroke: #ffc93c; stroke-width: 4; }
-.art-logic-switch { fill: #2e9e6b; stroke: var(--ink); stroke-width: 3; }
-.art-logic-knob { fill: #fff; stroke: var(--ink); stroke-width: 2.5; }
-.art-logic-gate { fill: #fff; stroke: var(--ink); stroke-width: 3.5; stroke-linejoin: round; }
-.art-logic-label { fill: #1b2a49; font-family: var(--font-display); font-size: 15px; font-weight: 800; text-anchor: middle; }
-.art-logic-bulb { fill: #ffc93c; stroke: var(--ink); stroke-width: 3.5; filter: drop-shadow(0 0 10px rgb(255 201 60 / 90%)); }
-.art-logic-base { fill: #8b94a3; stroke: var(--ink); stroke-width: 3; }
-
 /* ---------- "share Math Hero" strip: the way into /share/math-hero ---------- */
 
 .share-strip {
@@ -752,6 +721,7 @@
   .arcade-controls { gap: 0.45rem; }
   .arcade .arcade-icon-button,
   .arcade .arcade-lang { min-width: 2.75rem; min-height: 2.75rem; }
+  .arcade .studio-tab { padding: 0 1rem; font-size: 1.05rem; }
 
   .arcade-hero { grid-template-columns: minmax(0, 1fr) 112px; gap: 0.5rem; }
   .arcade-hero-mascot { width: 112px; margin-bottom: -1rem; align-self: start; margin-top: 2.5rem; }

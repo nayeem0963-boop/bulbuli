@@ -2,6 +2,8 @@
  * Shape Hunt 3D — Bulbuli names a 3D shape; the child taps it.
  *
  * Rules live in engine.js (tested), the 3D view in ShapeScene.jsx.
+ * The 3D view (three.js + R3F + drei, ~1 MB) is its own chunk: the level picker shows at once, the
+ * scene downloads while the child chooses, and <GameViewport> covers any wait that's left.
  * Saves like every arcade game: stars + XP through useGameProgress.
  * Signed-in players also get one Supabase star per correct answer
  * (useScoreSync → profiles.total_score), batched so it's one request per few taps.
@@ -14,9 +16,13 @@ import { formatDigits } from '../../utils/mathHeroText.js'
 import {
   chooseShape, CORRECT_DELAY, createGame, createRng, getLevel, getShape, LEVELS, nextRound, starsFor, xpFor,
 } from './engine.js'
-import ShapeScene from './ShapeScene.jsx'
+import GameViewport from '../../components/game/GameViewport.jsx'
+import { lazyWithPreload } from '../../shared/lib/lazyWithPreload.js'
 import { SHAPE_HUNT_TEXT } from './text.js'
 import './shape-hunt.css'
+
+// three.js and the scene load only when this game opens (and start downloading on the level picker).
+const ShapeScene = lazyWithPreload(() => import('./ShapeScene.jsx'))
 
 const GAME_ID = 'shape-hunt'
 
@@ -65,6 +71,8 @@ export default function ShapeHunt({ playerId, language }) {
   gameRef.current = game
   const advanceTimer = useRef(null)
   useEffect(() => () => clearTimeout(advanceTimer.current), [])
+  // Warm the 3D chunk while the level picker is up, so Start is (almost) instant.
+  useEffect(() => { ShapeScene.preload().catch(() => {}) }, [])
 
   const start = useCallback((id = levelId) => {
     playSound('click')
@@ -226,16 +234,19 @@ export default function ShapeHunt({ playerId, language }) {
         </button>
       </div>
 
-      <ShapeScene
-        options={round.options}
-        statusOf={statusOf}
-        labelOf={labelOf}
-        badgeOf={(index) => n(index + 1)}
-        focusedId={focusedId}
-        onPick={pick}
-        onBirdTap={repeatPrompt}
-        noWebglMessage={text.noWebgl}
-      />
+      <GameViewport label={text.loading} frameClassName="sh-canvas">
+        <ShapeScene
+          options={round.options}
+          statusOf={statusOf}
+          labelOf={labelOf}
+          badgeOf={(index) => n(index + 1)}
+          focusedId={focusedId}
+          onPick={pick}
+          onBirdTap={repeatPrompt}
+          noWebglMessage={text.noWebgl}
+          loadingLabel={text.loading}
+        />
+      </GameViewport>
       <p className="sh-tip">{text.birdTip}</p>
 
       {/* Keyboard / switch access: the same choices as buttons, numbered in reading order.

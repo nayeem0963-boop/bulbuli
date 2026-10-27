@@ -1,5 +1,5 @@
 /*
- * Bulbuli service worker.
+ * Pro Coder service worker.
  *
  * Deliberately small: it only steps in for page navigations, going to the network as usual
  * and showing /offline.html if there's no connection. Game files, images and Supabase calls

@@ -89,7 +89,7 @@ export default function Login() {
         })
       }
     } catch (error) {
-      console.error('Unable to create a Bulbuli account.', error)
+      console.error('Unable to create a Pro Coder account.', error)
       setAuthStatus({
         type: 'error',
         message: error instanceof Error ? error.message : 'We could not create your account. Please try again.',
@@ -109,7 +109,7 @@ export default function Login() {
       if (error) throw error
       navigate(redirectPath, { replace: true })
     } catch (error) {
-      console.error('Unable to log in to Bulbuli.', error)
+      console.error('Unable to log in to Pro Coder.', error)
       setAuthStatus({
         type: 'error',
         message: error instanceof Error ? error.message : 'We could not log you in. Please try again.',
@@ -149,8 +149,8 @@ export default function Login() {
     <main className="page login-page auth-page">
       <div className="auth-layout">
         <aside className="auth-welcome-panel">
-          <Link className="dashboard-brand auth-brand" to="/" aria-label="Bulbuli home">
-            bulbuli<span>.</span>
+          <Link className="dashboard-brand auth-brand" to="/" aria-label="Pro Coder home">
+            Pro Coder<span>.</span>
           </Link>
           <div className="auth-welcome-copy">
             <p className="eyebrow">Every game is free to play</p>

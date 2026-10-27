@@ -11,7 +11,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('Bulbuli crashed:', error, info.componentStack);
+    console.error('Pro Coder crashed:', error, info.componentStack);
   }
 
   render() {

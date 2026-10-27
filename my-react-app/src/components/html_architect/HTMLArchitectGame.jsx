@@ -20,11 +20,15 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import HTMLArchitectCanvas from './HTMLArchitectCanvas';
+import GameViewport from '../game/GameViewport.jsx';
+import { lazyWithPreload } from '../../shared/lib/lazyWithPreload.js';
 import WorkspaceEditor from './WorkspaceEditor';
 import { LEVELS } from './levelsData';
 import { validateHTML } from './htmlValidator';
 import './HTMLArchitect.css';
+
+// The 3D stage (three.js + OrbitControls, ~750 kB) loads after the editor, which is usable at once.
+const HTMLArchitectCanvas = lazyWithPreload(() => import('./HTMLArchitectCanvas.jsx'));
 
 /* ================================================================== */
 /* Sound — tiny WebAudio synth, no audio files needed                   */
@@ -357,12 +361,14 @@ export default function HTMLArchitectGame({
       {/* ---------------- Split view ---------------- */}
       <main className="ha-split">
         <div className="ha-stage">
-          <HTMLArchitectCanvas
-            validation={currentValidation}
-            height="100%"
-            style={{ borderRadius: 0 }}
-            onObjectSpawn={() => play('pop')}
-          />
+          <GameViewport label="Building your 3D world…">
+            <HTMLArchitectCanvas
+              validation={currentValidation}
+              height="100%"
+              style={{ borderRadius: 0 }}
+              onObjectSpawn={() => play('pop')}
+            />
+          </GameViewport>
           <Confetti fireKey={celebration?.key} />
 
           {celebration && (

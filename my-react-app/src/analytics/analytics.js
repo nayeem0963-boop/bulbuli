@@ -1,5 +1,5 @@
 /**
- * Bulbuli's own, first-party analytics. No ad IDs, no third-party trackers.
+ * Pro Coder's own, first-party analytics. No ad IDs, no third-party trackers.
  *
  *   trackEvent('game_started', { game_id: 'memory-match' })
  *

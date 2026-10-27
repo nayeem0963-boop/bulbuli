@@ -1,4 +1,4 @@
-# Adding a game to the Bulbuli arcade
+# Adding a game to the Pro Coder arcade
 
 Every game is a folder in `src/games/` and one entry in `src/games/registry.js`.
 The arcade home page, the `/games/<id>` page, the page title and the shared

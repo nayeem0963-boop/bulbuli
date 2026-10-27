@@ -5,7 +5,7 @@ import { playPath } from './zone.js'
 
 /**
  * The audience pills above the game grid: All Games · Young Learners · Logic & Typing ·
- * Arcade & Dev Studio. Each pill is a real link to its address (/?category=arcade …), so it
+ * Arcade. Each pill is a real link to its address (/?category=arcade …), so it
  * can be shared, opened in a new tab and read by search engines; switching plays a view
  * transition (cards glide to their new places) where the browser supports it.
  *

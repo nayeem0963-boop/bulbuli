@@ -173,7 +173,7 @@ export default function ArcadeHome({ playerId, theme, onToggleTheme }) {
         <p>{text.footer}</p>
       </footer>
 
-      {/* "📲 Install Bulbuli App": phones/tablets only, never over an open game */}
+      {/* "📲 Install Pro Coder App": phones/tablets only, never over an open game */}
       {!gameOpen && <InstallPwaBanner />}
     </div>
   )

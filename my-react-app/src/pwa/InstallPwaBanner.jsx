@@ -5,7 +5,7 @@ import { bannerMode, isDismissed, isInAppBrowser, isIosDevice, isMobileDevice, i
 import './InstallPwaBanner.css'
 
 /*
- * "📲 Install Bulbuli App" banner for the home page.
+ * "📲 Install Pro Coder App" banner for the home page.
  *
  *  Android / Chrome / Edge / Samsung Internet → our button opens the browser's own install
  *     dialog (the `beforeinstallprompt` event captured in installPrompt.js).
@@ -18,33 +18,33 @@ const DISMISS_KEY = 'bulbuli.pwa-banner-dismissed-at'
 
 const TEXT = {
   en: {
-    region: 'Install the Bulbuli app',
-    title: 'Install Bulbuli App',
+    region: 'Install the Pro Coder app',
+    title: 'Install Pro Coder App',
     text: 'Play from your home screen: one tap, full screen.',
     install: '📲 Install',
     howTo: '📲 Show me how',
     close: 'Close',
-    iosTitle: 'Add Bulbuli to your Home Screen',
+    iosTitle: 'Add Pro Coder to your Home Screen',
     iosSteps: [
       <>Tap the <strong>Share</strong> button <ShareIcon /> in Safari’s toolbar. (If you see <strong>•••</strong>, tap that first.)</>,
       <>Scroll down and tap <strong>Add to Home Screen</strong> <span aria-hidden="true">➕</span></>,
-      <>Tap <strong>Add</strong>. Bulbuli is now on your Home Screen! <span aria-hidden="true">🎉</span></>,
+      <>Tap <strong>Add</strong>. Pro Coder is now on your Home Screen! <span aria-hidden="true">🎉</span></>,
     ],
     inApp: 'You’re inside another app’s browser. Open this page in Safari first, then follow these steps.',
     gotIt: 'Got it',
   },
   bn: {
-    region: 'বুলবুলি অ্যাপ ইনস্টল করো',
-    title: 'বুলবুলি অ্যাপ ইনস্টল করো',
+    region: 'Pro Coder অ্যাপ ইনস্টল করো',
+    title: 'Pro Coder অ্যাপ ইনস্টল করো',
     text: 'হোম স্ক্রিন থেকে এক চাপে পুরো স্ক্রিনে খেলো।',
     install: '📲 ইনস্টল',
     howTo: '📲 কীভাবে দেখাও',
     close: 'বন্ধ করো',
-    iosTitle: 'হোম স্ক্রিনে বুলবুলি যোগ করো',
+    iosTitle: 'হোম স্ক্রিনে Pro Coder যোগ করো',
     iosSteps: [
       <>Safari-র টুলবারে <strong>Share</strong> বোতামে <ShareIcon /> চাপ দাও। (<strong>•••</strong> দেখলে আগে সেটায় চাপ দাও।)</>,
       <>নিচে নেমে <strong>Add to Home Screen</strong> <span aria-hidden="true">➕</span> চাপ দাও।</>,
-      <><strong>Add</strong> চাপ দাও। বুলবুলি এখন তোমার হোম স্ক্রিনে! <span aria-hidden="true">🎉</span></>,
+      <><strong>Add</strong> চাপ দাও। Pro Coder এখন তোমার হোম স্ক্রিনে! <span aria-hidden="true">🎉</span></>,
     ],
     inApp: 'তুমি অন্য একটি অ্যাপের ভেতরে আছ। আগে পাতাটি Safari-তে খোলো, তারপর এই ধাপগুলো মেনে চলো।',
     gotIt: 'বুঝেছি',

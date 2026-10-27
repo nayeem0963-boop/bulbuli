@@ -5,6 +5,7 @@ import BrandMark from './BrandMark.jsx'
 import AccountButton from '../auth/AccountButton.jsx'
 import PlayTab from './PlayNav.jsx'
 import { playPath } from './zone.js'
+import { preloadVoxelCraftStudio } from '../features/voxelcraft/lazy.js'
 
 function IconButton({ label, pressed, onClick, children, lang }) {
   return (
@@ -25,8 +26,8 @@ function IconButton({ label, pressed, onClick, children, lang }) {
 /**
  * The bar across the top of every arcade screen.
  *
- * Home page (navigation): the brand, the Play tab with its Educational | Adventure switch,
- * then the language switch and the profile button. Nothing else.
+ * Home page (navigation): the brand, the Play tab with its Educational | Adventure switch and
+ * the 3D Game Studio tab (/game), then the language switch and the profile button.
  *
  * Game pages: `game` (or `back` = { to, label }) turns it into a game bar. A big "All games"
  * button replaces the navigation, and the in-game controls (sound, day/night) join the
@@ -59,10 +60,20 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
         <>
           <Link className="arcade-brand" to="/" aria-label={text.brandLabel}>
             <BrandMark />
-            <span>bulbuli</span>
+            <span className="arcade-brand-name">Pro Coder</span>
           </Link>
           <nav className="arcade-toggles" aria-label={text.navLabel}>
             <PlayTab text={text} />
+            {/* VoxelCraft UGC Studio (src/features/voxelcraft), its own full-page route */}
+            <Link
+              className="studio-tab"
+              to="/game"
+              onPointerEnter={preloadVoxelCraftStudio}
+              onFocus={preloadVoxelCraftStudio}
+              onTouchStart={preloadVoxelCraftStudio}
+            >
+              <span aria-hidden="true">🧊</span> {text.navStudio}
+            </Link>
           </nav>
         </>
       )}

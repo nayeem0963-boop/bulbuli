@@ -1,5 +1,6 @@
 const en = {
   title: 'Bulbuli 3D',
+  loadingScene: 'Bulbuli is flying in…',
   intro: 'Tap Bulbuli to collect stars. Drag to spin the bird around!',
   stars: 'Stars',
   xp: 'XP today',
@@ -18,6 +19,7 @@ const en = {
 
 const bn = {
   title: 'বুলবুলি ৩ডি',
+  loadingScene: 'বুলবুলি উড়ে আসছে…',
   intro: 'বুলবুলিকে ছুঁয়ে তারা জমাও। টেনে পাখিটাকে ঘোরাও!',
   stars: 'তারা',
   xp: 'আজকের XP',

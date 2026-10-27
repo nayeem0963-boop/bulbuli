@@ -47,9 +47,9 @@ const nearestLane = (x) =>
 export function PlayerPhysics() {
   const root = useRef()
   const visual = useRef()
-  // one body per run: <GameCanvas> remounts this component (key=runId) on restart
+  // One body per run: <GameCanvas> remounts this component (key=runId) on restart.
+  // Created lazily by the frame loop (its only user), so render never touches the ref.
   const body = useRef(null)
-  if (!body.current) body.current = createBody(0, FOOT_RADIUS, 0)
 
   const lane = useRef(CENTER_LANE)
   const st = useRef({
@@ -74,7 +74,7 @@ export function PlayerPhysics() {
   })
 
   useFrame((_, delta) => {
-    const b = body.current
+    const b = (body.current ??= createBody(0, FOOT_RADIUS, 0))
     const game = useGameStore.getState()
     if (game.status !== GameStatus.PLAYING) return
 
@@ -111,7 +111,8 @@ export function PlayerPhysics() {
       input.jumpPressed = false
     }
     let jumpWanted = input.jumpPressed
-    const useJump = () => { input.jumpPressed = false; jumpWanted = false }
+    // Consumes this frame's jump press (a plain helper, not a React hook)
+    const consumeJump = () => { input.jumpPressed = false; jumpWanted = false }
 
     let laneInput = 0
     if (input.laneShift !== 0) {
@@ -134,7 +135,7 @@ export function PlayerPhysics() {
     let gravityScale = 1
 
     const groundJump = () => {
-      useJump()
+      consumeJump()
       vy = JUMP_VELOCITY * tune.jumpScale
       s.jumpsUsed = 1
       s.lastJumpTime = now
@@ -201,7 +202,7 @@ export function PlayerPhysics() {
       const pushAway = lanesMode ? laneInput === -s.wallSide : steerDir === -s.wallSide
       if (jumpWanted) {
         // Wall jump: up and away, refunds the double jump
-        useJump()
+        consumeJump()
         vy = WALL_JUMP_VELOCITY * tune.jumpScale
         s.jumpsUsed = 1
         s.lastJumpTime = now
@@ -248,7 +249,7 @@ export function PlayerPhysics() {
         groundJump()
       } else if (jumpWanted && !grounded && s.jumpsUsed < 2 && mode !== M.RUN && mode !== M.SLIDE) {
         // Double jump (also the single air jump if you walked off a ledge)
-        useJump()
+        consumeJump()
         vy = DOUBLE_JUMP_VELOCITY * tune.jumpScale
         s.jumpsUsed = 2
         s.lastJumpTime = now

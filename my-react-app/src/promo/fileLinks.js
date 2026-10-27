@@ -1,4 +1,4 @@
-// Puts the Bulbuli web address inside the downloaded files themselves.
+// Puts the Pro Coder web address inside the downloaded files themselves.
 // A picture can't hold a clickable link, but its details can carry the address
 // (PNG text fields; the GIF encoder adds a GIF comment), and the share message carries a real link.
 

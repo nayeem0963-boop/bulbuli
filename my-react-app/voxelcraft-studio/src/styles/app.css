@@ -1,0 +1,102 @@
+/* App-wide base styles that sit outside Tailwind's utilities. */
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #020617; /* slate-950, behind the slate-900 app shell */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin, on-theme scrollbars for the tab strip and side panels. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+/* The 3D canvas owns its pointer gestures (rotate / pan / pinch). */
+.voxel-canvas,
+.voxel-canvas canvas {
+  touch-action: none;
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Play mode ---------- */
+
+/* Death flash: hits hard, fades fast. */
+.vc-flash {
+  animation: vc-flash 650ms ease-out forwards;
+}
+.vc-flash-text {
+  animation: vc-flash-text 900ms ease-out forwards;
+}
+@keyframes vc-flash {
+  0% { opacity: 0.7; }
+  100% { opacity: 0; }
+}
+@keyframes vc-flash-text {
+  0% { opacity: 0; transform: scale(0.9); }
+  15% { opacity: 1; transform: scale(1.04); }
+  70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* Victory card pop-in and falling confetti. */
+.vc-pop {
+  animation: vc-pop 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes vc-pop {
+  from { opacity: 0; transform: translateY(16px) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+.vc-confetti {
+  animation-name: vc-confetti;
+  animation-timing-function: cubic-bezier(0.3, 0.6, 0.6, 1);
+  animation-fill-mode: forwards;
+  opacity: 0;
+}
+@keyframes vc-confetti {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--drift), 110vh) rotate(var(--spin)); }
+}
+
+/* ---------- Community hub ---------- */
+
+/* "+10 gems" floats up from the upvote button. */
+.vc-gem-pop {
+  animation: vc-gem-pop 900ms ease-out forwards;
+}
+@keyframes vc-gem-pop {
+  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, -8px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -34px) scale(1); }
+}
+
+/* Just-published card: a soft emerald glow that pulses, then settles. */
+.vc-spotlight {
+  animation: vc-spotlight 1.6s ease-in-out 3, vc-spotlight-settle 0s 4.8s forwards;
+}
+@keyframes vc-spotlight {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+  50% { box-shadow: 0 0 42px 4px rgba(52, 211, 153, 0.45); }
+}
+@keyframes vc-spotlight-settle {
+  to { box-shadow: 0 0 18px rgba(52, 211, 153, 0.18); }
+}
