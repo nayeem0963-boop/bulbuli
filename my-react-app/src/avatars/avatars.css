@@ -1,0 +1,262 @@
+/* ==================================================================
+   Avatars: the round character (.pa, used everywhere), the dashboard's
+   avatar ring (.db-avatar*) and the picker dialog (.av-*).
+   Plain CSS like the rest of the project; Tailwind equivalents noted.
+   ================================================================== */
+
+/* ---------- one avatar: fills its round parent ---------- */
+.pa {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  line-height: 1;
+  user-select: none;
+}
+
+.pa-img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.06); }
+.pa-photo { width: 100%; height: 100%; object-fit: cover; }
+.pa-bird { width: 92%; height: 92%; margin-top: 6%; }
+
+.pa-letter {
+  color: #fff;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-size: calc(var(--pa-size, 4rem) * 0.45);
+  font-weight: 800;
+  text-shadow: 0 2px 0 rgb(0 0 0 / 15%);
+}
+
+/* arcade header account button (auth.css sizes the round button) */
+.arcade .arcade-account > .pa { align-self: stretch; justify-self: stretch; --pa-size: 3rem; }
+
+/* ---------- dashboard header: gradient ring, hover lift, edit overlay ---------- */
+/* relative w-20 h-20 shrink-0 */
+.db .db-avatar-wrap { position: relative; width: 5rem; height: 5rem; flex: none; }
+
+/* rounded-full p-[3px] bg-conic shadow-lg transition hover:scale-105 */
+.db .db-avatar {
+  --pa-size: 5rem;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 9999px;
+  padding: 3px;
+  background: conic-gradient(from 200deg, #a855f7, #f59e0b, #22c55e, #0ea5e9, #a855f7);
+  box-shadow: 0 8px 18px -8px rgb(147 51 234 / 60%);
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 180ms ease;
+}
+
+.db .db-avatar > .pa { border: 3px solid var(--db-card); }
+
+.db .db-avatar:hover,
+.db .db-avatar:focus-visible {
+  box-shadow: 0 12px 24px -8px rgb(147 51 234 / 70%);
+  transform: scale(1.05) rotate(-2deg);
+}
+
+.db .db-avatar:active { transform: scale(0.98); }
+
+/* "change" overlay: absolute inset-0 rounded-full bg-black/45 opacity-0 hover:opacity-100 */
+.db .db-avatar-edit {
+  position: absolute;
+  inset: 3px;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  color: #fff;
+  background: rgb(15 23 42 / 45%);
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.db .db-avatar-edit .db-icon { width: 1.4rem; height: 1.4rem; }
+.db .db-avatar:hover .db-avatar-edit,
+.db .db-avatar:focus-visible .db-avatar-edit { opacity: 1; }
+
+/* the level chip stays on the ring's bottom-right */
+.db .db-avatar-wrap .db-avatar-level { z-index: 1; right: -0.1rem; bottom: -0.1rem; min-width: 1.8rem; height: 1.8rem; font-size: 0.8rem; pointer-events: none; }
+
+/* ---------- picker dialog ---------- */
+.db .av-dialog {
+  width: min(100vw - 1.5rem, 34rem);
+  max-height: calc(100dvh - 1.5rem);
+  margin: auto;
+  border: 0;
+  border-radius: 1.5rem;
+  padding: 0;
+  overflow: hidden;
+  color: var(--db-text);
+  background: var(--db-card);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 35%);
+}
+
+.db .av-dialog[open] { display: flex; animation: av-pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.db .av-dialog::backdrop { background: rgb(15 23 42 / 55%); backdrop-filter: blur(3px); }
+
+@keyframes av-pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.db .av-form { display: flex; width: 100%; min-height: 0; flex-direction: column; }
+
+.db .av-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--db-line);
+  padding: 1.25rem 1.25rem 1rem;
+  background: linear-gradient(135deg, #faf5ff 0%, var(--db-card) 70%);
+}
+
+.app-shell[data-theme='dark'] .db .av-head { background: linear-gradient(135deg, #2e1065 0%, var(--db-card) 70%); }
+
+.db .av-preview {
+  --pa-size: 4rem;
+  display: block;
+  width: 4rem;
+  height: 4rem;
+  flex: none;
+  border-radius: 9999px;
+  padding: 3px;
+  background: conic-gradient(from 200deg, #a855f7, #f59e0b, #22c55e, #0ea5e9, #a855f7);
+}
+
+.db .av-preview > .pa { border: 3px solid var(--db-card); }
+.db .av-head > div { min-width: 0; flex: 1; }
+.db .av-title { font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif; font-size: 1.35rem; font-weight: 800; line-height: 1.15; }
+.db .av-sub { color: var(--db-muted); font-size: 0.85rem; }
+
+.db .av-x {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  place-items: center;
+  align-self: flex-start;
+  margin: 0;
+  border: 0;
+  border-radius: 9999px;
+  padding: 0;
+  color: var(--db-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.db .av-x:hover { color: var(--db-text); background: var(--db-panel); }
+.db .av-x svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+
+.db .av-body { min-height: 0; flex: 1; overflow-y: auto; padding: 0.5rem 1.25rem 1rem; overscroll-behavior: contain; }
+.db .av-group { min-width: 0; margin: 0.75rem 0 0; border: 0; padding: 0; }
+.db .av-legend { margin-bottom: 0.6rem; padding: 0; color: var(--db-muted); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* grid grid-cols-4 sm:grid-cols-6 gap-3 */
+.db .av-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr)); gap: 0.75rem 0.5rem; }
+
+.db .av-option {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 1rem;
+  padding: 0.35rem 0.2rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.db .av-radio { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ring-2 ring-transparent → ring-purple-500 when picked */
+.db .av-ring {
+  --pa-size: 3.75rem;
+  position: relative;
+  display: block;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 9999px;
+  padding: 3px;
+  background: var(--db-line-strong);
+  transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1), background 160ms ease, box-shadow 160ms ease;
+}
+
+.db .av-ring > .pa { border: 2px solid var(--db-card); }
+.db .av-option:hover .av-ring { transform: translateY(-2px) scale(1.06); }
+
+.db .av-radio:checked + .av-ring {
+  background: conic-gradient(from 200deg, #a855f7, #f59e0b, #22c55e, #0ea5e9, #a855f7);
+  box-shadow: 0 6px 14px -6px rgb(147 51 234 / 70%);
+}
+
+.db .av-radio:focus-visible + .av-ring { outline: 3px solid #a855f7; outline-offset: 3px; }
+
+.db .av-check {
+  position: absolute;
+  right: -0.2rem;
+  bottom: -0.2rem;
+  display: grid;
+  width: 1.4rem;
+  height: 1.4rem;
+  place-items: center;
+  border: 2px solid var(--db-card);
+  border-radius: 9999px;
+  color: #fff;
+  background: var(--db-primary);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 150ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.db .av-check svg,
+.db .av-lock svg { width: 0.75rem; height: 0.75rem; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.db .av-radio:checked + .av-ring .av-check { opacity: 1; transform: none; }
+
+.db .av-name { max-width: 100%; overflow: hidden; font-size: 0.78rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.db .av-hint { color: var(--db-muted); font-size: 0.66rem; font-weight: 700; line-height: 1.2; }
+
+/* locked: grayscale opacity-50 cursor-not-allowed */
+.db .av-option.is-locked { cursor: not-allowed; }
+.db .av-option.is-locked:hover .av-ring { transform: none; }
+.db .av-option.is-locked .pa { filter: grayscale(1); opacity: 0.45; }
+.db .av-option.is-locked .av-name { color: var(--db-muted); }
+
+.db .av-lock {
+  position: absolute;
+  right: -0.2rem;
+  bottom: -0.2rem;
+  display: grid;
+  width: 1.4rem;
+  height: 1.4rem;
+  place-items: center;
+  border: 2px solid var(--db-card);
+  border-radius: 9999px;
+  color: #fff;
+  background: #64748b;
+}
+
+.db .av-foot { display: flex; justify-content: flex-end; gap: 0.5rem; border-top: 1px solid var(--db-line); padding: 0.9rem 1.25rem; }
+
+@media (max-width: 480px) {
+  .db .av-foot .db-btn { flex: 1; }
+  .db .av-head { padding: 1rem; }
+  .db .av-body { padding: 0.25rem 1rem 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .db .db-avatar,
+  .db .db-avatar-edit,
+  .db .av-ring,
+  .db .av-check { transition: none; }
+  .db .db-avatar:hover,
+  .db .db-avatar:focus-visible,
+  .db .av-option:hover .av-ring { transform: none; }
+  .db .av-dialog[open] { animation: none; }
+}

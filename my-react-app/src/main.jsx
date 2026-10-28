@@ -1,7 +1,4 @@
-// Two entry points share this page:
-//  - /embed/pattern-quest loads Pattern Quest on its own, inside the arcade's game frame;
-//  - everything else loads the Bulbuli arcade.
-// Each one imports only its own styles, so the two never clash.
+// Entry point: loads the Bulbuli arcade.
 import { registerServiceWorker } from './pwa/installPrompt.js'
 
 // Start listening for the browser's install prompt right away (it can fire before React renders),
@@ -9,15 +6,20 @@ import { registerServiceWorker } from './pwa/installPrompt.js'
 registerServiceWorker()
 
 // Old arcade links like /#/drive -> /drive (the arcade uses BrowserRouter, which ignores the hash).
-// Only at the site root: the Pattern Quest embed runs its own hash router (/embed/pattern-quest#/play/...).
 if (window.location.pathname === '/' && window.location.hash.startsWith('#/')) {
   window.history.replaceState(null, '', window.location.hash.slice(1))
 }
 
-const root = document.getElementById('root')
+// One-time tidy-up: storage written only by Pattern Quest, which has been removed.
+// (Arcade XP in 'bulbuli:game-progress' is kept, so no child loses XP they earned.)
+try {
+  for (const key of ['bulbuli:settings', 'bulbuli:bests', 'bulbuli:leaderboard', 'bulbuli:lang', 'bulbuli:muted', 'bulbuli:lb']) {
+    window.localStorage.removeItem(key)
+  }
+  Object.keys(window.localStorage)
+    .filter((key) => key.startsWith('bulbuli:best:'))
+    .forEach((key) => window.localStorage.removeItem(key))
+  window.sessionStorage.removeItem('bulbuli:last')
+} catch { /* storage blocked: nothing to tidy */ }
 
-if (window.location.pathname.startsWith('/embed/pattern-quest')) {
-  import('./games/pattern-quest/embed.jsx').then(({ mount }) => mount(root))
-} else {
-  import('./arcade-entry.jsx').then(({ mount }) => mount(root))
-}
+import('./arcade-entry.jsx').then(({ mount }) => mount(document.getElementById('root')))

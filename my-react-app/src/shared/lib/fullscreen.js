@@ -1,5 +1,5 @@
 // The browser's Fullscreen API, with the webkit-prefixed versions older Safari still needs.
-// Plain functions (no React), so the arcade's hook, Pattern Quest's button and the tests share them.
+// Plain functions (no React), so the arcade's hook and the tests share them.
 // The standalone HTML course page (quiz/engine.js) can't import from src/, so it keeps its own copy.
 
 const DOC = () => (typeof document === 'undefined' ? null : document)

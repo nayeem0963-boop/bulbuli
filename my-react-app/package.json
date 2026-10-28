@@ -13,7 +13,6 @@
     "check:voxelcraft-levels": "node scripts/check-voxelcraft-levels.js"
   },
   "dependencies": {
-    "@dimforge/rapier3d-compat": "^0.21.0",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@supabase/supabase-js": "^2.118.0",

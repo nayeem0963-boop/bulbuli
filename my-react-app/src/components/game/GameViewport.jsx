@@ -5,8 +5,8 @@
  * <Suspense> is loading, e.g. useGLTF or drei <Text> fonts: R3F forwards those suspensions to
  * the nearest DOM boundary), it shows <GameLoadingSpinner fill /> in the scene's place.
  *
- * Give `frameClassName` when the scene draws its own box (Shape Hunt's .sh-canvas, Bulbuli 3D's
- * .bulbuli-canvas): the spinner then sits in an identical box, so nothing jumps when the scene
+ * Give `frameClassName` when the scene draws its own box (e.g. Shape Hunt's
+ * .sh-canvas): the spinner then sits in an identical box, so nothing jumps when the scene
  * arrives. Without it the spinner fills the nearest positioned parent (a game stage).
  *
  * Keep each game's own error boundary *outside* this one: a chunk that fails to load, or a device

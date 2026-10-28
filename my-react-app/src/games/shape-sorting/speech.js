@@ -1,4 +1,4 @@
-// Speech prompts, same behaviour as the other arcade games (Shape Hunt, Memory Match):
+// Speech prompts, same behaviour as the other arcade games (Shape Hunt):
 // respects the app's mute switch, uses a Bangla voice when the browser has one and
 // stays silent in Bangla mode when it doesn't (rather than reading Bangla with an English voice).
 import { isMuted } from '../../utils/sound.js'

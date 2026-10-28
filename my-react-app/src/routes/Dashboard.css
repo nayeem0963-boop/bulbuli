@@ -186,24 +186,7 @@
 
 .db .db-profile-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
 
-/* w-16 h-16 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-2xl relative */
-.db .db-avatar {
-  position: relative;
-  display: flex;
-  width: 4rem;
-  height: 4rem;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  color: #fff;
-  background: #9333ea;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.db .db-avatar img { width: 100%; height: 100%; border-radius: 9999px; object-fit: cover; }
+/* avatar ring, hover and the picker: src/avatars/avatars.css */
 
 /* level badge on the avatar's bottom-right: absolute -bottom-1 -right-1 */
 .db .db-avatar-level {

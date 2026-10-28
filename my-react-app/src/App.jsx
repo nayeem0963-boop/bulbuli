@@ -2,6 +2,8 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from './auth/AuthContext.jsx'
 import { FavoritesProvider } from './favorites/FavoritesContext.jsx'
+import { BadgesProvider } from './badges/BadgesContext.jsx'
+import AchievementToasts from './badges/AchievementToast.jsx'
 import AuthModal from './auth/AuthModal.jsx'
 import AuthCallback from './auth/AuthCallback.jsx'
 import { getAuthRedirectPath } from './utils/authRedirect.js'
@@ -156,6 +158,8 @@ function App() {
   return (
     // Favourite games (hearts on the tiles): device-only for guests, on the account when signed in.
     <FavoritesProvider>
+      {/* Badges: checked as XP comes in; "Badge unlocked!" toasts show on any page (src/badges/). */}
+      <BadgesProvider>
       <div className="app-shell" data-theme={theme}>
         {loading ? (
           <main className="loading-state" role="status">
@@ -165,6 +169,7 @@ function App() {
           <BrowserRouter>
             <AppThemeToggle theme={theme} onToggleTheme={toggleTheme} />
             <RouteTitle />
+            <AchievementToasts theme={theme} />
             {/* Optional sign-in, opened from the Play banner or the header. Never required to play. */}
             <AuthModal />
             <Routes>
@@ -180,6 +185,10 @@ function App() {
               <Route path="/games/html-architect" element={<Navigate to="/play/html-architect" replace />} />
               <Route path="/share/math-hero" element={<AdCardPage theme={theme} onToggleTheme={toggleTheme} />} />
               <Route path="/math-hero" element={<Navigate to="/games/math-hero" replace />} />
+              {/* Removed games: old links, bookmarks and search results go to the home page. */}
+              <Route path="/games/memory-match" element={<Navigate to="/" replace />} />
+              <Route path="/games/pattern-quest" element={<Navigate to="/" replace />} />
+              <Route path="/games/bulbuli-3d" element={<Navigate to="/" replace />} />
               <Route path="/login" element={<LoginRoute session={session} />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/dashboard" element={member(
@@ -194,6 +203,7 @@ function App() {
           </BrowserRouter>
         )}
       </div>
+      </BadgesProvider>
     </FavoritesProvider>
   )
 }

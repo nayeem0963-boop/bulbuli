@@ -66,9 +66,6 @@ test('the home page has two zones; every game lands in exactly one', () => {
 // The zone each home-page card sits in. Changing a game's zone is a deliberate choice: update this too.
 const EXPECTED_ZONES = {
   'math-hero': 'play-learn',
-  'memory-match': 'play-learn',
-  'pattern-quest': 'play-learn',
-  'bulbuli-3d': 'play-learn',
   'shape-hunt': 'play-learn',
   'shape-sorting': 'play-learn',
   'sky-runner': 'play-learn',

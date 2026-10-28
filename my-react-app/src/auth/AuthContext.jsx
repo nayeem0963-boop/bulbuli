@@ -172,6 +172,22 @@ export function AuthProvider({ children }) {
     return data
   }, [userId])
 
+  /**
+   * Saves the player's chosen avatar (src/avatars/avatarCatalog.js) to their auth user metadata,
+   * so it follows them to every device. No table or migration needed. Their photo in
+   * profiles.avatar_url is left alone, so "My photo" stays available.
+   */
+  const updateAvatar = useCallback(async (avatarId, updatedAt = new Date().toISOString()) => {
+    if (!userId) throw new Error('Sign in to choose an avatar.')
+    const { data, error } = await supabase.auth.updateUser({
+      data: { avatar_id: avatarId, avatar_updated_at: updatedAt },
+    })
+    if (error) throw error
+    // onAuthStateChange('USER_UPDATED') follows, but show it everywhere right away
+    if (data?.user) setSession((current) => (current ? { ...current, user: data.user } : current))
+    return data?.user ?? null
+  }, [userId])
+
   /* ---------- actions ---------- */
   const signInWithPassword = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -236,6 +252,7 @@ export function AuthProvider({ children }) {
     profileError,
     refreshProfile,
     updateProfile,
+    updateAvatar,
     signInWithPassword,
     signUp,
     signInWithGoogle,
@@ -248,7 +265,7 @@ export function AuthProvider({ children }) {
     closeAuthModal,
   }), [
     session, user, loading, authError, retryAuth, profile, profileLoading, profileError,
-    refreshProfile, updateProfile, signInWithPassword, signUp, signInWithGoogle, resetPassword,
+    refreshProfile, updateProfile, updateAvatar, signInWithPassword, signUp, signInWithGoogle, resetPassword,
     signOut, passwordRecovery, updatePassword, authModal, openAuthModal, closeAuthModal,
   ])
 

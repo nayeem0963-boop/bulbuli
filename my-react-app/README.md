@@ -7,8 +7,6 @@ device, and optionally to a free account. Every game works in English and Bangla
 | Game | Route | Practises |
 |------|-------|-----------|
 | Math Hero | `/games/math-hero` | addition and subtraction against the clock |
-| Memory Match | `/games/memory-match` | memory, then matching pictures to written words |
-| Pattern Quest | `/games/pattern-quest` | number and shape patterns, quick sums |
 | Math Master (12+) | `/games/math-master` | 3D maths lab: 10 levels, 100 verified questions from number sense to multi-step algebra, geometry and probability |
 
 To add a game, see [`src/games/README.md`](src/games/README.md).

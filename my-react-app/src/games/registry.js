@@ -1,7 +1,4 @@
 import MathHeroArt from './math-hero/Art.jsx'
-import MemoryMatchArt from './memory-match/Art.jsx'
-import PatternQuestArt from './pattern-quest/Art.jsx'
-import Bulbuli3DArt from './bulbuli-3d/Art.jsx'
 import ShapeHuntArt from './shape-hunt/Art.jsx'
 import ShapeSortingArt from './shape-sorting/Art.jsx'
 import SkyRunnerArt from './sky-runner/Art.jsx'
@@ -44,7 +41,6 @@ import MathMasterArt from './math-master/Art.jsx'
  *                 (GameFullscreen.jsx + arcade/game-shell.css) that fills the screen under the game bar
  *                 from the start, and is what goes browser full screen: the game, not the arcade page.
  *                 The game lays itself out under .game-fs-<id>, sized from the frame (container units).
- *                 (Pattern Quest has its own button in its own top bar, inside its frame.)
  *
  * A game component receives { playerId, language } and should save through useGameProgress(playerId).
  */
@@ -62,52 +58,6 @@ export const GAMES = [
     Art: MathHeroArt,
     load: () => import('./math-hero/index.jsx'),
     fullscreen: true,
-  },
-  {
-    id: 'memory-match',
-    title: { en: 'Memory Match', bn: 'মেমরি ম্যাচ' },
-    tagline: { en: 'Flip the cards and find the pairs.', bn: 'কার্ড উল্টে জোড়া খুঁজে বের করো।' },
-    skill: { en: 'Memory & first words', bn: 'স্মৃতি ও প্রথম শব্দ' },
-    ages: '4–9',
-    color: 'leaf',
-    icon: '🃏',
-    category: 'young',
-    zone: 'play-learn',
-    Art: MemoryMatchArt,
-    load: () => import('./memory-match/index.jsx'),
-    fullscreen: true,
-    isNew: true,
-  },
-  {
-    id: 'pattern-quest',
-    title: { en: 'Pattern Quest', bn: 'প্যাটার্ন খোঁজ' },
-    tagline: { en: 'What comes next? Spot the rule.', bn: 'এরপর কী আসবে? নিয়মটা খুঁজে বের করো।' },
-    skill: { en: 'Number & shape patterns', bn: 'সংখ্যা ও আকারের নকশা' },
-    ages: '7–11',
-    color: 'sky',
-    icon: '🔷',
-    category: 'logic',
-    zone: 'play-learn',
-    Art: PatternQuestArt,
-    load: () => import('./pattern-quest/index.jsx'),
-    ownControls: true,
-    isNew: true,
-  },
-  {
-    id: 'bulbuli-3d',
-    title: { en: 'Bulbuli 3D', bn: 'বুলবুলি ৩ডি' },
-    tagline: { en: 'Tap the 3D bird to collect stars.', bn: '৩ডি পাখিটাকে ছুঁয়ে তারা জমাও।' },
-    skill: { en: 'Tapping & 3D play', bn: 'ছোঁয়া ও ৩ডি খেলা' },
-    ages: '3–8',
-    color: 'sky',
-    icon: '🐦',
-    category: 'young',
-    zone: 'play-learn',
-    Art: Bulbuli3DArt,
-    // three.js + the 3 MB model load only when this game is opened.
-    load: () => import('./bulbuli-3d/index.jsx'),
-    fullscreen: true,
-    isNew: true,
   },
   {
     id: 'shape-hunt',

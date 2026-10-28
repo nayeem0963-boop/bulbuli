@@ -29,8 +29,7 @@ export default function GamePage({ playerId, theme, onToggleTheme, gameId: fixed
     window.scrollTo(0, 0)
   }, [gameId])
 
-  // The "How was it?" card shows on this page, so a game in full screen (including Pattern Quest,
-  // which goes full screen from inside its own frame) steps out of it first.
+  // The "How was it?" card shows on this page, so a game in full screen steps out of it first.
   const feedbackOpen = session.feedback.open
   useEffect(() => {
     if (feedbackOpen) exitFullscreen()

@@ -2,6 +2,11 @@ import { useEffect, useId, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BrandMark from '../arcade/BrandMark.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
+import BadgesSection from '../badges/BadgesSection.jsx'
+import AvatarPicker from '../avatars/AvatarPicker.jsx'
+import PlayerAvatar from '../avatars/PlayerAvatar.jsx'
+import { usePlayerAvatar } from '../avatars/usePlayerAvatar.js'
+import '../avatars/avatars.css'
 import { activityRows, describeSource, formatDate, formatNumber, timeAgo } from '../dashboard/format.js'
 import { getGame } from '../games/registry.js'
 import { levelProgress } from '../lib/levels.js'
@@ -10,6 +15,7 @@ import './Dashboard.css'
 /*
  * /dashboard: a signed-in player's game progress (App.jsx sends guests to sign in first).
  * Data comes from their public.profiles row: avatar, username, xp, level, activities, stats.
+ * Badges (src/badges/) sit between the summary cards and the game history.
  *
  * Styling: plain CSS in Dashboard.css (this project has no Tailwind). Class names are
  * prefixed `db-`, and every rule is scoped under `.db`, so global styles can't break it.
@@ -45,6 +51,12 @@ function Icon({ name }) {
       <>
         <circle cx="12" cy="12" r="4" />
         <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      </>
+    ),
+    smile: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01" />
       </>
     ),
     pencil: (
@@ -86,9 +98,11 @@ function DashboardHeader({ theme, onToggleTheme, onLogout, signingOut }) {
   )
 }
 
-/* ---------- profile: avatar + level badge, name + Edit, level progress ---------- */
-function ProfileSection({ displayName, avatarUrl, username, progress, onSaveName }) {
-  const [avatarFailed, setAvatarFailed] = useState(false)
+/* ---------- profile: avatar (pick a character) + level badge, name + Edit, level progress ---------- */
+function ProfileSection({ displayName, username, progress, onSaveName }) {
+  const { avatar, selectedId, photoUrl, context, chooseAvatar } = usePlayerAvatar()
+  const [picking, setPicking] = useState(false)
+  const [avatarNote, setAvatarNote] = useState(null)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
@@ -121,13 +135,25 @@ function ProfileSection({ displayName, avatarUrl, username, progress, onSaveName
     }
   }
 
+  const openPicker = () => {
+    setAvatarNote(null)
+    setPicking(true)
+  }
+
+  const saveAvatar = async (id) => {
+    const { synced } = await chooseAvatar(id)
+    setPicking(false)
+    setAvatarNote(synced ? null : { type: 'error', text: 'Saved on this device. It could not be saved to your account yet.' })
+  }
+
   return (
     <section className="db-profile" aria-labelledby="db-name">
       <div className="db-profile-top">
-        <div className="db-avatar" title={`Level ${progress.level}`}>
-          {avatarUrl && !avatarFailed
-            ? <img src={avatarUrl} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} />
-            : <span aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>}
+        <div className="db-avatar-wrap">
+          <button type="button" className="db-avatar" onClick={openPicker} aria-label={`Your avatar: ${avatar.name}. Change avatar`} title="Change avatar">
+            <PlayerAvatar avatar={avatar} name={displayName} photoUrl={photoUrl} />
+            <span className="db-avatar-edit" aria-hidden="true"><Icon name="pencil" /></span>
+          </button>
           <span className="db-avatar-level" aria-label={`Level ${progress.level}`}>{progress.level}</span>
         </div>
 
@@ -166,9 +192,13 @@ function ProfileSection({ displayName, avatarUrl, username, progress, onSaveName
               >
                 <Icon name="pencil" /> Edit
               </button>
+              <button type="button" className="db-btn db-btn-ghost db-btn-sm" onClick={openPicker}>
+                <Icon name="smile" /> Change avatar
+              </button>
             </div>
           )}
           <p className="db-subtitle">Player profile</p>
+          {avatarNote && <p className={`db-message db-message-${avatarNote.type}`} role="status">{avatarNote.text}</p>}
         </div>
       </div>
 
@@ -190,6 +220,17 @@ function ProfileSection({ displayName, avatarUrl, username, progress, onSaveName
           <div className="db-bar-fill" style={{ width: `${barWidth}%` }} />
         </div>
       </div>
+
+      {picking && (
+        <AvatarPicker
+          currentId={selectedId}
+          name={displayName}
+          photoUrl={photoUrl}
+          context={context}
+          onSave={saveAvatar}
+          onClose={() => setPicking(false)}
+        />
+      )}
     </section>
   )
 }
@@ -342,7 +383,6 @@ export default function Dashboard({ session, theme, onToggleTheme }) {
 
   const meta = user?.user_metadata ?? {}
   const displayName = profile?.username || meta.full_name || meta.name || user?.email?.split('@')[0] || 'Player'
-  const avatarUrl = profile?.avatar_url || meta.avatar_url || meta.picture || ''
 
   let body
   if (profileLoading && !profile) {
@@ -361,7 +401,6 @@ export default function Dashboard({ session, theme, onToggleTheme }) {
       <>
         <ProfileSection
           displayName={displayName}
-          avatarUrl={avatarUrl}
           username={profile.username}
           progress={progress}
           onSaveName={(username) => updateProfile({ username })}
@@ -372,6 +411,7 @@ export default function Dashboard({ session, theme, onToggleTheme }) {
           gamesPlayed={Object.keys(stats).length}
           lastPlayedAt={profile.last_played_at}
         />
+        <BadgesSection profile={profile} playerName={displayName} userId={user?.id ?? profile.id} />
         <GameHistory stats={stats} />
       </>
     )

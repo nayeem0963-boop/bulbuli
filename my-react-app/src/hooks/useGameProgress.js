@@ -222,7 +222,7 @@ export function useGameProgress(playerId) {
       gamification: addXp(current, xpEarned),
     }))
     // Games save once, when a level / board / run ends, so this is "a round finished".
-    // (Games without rounds, like Bulbuli 3D, are skipped in roundEvents.js.)
+    // (Games without rounds can be listed in CONTINUOUS_GAMES in roundEvents.js.)
     reportRoundComplete(gameId, { xp: xpEarned })
     return saved
   }, [saveProgress, playerId])

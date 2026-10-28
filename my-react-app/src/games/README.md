@@ -98,12 +98,6 @@ The game then also receives:
 - Bangla digits: `formatDigits(value, language)` from `src/utils/mathHeroText.js`.
 - Toy styling tokens: `--ink`, `--toy-border`, `--toy-lift`, `--sun`, `--leaf`, `--berry`, `--sky`, `--grape` in `src/styles/global.css`.
 
-## A game that is its own app
-
-Pattern Quest (`pattern-quest/`) is a complete app with its own styles, so it
-runs inside a frame (`/embed/pattern-quest`, see `src/main.jsx`) and sets
-`ownControls: true` so the game bar hides the language and sound buttons.
-
 ## Using the screen: the game frame and full screen
 
 Every game page puts the game in a frame of its own (`src/arcade/GameFullscreen.jsx`, styled in
