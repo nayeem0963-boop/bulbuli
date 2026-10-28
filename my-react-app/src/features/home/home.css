@@ -57,7 +57,9 @@
     z-index: 3;
     display: grid;
     gap: 8px;
-    padding: 10px 0 calc(6px + env(safe-area-inset-bottom));
+    padding: 18px 0 calc(6px + env(safe-area-inset-bottom));
+    /* the options scroll under the bar: fade them into the sky behind it so no text overlaps */
+    background: linear-gradient(180deg, transparent, var(--sky-bottom) 18px);
   }
   .home__meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .home__glow {

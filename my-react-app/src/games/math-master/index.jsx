@@ -284,7 +284,7 @@ export default function MathMaster({ playerId, language }) {
       <Header
         record={record}
         totalXp={totalXp}
-        compact={view === 'play'}
+        compact={view === 'play' || view === 'brief'}
         language={language}
         text={text}
         n={n}

@@ -204,6 +204,8 @@ const Fullscreen = {
       else await this.enter()
     } catch (err) {
       console.warn('Fullscreen request failed:', err)
+      // say so, instead of a button that silently does nothing (the course keeps filling the window)
+      Share.say('Full screen isn’t available here right now. The course still fills the window.')
     }
     this.sync() // whatever happened, the button shows the real state
   },

@@ -11,15 +11,7 @@ import { exitFullscreen } from '../shared/lib/fullscreen.js'
 import { useLanguage } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import './arcade.css'
-
-function MaybeFullscreen({ game, language, forceExit, children }) {
-  if (!game.fullscreen) return children
-  return (
-    <GameFullscreenFrame key={game.id} gameId={game.id} language={language} forceExit={forceExit}>
-      {children}
-    </GameFullscreenFrame>
-  )
-}
+import './game-shell.css'
 
 export default function GamePage({ playerId, theme, onToggleTheme, gameId: fixedGameId }) {
   // /games/:gameId, or a game with its own route (e.g. /play/html-architect) passes its id
@@ -54,15 +46,16 @@ export default function GamePage({ playerId, theme, onToggleTheme, gameId: fixed
         onBack={(to) => session.requestExit(() => navigate(to))}
       />
       <main id="main" className="game-stage">
-        {/* Games with `fullscreen: true` sit in a frame that can go full screen on its own: just the
-            game, not this page. The game shows the button in its own header (GameFullscreenButton). */}
+        {/* Every game sits in its own frame, which fills the screen under the game bar (immersive by
+            default) and is the element that goes browser full screen: just the game, not this page.
+            The game shows the button in its own header (GameFullscreenButton). See game-shell.css. */}
         {!game ? (
           <div className="game-message">
             <h1>{text.gameMissing}</h1>
             <Link className="arcade-cta" to="/">{text.backToGames}</Link>
           </div>
         ) : (
-          <MaybeFullscreen game={game} language={language} forceExit={feedbackOpen}>
+          <GameFullscreenFrame key={game.id} gameId={game.id} language={language} forceExit={feedbackOpen}>
             <GameErrorBoundary key={game.id} text={text}>
               <Suspense fallback={<GameLoadingSpinner label={text.loadingGame} />}>
                 {/* Remount when the player changes, so a game never mixes two players' saves. */}
@@ -75,7 +68,7 @@ export default function GamePage({ playerId, theme, onToggleTheme, gameId: fixed
                 />
               </Suspense>
             </GameErrorBoundary>
-          </MaybeFullscreen>
+          </GameFullscreenFrame>
         )}
       </main>
 

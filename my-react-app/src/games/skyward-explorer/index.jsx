@@ -28,6 +28,7 @@ import { generateWorld } from './layout.js'
 import { sfx } from './sfx.js'
 import { SKYWARD_TEXT } from './text.js'
 import './skyward-explorer.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 
 // three.js and the scene load only when this screen opens.
 const SkywardExplorerCanvas = lazyWithPreload(() => import('./SkywardExplorerCanvas.jsx'))
@@ -189,9 +190,11 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
   return (
     <div className={`skx${embedded ? ' is-fill' : ''}`}>
       {!embedded && (
-        <header className="skx-header">
+        <header className="skx-header game-fs-header">
           <h1>{text.title}</h1>
           <p>{text.intro}</p>
+          {/* full screen on the game page (the launcher dialog has its own button) */}
+          <GameFullscreenButton />
         </header>
       )}
 

@@ -281,21 +281,35 @@
   .ssf-progress span { transition: none; }
 }
 
-/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
-   While playing, the factory takes the height left between the prompt and the bin keys. It never
-   gets narrower than its phone shape (1:1.08), so the belt and bins stay in view. */
-.game-fs-shape-sorting.is-fullscreen .ssf {
+/* ---------- in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar (and the whole display in full screen), so this is
+   the normal layout. While playing, the factory takes the height left between the prompt and the
+   bin keys. It never gets narrower than its phone shape (1:1.08), so the belt and bins stay in view. */
+.game-fs-shape-sorting .ssf {
   display: flex;
   flex-direction: column;
-  max-width: 1500px;
+  width: 100%;
+  max-width: 1600px;
   min-height: 100%;
   padding-top: 0;
 }
-.game-fs-shape-sorting.is-fullscreen .ssf:not(.is-playing) { max-width: 1000px; justify-content: center; }
-.game-fs-shape-sorting.is-fullscreen .ssf.is-playing { height: 100%; }
-.game-fs-shape-sorting.is-fullscreen .ssf.is-playing .ssf-stage {
+.game-fs-shape-sorting .ssf:not(.is-playing) { max-width: 1100px; justify-content: center; }
+.game-fs-shape-sorting .ssf.is-playing { flex: 1 1 0; min-height: 0; }
+/* readable from across the room: titles, level cards and the start button grow with the box */
+.game-fs-shape-sorting .ssf-header h1 { font-size: clamp(2.1rem, 1rem + 3.2cqi, 3.8rem); }
+.game-fs-shape-sorting .ssf-header p { font-size: var(--game-text-md); }
+.game-fs-shape-sorting .ssf.is-playing .ssf-header h1 { font-size: clamp(1.6rem, 1rem + 1.5cqi, 2.6rem); }
+.game-fs-shape-sorting .ssf-setup h2 { font-size: var(--game-text-lg); }
+.game-fs-shape-sorting .ssf-choices { gap: var(--game-gap); }
+.game-fs-shape-sorting .ssf .ssf-choice { min-height: clamp(5.25rem, 13cqh, 8.5rem); font-size: var(--game-text-md); }
+.game-fs-shape-sorting .ssf-choice-hint { font-size: var(--game-text-xs); }
+.game-fs-shape-sorting .ssf .ssf-start { min-height: var(--game-touch-lg); max-width: 26rem; font-size: var(--game-text-lg); }
+
+.game-fs-shape-sorting .ssf-prompt-text { font-size: clamp(1.1rem, 0.75rem + 1.2cqi, 2rem); }
+.game-fs-shape-sorting .ssf-points { font-size: var(--game-text-lg); }
+.game-fs-shape-sorting .ssf.is-playing .ssf-stage {
   flex: 1 1 0;
   min-height: 14rem;
-  max-height: calc((100vw - 2rem) * 1.08);
+  max-height: calc(100cqw * 1.08);
   aspect-ratio: auto;
 }

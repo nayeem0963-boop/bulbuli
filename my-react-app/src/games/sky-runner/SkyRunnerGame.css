@@ -282,29 +282,41 @@
   .srg-progress span { transition: none; }
 }
 
-/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
-   While running, the sky takes the height left between the HUD and the steering buttons. It never
-   gets narrower than its phone shape (3:4), so all three lanes stay in view. */
-.game-fs-sky-runner.is-fullscreen .srg {
+/* ---------- in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar (and the whole display in full screen), so this is
+   the normal layout. While running, the sky takes the height left between the HUD and the steering
+   buttons. It never gets narrower than its phone shape (3:4), so all three lanes stay in view. */
+.game-fs-sky-runner .srg {
   display: flex;
   flex-direction: column;
-  max-width: 1500px;
+  width: 100%;
+  max-width: 1600px;
   min-height: 100%;
   padding-top: 0;
 }
-.game-fs-sky-runner.is-fullscreen .srg:not(.is-playing) { max-width: 1000px; justify-content: center; }
-.game-fs-sky-runner.is-fullscreen .srg.is-playing { height: 100%; }
-.game-fs-sky-runner.is-fullscreen .srg.is-playing .srg-stage {
+.game-fs-sky-runner .srg:not(.is-playing) { max-width: 1100px; justify-content: center; }
+.game-fs-sky-runner .srg.is-playing { flex: 1 1 0; min-height: 0; }
+/* readable from across the room: titles, level cards and the start button grow with the box */
+.game-fs-sky-runner .srg-header h1 { font-size: clamp(2.1rem, 1rem + 3.2cqi, 3.8rem); }
+.game-fs-sky-runner .srg-header p { font-size: var(--game-text-md); }
+.game-fs-sky-runner .srg.is-playing .srg-header h1 { font-size: clamp(1.6rem, 1rem + 1.5cqi, 2.6rem); }
+.game-fs-sky-runner .srg-setup h2 { font-size: var(--game-text-lg); }
+.game-fs-sky-runner .srg-choices { gap: var(--game-gap); }
+.game-fs-sky-runner .srg .srg-choice { min-height: clamp(5.25rem, 13cqh, 8.5rem); font-size: var(--game-text-md); }
+.game-fs-sky-runner .srg-choice-hint { font-size: var(--game-text-xs); }
+.game-fs-sky-runner .srg .srg-start { min-height: var(--game-touch-lg); max-width: 26rem; font-size: var(--game-text-lg); }
+
+.game-fs-sky-runner .srg.is-playing .srg-stage {
   display: flex;
   flex: 1 1 0;
   min-height: 14rem;
-  max-height: calc((100vw - 2rem) * 4 / 3);
+  max-height: calc(100cqw * 4 / 3);
 }
-.game-fs-sky-runner.is-fullscreen .srg.is-playing .srg-stage > .sr-canvas,
-.game-fs-sky-runner.is-fullscreen .srg.is-playing .srg-stage > .srg-loading {
+.game-fs-sky-runner .srg.is-playing .srg-stage > .sr-canvas,
+.game-fs-sky-runner .srg.is-playing .srg-stage > .srg-loading {
   width: 100%;
   height: 100%;
   max-height: none;
   aspect-ratio: auto;
 }
-.game-fs-sky-runner.is-fullscreen .srg-steer { justify-content: center; gap: clamp(1rem, 20vw, 16rem); }
+.game-fs-sky-runner .srg-steer { justify-content: center; gap: clamp(1rem, 20cqw, 16rem); }

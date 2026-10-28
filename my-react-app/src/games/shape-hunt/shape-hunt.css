@@ -194,22 +194,36 @@
 .sh-xp { color: var(--grape); font-family: var(--font-display); font-size: 1.6rem !important; }
 .sh-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 0.75rem; }
 
-/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
-   While playing, the 3D view takes the height left between the prompt and the keys. It never
-   gets narrower than its phone shape (4:5), so no shape is cut off at the sides. */
-.game-fs-shape-hunt.is-fullscreen .sh {
+/* ---------- in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar (and the whole display in full screen), so this is
+   the normal layout. While playing, the 3D view takes the height left between the prompt and the
+   keys. It never gets narrower than its phone shape (4:5), so no shape is cut off at the sides;
+   react-three-fiber resizes the renderer and camera from the view's box. */
+.game-fs-shape-hunt .sh {
   display: flex;
   flex-direction: column;
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1500px;
   min-height: 100%;
   padding-top: 0;
 }
-.game-fs-shape-hunt.is-fullscreen .sh:not(.is-playing) { max-width: 1000px; justify-content: center; }
-.game-fs-shape-hunt.is-fullscreen .sh.is-playing { height: 100%; }
-.game-fs-shape-hunt.is-fullscreen .sh.is-playing .sh-canvas {
+.game-fs-shape-hunt .sh:not(.is-playing) { max-width: 1100px; justify-content: center; }
+.game-fs-shape-hunt .sh.is-playing { flex: 1 1 0; min-height: 0; }
+/* readable from across the room: titles, level cards and the start button grow with the box */
+.game-fs-shape-hunt .sh-header h1 { font-size: clamp(2.1rem, 1rem + 3.2cqi, 3.8rem); }
+.game-fs-shape-hunt .sh-header p { font-size: var(--game-text-md); }
+.game-fs-shape-hunt .sh.is-playing .sh-header h1 { font-size: clamp(1.6rem, 1rem + 1.5cqi, 2.6rem); }
+.game-fs-shape-hunt .sh-setup h2 { font-size: var(--game-text-lg); }
+.game-fs-shape-hunt .sh-choices { gap: var(--game-gap); }
+.game-fs-shape-hunt .sh .sh-choice { min-height: clamp(5.25rem, 13cqh, 8.5rem); font-size: var(--game-text-md); }
+.game-fs-shape-hunt .sh-choice-hint { font-size: var(--game-text-xs); }
+.game-fs-shape-hunt .sh .sh-start { min-height: var(--game-touch-lg); max-width: 26rem; font-size: var(--game-text-lg); }
+
+.game-fs-shape-hunt .sh-prompt-text { font-size: clamp(1.25rem, 0.8rem + 1.4cqi, 2.2rem); }
+.game-fs-shape-hunt .sh.is-playing .sh-canvas {
   flex: 1 1 0;
   min-height: 14rem;
-  max-height: calc((100vw - 2rem) * 5 / 4);
+  max-height: calc(100cqw * 5 / 4);
   aspect-ratio: auto;
 }
-.game-fs-shape-hunt.is-fullscreen .sh-result .game-fs-toggle { min-height: 2.9rem; }
+.game-fs-shape-hunt .sh-result .game-fs-toggle { min-height: 2.9rem; }

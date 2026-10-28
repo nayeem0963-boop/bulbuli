@@ -1,41 +1,41 @@
 /* Memory Match. Uses the arcade's toy tokens (see src/styles/global.css). */
 
-.mm {
+.game-fs-memory-match .mm {
   max-width: 760px;
   margin: 0 auto;
   padding-top: 1rem;
 }
 
-.mm-header { margin-bottom: 1.5rem; }
+.game-fs-memory-match .mm-header { margin-bottom: 1.5rem; }
 
-.mm-header h1 {
+.game-fs-memory-match .mm-header h1 {
   margin: 0 0 0.35rem;
   font-size: clamp(2.3rem, 6vw, 3.4rem);
   line-height: 1;
 }
 
-.mm-header p { margin: 0; font-size: 1.15rem; }
-.mm-header.is-compact { margin-bottom: 1rem; }
-.mm-header.is-compact h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); }
-.mm-header.is-compact p { color: var(--text-muted); font-weight: 700; }
+.game-fs-memory-match .mm-header p { margin: 0; font-size: 1.15rem; }
+.game-fs-memory-match .mm-header.is-compact { margin-bottom: 1rem; }
+.game-fs-memory-match .mm-header.is-compact h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); }
+.game-fs-memory-match .mm-header.is-compact p { color: var(--text-muted); font-weight: 700; }
 
-.mm-setup { margin-bottom: 1.5rem; }
+.game-fs-memory-match .mm-setup { margin-bottom: 1.5rem; }
 
-.mm-setup h2 {
+.game-fs-memory-match .mm-setup h2 {
   margin: 0 0 0.75rem;
   font-size: 1.4rem;
 }
 
-.mm-choices {
+.game-fs-memory-match .mm-choices {
   display: grid;
   gap: 0.85rem;
 }
 
-.mm-choices.is-sets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.mm-choices.is-levels { grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); }
+.game-fs-memory-match .mm-choices.is-sets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.game-fs-memory-match .mm-choices.is-levels { grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); }
 
 /* Every Memory Match control resets the site-wide button look first. */
-.mm button {
+.game-fs-memory-match .mm button {
   border: var(--toy-border);
   color: var(--ink);
   background: #fff;
@@ -45,11 +45,11 @@
   transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
 }
 
-.mm button:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
-.mm button:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
-.mm button:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
+.game-fs-memory-match .mm button:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.game-fs-memory-match .mm button:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+.game-fs-memory-match .mm button:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
 
-.mm .mm-choice {
+.game-fs-memory-match .mm .mm-choice {
   display: grid;
   min-height: 5.25rem;
   align-content: center;
@@ -62,10 +62,10 @@
   line-height: 1.15;
 }
 
-.mm .mm-choice:hover { background: var(--sun-soft); }
-.mm .mm-choice[aria-pressed='true'] { background: var(--sun); }
-.mm-choice { position: relative; }
-.mm .mm-choice[aria-pressed='true']::before {
+.game-fs-memory-match .mm .mm-choice:hover { background: var(--sun-soft); }
+.game-fs-memory-match .mm .mm-choice[aria-pressed='true'] { background: var(--sun); }
+.game-fs-memory-match .mm-choice { position: relative; }
+.game-fs-memory-match .mm .mm-choice[aria-pressed='true']::before {
   content: '✓';
   position: absolute;
   top: -0.65rem;
@@ -82,10 +82,10 @@
   font-size: 1rem;
 }
 
-.mm-choice-icon { font-size: 2.2rem; line-height: 1; }
-.mm-choice-hint { font-family: var(--font-body); font-size: 0.9rem; font-weight: 700; }
+.game-fs-memory-match .mm-choice-icon { font-size: 2.2rem; line-height: 1; }
+.game-fs-memory-match .mm-choice-hint { font-family: var(--font-body); font-size: 0.9rem; font-weight: 700; }
 
-.mm .mm-primary {
+.game-fs-memory-match .mm .mm-primary {
   min-height: 3.6rem;
   border-radius: 999px;
   padding: 0 2rem;
@@ -94,30 +94,30 @@
   font-size: 1.45rem;
 }
 
-.mm .mm-primary:hover { color: #fff; background: #e23744; }
+.game-fs-memory-match .mm .mm-primary:hover { color: #fff; background: #e23744; }
 .app-shell[data-theme='dark'] .mm .mm-primary { color: #1a0509; }
 
-.mm .mm-secondary {
+.game-fs-memory-match .mm .mm-secondary {
   min-height: 2.9rem;
   border-radius: 999px;
   padding: 0 1.1rem;
   font-size: 1.05rem;
 }
 
-.mm .mm-secondary:hover { background: var(--sun-soft); }
+.game-fs-memory-match .mm .mm-secondary:hover { background: var(--sun-soft); }
 
-.mm-start { width: 100%; max-width: 22rem; }
+.game-fs-memory-match .mm-start { width: 100%; max-width: 22rem; }
 
 /* stars */
-.mm-stars { display: inline-flex; gap: 0.1rem; line-height: 1; }
-.mm-stars span { color: color-mix(in srgb, var(--ink) 18%, transparent); }
-.mm-stars span.is-on { color: #f5a500; text-shadow: 0 2px 0 var(--ink); }
-.mm-stars.is-sm { font-size: 1.05rem; }
-.mm-stars.is-lg { font-size: 3.2rem; }
+.game-fs-memory-match .mm-stars { display: inline-flex; gap: 0.1rem; line-height: 1; }
+.game-fs-memory-match .mm-stars span { color: color-mix(in srgb, var(--ink) 18%, transparent); }
+.game-fs-memory-match .mm-stars span.is-on { color: #f5a500; text-shadow: 0 2px 0 var(--ink); }
+.game-fs-memory-match .mm-stars.is-sm { font-size: 1.05rem; }
+.game-fs-memory-match .mm-stars.is-lg { font-size: 3.2rem; }
 .app-shell[data-theme='dark'] .mm-choice .mm-stars span:not(.is-on) { color: #c9d3e6; }
 
 /* the bar above the board */
-.mm-bar {
+.game-fs-memory-match .mm-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -125,7 +125,7 @@
   margin-bottom: 1rem;
 }
 
-.mm-count {
+.game-fs-memory-match .mm-count {
   display: grid;
   min-width: 5.5rem;
   margin: 0;
@@ -136,11 +136,11 @@
   line-height: 1.15;
 }
 
-.mm-count span { color: var(--text-muted); font-size: 0.85rem; font-weight: 800; }
-.mm-count strong { font-family: var(--font-display); font-size: 1.5rem; }
-.mm-bar-actions { display: flex; gap: 0.6rem; margin-left: auto; }
+.game-fs-memory-match .mm-count span { color: var(--text-muted); font-size: 0.85rem; font-weight: 800; }
+.game-fs-memory-match .mm-count strong { font-family: var(--font-display); font-size: 1.5rem; }
+.game-fs-memory-match .mm-bar-actions { display: flex; gap: 0.6rem; margin-left: auto; }
 
-.mm-tip {
+.game-fs-memory-match .mm-tip {
   margin: 0 0 1rem;
   border-radius: 14px;
   padding: 0.5rem 0.9rem;
@@ -149,7 +149,7 @@
 }
 
 /* the board */
-.mm-grid {
+.game-fs-memory-match .mm-grid {
   display: grid;
   grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
   gap: clamp(0.5rem, 2vw, 1rem);
@@ -158,7 +158,7 @@
   margin: 0 auto;
 }
 
-.mm .mm-card {
+.game-fs-memory-match .mm .mm-card {
   position: relative;
   aspect-ratio: 5 / 6;
   min-height: 0;
@@ -170,22 +170,22 @@
   perspective: 700px;
 }
 
-.mm .mm-card:hover,
-.mm .mm-card:active { background: transparent; box-shadow: none; transform: none; }
-.mm .mm-card:hover:not(.is-up) .mm-card-inner { transform: translateY(-3px) rotate(-1.5deg); }
+.game-fs-memory-match .mm .mm-card:hover,
+.game-fs-memory-match .mm .mm-card:active { background: transparent; box-shadow: none; transform: none; }
+.game-fs-memory-match .mm .mm-card:hover:not(.is-up) .mm-card-inner { transform: translateY(-3px) rotate(-1.5deg); }
 
-.mm-card-inner {
+.game-fs-memory-match .mm-card-inner {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
   transition: transform 380ms cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 
-.mm-card.is-up .mm-card-inner,
-.mm .mm-card.is-up:hover .mm-card-inner { transform: rotateY(180deg); }
+.game-fs-memory-match .mm-card.is-up .mm-card-inner,
+.game-fs-memory-match .mm .mm-card.is-up:hover .mm-card-inner { transform: rotateY(180deg); }
 
-.mm-card-back,
-.mm-card-front {
+.game-fs-memory-match .mm-card-back,
+.game-fs-memory-match .mm-card-front {
   position: absolute;
   inset: 0;
   display: grid;
@@ -196,7 +196,7 @@
   backface-visibility: hidden;
 }
 
-.mm-card-front {
+.game-fs-memory-match .mm-card-front {
   padding: 0.25rem;
   color: var(--ink);
   background: #fff;
@@ -205,7 +205,7 @@
   transform: rotateY(180deg);
 }
 
-.mm-card-front.is-word {
+.game-fs-memory-match .mm-card-front.is-word {
   overflow-wrap: anywhere;
   font-family: var(--font-display);
   font-size: clamp(1rem, 4.2vw, 1.55rem);
@@ -213,14 +213,14 @@
   text-align: center;
 }
 
-.mm-card-front.is-word.is-long { font-size: clamp(0.8rem, 3.2vw, 1.25rem); }
-.mm-card-front.is-word:lang(bn) { font-family: 'Baloo Da 2', var(--font-display); }
+.game-fs-memory-match .mm-card-front.is-word.is-long { font-size: clamp(0.8rem, 3.2vw, 1.25rem); }
+.game-fs-memory-match .mm-card-front.is-word:lang(bn) { font-family: 'Baloo Da 2', var(--font-display); }
 
-.mm-card.is-matched .mm-card-front { background: var(--leaf-soft); }
+.game-fs-memory-match .mm-card.is-matched .mm-card-front { background: var(--leaf-soft); }
 .app-shell[data-theme='dark'] .mm-card.is-matched .mm-card-front { color: var(--ink); background: #bfeed5; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .mm-card.is-matched .mm-card-front { animation: mm-pop 420ms ease 380ms both; }
+  .game-fs-memory-match .mm-card.is-matched .mm-card-front { animation: mm-pop 420ms ease 380ms both; }
 }
 
 @keyframes mm-pop {
@@ -230,11 +230,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mm-card-inner { transition: none; }
+  .game-fs-memory-match .mm-card-inner { transition: none; }
 }
 
 /* win dialog */
-.mm-win-backdrop {
+.game-fs-memory-match .mm-win-backdrop {
   position: fixed;
   z-index: 20;
   inset: 0;
@@ -244,7 +244,7 @@
   background: rgb(14 24 48 / 55%);
 }
 
-.mm-win {
+.game-fs-memory-match .mm-win {
   width: min(100%, 26rem);
   border: var(--toy-border);
   border-radius: 30px;
@@ -256,14 +256,14 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .mm-win { animation: mm-win-in 420ms cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+  .game-fs-memory-match .mm-win { animation: mm-win-in 420ms cubic-bezier(0.3, 1.5, 0.5, 1) both; }
 }
 
 @keyframes mm-win-in {
   from { opacity: 0; transform: translateY(24px) scale(0.92); }
 }
 
-.mm-win-cheer {
+.game-fs-memory-match .mm-win-cheer {
   display: inline-block;
   margin: 0 0 0.5rem;
   border-radius: 999px;
@@ -274,52 +274,77 @@
   font-weight: 800;
 }
 
-.mm-win h2 { margin: 0 0 0.25rem; font-size: 2rem; line-height: 1.05; }
-.mm-win p { margin: 0.25rem 0; }
+.game-fs-memory-match .mm-win h2 { margin: 0 0 0.25rem; font-size: 2rem; line-height: 1.05; }
+.game-fs-memory-match .mm-win p { margin: 0.25rem 0; }
 
-.mm-win-xp {
+.game-fs-memory-match .mm-win-xp {
   font-family: var(--font-display);
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--leaf);
 }
 
-.mm-win .mm-stars span:not(.is-on) { color: #d5dce8; }
+.game-fs-memory-match .mm-win .mm-stars span:not(.is-on) { color: #d5dce8; }
 
-.mm-win-actions {
+.game-fs-memory-match .mm-win-actions {
   display: grid;
   gap: 0.75rem;
   margin-top: 1.1rem;
 }
 
 @media (max-width: 520px) {
-  .mm-choices.is-sets { gap: 0.6rem; }
-  .mm .mm-choice { min-height: 4.75rem; font-size: 1.05rem; }
-  .mm-bar-actions { width: 100%; margin-left: 0; }
-  .mm-bar-actions .mm-secondary { flex: 1; }
-  .mm-count { flex: 1; }
+  .game-fs-memory-match .mm-choices.is-sets { gap: 0.6rem; }
+  .game-fs-memory-match .mm .mm-choice { min-height: 4.75rem; font-size: 1.05rem; }
+  .game-fs-memory-match .mm-bar-actions { width: 100%; margin-left: 0; }
+  .game-fs-memory-match .mm-bar-actions .mm-secondary { flex: 1; }
+  .game-fs-memory-match .mm-count { flex: 1; }
 }
 
-/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
-   The board grows to fill the screen: each card's height comes from the screen height and the
-   number of rows (--rows, set on .mm-grid), and the board is as wide as those cards need, so the
-   cards keep their shape and the whole board fits without scrolling. The bar stays above it. */
-.game-fs-memory-match.is-fullscreen .mm {
+/* ---------- in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar (and the whole display in full screen), so this is
+   Memory Match's normal layout. Every rule in this file is scoped to .game-fs-memory-match, because
+   Math Master also uses `mm-` class names.
+
+   Choosing a set and level: a wide, centred panel with big choice cards. Playing: the board grows
+   to fill the frame. Each card's height comes from the frame height (cqh) and the number of rows
+   (--rows, set on .mm-grid), and the board is only as wide as those cards need, so cards keep their
+   5:6 shape (the game doesn't change) and the whole board fits without scrolling. */
+.game-fs-memory-match .mm {
   display: flex;
   flex-direction: column;
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1500px;
   min-height: 100%;
   padding-top: 0;
 }
-.game-fs-memory-match.is-fullscreen .mm:not(.is-playing) { max-width: 1000px; justify-content: center; }
-.game-fs-memory-match.is-fullscreen .mm-grid {
-  --mm-gap: clamp(0.5rem, 1.6vh, 1rem);
-  --card-h: calc((100dvh - 14rem - (var(--rows, 4) - 1) * var(--mm-gap)) / var(--rows, 4));
+.game-fs-memory-match .mm:not(.is-playing) { max-width: 1100px; justify-content: center; }
+.game-fs-memory-match .mm-header h1 { font-size: clamp(2.3rem, 1rem + 3.4cqi, 4rem); }
+.game-fs-memory-match .mm-header p { font-size: var(--game-text-md); }
+.game-fs-memory-match .mm-header.is-compact h1 { font-size: clamp(1.7rem, 1rem + 1.8cqi, 2.6rem); }
+.game-fs-memory-match .mm-setup h2 { font-size: var(--game-text-lg); }
+.game-fs-memory-match .mm-choices { gap: var(--game-gap); }
+.game-fs-memory-match .mm-choices.is-levels { grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); }
+.game-fs-memory-match .mm .mm-choice { min-height: clamp(5.25rem, 13cqh, 8.5rem); font-size: var(--game-text-md); }
+.game-fs-memory-match .mm-choice-icon { font-size: clamp(2.2rem, 1.2rem + 3cqmin, 3.6rem); }
+.game-fs-memory-match .mm-choice-hint { font-size: var(--game-text-xs); }
+.game-fs-memory-match .mm .mm-start { min-height: var(--game-touch-lg); max-width: 26rem; font-size: var(--game-text-lg); }
+.game-fs-memory-match .mm-count strong { font-size: var(--game-text-lg); }
+
+.game-fs-memory-match .mm-grid {
+  --mm-gap: clamp(0.5rem, 1.6cqh, 1rem);
+  /* the space the bar, header and tip leave for the board, shared between the rows */
+  --card-h: calc((100cqh - 13rem - (var(--rows, 4) - 1) * var(--mm-gap)) / var(--rows, 4));
   width: 100%;
   max-width: min(100%, calc(var(--columns) * max(5rem, var(--card-h)) * 5 / 6 + (var(--columns) - 1) * var(--mm-gap)));
   gap: var(--mm-gap);
   margin: auto;
 }
-.game-fs-memory-match.is-fullscreen .mm-card-front { font-size: clamp(2rem, calc(var(--card-h) * 0.42), 5.5rem); }
-.game-fs-memory-match.is-fullscreen .mm-card-front.is-word { font-size: clamp(1rem, calc(var(--card-h) * 0.17), 2.4rem); }
-.game-fs-memory-match.is-fullscreen .mm-card-front.is-word.is-long { font-size: clamp(0.8rem, calc(var(--card-h) * 0.13), 1.9rem); }
+.game-fs-memory-match .mm-card-front { font-size: clamp(2rem, calc(var(--card-h) * 0.42), 5.5rem); }
+.game-fs-memory-match .mm-card-front.is-word { font-size: clamp(1rem, calc(var(--card-h) * 0.17), 2.4rem); }
+.game-fs-memory-match .mm-card-front.is-word.is-long { font-size: clamp(0.8rem, calc(var(--card-h) * 0.13), 1.9rem); }
+
+/* narrow boxes: the board uses the width (cards stay 5:6), the page part scrolls if it must */
+@container game (max-width: 560px) {
+  .game-fs-memory-match .mm-grid { --card-h: calc((100cqw - (var(--columns) - 1) * var(--mm-gap)) / var(--columns) * 6 / 5); max-width: 100%; }
+  .game-fs-memory-match .mm-choices.is-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

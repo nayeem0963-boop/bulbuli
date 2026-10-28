@@ -73,6 +73,7 @@ const EXPECTED_ZONES = {
   'shape-sorting': 'play-learn',
   'sky-runner': 'play-learn',
   'ball-dash': 'play-learn',
+  'bouncy-hop': 'play-learn',
   'skyward-explorer': 'build-create',
   'neon-velocity': 'build-create',
   'sky-typewriter': 'play-learn',

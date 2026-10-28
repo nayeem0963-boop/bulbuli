@@ -31,6 +31,7 @@ import GameOverModal from './GameOverModal.jsx'
 import { SKY_TYPEWRITER_TEXT, SKY_TYPEWRITER_WORDS } from './text.js'
 import useSkyTypewriterResult from './useSkyTypewriterResult.js'
 import './sky-typewriter.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 
 // three.js, R3F and the sky scene load only when this game opens.
 const SkyTypewriterScene = lazyWithPreload(() => import('./SkyTypewriterScene.jsx'))
@@ -138,7 +139,15 @@ export default function SkyTypewriterGame({
 
   return (
     <div className={`stw${embedded ? ' is-embedded' : ''}`}>
-      <h1 className={embedded ? 'stw-sr-only' : 'stw-title'}>{text.title}</h1>
+      {embedded ? (
+        <h1 className="stw-sr-only">{text.title}</h1>
+      ) : (
+        <header className="stw-head game-fs-header is-centered">
+          <h1 className="stw-title">{text.title}</h1>
+          {/* full screen on the game page (the launcher dialog has its own button) */}
+          <GameFullscreenButton />
+        </header>
+      )}
 
       <div ref={stageRef} className="stw-stage" tabIndex={-1} aria-label={text.stage}>
         <GameViewport label={text.loading}>

@@ -104,7 +104,24 @@ Pattern Quest (`pattern-quest/`) is a complete app with its own styles, so it
 runs inside a frame (`/embed/pattern-quest`, see `src/main.jsx`) and sets
 `ownControls: true` so the game bar hides the language and sound buttons.
 
-Add `fullscreen: true` to give the game a full-screen button in its game bar. It uses the
-browser Fullscreen API on the game frame (game bar + game, not the whole site) through
-`src/shared/hooks/useFullscreen.js`, and keeps the game mounted, so scores and levels carry
-through. Canvases should size from their frame (react-three-fiber does) so they follow along.
+## Using the screen: the game frame and full screen
+
+Every game page puts the game in a frame of its own (`src/arcade/GameFullscreen.jsx`, styled in
+`src/arcade/game-shell.css`). The frame fills the screen under the game bar from the start, so a
+game opens immersive without a button, and it is the element that goes browser full screen
+(just the game, not the site) through `src/shared/hooks/useFullscreen.js`. The game stays
+mounted, so scores, timers and levels carry through.
+
+- Put `<GameFullscreenButton />` in the game's own header (inside the frame, so it is still
+  there in full screen) and set `fullscreen: true` in the registry. A header made of a title and
+  a line of text can take the `game-fs-header` class to line the button up on the right.
+- Lay the game out under `.game-fs-<id>` in its CSS. The frame is a CSS size container named
+  `game`: size things from it with `cqw` / `cqh` / `cqi` / `cqmin` and `@container game (...)`
+  queries, not `100vw` / `100dvh`, so one layout works under the game bar and in full screen.
+- Shared fluid tokens are defined on the frame: `--game-text-xs … --game-text-display`,
+  `--game-gap`, `--game-gap-sm`, `--game-pad`, `--game-touch`, `--game-touch-lg`, `--game-radius`.
+- A screen taller than the frame scrolls inside the frame (never the page). A game that must fit
+  exactly (a 3D stage, a board) can take `flex: 1 1 0; min-height: 0` and fill the height.
+- Canvases should size from their box (react-three-fiber does, and updates the camera).
+- Pop-ups with `position: fixed` inside a game still cover the whole window (a size container
+  doesn't contain layout), and the whole display in full screen.

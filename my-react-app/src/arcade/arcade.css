@@ -193,7 +193,7 @@
   font-size: 1.15rem;
 }
 
-.arcade .arcade-back span { font-size: 1.6rem; line-height: 0.6; }
+.arcade .arcade-back span[aria-hidden] { font-size: 1.6rem; line-height: 0.6; }
 
 /* ---------- hero ---------- */
 
@@ -632,8 +632,6 @@
 
 /* ---------- game page ---------- */
 
-.arcade.is-game-page .arcade-header { padding-bottom: 0.25rem; }
-
 .game-stage {
   width: var(--arcade-width);
   flex: 1;
@@ -690,61 +688,10 @@
   box-shadow: none;
 }
 
-/* Math Hero keeps its own layout; inside the arcade it just needs a little less top space. */
-.arcade .game-stage .math-hero-page { width: 100%; padding-top: 1rem; }
-
-/* ---------- a game in full screen (GameFullscreen.jsx) ----------
-   The frame around one game is what goes full screen, so the game (not the arcade page)
-   fills the screen. The frame scrolls on its own when a screen of the game is taller than
-   the display. Each game lays itself out for full screen in its own CSS, under
-   .game-fs-<id>.is-fullscreen. */
-
-.game-fs-frame.is-fullscreen {
-  box-sizing: border-box;
-  width: 100vw;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding:
-    max(0.75rem, env(safe-area-inset-top))
-    max(clamp(0.75rem, 2vw, 1.5rem), env(safe-area-inset-right))
-    max(0.75rem, env(safe-area-inset-bottom))
-    max(clamp(0.75rem, 2vw, 1.5rem), env(safe-area-inset-left));
-  color: var(--text);
-  background: var(--page-sky), var(--page-bg);
-  background-color: var(--page-bg);
-  background-repeat: no-repeat;
-}
-
-/* where the browser has no full screen for pages (iPhone Safari), the frame fills the window */
-.game-fs-frame.is-filled {
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-}
-
-.game-fs-frame::backdrop { background: #eaf6ff; }
-.app-shell[data-theme='dark'] .game-fs-frame::backdrop { background: #0e1830; }
-
-/* The full-screen button sits in each game's own header. A header made of a title and a line of
-   text gets .game-fs-header: the text keeps its column, the button lines up on the right.
-   .is-centered keeps a centred title centred. */
-.game-fs-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 1rem;
-}
-.game-fs-header > * { grid-column: 1; }
-.game-fs-header > .game-fs-toggle { grid-column: 2; grid-row: 1 / span 2; }
-.game-fs-header.is-centered { grid-template-columns: 3rem minmax(0, 1fr) 3rem; }
-.game-fs-header.is-centered > * { grid-column: 2; }
-.game-fs-header.is-centered > .game-fs-toggle { grid-column: 3; }
-
-.arcade .game-fs-toggle svg { display: block; flex: none; }
-.arcade .game-fs-toggle:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
+/* The game page itself (one screen tall, the game in its own box that can go full screen) is laid
+   out in game-shell.css. Pattern Quest's own page (an iframe) fills that box: */
+.game-fs-pattern-quest .embedded-game { display: flex; flex: 1 1 0; min-height: 0; }
+.game-fs-pattern-quest .embedded-game-frame { flex: 1 1 auto; height: auto; min-height: 320px; }
 
 /* ---------- small screens ---------- */
 
@@ -939,11 +886,14 @@
 .game-modal.is-berry { --tile-bg: var(--berry-soft); }
 .game-modal.is-grape { --tile-bg: var(--grape-soft); }
 
-/* playing embedded: a big window; full screen: everything */
+/* playing: the game fills the window from the start (no button to press first), with just a thin
+   margin so the dialog still reads as a window over the Play page; full screen: everything */
+.game-modal-backdrop:has(> .game-modal.is-playing) { padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left)); }
 .game-modal.is-playing {
-  width: min(100%, 75rem);
-  height: min(calc(100vh - 2rem), 52rem);
-  height: min(calc(100dvh - 2rem), 52rem);
+  width: 100%;
+  height: calc(100vh - 1rem);
+  height: calc(100dvh - 1rem);
+  max-height: none;
 }
 .game-modal.is-fullscreen,
 .game-modal:fullscreen {
@@ -1074,7 +1024,8 @@
 
 @media (max-width: 640px) {
   /* phones: the launcher is the whole screen */
-  .game-modal-backdrop { padding: 0; }
+  .game-modal-backdrop,
+  .game-modal-backdrop:has(> .game-modal.is-playing) { padding: 0; }
   .game-modal,
   .game-modal.is-playing {
     width: 100%;

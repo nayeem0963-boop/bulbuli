@@ -8,6 +8,7 @@ import { useLeaderboardStore } from '../../stores/useLeaderboardStore'
 import { useProfileStore } from '../../stores/useProfileStore'
 import { useUiStore } from '../../stores/useUiStore'
 import { MuteButton } from './MuteButton'
+import { GameFullscreenButton } from '../../../../arcade/GameFullscreen.jsx'
 import { NameEntry } from './postgame/Rankings'
 import { PostGameScreen } from './postgame/PostGameScreen'
 import { Segmented, SettingsPanel } from './SettingsPanel'
@@ -47,6 +48,8 @@ function StartScreen() {
           ◆ {wallet.toLocaleString()} <span>Vault</span>
         </button>
         <MuteButton />
+        {/* full screen on the game page (inside the launcher dialog, the dialog has its own) */}
+        <GameFullscreenButton className="nv-icon-btn" iconSize={20} />
       </div>
 
       <div className="nv-panel nv-panel--title">

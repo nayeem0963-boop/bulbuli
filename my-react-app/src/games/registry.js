@@ -6,6 +6,7 @@ import ShapeHuntArt from './shape-hunt/Art.jsx'
 import ShapeSortingArt from './shape-sorting/Art.jsx'
 import SkyRunnerArt from './sky-runner/Art.jsx'
 import BallDashArt from './ball-dash/Art.jsx'
+import BouncyHopArt from './bouncy-hop/Art.jsx'
 import SkywardExplorerArt from './skyward-explorer/Art.jsx'
 import SkyTypewriterArt from './sky-typewriter/Art.jsx'
 import NeonVelocityArt from './neon-velocity/Art.jsx'
@@ -38,10 +39,12 @@ import MathMasterArt from './math-master/Art.jsx'
  *   controls      { en, bn } one line on how to play, shown on the launcher.
  *   path          the game's own address instead of /games/<id> (the tile and dashboard link there;
  *                 App.jsx must have a matching route, and /games/<id> redirects to it).
- *   fullscreen    true puts the game in a frame of its own on its page (GameFullscreen.jsx) that can go
- *                 full screen: the game fills the screen, not the arcade page around it. The game shows
- *                 the button in its own header with <GameFullscreenButton />. (Pattern Quest has its own
- *                 button in its own top bar, inside its frame, so it doesn't need this.)
+ *   fullscreen    true when the game shows the full-screen button in its own header with
+ *                 <GameFullscreenButton />. Every game's page puts it in a frame of its own
+ *                 (GameFullscreen.jsx + arcade/game-shell.css) that fills the screen under the game bar
+ *                 from the start, and is what goes browser full screen: the game, not the arcade page.
+ *                 The game lays itself out under .game-fs-<id>, sized from the frame (container units).
+ *                 (Pattern Quest has its own button in its own top bar, inside its frame.)
  *
  * A game component receives { playerId, language } and should save through useGameProgress(playerId).
  */
@@ -174,6 +177,25 @@ export const GAMES = [
     isNew: true,
   },
   {
+    id: 'bouncy-hop',
+    title: { en: 'Bulbuli Bouncy Hop 3D', bn: 'বুলবুলি বাউন্সি হপ ৩ডি' },
+    tagline: {
+      en: 'Bounce across floating sky tiles and land on the right number or letter!',
+      bn: 'ভাসমান আকাশ-টাইলে লাফিয়ে ঠিক সংখ্যা বা অক্ষরের ওপর নামো!',
+    },
+    skill: { en: 'Skip counting & vowels', bn: 'লাফিয়ে গোনা ও স্বরবর্ণ' },
+    ages: '5–9',
+    color: 'berry',
+    icon: '🏀',
+    category: 'young',
+    zone: 'play-learn',
+    Art: BouncyHopArt,
+    // three.js and the scene load only when the game is opened.
+    load: () => import('./bouncy-hop/index.jsx'),
+    fullscreen: true,
+    isNew: true,
+  },
+  {
     id: 'skyward-explorer',
     title: { en: 'Bulbuli: Skyward Explorer 3D', bn: 'বুলবুলি: আকাশ অভিযাত্রী ৩ডি' },
     tagline: { en: 'Climb floating islands and gather energy crystals.', bn: 'ভাসমান দ্বীপ বেয়ে ওঠো, শক্তি-স্ফটিক জমাও।' },
@@ -186,6 +208,7 @@ export const GAMES = [
     Art: SkywardExplorerArt,
     // three.js and the scene load only when the game is opened.
     load: () => import('./skyward-explorer/index.jsx'),
+    fullscreen: true,
     launch: 'modal',
     controls: {
       en: 'WASD or arrows to run · Space to jump, hold it in the air to glide · drag to look. On touch screens: stick to move, button to jump.',
@@ -209,6 +232,7 @@ export const GAMES = [
     Art: NeonVelocityArt,
     // three.js, Rapier physics and the post-processing load only when the game is opened.
     load: () => import('./neon-velocity/index.jsx'),
+    fullscreen: true,
     launch: 'modal',
     controls: {
       en: 'A/D or arrows to switch lanes · W/Space to jump (again in the air to double jump, hold to glide) · S to slide · Esc to pause. On touch screens: swipe or use the buttons.',
@@ -229,6 +253,7 @@ export const GAMES = [
     Art: SkyTypewriterArt,
     // three.js and the scene load only when the game is opened.
     load: () => import('./sky-typewriter/index.jsx'),
+    fullscreen: true,
     launch: 'modal',
     controls: {
       en: 'Type the letters of a flying word to zap it · Esc to pause. Needs a keyboard.',

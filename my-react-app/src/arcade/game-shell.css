@@ -1,0 +1,200 @@
+/* ------------------------------------------------------------------
+   The game shell: how every game page uses the screen (GamePage.jsx + GameFullscreen.jsx).
+
+   A game opens "immersive" by default, with no button to press first:
+     .arcade.is-game-page   exactly one screen tall (100dvh), never scrolls itself
+       .arcade-header       a compact game bar (back, language, sound, day/night, share, account)
+       .game-stage          everything under the bar
+         .game-fs-frame     the game's own box: fills the stage, and is the element that goes
+                            browser full screen (useFullscreen).
+           .game-fs-viewport  if a screen of a game is taller than the box, this scrolls, not the page.
+
+   The frame is a CSS size container named `game` (its inner .game-fs-viewport scrolls). Games
+   size themselves from it (cqw / cqh / cqi / cqmin units and @container game (...) queries)
+   instead of from 100vw / 100dvh, so one layout
+   works under the game bar, in browser full screen, and in the iPhone "fill the window" fallback.
+   Each game's own CSS lays it out under .game-fs-<id>.
+
+   The tokens below are the shared type, spacing and touch sizes. Container units in them resolve
+   where they are used (inside the frame), so they grow with the game's box, within sensible limits.
+   ------------------------------------------------------------------ */
+
+.game-fs-frame {
+  /* spacing */
+  --game-pad: clamp(0.6rem, 0.3rem + 1.4cqi, 1.75rem);
+  --game-gap: clamp(0.6rem, 0.35rem + 1cqi, 1.5rem);
+  --game-gap-sm: clamp(0.4rem, 0.25rem + 0.5cqi, 0.85rem);
+
+  /* type: utility < body < heading < title < display (the one big thing: a sum, a word) */
+  --game-text-xs: clamp(0.85rem, 0.78rem + 0.2cqi, 1rem);
+  --game-text-sm: clamp(0.95rem, 0.85rem + 0.3cqi, 1.15rem);
+  --game-text-md: clamp(1.05rem, 0.9rem + 0.45cqi, 1.4rem);
+  --game-text-lg: clamp(1.25rem, 0.95rem + 0.9cqi, 2rem);
+  --game-text-xl: clamp(1.6rem, 1rem + 1.9cqi, 3.2rem);
+  --game-text-display: clamp(2.75rem, 1rem + 7cqmin, 8rem);
+
+  /* controls: never smaller than a comfortable fingertip */
+  --game-touch: 3rem;
+  --game-touch-lg: clamp(3.25rem, 2rem + 4cqmin, 6rem);
+  --game-radius: clamp(16px, 0.6rem + 0.6cqi, 26px);
+}
+
+/* ---------- the page: one screen, the bar on top, the game below ---------- */
+
+/* .app-shell's 1px top padding would make a 100dvh page scroll by one pixel */
+.app-shell:has(> .arcade.is-game-page) { padding-top: 0; }
+
+.arcade.is-game-page {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.arcade.is-game-page .arcade-header {
+  flex: none;
+  width: 100%;
+  gap: 0.5rem 0.75rem;
+  padding:
+    max(0.5rem, env(safe-area-inset-top))
+    max(clamp(0.6rem, 2vw, 1.5rem), env(safe-area-inset-right))
+    0.5rem
+    max(clamp(0.6rem, 2vw, 1.5rem), env(safe-area-inset-left));
+}
+
+/* the bar's buttons: still toy buttons, a little slimmer so the game gets the height */
+.arcade.is-game-page .arcade-controls { gap: 0.5rem; }
+.arcade.is-game-page .arcade-icon-button,
+.arcade.is-game-page .arcade-lang,
+.arcade.is-game-page .arcade-back {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  box-shadow: 0 4px 0 var(--ink);
+}
+.arcade.is-game-page .arcade-icon-button:hover,
+.arcade.is-game-page .arcade-lang:hover,
+.arcade.is-game-page .arcade-back:hover { box-shadow: 0 6px 0 var(--ink); }
+.arcade.is-game-page .arcade-icon-button:active,
+.arcade.is-game-page .arcade-lang:active,
+.arcade.is-game-page .arcade-back:active { box-shadow: var(--toy-lift-press); }
+.arcade.is-game-page .arcade-account { min-width: 2.75rem; min-height: 2.75rem; box-shadow: 0 4px 0 var(--ink); }
+.arcade.is-game-page .arcade-account.is-signed-in { width: 2.75rem; }
+
+.arcade.is-game-page .game-stage {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- the game's box ---------- */
+
+/* The frame: the size container, and the element that goes full screen. It never scrolls itself
+   (so its size, and every cq unit inside, is always exactly the box on screen); its inner viewport
+   does the scrolling. A size container doesn't contain layout, so a game's position: fixed pop-ups
+   still cover the window as before (and the whole display in full screen). */
+.game-fs-frame {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  container: game / size;
+  overflow: hidden;
+}
+
+.game-fs-viewport {
+  display: flex;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding:
+    var(--game-gap-sm)
+    max(var(--game-pad), env(safe-area-inset-right))
+    max(var(--game-gap-sm), env(safe-area-inset-bottom))
+    max(var(--game-pad), env(safe-area-inset-left));
+}
+
+/* the game (and its loading spinner or error message) fills the box, and may grow past it */
+.game-fs-viewport > * { flex: 1 0 auto; min-width: 0; }
+.game-fs-viewport > .bgl { flex: 1 1 auto; }
+
+/* browser full screen: the box is the whole display */
+.game-fs-frame.is-fullscreen .game-fs-viewport { padding-top: max(var(--game-gap-sm), env(safe-area-inset-top)); }
+.game-fs-frame.is-fullscreen {
+  width: 100%;
+  height: 100%;
+  color: var(--text);
+  background: var(--page-sky), var(--page-bg);
+  background-color: var(--page-bg);
+  background-repeat: no-repeat;
+}
+
+/* where the browser has no full screen for pages (iPhone Safari), the box fills the window */
+.game-fs-frame.is-filled {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+}
+
+.game-fs-frame::backdrop { background: #eaf6ff; }
+.app-shell[data-theme='dark'] .game-fs-frame::backdrop { background: #0e1830; }
+
+/* ---------- the full-screen button ----------
+   It sits in each game's own header, inside the frame, so it stays on screen in full screen.
+   A header made of a title and a line of text gets .game-fs-header: the text keeps its column and
+   the button lines up on the right. .is-centered keeps a centred title centred. */
+.game-fs-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1rem;
+}
+.game-fs-header > * { grid-column: 1; }
+.game-fs-header > .game-fs-toggle { grid-column: 2; grid-row: 1 / span 2; }
+.game-fs-header.is-centered { grid-template-columns: var(--game-touch) minmax(0, 1fr) var(--game-touch); }
+.game-fs-header.is-centered > * { grid-column: 2; }
+.game-fs-header.is-centered > .game-fs-toggle { grid-column: 3; }
+
+.arcade .game-fs-toggle { flex: none; }
+.arcade .game-fs-toggle svg { display: block; flex: none; }
+.arcade .game-fs-toggle:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
+
+/* ---------- phones ---------- */
+@media (max-width: 640px) {
+  /* the bar stays one row: the back button gives up its words before anything wraps */
+  .arcade.is-game-page .arcade-header { flex-wrap: nowrap; }
+  .arcade.is-game-page .arcade-controls { gap: 0.35rem; min-width: 0; }
+  .arcade.is-game-page .arcade-back { padding: 0 0.8rem 0 0.65rem; }
+}
+@media (max-width: 480px) {
+  .arcade.is-game-page .arcade-back-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .arcade.is-game-page .arcade-back { min-width: 2.75rem; padding: 0; justify-content: center; }
+  .arcade.is-game-page .arcade-icon-button,
+  .arcade.is-game-page .arcade-lang,
+  .arcade.is-game-page .arcade-account { min-width: 2.6rem; min-height: 2.6rem; }
+  .arcade.is-game-page .arcade-account { padding: 0 0.7rem; font-size: 0.95rem; }
+  .arcade.is-game-page .arcade-account.is-signed-in { width: 2.6rem; padding: 0; }
+}
+
+/* short landscape phones: every pixel of height goes to the game */
+@media (max-height: 500px) and (orientation: landscape) {
+  .arcade.is-game-page .arcade-header { padding-block: max(0.3rem, env(safe-area-inset-top)) 0.3rem; }
+}

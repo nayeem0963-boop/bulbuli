@@ -56,7 +56,7 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
             onBack(backLink.to)
           } : undefined}
         >
-          <span aria-hidden="true">‹</span> {backLink.label}
+          <span aria-hidden="true">‹</span> <span className="arcade-back-label">{backLink.label}</span>
         </Link>
       ) : (
         <>

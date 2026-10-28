@@ -318,3 +318,23 @@
   .skx-pill { min-height: 2.3rem; padding: 0 0.7rem; font-size: 1.05rem; }
   .skx-results div { min-width: 4.5rem; }
 }
+
+/* ---------- on its game page, in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar (and the whole display in full screen): the
+   heading stays compact and the 3D stage takes all the height left. */
+.game-fs-skyward-explorer .skx {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  padding-top: 0;
+}
+.game-fs-skyward-explorer .skx-header { margin-bottom: var(--game-gap-sm); }
+.game-fs-skyward-explorer .skx-header h1 { font-size: clamp(1.6rem, 1rem + 1.8cqi, 2.8rem); }
+.game-fs-skyward-explorer .skx-header p { font-size: var(--game-text-sm); }
+.game-fs-skyward-explorer .skx-stage { flex: 1 1 0; height: auto; min-height: 300px; }
+@container game (max-height: 560px) {
+  .game-fs-skyward-explorer .skx-header p { display: none; }
+}

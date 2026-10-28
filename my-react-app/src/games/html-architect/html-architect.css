@@ -1,49 +1,67 @@
-/* HTML Architect inside the arcade game page (GamePage adds .game-page-html-architect). */
+/* HTML Architect inside the arcade's game frame (src/arcade/game-shell.css).
 
-/* The 60/40 split needs more room than the arcade's 1120px column. */
-.arcade.game-page-html-architect .game-stage,
-.arcade.game-page-html-architect .arcade-header {
-  width: min(100% - 2rem, 1560px);
+   The frame fills the screen under the game bar (and the whole display in full screen), so the
+   game card fills it too: the 3D building on the left, the workspace (coach, tag chips, code
+   editor, problems) on the right. The workspace never gets narrower than a comfortable editor
+   width; narrow boxes stack the building above the workspace, and the frame scrolls. */
+
+.game-fs-html-architect .html-architect-page {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
 }
-.arcade.game-page-html-architect .game-stage { padding-bottom: 1rem; }
+.game-fs-html-architect .ha-game--in-page {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+}
+.game-fs-html-architect .ha-split {
+  grid-template-columns: minmax(0, 3fr) minmax(min(27rem, 50%), 2fr);
+}
 
-.html-architect-page { padding-top: 0.5rem; }
+/* readable code and coaching, growing a little on big boxes. The code keeps its 22px lines:
+   WorkspaceEditor.jsx places the error markers and the gutter on that grid. */
+.game-fs-html-architect .ha-highlight,
+.game-fs-html-architect .ha-textarea { font-size: clamp(14px, 13px + 0.12cqi, 16px); }
+.game-fs-html-architect .ha-gutter { font-size: clamp(13px, 12px + 0.12cqi, 15px); }
+.game-fs-html-architect .ha-bubble { font-size: var(--game-text-sm); }
+.game-fs-html-architect .ha-chip { padding: 6px 10px; font-size: clamp(12px, 11px + 0.15cqi, 15px); }
+.game-fs-html-architect .ha-problems { font-size: var(--game-text-xs); }
+.game-fs-html-architect .ha-palette-label { font-size: 12px; }
+.game-fs-html-architect .ha-stage-hint { font-size: var(--game-text-xs); }
 
 .html-architect-note {
-  margin: 0.75rem 0 0;
+  flex: none;
+  margin: 0.5rem 0 0;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: var(--game-text-xs, 0.85rem);
   color: var(--text-muted, #6c6788);
 }
 
-@media (max-width: 640px) {
-  .arcade.game-page-html-architect .game-stage { width: 100%; }
-  .html-architect-page .ha-game--in-page { border-radius: 0; border-left: 0; border-right: 0; }
-}
-
-/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
-   The button ends the game's own header. In full screen the editor and the 3D building fill the
-   screen edge to edge, as in the game's own full-window layout. */
+/* full screen: the editor and the 3D building fill the screen edge to edge */
 .html-architect-page .ha-fs-button { display: grid; place-items: center; padding: 0; }
-
-.game-fs-html-architect.is-fullscreen { padding: 0; background: #f6f1ff; }
-.game-fs-html-architect.is-fullscreen .html-architect-page {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  padding: 0;
-}
-.game-fs-html-architect.is-fullscreen .ha-game--in-page {
-  flex: 1 1 auto;
-  height: 100%;
-  min-height: 0;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
+.game-fs-html-architect.is-fullscreen { background: #f6f1ff; }
+.game-fs-html-architect.is-fullscreen .game-fs-viewport { padding: 0; }
+.game-fs-html-architect.is-fullscreen .ha-game--in-page { border: 0; border-radius: 0; box-shadow: none; }
 .game-fs-html-architect.is-fullscreen .ha-game--in-page .ha-header { border-radius: 0; }
 .game-fs-html-architect.is-fullscreen .html-architect-note { display: none; }
-@media (max-width: 900px) {
-  .game-fs-html-architect.is-fullscreen .html-architect-page { height: auto; min-height: 100%; }
-  .game-fs-html-architect.is-fullscreen .ha-game--in-page { height: auto; min-height: 100%; }
+
+/* short boxes: the footnote gives its line to the editor */
+@container game (max-height: 640px) {
+  .game-fs-html-architect .html-architect-note { display: none; }
+}
+
+/* narrow boxes: building on top, workspace below, the frame scrolls */
+@container game (max-width: 900px) {
+  .game-fs-html-architect .html-architect-page { flex: 1 0 auto; }
+  .game-fs-html-architect .ha-game--in-page { flex: 1 0 auto; height: auto; overflow: visible; }
+  .game-fs-html-architect .ha-split { grid-template-columns: minmax(0, 1fr); }
+  .game-fs-html-architect .ha-stage { height: clamp(260px, 46cqh, 520px); }
+  .game-fs-html-architect .ha-workspace { border-left: 0; border-top: 1px solid var(--ha-line); }
+  .game-fs-html-architect .ha-editor { overflow: visible; }
+}
+@container game (max-width: 640px) {
+  .game-fs-html-architect .ha-game--in-page { border-radius: 14px; }
 }

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { runtime } from '../../stores/runtime'
 import { useLeaderboardStore } from '../../stores/useLeaderboardStore'
 import { MuteButton } from './MuteButton'
+import { GameFullscreenButton } from '../../../../arcade/GameFullscreen.jsx'
 
 /** In-run readout. Every value uses its own primitive selector → re-renders only on change. */
 export function HUD() {
@@ -62,6 +63,8 @@ function TopBar() {
 
       <div className="nv-hud__buttons">
         <MuteButton />
+        {/* full screen on the game page (inside the launcher dialog, the dialog has its own) */}
+        <GameFullscreenButton className="nv-icon-btn" iconSize={20} />
         <button
           className="nv-icon-btn"
           aria-label="Pause"

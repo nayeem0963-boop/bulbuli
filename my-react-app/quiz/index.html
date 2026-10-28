@@ -81,7 +81,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     /* Fluid root size: every rem in this file grows a little on big screens,
-       (Full screen re-lays the page out instead: see .app.is-fullscreen below.) */
+       (the layout itself is composed from the window size: see "Screen-filling layout" below.) */
     html {
       font-size: clamp(16px, 0.3vw + 13px, 18px);
       background: var(--bg);
@@ -92,13 +92,30 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: clamp(16px, 3vw, 40px) clamp(12px, 3vw, 40px);
+      min-height: 100dvh;
       line-height: 1.5;
     }
 
-    .app { width: 100%; max-width: 1100px; }
+    /* .app is the course's own root, and it fills the window from the start: the composed,
+       screen-filling layout below is the normal one, not a full-screen extra. */
+    .app {
+      --drawer-w: min(clamp(420px, 34vw, 640px), 100%);
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding:
+        max(clamp(12px, 2.2vh, 28px), env(safe-area-inset-top))
+        max(clamp(12px, 3vw, 56px), env(safe-area-inset-right))
+        max(clamp(12px, 2.2vh, 28px), env(safe-area-inset-bottom))
+        max(clamp(12px, 3vw, 56px), env(safe-area-inset-left));
+      background: var(--bg);
+    }
+    /* very wide windows: keep lines and answer buttons a readable length */
+    .app > * { width: 100%; max-width: 1800px; margin-inline: auto; }
+    .app > .drawer, .app > .drawer-overlay, .app > .share-toast { width: auto; max-width: none; margin-inline: 0; }
     [hidden] { display: none !important; }
 
     :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
@@ -438,41 +455,36 @@
     }
     .drawer-paused { color: var(--muted); font-size: 0.85rem; }
 
-    /* ===== Full screen =====
-       engine.js puts .app (the course itself, lesson drawer included) in full screen and adds
-       .is-fullscreen. The course then fills the screen as one composed view:
+    /* ===== Screen-filling layout (the normal layout) and full screen =====
+       The course fills the window as one composed view, and the same layout carries into full
+       screen: engine.js puts .app (the course itself, lesson drawer included) in full screen and
+       adds .is-fullscreen, which only pins the height to the screen and scrolls inside .app.
          - overview: course copy beside the ten levels; level rows take their height from the
            screen (within limits), and the pair is centred, so there is no empty band below;
          - quiz: the question beside the four answers, both filling the height under the
            progress bar; the lesson drawer opens as a side panel that moves the quiz over
            instead of covering the answers;
          - results: summary beside the per-level detail.
-       Narrow or upright screens keep the normal single column, edge to edge. Anything taller
-       than the screen scrolls inside .app; nothing is clipped. */
+       Narrow or upright screens get a single column, edge to edge. Anything taller than the
+       screen scrolls (the page normally, inside .app in full screen); nothing is clipped. */
     .app.is-fullscreen {
-      --drawer-w: min(clamp(420px, 34vw, 640px), 100%);
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      max-width: none;
       height: 100vh;
       height: 100dvh;
+      min-height: 0;
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior: contain;
-      padding: clamp(12px, 2.2vh, 28px) clamp(16px, 3vw, 56px);
-      background: var(--bg);
     }
     .app::backdrop { background: #0f172a; }
     html[data-theme="light"] .app::backdrop { background: #f4f6fb; }
-    .app.is-fullscreen .brand-bar { margin-bottom: clamp(10px, 1.6vh, 18px); }
-    .app.is-fullscreen #intro-view,
-    .app.is-fullscreen #quiz-view,
-    .app.is-fullscreen #results-view { display: flex; flex: 1 0 auto; flex-direction: column; min-width: 0; }
-    .app.is-fullscreen .site-footer { margin-top: clamp(12px, 2vh, 24px); }
+    .app .brand-bar { margin-bottom: clamp(10px, 1.6vh, 18px); }
+    .app #intro-view,
+    .app #quiz-view,
+    .app #results-view { display: flex; flex: 1 0 auto; flex-direction: column; min-width: 0; }
+    .app .site-footer { margin-top: clamp(12px, 2vh, 24px); }
 
     /* overview */
-    .app.is-fullscreen .intro-card {
+    .app .intro-card {
       flex: 1 0 auto;
       display: grid;
       grid-template-columns: minmax(17rem, 27rem) minmax(0, 1fr);
@@ -481,24 +493,24 @@
       gap: clamp(24px, 4vw, 72px);
       padding: clamp(1.25rem, 3vh, 3rem) clamp(1.5rem, 3.5vw, 3.5rem);
     }
-    .app.is-fullscreen .intro-copy,
-    .app.is-fullscreen .intro-levels-wrap { min-width: 0; }
-    .app.is-fullscreen .intro-card h1 { font-size: clamp(2.2rem, 3.4vw, 3.4rem); }
-    .app.is-fullscreen .intro-tagline { font-size: clamp(1.1rem, 1.2vw, 1.3rem); }
-    .app.is-fullscreen .intro-actions { margin-bottom: 0; }
-    .app.is-fullscreen .intro-levels-wrap h2 { font-size: 1.15rem; margin-bottom: clamp(10px, 1.6vh, 16px); }
-    .app.is-fullscreen .intro-levels {
+    .app .intro-copy,
+    .app .intro-levels-wrap { min-width: 0; }
+    .app .intro-card h1 { font-size: clamp(2.2rem, 3.4vw, 3.4rem); }
+    .app .intro-tagline { font-size: clamp(1.1rem, 1.2vw, 1.3rem); }
+    .app .intro-actions { margin-bottom: 0; }
+    .app .intro-levels-wrap h2 { font-size: 1.15rem; margin-bottom: clamp(10px, 1.6vh, 16px); }
+    .app .intro-levels {
       /* px, not rem: this page's rem grows with the screen, which would cost a column on big screens */
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
       grid-auto-rows: minmax(clamp(4rem, 9.5vh, 7rem), auto);
       gap: clamp(10px, 1.5vh, 16px);
     }
-    .app.is-fullscreen .intro-level { padding: 12px 16px; }
-    .app.is-fullscreen .intro-level-icon { font-size: 1.55rem; width: 2rem; }
-    .app.is-fullscreen .intro-level-name { font-size: clamp(0.95rem, 0.8rem + 0.35vw, 1.12rem); }
+    .app .intro-level { padding: 12px 16px; }
+    .app .intro-level-icon { font-size: 1.55rem; width: 2rem; }
+    .app .intro-level-name { font-size: clamp(0.95rem, 0.8rem + 0.35vw, 1.12rem); }
 
     /* quiz */
-    .app.is-fullscreen #quiz-view {
+    .app #quiz-view {
       display: grid;
       flex: 1 0 auto;
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
@@ -506,7 +518,7 @@
       grid-template-areas: "q a" "f f" "b b";
       column-gap: clamp(16px, 2.2vw, 32px);
     }
-    .app.is-fullscreen .question-card {
+    .app .question-card {
       grid-area: q;
       display: flex;
       flex-direction: column;
@@ -514,25 +526,25 @@
       margin-bottom: 0;
       padding: clamp(1.5rem, 4vh, 3rem);
     }
-    .app.is-fullscreen .question-text { font-size: clamp(1.25rem, 1.1vw + 0.6rem, 1.9rem); line-height: 1.45; }
-    .app.is-fullscreen .options-grid {
+    .app .question-text { font-size: clamp(1.25rem, 1.4vw + 0.55rem, 2.4rem); line-height: 1.4; }
+    .app .options-grid {
       grid-area: a;
       grid-template-columns: 1fr;
       grid-auto-rows: minmax(4rem, auto);
       align-content: center;
       gap: clamp(10px, 1.6vh, 18px);
     }
-    .app.is-fullscreen .option-btn { min-height: clamp(4rem, 10.5vh, 6.75rem); padding: 1rem 1.25rem; font-size: clamp(1rem, 0.85rem + 0.3vw, 1.15rem); }
-    .app.is-fullscreen .feedback { grid-area: f; }
-    .app.is-fullscreen .action-bar { grid-area: b; }
+    .app .option-btn { min-height: clamp(4rem, 10.5vh, 6.75rem); padding: 1rem 1.25rem; font-size: clamp(1rem, 0.8rem + 0.45vw, 1.35rem); }
+    .app .feedback { grid-area: f; }
+    .app .action-bar { grid-area: b; }
 
     /* the lesson: a side panel beside the quiz, not over it */
-    .app.is-fullscreen .drawer { width: var(--drawer-w); }
-    .app.is-fullscreen .drawer-overlay { display: none; }
-    .app.is-fullscreen:has(.drawer.open) { padding-right: calc(var(--drawer-w) + clamp(16px, 2vw, 32px)); }
+    .app .drawer { width: var(--drawer-w); }
+    .app .drawer-overlay { display: none; }
+    .app:has(.drawer.open) { padding-right: calc(var(--drawer-w) + clamp(16px, 2vw, 32px)); }
 
     /* results */
-    .app.is-fullscreen .results-card {
+    .app .results-card {
       flex: 1 0 auto;
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -544,43 +556,43 @@
 
     /* laptop-sized screens: the course copy on top, the ten levels in a wide grid below it */
     @media (max-width: 1500px) {
-      .app.is-fullscreen .intro-card { grid-template-columns: minmax(0, 1fr); gap: clamp(16px, 3vh, 32px); }
-      .app.is-fullscreen .intro-copy { max-width: 62rem; }
-      .app.is-fullscreen .intro-text { max-width: 80ch; margin-bottom: 12px; }
-      .app.is-fullscreen .intro-stats { margin-bottom: 14px; }
-      .app.is-fullscreen .intro-levels { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+      .app .intro-card { grid-template-columns: minmax(0, 1fr); gap: clamp(16px, 3vh, 32px); }
+      .app .intro-copy { max-width: 62rem; }
+      .app .intro-text { max-width: 80ch; margin-bottom: 12px; }
+      .app .intro-stats { margin-bottom: 14px; }
+      .app .intro-levels { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
     }
 
     /* with the lesson open on a smaller screen, the quiz beside it goes to one column */
     @media (max-width: 1500px) {
-      .app.is-fullscreen:has(.drawer.open) #quiz-view {
+      .app:has(.drawer.open) #quiz-view {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto auto auto auto;
         grid-template-areas: "q" "a" "f" "b";
       }
-      .app.is-fullscreen:has(.drawer.open) .question-card { margin-bottom: 1.25rem; }
+      .app:has(.drawer.open) .question-card { margin-bottom: 1.25rem; }
     }
 
     /* narrow or upright screens: the normal single column, edge to edge; the lesson overlays again */
     @media (max-width: 1000px), (orientation: portrait) and (max-width: 1200px) {
-      .app.is-fullscreen .intro-card,
-      .app.is-fullscreen .results-card { grid-template-columns: minmax(0, 1fr); align-content: start; }
-      .app.is-fullscreen .intro-levels { grid-auto-rows: auto; }
-      .app.is-fullscreen #quiz-view {
+      .app .intro-card,
+      .app .results-card { grid-template-columns: minmax(0, 1fr); align-content: start; }
+      .app .intro-levels { grid-auto-rows: auto; }
+      .app #quiz-view {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto auto auto auto;
         grid-template-areas: "q" "a" "f" "b";
       }
-      .app.is-fullscreen .question-card { margin-bottom: 1.25rem; justify-content: flex-start; }
-      .app.is-fullscreen .options-grid { grid-template-columns: 1fr 1fr; }
-      .app.is-fullscreen .option-btn { min-height: 3.6rem; }
-      .app.is-fullscreen .drawer { width: min(clamp(420px, 42vw, 680px), 100%); }
-      .app.is-fullscreen .drawer-overlay { display: block; }
-      .app.is-fullscreen .drawer-overlay[hidden] { display: none; }
-      .app.is-fullscreen:has(.drawer.open) { padding-right: clamp(16px, 3vw, 56px); }
+      .app .question-card { margin-bottom: 1.25rem; justify-content: flex-start; }
+      .app .options-grid { grid-template-columns: 1fr 1fr; }
+      .app .option-btn { min-height: 3.6rem; }
+      .app .drawer { width: min(clamp(420px, 42vw, 680px), 100%); }
+      .app .drawer-overlay { display: block; }
+      .app .drawer-overlay[hidden] { display: none; }
+      .app:has(.drawer.open) { padding-right: clamp(16px, 3vw, 56px); }
     }
     @media (max-width: 560px) {
-      .app.is-fullscreen .options-grid { grid-template-columns: 1fr; }
+      .app .options-grid { grid-template-columns: 1fr; }
     }
 
     /* ===== Results Screen ===== */

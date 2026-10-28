@@ -1,0 +1,463 @@
+/* Bulbuli Bouncy Hop 3D — the arcade's toy look (tokens from src/styles/global.css). */
+.bh {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding-top: 1rem;
+}
+
+.bh-header { margin-bottom: 1rem; }
+.bh-header h1 { margin: 0 0 0.35rem; font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; }
+.bh-header p { margin: 0; font-size: 1.15rem; }
+.bh-header.is-compact { margin-bottom: 0.6rem; }
+.bh-header.is-compact h1 { font-size: clamp(1.4rem, 4.2vw, 2rem); }
+.bh-header.is-compact p { color: var(--text-muted); font-weight: 700; }
+
+/* Every control resets the site-wide button look first. */
+.bh button {
+  border: var(--toy-border);
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+.bh button:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.bh button:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+.bh button:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
+.bh button:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+/* pill buttons */
+.bh .bh-primary {
+  min-height: 3.6rem;
+  border-radius: 999px;
+  padding: 0 2.1rem;
+  color: #fff;
+  background: linear-gradient(180deg, #ff5fa2 0%, #e2347e 100%);
+  font-size: 1.45rem;
+  letter-spacing: 0.01em;
+}
+.bh .bh-primary:hover { color: #fff; background: linear-gradient(180deg, #ff74b0 0%, #ea3f88 100%); }
+.app-shell[data-theme='dark'] .bh .bh-primary { color: #fff; }
+.bh .bh-secondary { min-height: 3rem; border-radius: 999px; padding: 0 1.3rem; font-size: 1.1rem; }
+.bh .bh-secondary:hover { background: var(--sun-soft); }
+.app-shell[data-theme='dark'] .bh .bh-secondary:hover { color: var(--text); }
+.bh-small { margin: 0.4rem 0 0; color: var(--text-muted); font-weight: 700; }
+
+/* ---------- start screen ---------- */
+.bh-start {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+  gap: 1.5rem;
+}
+.bh-preview {
+  display: grid;
+  aspect-ratio: 4 / 3;
+  place-items: center;
+  border: var(--toy-border);
+  border-radius: 28px;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 80% 15%, rgb(255 255 255 / 70%) 0 6%, transparent 7%),
+    linear-gradient(180deg, #4fa8ff 0%, #9fd6ff 45%, #ffe9f6 78%, #e3d4ff 100%);
+  box-shadow: 0 7px 0 var(--ink);
+}
+.bh-modes h2, .bh-howto h2, .bh-best h2, .bh-settings h2 { margin: 0 0 0.6rem; font-size: 1.3rem; }
+.bh-modes { margin-bottom: 1rem; }
+.bh-mode-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.2rem, 1fr)); gap: 0.55rem; }
+.bh .bh-mode {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 0.5rem;
+  min-height: 3.6rem;
+  border-radius: 22px;
+  padding: 0.4rem 0.8rem;
+  text-align: left;
+  box-shadow: 0 4px 0 var(--ink);
+}
+.bh .bh-mode.is-on { background: linear-gradient(180deg, #fff3b0 0%, #ffd45c 100%); }
+.bh .bh-mode:hover { box-shadow: 0 6px 0 var(--ink); }
+.bh-mode-icon { grid-row: 1 / 3; font-size: 1.6rem; }
+.bh-mode-name { font-size: 1.02rem; line-height: 1.1; }
+.bh-mode-short { color: var(--text-muted); font-size: 0.82rem; font-weight: 800; }
+.bh .bh-mode.is-on .bh-mode-short { color: #6b4a00; }
+.bh-start-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.bh-howto { margin-top: 1.25rem; }
+.bh-howto ul { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.bh-howto li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 0.55rem 0.85rem;
+  background: var(--surface);
+  line-height: 1.35;
+}
+.bh-move-icon { font-size: 1.7rem; }
+.bh-keys {
+  margin-left: 0.3rem;
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+  color: var(--text);
+  background: var(--surface-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.bh-start-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; }
+.bh-best, .bh-settings {
+  border: 2px solid var(--border);
+  border-radius: 22px;
+  padding: 0.85rem 1rem;
+  background: var(--surface);
+}
+.bh-best dl { display: grid; gap: 0.35rem; margin: 0; }
+.bh-best dl > div { display: flex; justify-content: space-between; gap: 0.5rem; }
+.bh-best dt { color: var(--text-muted); font-weight: 700; }
+.bh-best dd { margin: 0; font-family: var(--font-display); font-weight: 800; }
+.bh-settings { display: grid; align-content: start; gap: 0.5rem; }
+.bh .bh-switch {
+  display: flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 999px;
+  padding: 0 0.9rem;
+  font-size: 1.05rem;
+}
+.bh-switch-state { border-radius: 999px; padding: 0.1rem 0.7rem; color: #fff; background: var(--text-muted); font-size: 0.9rem; }
+.bh .bh-switch[aria-pressed='true'] .bh-switch-state { background: var(--leaf, #2e9e6b); }
+.app-shell[data-theme='dark'] .bh-switch-state { color: #10141f; }
+
+/* ---------- the sky stage ---------- */
+.bh-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  max-height: 80svh;
+  overflow: hidden;
+  border: var(--toy-border);
+  border-radius: 28px;
+  background: linear-gradient(180deg, #4fa8ff 0%, #9fd6ff 40%, #ffe9f6 75%, #e3d4ff 100%);
+  box-shadow: 0 7px 0 var(--ink);
+  outline: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.bh-stage:active { cursor: grabbing; }
+.bh.is-playing .bh-stage { touch-action: none; } /* drags steer the ball instead of scrolling the page */
+.arcade .bh-stage:focus,
+.arcade .bh-stage:focus-visible { outline: none; } /* focused by the game itself (not a Tab stop) */
+.bh-canvas { position: absolute !important; inset: 0; }
+.bh-loading, .bh-noweb {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  margin: 0;
+  padding: 1.5rem;
+  place-items: center;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* top bar: stats · target · controls */
+.bh-hud {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  left: 0.6rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+.bh-hud-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; pointer-events: auto; }
+.bh-controls { justify-content: flex-end; }
+.bh-hud-target { display: flex; justify-content: center; pointer-events: none; }
+.bh-pill {
+  display: inline-flex;
+  min-height: 2.6rem;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.1rem 0.85rem;
+  color: var(--ink);
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 3px 0 var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.bh-pill small { color: #55607a; font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.bh-pill b { font-size: 1.15rem; white-space: nowrap; }
+.bh-pill em { color: #e2347e; font-style: normal; font-size: 0.95rem; }
+.bh-pill.is-score { background: #fff4c2; }
+.bh-pill.is-combo.is-hot { background: linear-gradient(90deg, #ffe0ef, #fff4c2); }
+.bh-pill.is-hearts, .bh-pill.is-practice { flex-direction: row; align-items: center; }
+.bh-pill.is-practice { background: #e3f7ec; font-size: 1rem; }
+.bh-hearts { display: inline-flex; gap: 0.1rem; font-size: 1.35rem; line-height: 1; }
+.bh-hearts span { color: rgb(27 42 73 / 22%); }
+.bh-hearts span.is-on { color: #ff4d6d; }
+.bh .bh-icon { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: 999px; padding: 0; font-size: 1.15rem; box-shadow: 0 3px 0 var(--ink); }
+.bh .bh-pause {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0 1rem;
+  color: #fff;
+  background: linear-gradient(180deg, #8a6bff 0%, #6a45e8 100%);
+  box-shadow: 0 3px 0 var(--ink);
+  font-size: 1.05rem;
+}
+.bh .bh-pause:hover { color: #fff; box-shadow: 0 5px 0 var(--ink); }
+
+/* the Learning Target badge */
+.bh-target {
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  min-width: 11rem;
+  border: 3px solid var(--ink);
+  border-radius: 24px;
+  padding: 0.3rem 1rem 0.45rem;
+  color: var(--ink);
+  background: linear-gradient(180deg, #fffbe6 0%, #ffe48a 100%);
+  box-shadow: 0 4px 0 var(--ink), 0 0 0 4px rgb(255 255 255 / 55%);
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-align: center;
+}
+.bh-target-label { color: #6b4a00; font-size: 0.85rem; line-height: 1.1; }
+.bh-target-main { display: flex; align-items: center; gap: 0.35rem; font-size: 1.55rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.bh-target-main.is-letters { flex-wrap: wrap; justify-content: center; max-width: min(36rem, 88cqw); gap: 0.3rem; font-size: 1.3rem; }
+.bh-trail { min-width: 1.6rem; border-radius: 12px; padding: 0.1rem 0.35rem; background: rgb(255 255 255 / 75%); }
+.bh-arrow { color: #e2347e; }
+.bh-next {
+  display: inline-grid;
+  min-width: 2rem;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  color: #fff;
+  background: #e2347e;
+}
+
+/* points pop-up, toasts and the first-round hint */
+.bh-popup {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  text-shadow: 0 3px 0 var(--ink), 0 0 12px rgb(255 63 164 / 70%);
+  -webkit-text-stroke: 1.5px var(--ink);
+  transform: translateX(-50%);
+  pointer-events: none;
+  opacity: 0;
+}
+.bh-popup.is-multi { color: #ffe600; }
+.bh-popup small { font-size: 0.6em; }
+.bh-toast {
+  position: absolute;
+  bottom: 6rem;
+  left: 50%;
+  margin: 0;
+  max-width: calc(100% - 2rem);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.4rem 1.1rem;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 4px 0 var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  font-weight: 800;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.bh-toast.is-good { background: #fff4c2; }
+.bh-toast.is-bump { background: #ffe1e7; }
+.bh-hint {
+  position: absolute;
+  bottom: 6rem;
+  left: 50%;
+  display: flex;
+  max-width: calc(100% - 2rem);
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 20px;
+  padding: 0.3rem 0.4rem 0.3rem 0.9rem;
+  color: #fff;
+  background: rgb(27 42 73 / 82%);
+  font-weight: 800;
+  transform: translateX(-50%);
+}
+.bh-toast ~ .bh-hint { display: none; }
+.bh .bh-hint button { width: 2rem; height: 2rem; flex: none; border: 0; border-radius: 999px; padding: 0; color: #fff; background: rgb(255 255 255 / 20%); box-shadow: none; }
+.bh .bh-hint button:hover { color: #fff; transform: none; box-shadow: none; }
+
+/* hold-to-steer buttons, bottom corners */
+.bh-pad {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.7rem;
+  left: 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.bh .bh-pad-btn {
+  display: grid;
+  width: 4.4rem;
+  height: 4.4rem;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0;
+  background: rgb(255 255 255 / 88%);
+  font-size: 1.6rem;
+  pointer-events: auto;
+  -webkit-touch-callout: none;
+}
+
+/* pause and results */
+.bh-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  padding: 1rem;
+  place-items: center;
+  background: rgb(27 42 73 / 45%);
+  cursor: default;
+}
+.bh-card {
+  width: min(28rem, 100%);
+  max-height: 100%;
+  overflow: auto;
+  border: var(--toy-border);
+  border-radius: 30px;
+  padding: 1.4rem 1.25rem;
+  background: var(--surface);
+  box-shadow: 0 7px 0 var(--ink);
+  text-align: center;
+}
+.bh-card h2 { margin: 0 0 0.5rem; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+.bh-card-actions { display: grid; gap: 0.6rem; margin-top: 1rem; }
+.bh-result-badge { margin: 0; font-size: 3rem; line-height: 1; }
+.bh-result-score {
+  margin: 0 0 0.6rem;
+  color: #e2347e;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 7vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1;
+}
+.bh-result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin: 0; }
+.bh-result-stats > div { border-radius: 18px; padding: 0.5rem; background: var(--surface-muted); }
+.bh-result-stats dt { color: var(--text-muted); font-size: 0.82rem; font-weight: 800; }
+.bh-result-stats dd { margin: 0; font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; }
+.bh-record { margin: 0.75rem 0 0; color: var(--grape); font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; }
+.bh-xp { margin: 0.4rem 0 0; color: var(--grape); font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .bh-toast { animation: bh-pop 320ms cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+  .bh-popup { animation: bh-float 900ms ease-out both; }
+  .bh-pill.is-bumped { animation: bh-shake 420ms ease; }
+  .bh-pill.is-combo.is-popped { animation: bh-boing 520ms cubic-bezier(0.3, 1.6, 0.5, 1); }
+  .bh-target { animation: bh-breathe 2.4s ease-in-out infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bh-popup { opacity: 1; animation: bh-fade 900ms both; }
+  .bh button { transition: none; }
+  .bh button:hover { transform: none; }
+}
+@keyframes bh-pop { from { opacity: 0; transform: translate(-50%, 8px) scale(0.9); } }
+@keyframes bh-float {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, 0) scale(1.15); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -40px) scale(1); }
+}
+@keyframes bh-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes bh-shake {
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+@keyframes bh-boing { 40% { transform: scale(1.18); } }
+@keyframes bh-breathe { 50% { transform: translateY(-2px); } }
+
+/* ---------- small screens ---------- */
+@media (max-width: 760px) {
+  .bh-start { grid-template-columns: minmax(0, 1fr); }
+  .bh-preview { aspect-ratio: 16 / 9; }
+  .bh-start-row { grid-template-columns: minmax(0, 1fr); }
+  .bh-stage { aspect-ratio: 3 / 4; }
+  .bh-start-actions > button { flex: 1 1 10rem; }
+}
+
+/* ---------- in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar (and the whole display in full screen). While
+   playing, the sky takes all the height under the compact heading. */
+.game-fs-bouncy-hop .bh {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1600px;
+  min-height: 100%;
+  padding-top: 0;
+}
+.game-fs-bouncy-hop .bh:not(.is-playing) { max-width: 1300px; justify-content: center; }
+.game-fs-bouncy-hop .bh.is-playing { flex: 1 1 0; min-height: 0; }
+.game-fs-bouncy-hop .bh-header h1 { font-size: clamp(2rem, 1rem + 3cqi, 3.6rem); }
+.game-fs-bouncy-hop .bh-header.is-compact h1 { font-size: clamp(1.3rem, 0.8rem + 1.6cqi, 2rem); }
+.game-fs-bouncy-hop .bh-header p { font-size: var(--game-text-md); }
+.game-fs-bouncy-hop .bh.is-playing .bh-stage {
+  flex: 1 1 0;
+  min-height: 18rem;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+/* narrow stages (phones, or a small window): the target badge gets its own row under the stats */
+@container game (max-width: 820px) {
+  .bh-hud { grid-template-columns: minmax(0, 1fr) auto; }
+  .bh-hud-target { grid-column: 1 / -1; grid-row: 2; }
+  .bh-pause-label { display: none; }
+}
+@container game (max-width: 480px) {
+  .bh-pill { min-height: 2.3rem; padding: 0.05rem 0.55rem; }
+  .bh-pill b { font-size: 0.98rem; }
+  .bh-pill small { font-size: 0.58rem; }
+  .bh-pill.is-high { display: none; } /* the high score is on the results card and the start screen */
+  .bh-hud-group { gap: 0.3rem; }
+  .bh .bh-icon, .bh .bh-pause { width: 2.4rem; height: 2.4rem; min-height: 2.4rem; padding: 0; justify-content: center; }
+  .bh-hearts { font-size: 1.1rem; }
+  .bh-target { min-width: 0; padding: 0.25rem 0.8rem 0.35rem; }
+  .bh-target-main { font-size: 1.3rem; }
+  .bh .bh-pad-btn { width: 3.8rem; height: 3.8rem; }
+  .bh-toast, .bh-hint { bottom: 5rem; }
+}

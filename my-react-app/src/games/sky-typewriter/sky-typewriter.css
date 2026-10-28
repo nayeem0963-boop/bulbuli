@@ -20,6 +20,7 @@
   font-size: clamp(1.5rem, 4vw, 2.2rem);
   text-align: center;
 }
+.stw-head { flex: none; }
 
 .stw-sr-only {
   position: absolute;
@@ -298,3 +299,10 @@
   .stw-finish__stats dd { font-size: 1.25rem; }
   .stw-finish__xp-value { font-size: 1.7rem; }
 }
+
+/* ---------- on its game page, in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar (and the whole display in full screen): the title
+   row stays compact and the sky takes all the height left. */
+.game-fs-sky-typewriter .stw { flex: 1 1 0; min-height: 0; gap: var(--game-gap-sm); }
+.game-fs-sky-typewriter .stw-title { font-size: clamp(1.5rem, 1rem + 1.5cqi, 2.6rem); }
+.game-fs-sky-typewriter .stw-stage { flex: 1 1 0; height: auto; min-height: 320px; }

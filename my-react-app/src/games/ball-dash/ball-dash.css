@@ -317,21 +317,25 @@
   .bd-toast { top: 6.2rem; }
 }
 
-/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
-   While playing, the track takes all the height under the compact heading. It never gets
-   narrower than its phone shape (3:4), so all three lanes stay in view. */
-.game-fs-ball-dash.is-fullscreen .bd {
+/* ---------- in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar (and the whole display in full screen), so this is
+   the normal layout. While playing, the track takes all the height under the compact heading. It
+   never gets narrower than its phone shape (3:4), so all three lanes stay in view. */
+.game-fs-ball-dash .bd {
   display: flex;
   flex-direction: column;
-  max-width: 1500px;
+  width: 100%;
+  max-width: 1600px;
   min-height: 100%;
   padding-top: 0;
 }
-.game-fs-ball-dash.is-fullscreen .bd:not(.is-playing) { max-width: 1100px; justify-content: center; }
-.game-fs-ball-dash.is-fullscreen .bd.is-playing { height: 100%; }
-.game-fs-ball-dash.is-fullscreen .bd.is-playing .bd-stage {
+.game-fs-ball-dash .bd:not(.is-playing) { max-width: 1300px; justify-content: center; }
+.game-fs-ball-dash .bd.is-playing { flex: 1 1 0; min-height: 0; }
+.game-fs-ball-dash .bd-header h1 { font-size: clamp(2rem, 1rem + 3cqi, 3.6rem); }
+.game-fs-ball-dash .bd-header p { font-size: var(--game-text-md); }
+.game-fs-ball-dash .bd.is-playing .bd-stage {
   flex: 1 1 0;
   min-height: 16rem;
-  max-height: calc((100vw - 2rem) * 4 / 3);
+  max-height: calc(100cqw * 4 / 3);
   aspect-ratio: auto;
 }

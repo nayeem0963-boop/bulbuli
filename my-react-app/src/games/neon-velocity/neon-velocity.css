@@ -753,3 +753,26 @@
 @media (prefers-reduced-motion: reduce) {
   .nv-difficulty__opt { transition: none; }
 }
+
+/* ---------- on its game page, in the arcade's game frame (src/arcade/game-shell.css) ----------
+   The frame fills the screen under the game bar: the neon world fills the frame, in a rounded
+   toy-outlined window; in full screen it goes edge to edge. */
+.game-fs-neon-velocity .nv-root {
+  position: relative;
+  flex: 1 1 0;
+  height: auto;
+  min-height: 320px;
+  border: 3px solid #1b2a49;
+  border-radius: 1.25rem;
+}
+.game-fs-neon-velocity.is-fullscreen { background: #07020f; }
+.game-fs-neon-velocity.is-fullscreen .game-fs-viewport { padding: 0; }
+.game-fs-neon-velocity.is-fullscreen .nv-root { border: 0; border-radius: 0; }
+
+/* Readability on desktop-sized screens (its page and the launcher dialog): the smallest uppercase
+   labels get a floor of 12px; phones keep the compact scale above. */
+@media (min-width: 900px) and (min-height: 600px) {
+  .nv-root :is(.nv-hud__label, .nv-run-stats dt, .nv-item-card__rarity, .nv-difficulty__best, .nv-hud__multiplier) { font-size: 12px; }
+  .nv-root :is(.nv-results dt, .nv-boost__label, .nv-postgame__course, .nv-run-stats dd small, .nv-rankings__board,
+    .nv-rank-row__detail, .nv-ghost-delta span, .nv-difficulty__tag, .nv-difficulty__name) { font-size: 12.5px; }
+}

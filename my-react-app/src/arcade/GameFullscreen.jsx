@@ -1,15 +1,18 @@
 /**
- * Full screen for one game, shared by every game that supports it (`fullscreen: true` in registry.js).
+ * The game's own box, and full screen for it. GamePage wraps every game in the frame.
  *
- *   GameFullscreenFrame    GamePage wraps the game in this. Its div is the element that goes full
- *                          screen: the game itself, without the arcade's bar, header or footer.
- *                          It never unmounts while the game runs, so whichever screen the game is
- *                          on (menu, play, results), its state, score and timers carry through.
+ *   GameFullscreenFrame    Fills the screen under the game bar, so every game opens immersive (see
+ *                          game-shell.css), and is the element that goes browser full screen: the
+ *                          game itself, without the arcade's bar. It is a CSS size container named
+ *                          `game`: games size themselves from it (cqw/cqh, @container game), so one
+ *                          layout works in both states. It never unmounts while the game runs, so
+ *                          whichever screen the game is on (menu, play, results), its state, score
+ *                          and timers carry through.
  *   GameFullscreenButton   the game puts this in its own header or toolbar. Outside a frame (e.g. the
  *                          launcher dialog, which has its own full-screen button) it renders nothing.
  *
- * In full screen the frame gets `is-fullscreen` (and `is-filled` in the iPhone fallback) and the
- * class `game-fs-<id>`, so each game's CSS can lay itself out for the whole screen.
+ * The frame always has the class `game-fs-<id>`, which each game's CSS lays itself out under; in full
+ * screen it also gets `is-fullscreen` (and `is-filled` in the iPhone fallback).
  * See useFullscreen for how the browser state is tracked (Esc, browser UI, failures).
  */
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
@@ -39,7 +42,11 @@ export function GameFullscreenFrame({ gameId, language, forceExit = false, child
 
   return (
     <div ref={frame} className={className}>
-      <FullscreenContext.Provider value={value}>{children}</FullscreenContext.Provider>
+      {/* the frame is the size container and never scrolls (its cq units always match the box on
+          screen); this inner box scrolls when a screen of the game is taller than the frame */}
+      <div className="game-fs-viewport">
+        <FullscreenContext.Provider value={value}>{children}</FullscreenContext.Provider>
+      </div>
     </div>
   )
 }
