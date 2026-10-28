@@ -66,9 +66,9 @@ function DashboardHeader({ theme, onToggleTheme, onLogout, signingOut }) {
   const dark = theme === 'dark'
   return (
     <header className="db-header">
-      <Link className="db-logo" to="/" aria-label="Pro Coder: back to the games">
+      <Link className="db-logo" to="/" aria-label="Bulbuli: back to the games">
         <BrandMark size={36} />
-        <span>Pro Coder</span>
+        <span>Bulbuli</span>
       </Link>
       <nav className="db-header-actions" aria-label="Dashboard">
         <Link className="db-btn db-btn-ghost" to="/">

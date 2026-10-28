@@ -1,0 +1,225 @@
+/* ------------------------------------------------------------------
+   Bulbuli Buddies: the home page invite card, the share dialog and the
+   small "share this game" button. Same toy look as the arcade: thick
+   outlines, a hard lift under anything you can press.
+   ------------------------------------------------------------------ */
+
+/* ---------- invite card (home page) ---------- */
+
+.buddy-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  width: 100%;
+  margin-top: clamp(1.5rem, 4vw, 2.25rem);
+  border: var(--toy-border);
+  border-radius: var(--radius-panel);
+  padding: 1rem 1.4rem;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 92% 18%, rgb(255 255 255 / 55%) 0 2.2rem, transparent 2.3rem),
+    linear-gradient(120deg, var(--sun-soft), var(--sky-soft, #dff1ff));
+  box-shadow: 0 6px 0 var(--ink);
+}
+
+.app-shell[data-theme='dark'] .buddy-card {
+  background: linear-gradient(120deg, var(--surface), var(--sky-soft));
+}
+
+.buddy-card-mascot { width: 72px; height: auto; margin: -1.6rem 0 -0.6rem; }
+.buddy-card-copy { min-width: 0; }
+.buddy-card h2 { margin: 0; font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 1.6rem); line-height: 1.15; }
+.buddy-card p { margin: 0.2rem 0 0; max-width: 44ch; }
+
+.arcade .buddy-card-secondary {
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.arcade .buddy-card-secondary:hover { color: var(--text); }
+
+.buddy-card-button,
+.buddy-button {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0 1.3rem;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.buddy-card-button { padding: 0 1.5rem; background: var(--sun); font-size: 1.2rem; white-space: nowrap; }
+.buddy-button.is-primary { background: var(--sun); }
+.buddy-button.is-quiet { min-height: 2.75rem; background: transparent; box-shadow: none; border-color: transparent; color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+
+.buddy-card-button:hover,
+.buddy-button:not(.is-quiet):not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.buddy-card-button:active,
+.buddy-button:not(.is-quiet):not(:disabled):active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+.buddy-button:disabled { opacity: 0.7; cursor: progress; }
+
+.buddy-card-button:focus-visible,
+.buddy-button:focus-visible,
+.buddy-dialog-x:focus-visible,
+.share-game-button:focus-visible,
+.buddy-option:has(input:focus-visible) {
+  outline: 4px solid var(--sky, #2e7dd7);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .buddy-card { grid-template-columns: auto 1fr; padding: 1rem; }
+  .buddy-card-mascot { width: 56px; margin: -1.2rem 0 0; align-self: start; }
+  .buddy-card-button { grid-column: 1 / -1; width: 100%; }
+}
+
+/* ---------- the share dialog ---------- */
+
+.buddy-dialog {
+  width: min(100% - 1.5rem, 34rem);
+  max-height: calc(100dvh - 1.5rem);
+  margin: auto;
+  border: 0;
+  padding: 0;
+  overflow: visible;
+  color: var(--text);
+  background: transparent;
+  text-align: start;
+}
+
+.buddy-dialog::backdrop { background: rgb(11 22 46 / 55%); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .buddy-dialog[open] .buddy-dialog-panel { animation: buddy-pop 220ms cubic-bezier(0.3, 1.35, 0.5, 1) both; }
+}
+@keyframes buddy-pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } }
+
+.buddy-dialog-panel {
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
+  border: var(--toy-border);
+  border-radius: var(--radius-panel);
+  padding: 1.1rem 1.25rem 0.75rem;
+  background: var(--surface);
+  box-shadow: 0 8px 0 var(--ink);
+  font-family: var(--font-body);
+}
+
+.buddy-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.buddy-dialog .buddy-dialog-head h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; line-height: 1.15; }
+.buddy-dialog .buddy-dialog-intro { margin: 0.25rem 0 0.9rem; color: var(--text-muted); }
+
+.buddy-dialog-x {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: var(--toy-border);
+  border-radius: 999px;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift-press);
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.buddy-options { display: grid; gap: 0.5rem; margin: 0 0 0.9rem; border: 0; padding: 0; }
+.buddy-options legend { margin: 0.2rem 0 0.45rem; padding: 0; font-weight: 800; }
+
+.buddy-option {
+  position: relative;
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.7rem;
+  border: 3px solid var(--border-strong, #c5d5ea);
+  border-radius: 18px;
+  padding: 0.45rem 0.8rem;
+  background: var(--surface-muted);
+  cursor: pointer;
+}
+.buddy-option.is-picked { border-color: var(--ink); background: var(--sun-soft); box-shadow: var(--toy-lift-press); }
+.app-shell[data-theme='dark'] .buddy-option.is-picked { border-color: var(--sun); }
+.buddy-option input { width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--teal, #0b7a6b); }
+.buddy-option-icon { font-size: 1.4rem; }
+.buddy-option-copy { display: grid; }
+.buddy-option-label { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; line-height: 1.15; }
+.buddy-option-hint { color: var(--text-muted); font-size: 0.9rem; }
+
+.buddy-preview {
+  display: grid;
+  gap: 0.3rem;
+  border-radius: 18px;
+  padding: 0.75rem 0.9rem;
+  background: var(--surface-muted);
+}
+.buddy-preview-label { margin: 0; color: var(--text-muted); font-size: 0.82rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.buddy-preview-message { margin: 0 0 0.4rem; font-size: 1.02rem; line-height: 1.45; overflow-wrap: anywhere; }
+.buddy-link-field {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 2px solid var(--border-strong, #c5d5ea);
+  border-radius: 12px;
+  padding: 0 0.7rem;
+  color: var(--text);
+  background: var(--surface);
+  font: 600 0.95rem/1 ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+.buddy-link-field:focus-visible { outline: 3px solid var(--sky, #2e7dd7); outline-offset: 2px; }
+
+.buddy-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.9rem; }
+.buddy-actions .buddy-button { flex: 1 1 9rem; padding: 0 0.9rem; font-size: 1.02rem; }
+
+.buddy-note { margin: 0.55rem 0 0; color: var(--text-muted); font-size: 0.92rem; }
+
+.buddy-status { min-height: 1.5em; margin: 0.6rem 0 0; font-weight: 800; }
+.buddy-status.is-ok { color: var(--green, #2e9e6b); }
+.buddy-status.is-info { color: var(--text-muted); }
+.buddy-status.is-error { color: var(--red-dark, #cf2a36); }
+.app-shell[data-theme='dark'] .buddy-status.is-ok { color: var(--success); }
+.app-shell[data-theme='dark'] .buddy-status.is-error { color: var(--danger); }
+
+.buddy-safety { margin: 0.3rem 0 0; color: var(--text-muted); font-size: 0.88rem; }
+.buddy-dialog-foot { display: flex; justify-content: flex-end; margin-top: 0.25rem; }
+
+@media (max-width: 420px) {
+  .buddy-dialog-panel { padding: 0.9rem 0.9rem 0.6rem; }
+  .buddy-actions .buddy-button { flex-basis: 100%; }
+}
+
+/* ---------- "share this game" ---------- */
+
+.share-game-button { cursor: pointer; }
+.share-game-button.is-pill {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.4rem;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0 1.1rem;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+}

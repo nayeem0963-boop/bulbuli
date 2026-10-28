@@ -24,7 +24,7 @@ import { GUEST_PLAYER_ID } from './hooks/useGameProgress.js'
 // The 3D driving game pulls in three.js, so it loads only when /drive is visited.
 const VehicleGame = lazy(() => import('./components/3d_procedural_driving_game.jsx'))
 
-const SITE_TITLE = 'Pro Coder - Fun & Free Educational Games for Kids'
+const SITE_TITLE = 'Bulbuli - Fun & Free Educational Games for Kids'
 const SITE_DESCRIPTION = 'Play free mini-games with Bulbuli the bird: counting, matching, typing, patterns and logic puzzles. Earn XP and level up, in English or Bangla.'
 const isArcadePath = (pathname) => pathname === '/' || ['/games/', '/play/', '/share/'].some((start) => pathname.startsWith(start))
 
@@ -40,19 +40,19 @@ function RouteTitle() {
     let description = SITE_DESCRIPTION
 
     if (pathname === '/share/math-hero') {
-      title = 'Math Hero: Play to Learn on Pro Coder'
-      description = 'Hey Explorer! Join Math Hero on Pro Coder to master math, solve fun puzzles and level up, through free learning games for kids.'
+      title = 'Math Hero: Play to Learn on Bulbuli'
+      description = 'Hey Explorer! Join Math Hero on Bulbuli to master math, solve fun puzzles and level up, through free learning games for kids.'
     } else if (game) {
-      title = `${game.title.en}: Free Educational Game for Kids | Pro Coder`
+      title = `${game.title.en}: Free Educational Game for Kids | Bulbuli`
       description = `${game.tagline.en} A free ${game.skill.en.toLowerCase()} game for ages ${game.ages}, in English or Bangla.`
     } else if (pathname === '/login') {
-      title = 'Sign in or Sign up | Pro Coder'
-      description = 'Sign in to Pro Coder to save game XP and levels on every device. All games are free without an account.'
+      title = 'Sign in or Sign up | Bulbuli'
+      description = 'Sign in to Bulbuli to save game XP and levels on every device. All games are free without an account.'
     } else if (pathname === '/dashboard') {
-      title = 'My Progress | Pro Coder'
-      description = 'Your Pro Coder level, XP and game activity.'
+      title = 'My Progress | Bulbuli'
+      description = 'Your Bulbuli level, XP and game activity.'
     } else if (pathname === '/game') {
-      title = 'VoxelCraft: 3D Game Studio | Pro Coder'
+      title = 'VoxelCraft: 3D Game Studio | Bulbuli'
       description = 'Build your own 3D voxel levels, play levels made by other players and vote for the best.'
     }
 

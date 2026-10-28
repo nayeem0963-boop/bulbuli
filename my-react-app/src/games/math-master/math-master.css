@@ -2,31 +2,18 @@
   Math Master — the 12+ maths lab.
   Bulbuli's toy language (navy outlines, chunky Baloo headings, sunshine-yellow "go" buttons) on a
   deep-indigo lab panel, so it reads as a more grown-up sibling of Math Hero's light quiz card.
-  The panel is dark in both day and night themes; text contrast is ≥ 7:1 on it.
+  Dark by default, with its own light theme (the sun/moon button in its header, saved on this
+  device); it doesn't follow the arcade's day/night switch. Colours are tokens: see the end of the file.
 */
 .mm {
-  --mm-bg: #0d1433;
-  --mm-surface: #141d45;
-  --mm-surface-2: #1a2557;
-  --mm-line: #2e3d7c;
-  --mm-text: #eef3ff;
-  --mm-muted: #b3c0e4;
-  --mm-sun: #ffc93c;
-  --mm-right: #4fe39a;
-  --mm-right-bg: #123b33;
-  --mm-wrong: #ffb04f;
-  --mm-wrong-bg: #402b16;
-  --mm-focus: #7cc4ff;
+  /* colours: the token sets at the end of this file (dark by default, light via data-mm-theme) */
   max-width: 1180px;
   margin: 1rem auto 0;
   padding: clamp(1rem, 2.4vw, 1.75rem);
   border: var(--toy-border, 3px solid #1b2a49);
   border-radius: var(--radius-panel, 28px);
   color: var(--mm-text);
-  background:
-    radial-gradient(1200px 500px at 85% -10%, rgb(124 92 255 / 22%), transparent 60%),
-    radial-gradient(900px 420px at -10% 110%, rgb(46 230 200 / 12%), transparent 60%),
-    var(--mm-bg);
+  background: var(--mm-panel-bg);
   box-shadow: 0 7px 0 var(--ink, #1b2a49);
   font-family: var(--font-body);
 }
@@ -47,12 +34,12 @@
 }
 .mm-header.is-compact { margin-bottom: 0.75rem; }
 .mm-brand { display: flex; align-items: center; gap: 0.85rem; min-width: 0; }
-.mm-logo { display: grid; flex: none; place-items: center; color: var(--mm-sun); }
+.mm-logo { display: grid; flex: none; place-items: center; color: var(--mm-sun-ink); }
 .mm-header.is-compact .mm-logo svg { width: 34px; height: 34px; }
 .mm-header h1 { margin: 0; font-size: clamp(2rem, 4.6vw, 2.9rem); line-height: 1; letter-spacing: 0.01em; }
 .mm-header.is-compact h1 { font-size: 1.45rem; }
 .mm-eyebrow {
-  color: var(--mm-sun);
+  color: var(--mm-sun-ink);
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -92,12 +79,12 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  border: 3px solid #050a17;
+  border: 3px solid var(--mm-edge);
   border-radius: 999px;
   padding: 0 1.4rem;
-  color: #fff;
+  color: var(--mm-text);
   background: var(--mm-surface-2);
-  box-shadow: 0 4px 0 #050a17;
+  box-shadow: 0 4px 0 var(--mm-edge);
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 800;
@@ -105,11 +92,11 @@
   touch-action: manipulation;
   transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
 }
-.mm .mm-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #050a17; }
-.mm .mm-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #050a17; }
-.mm .mm-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 0 4px 0 #050a17; }
-.mm .mm-btn.is-primary { color: #1b2a49; background: var(--mm-sun); }
-.mm .mm-btn.is-secondary { color: #fff; background: #3a4fa3; }
+.mm .mm-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--mm-edge); }
+.mm .mm-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--mm-edge); }
+.mm .mm-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 0 4px 0 var(--mm-edge); }
+.mm .mm-btn.is-primary { color: var(--mm-on-sun); background: var(--mm-sun); }
+.mm .mm-btn.is-secondary { color: #fff; background: var(--mm-secondary); }
 .mm .mm-btn.is-ghost { border-color: var(--mm-line); background: transparent; box-shadow: none; }
 .mm .mm-btn.is-ghost:hover { background: var(--mm-surface-2); box-shadow: none; }
 .mm .mm-btn.is-small { min-height: 2.5rem; padding: 0 1rem; font-size: 0.95rem; }
@@ -160,7 +147,7 @@
   width: 3rem;
   height: 3rem;
   place-items: center;
-  border: 3px solid #050a17;
+  border: 3px solid var(--mm-edge);
   border-radius: 14px;
   color: #10163a;
   background: var(--mm-level);
@@ -181,7 +168,7 @@
 .mm-pips > span { width: 14px; height: 6px; border-radius: 3px; background: var(--mm-line); }
 .mm-pips > span.is-on { background: var(--mm-level, var(--mm-sun)); }
 .mm-stars { display: inline-flex; gap: 2px; color: var(--mm-line); line-height: 1; }
-.mm-stars .is-on { color: var(--mm-sun); text-shadow: 0 0 10px rgb(255 201 60 / 45%); }
+.mm-stars .is-on { color: var(--mm-star); text-shadow: 0 0 10px rgb(255 201 60 / 45%); }
 .mm-stars.is-sm { font-size: 1rem; }
 .mm-stars.is-lg { margin: 0.4rem 0 0.6rem; font-size: 2.6rem; }
 
@@ -291,7 +278,7 @@
 .mm-chip.is-topic { border-color: var(--mm-level, var(--mm-sun)); color: var(--mm-level, var(--mm-sun)); }
 .mm-chips.is-practise li { border-color: var(--mm-wrong); }
 .mm-rewards { display: grid; gap: 0.3rem; margin: 0; padding-left: 1.1rem; }
-.mm-rewards li::marker { content: '★  '; color: var(--mm-sun); }
+.mm-rewards li::marker { content: '★  '; color: var(--mm-sun-ink); }
 
 .mm-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 1.1rem 0 0; border: 0; padding: 0; }
 .mm-modes legend { margin-bottom: 0.4rem; padding: 0; color: var(--mm-muted); font-family: var(--font-display); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -404,8 +391,8 @@
 .mm-input-unit { color: var(--mm-muted); font-weight: 800; }
 .mm .mm-sign { min-width: 2.75rem; padding: 0; }
 .mm-typed { margin-top: 0.6rem !important; font-weight: 700; }
-.mm-typed.is-right strong { color: var(--mm-right); }
-.mm-typed.is-wrong strong { color: var(--mm-wrong); }
+.mm-typed.is-right strong { color: var(--mm-right-ink); }
+.mm-typed.is-wrong strong { color: var(--mm-wrong-ink); }
 
 .mm-hint-button { margin-top: 0.9rem; }
 .mm-hint-cost { color: var(--mm-muted); font-family: var(--font-body); font-size: 0.8rem; font-weight: 700; }
@@ -415,9 +402,9 @@
 .mm-feedback.is-correct { border-color: var(--mm-right); background: rgb(79 227 154 / 8%); }
 .mm-feedback.is-wrong, .mm-feedback.is-timeout { border-color: var(--mm-wrong); background: rgb(255 176 79 / 8%); }
 .mm-feedback-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; }
-.mm-feedback.is-correct .mm-feedback-title { color: var(--mm-right); }
-.mm-feedback.is-wrong .mm-feedback-title, .mm-feedback.is-timeout .mm-feedback-title { color: var(--mm-wrong); }
-.mm-feedback-points { margin-left: auto; border-radius: 999px; padding: 0 0.6rem; color: #1b2a49; background: var(--mm-sun); font-size: 0.95rem; }
+.mm-feedback.is-correct .mm-feedback-title { color: var(--mm-right-ink); }
+.mm-feedback.is-wrong .mm-feedback-title, .mm-feedback.is-timeout .mm-feedback-title { color: var(--mm-wrong-ink); }
+.mm-feedback-points { margin-left: auto; border-radius: 999px; padding: 0 0.6rem; color: var(--mm-on-sun); background: var(--mm-sun); font-size: 0.95rem; }
 .mm-feedback-answer { margin-top: 0.3rem !important; font-weight: 800; }
 .mm-feedback-why { margin-top: 0.5rem !important; line-height: 1.55; }
 .mm-working { margin-top: 0.7rem; border-radius: 12px; padding: 0.6rem 0.9rem; background: var(--mm-bg); }
@@ -430,7 +417,7 @@
 .mm-results h2 { margin: 0.2rem 0 0; font-size: clamp(1.8rem, 3.4vw, 2.4rem); }
 .mm-results-lead { max-width: 60ch; color: var(--mm-muted); }
 .mm-rewards-earned { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.6rem 0 0; padding: 0; list-style: none; }
-.mm-rewards-earned li { border: 2px solid var(--mm-sun); border-radius: 999px; padding: 0.25rem 0.8rem; color: var(--mm-sun); font-weight: 800; }
+.mm-rewards-earned li { border: 2px solid var(--mm-sun); border-radius: 999px; padding: 0.25rem 0.8rem; color: var(--mm-sun-ink); font-weight: 800; }
 .mm-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 0.6rem; margin: 1.2rem 0 0; }
 .mm-tiles > div { border-radius: 14px; padding: 0.6rem 0.8rem; background: var(--mm-surface-2); }
 .mm-results-columns { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.5rem; }
@@ -478,3 +465,190 @@
 .mm-labels .mm-tag { position: absolute; top: 0; left: 0; visibility: hidden; will-change: transform; }
 .mm-tag.is-legend { display: inline-flex; gap: 0.6rem; font-size: 0.8rem; }
 .mm-tag.is-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.25rem; border-radius: 50%; vertical-align: -1px; }
+
+/* ---------- colour tokens: dark (the usual look) and light ----------
+   Every colour above comes from these. The 3D stage is a dark "lab screen" in both themes
+   (its scene and labels are drawn for a dark backdrop), so it re-declares the dark set for itself. */
+.mm,
+.mm .mm-stage-view {
+  --mm-bg: #0d1433;
+  --mm-surface: #141d45;
+  --mm-surface-2: #1a2557;
+  --mm-line: #2e3d7c;
+  --mm-text: #eef3ff;
+  --mm-muted: #b3c0e4;
+  --mm-sun: #ffc93c;
+  --mm-sun-ink: #ffc93c;
+  --mm-on-sun: #1b2a49;
+  --mm-star: #ffc93c;
+  --mm-right: #4fe39a;
+  --mm-right-ink: #4fe39a;
+  --mm-right-bg: #123b33;
+  --mm-wrong: #ffb04f;
+  --mm-wrong-ink: #ffb04f;
+  --mm-wrong-bg: #402b16;
+  --mm-focus: #7cc4ff;
+  --mm-edge: #050a17;
+  --mm-secondary: #3a4fa3;
+  --mm-panel-bg:
+    radial-gradient(1200px 500px at 85% -10%, rgb(124 92 255 / 22%), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, rgb(46 230 200 / 12%), transparent 60%),
+    #0d1433;
+}
+.mm .mm-stage-view { color: var(--mm-text); }
+
+.mm[data-mm-theme='light'] {
+  color-scheme: light;
+  --mm-bg: #eef2ff;
+  --mm-surface: #ffffff;
+  --mm-surface-2: #eef1ff;
+  --mm-line: #c5cdee;
+  --mm-text: #141b3d;
+  --mm-muted: #4a5582;
+  --mm-sun: #ffc93c;
+  --mm-sun-ink: #8a5a00;
+  --mm-on-sun: #1b2a49;
+  --mm-star: #e09b00;
+  --mm-right: #2fbf7a;
+  --mm-right-ink: #0f6e45;
+  --mm-right-bg: #e3f7ec;
+  --mm-wrong: #f6a03d;
+  --mm-wrong-ink: #96480a;
+  --mm-wrong-bg: #fff0dd;
+  --mm-focus: #2463d1;
+  --mm-edge: #1b2a49;
+  --mm-secondary: #3a4fa3;
+  --mm-panel-bg:
+    radial-gradient(1200px 500px at 85% -10%, rgb(124 92 255 / 10%), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, rgb(46 230 200 / 9%), transparent 60%),
+    #f6f8ff;
+}
+/* level colours are bright for the dark panel; on white, text in them is mixed darker */
+.mm[data-mm-theme='light'] .mm-level-status,
+.mm[data-mm-theme='light'] .mm-hud-level span,
+.mm[data-mm-theme='light'] .mm-chip.is-topic { color: color-mix(in srgb, var(--mm-level, #8a5a00) 45%, #141b3d); }
+.mm[data-mm-theme='light'] .mm-chip.is-topic { border-color: color-mix(in srgb, var(--mm-level, #ffc93c) 70%, #141b3d); }
+.mm[data-mm-theme='light'] .mm-stars span:not(.is-on) { color: #c5cdee; }
+.mm[data-mm-theme='light'] .mm-stars .is-on { text-shadow: none; }
+.mm[data-mm-theme='light'] .mm-level.is-next { box-shadow: 0 0 0 3px color-mix(in srgb, var(--mm-level) 25%, transparent); }
+.mm[data-mm-theme='light'] .mm-pips > span:not(.is-on) { background: #dde2f6; }
+.mm[data-mm-theme='light'] .mm-hint { background: rgb(255 201 60 / 18%); }
+
+/* ---------- the header's own controls: light/dark and full screen ---------- */
+.mm-header-tools { display: flex; flex: none; gap: 0.5rem; margin-left: auto; }
+.mm .mm-tool-button {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  place-items: center;
+  border: 2px solid var(--mm-line);
+  border-radius: 999px;
+  padding: 0;
+  color: var(--mm-text);
+  background: var(--mm-surface);
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+.mm .mm-tool-button:hover { border-color: var(--mm-sun); background: var(--mm-surface-2); }
+.mm .mm-tool-button svg { display: block; }
+
+/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
+   The lab panel becomes the whole screen (no card edges). Choosing a level, the five ranks
+   stand side by side as columns, Novice to Math Master, with cards sized from the screen height
+   and the map centred, so it reads left to right instead of sitting in a corner. Playing, the question panel gets
+   the wider column beside the 3D stage, and both fill the height under the HUD. */
+.game-fs-math-master.is-fullscreen { padding: 0; background: #0d1433; }
+.game-fs-math-master.is-fullscreen:has(.mm[data-mm-theme='light']) { background: #f6f8ff; }
+.game-fs-math-master.is-fullscreen .mm {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: clamp(0.9rem, 2.2vh, 1.75rem) clamp(1rem, 2.6vw, 2.75rem);
+  box-shadow: none;
+}
+
+/* level map */
+.game-fs-math-master.is-fullscreen .mm-map {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  align-items: start;
+  gap: clamp(0.6rem, 1.4vh, 1rem) clamp(0.75rem, 1.4vw, 1.25rem);
+}
+.game-fs-math-master.is-fullscreen .mm-section-head,
+.game-fs-math-master.is-fullscreen .mm-footnote { grid-column: 1 / -1; }
+.game-fs-math-master.is-fullscreen .mm-section-head { margin-bottom: 0; }
+.game-fs-math-master.is-fullscreen .mm-tier {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  margin: 0;
+  border: 2px solid var(--mm-line);
+  border-radius: 20px;
+  padding: clamp(0.65rem, 1.4vh, 1rem);
+  background: color-mix(in srgb, var(--mm-surface) 55%, transparent);
+}
+.game-fs-math-master.is-fullscreen .mm-level-grid {
+  flex: none;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: clamp(0.5rem, 1.2vh, 0.85rem);
+}
+.game-fs-math-master.is-fullscreen .mm .mm-level {
+  min-height: clamp(4.75rem, 11vh, 8rem);
+  align-items: center;
+}
+.game-fs-math-master.is-fullscreen .mm-level-title { font-size: clamp(1.1rem, 0.85rem + 0.5vw, 1.35rem); }
+.game-fs-math-master.is-fullscreen .mm-footnote { text-align: center; }
+
+/* playing / briefing: the question gets the wider column, and both columns fill the height */
+.game-fs-math-master.is-fullscreen .mm-arena {
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  align-items: stretch;
+  gap: clamp(1rem, 2vw, 2rem);
+}
+.game-fs-math-master.is-fullscreen .mm-stage { position: static; display: flex; flex-direction: column; }
+.game-fs-math-master.is-fullscreen .mm-stage-view { height: auto; min-height: 320px; flex: 1 1 auto; }
+.game-fs-math-master.is-fullscreen .mm-arena > .mm-panel { display: flex; flex-direction: column; justify-content: center; }
+.game-fs-math-master.is-fullscreen .mm-prompt { font-size: clamp(1.3rem, 0.9rem + 1vw, 2rem); }
+.game-fs-math-master.is-fullscreen .mm .mm-choice {
+  min-height: clamp(3.6rem, 9vh, 5.75rem);
+  font-size: clamp(1.1rem, 0.85rem + 0.6vw, 1.45rem);
+}
+.game-fs-math-master.is-fullscreen .mm-results { width: 100%; max-width: 1400px; margin: 0 auto; }
+
+/* laptops and tablets in full screen: five columns would be too narrow, so each rank becomes a
+   row instead (its name on the left, its levels side by side), still in one screen */
+@media (max-width: 1500px) {
+  .game-fs-math-master.is-fullscreen .mm-map { grid-template-columns: minmax(0, 1fr); }
+  .game-fs-math-master.is-fullscreen .mm-tier {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    align-items: center;
+    column-gap: 1rem;
+  }
+  .game-fs-math-master.is-fullscreen .mm-tier-name { margin: 0; }
+  .game-fs-math-master.is-fullscreen .mm-level-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+  .game-fs-math-master.is-fullscreen .mm .mm-level { min-height: clamp(4rem, 8.5vh, 6rem); gap: 0.7rem; padding: 0.6rem 0.85rem; }
+  .game-fs-math-master.is-fullscreen .mm-level-number { width: 2.5rem; height: 2.5rem; font-size: 1.2rem; }
+  .game-fs-math-master.is-fullscreen .mm-level-title { font-size: 1.05rem; }
+  .game-fs-math-master.is-fullscreen .mm-tier { padding-block: 0.55rem; }
+}
+@media (max-width: 760px) {
+  .game-fs-math-master.is-fullscreen .mm-tier { grid-template-columns: minmax(0, 1fr); }
+  .game-fs-math-master.is-fullscreen .mm-tier-name { margin: 0 0 0.5rem; }
+}
+@media (max-width: 860px) {
+  .game-fs-math-master.is-fullscreen .mm-arena { grid-template-columns: minmax(0, 1fr); }
+  .game-fs-math-master.is-fullscreen .mm-stage-view { flex: none; height: clamp(240px, 42dvh, 520px); }
+}

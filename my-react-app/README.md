@@ -28,9 +28,10 @@ lives in its own feature folder. See [3D Game Studio (VoxelCraft)](#3d-game-stud
 
 ## Home page and navigation
 
-The home page lists the games and the HTML Course tile. The header (`src/arcade/ArcadeHeader.jsx`) shows the brand, the **Play**
-tab with its **Educational | Adventure** switch (`src/arcade/PlayNav.jsx`), the **3D Game Studio**
-tab (`/game`), the language switch,
+The home page shows one zone at a time: **Play & Learn** or **Build & Create**, picked with the
+mode slider in the header (`src/arcade/ModeToggle.jsx`; the choice is saved as `bulbuli.home.mode`).
+The 3D Game Studio (`/game`) opens from its card in Build & Create, and Pro Coder (the HTML course)
+sits there too. The header (`src/arcade/ArcadeHeader.jsx`) shows the brand, the mode slider, the language switch,
 and the profile button (Sign in, or the player's avatar linking to `/dashboard`). On a game page
 the navigation becomes a big "All games" button, and sound and day/night join the controls.
 

@@ -5,11 +5,13 @@ export const COURSE_CATALOG = [
   {
     id: 'html',
     href: '/quiz/?course=html',
-    title: { en: 'HTML Course', bn: 'HTML কোর্স' },
+    // The home-page card's name. The course is now Pro Coder; its id, route (/quiz/?course=html)
+    // and the course content itself keep their HTML names.
+    title: { en: 'Pro Coder', bn: 'Pro Coder' },
     questionCount: 70,
     levelCount: 10,
     skill: { en: 'Web Dev & HTML', bn: 'ওয়েব ডেভ ও HTML' },
-    ages: '9–12',
+    ages: '12+',
     zone: 'build-create', // home-page section (see src/games/categories.js)
   },
 ]

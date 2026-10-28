@@ -1,0 +1,337 @@
+/* Bulbuli Ball Dash — the arcade's toy look (tokens from src/styles/global.css). */
+.bd {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-top: 1rem;
+}
+
+.bd-header { margin-bottom: 1rem; }
+.bd-header h1 { margin: 0 0 0.35rem; font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; }
+.bd-header p { margin: 0; font-size: 1.15rem; }
+.bd-header.is-compact { margin-bottom: 0.6rem; }
+.bd-header.is-compact h1 { font-size: clamp(1.5rem, 4.4vw, 2.1rem); }
+.bd-header.is-compact p { color: var(--text-muted); font-weight: 700; }
+
+/* Every control resets the site-wide button look first. */
+.bd button {
+  border: var(--toy-border);
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+.bd button:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.bd button:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+.bd button:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
+.bd button:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+.bd .bd-primary {
+  min-height: 3.6rem;
+  border-radius: 999px;
+  padding: 0 2rem;
+  color: #fff;
+  background: var(--berry);
+  font-size: 1.45rem;
+}
+.bd .bd-primary:hover { color: #fff; background: #e23744; }
+.app-shell[data-theme='dark'] .bd .bd-primary { color: #1a0509; }
+.bd .bd-secondary { min-height: 3rem; border-radius: 999px; padding: 0 1.3rem; font-size: 1.1rem; }
+.bd .bd-secondary:hover { background: var(--sun-soft); }
+.app-shell[data-theme='dark'] .bd .bd-secondary:hover { color: var(--text); }
+.bd-small { margin: 0.4rem 0 0; color: var(--text-muted); font-weight: 700; }
+
+/* ---------- start screen ---------- */
+.bd-start {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+  gap: 1.5rem;
+}
+.bd-preview {
+  display: grid;
+  aspect-ratio: 4 / 3;
+  place-items: center;
+  border: var(--toy-border);
+  border-radius: 28px;
+  padding: 1rem;
+  background: linear-gradient(180deg, #8fd0f7 0%, #c9ecff 55%, #e9f8ff 100%);
+  box-shadow: 0 7px 0 var(--ink);
+}
+.bd-start-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.bd-howto { margin-top: 1.25rem; }
+.bd-howto h2, .bd-best h2, .bd-settings h2 { margin: 0 0 0.6rem; font-size: 1.3rem; }
+.bd-howto ul { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.bd-howto li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  padding: 0.55rem 0.85rem;
+  background: var(--surface);
+  line-height: 1.35;
+}
+.bd-move-icon { font-size: 1.7rem; }
+.bd-keys {
+  margin-left: 0.3rem;
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+  color: var(--text);
+  background: var(--surface-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.bd-start-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; }
+.bd-best, .bd-settings {
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 0.85rem 1rem;
+  background: var(--surface);
+}
+.bd-best dl { display: grid; gap: 0.35rem; margin: 0; }
+.bd-best dl > div { display: flex; justify-content: space-between; gap: 0.5rem; }
+.bd-best dt { color: var(--text-muted); font-weight: 700; }
+.bd-best dd { margin: 0; font-family: var(--font-display); font-weight: 800; }
+.bd-badges { display: flex; gap: 0.4rem; margin: 0.6rem 0 0; }
+.bd-badges span { border-radius: 999px; padding: 0.1rem 0.6rem; background: var(--sun-soft); font-weight: 800; }
+.bd-settings { display: grid; align-content: start; gap: 0.5rem; }
+.bd .bd-switch {
+  display: flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 16px;
+  padding: 0 0.9rem;
+  font-size: 1.05rem;
+}
+.bd-switch-state { border-radius: 999px; padding: 0.1rem 0.7rem; color: #fff; background: var(--text-muted); font-size: 0.9rem; }
+.bd .bd-switch[aria-pressed='true'] .bd-switch-state { background: var(--leaf, #2e9e6b); }
+.app-shell[data-theme='dark'] .bd-switch-state { color: #10141f; }
+
+/* ---------- the track ---------- */
+.bd-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  max-height: 78svh;
+  overflow: hidden;
+  border: var(--toy-border);
+  border-radius: 28px;
+  background: linear-gradient(180deg, #9fd8ff 0%, #d4edff 100%);
+  box-shadow: 0 7px 0 var(--ink);
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.bd.is-playing .bd-stage { touch-action: none; }
+.arcade .bd-stage:focus,
+.arcade .bd-stage:focus-visible { outline: none; } /* focused by the game itself (not a Tab stop) */ /* swipes steer the ball instead of scrolling the page */
+.bd-canvas { position: absolute !important; inset: 0; }
+.bd-loading, .bd-noweb {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  margin: 0;
+  padding: 1.5rem;
+  place-items: center;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* HUD: two groups along the top edge */
+.bd-hud {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  left: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+.bd-hud-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; pointer-events: auto; }
+.bd-pill {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.3rem;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 0 0.75rem;
+  color: var(--ink);
+  background: rgb(255 255 255 / 92%);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bd-pill.is-stars { background: #fff4c2; }
+.bd-pill.is-practice { background: #e3f7ec; }
+.bd-hearts { display: inline-flex; gap: 0.1rem; font-size: 1.3rem; line-height: 1; }
+.bd-hearts span { color: rgb(27 42 73 / 22%); }
+.bd-hearts span.is-on { color: #ff4d6d; }
+.bd .bd-icon { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: 999px; padding: 0; font-size: 1.15rem; box-shadow: 0 3px 0 var(--ink); }
+
+/* toasts and the first-run hint: small, high up, gone after a moment */
+.bd-toast {
+  position: absolute;
+  top: 3.9rem;
+  left: 50%;
+  margin: 0;
+  max-width: calc(100% - 2rem);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  color: var(--ink);
+  background: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  font-weight: 800;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.bd-toast.is-good { background: #fff4c2; }
+.bd-toast.is-hint { background: #d7efff; }
+.bd-toast.is-bump { background: #ffe1e7; }
+.bd-hint {
+  position: absolute;
+  bottom: 5.4rem;
+  left: 50%;
+  display: flex;
+  max-width: calc(100% - 2rem);
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 16px;
+  padding: 0.3rem 0.4rem 0.3rem 0.9rem;
+  color: #fff;
+  background: rgb(27 42 73 / 80%);
+  font-weight: 800;
+  transform: translateX(-50%);
+}
+.bd .bd-hint button { width: 2rem; height: 2rem; flex: none; border: 0; border-radius: 999px; padding: 0; color: #fff; background: rgb(255 255 255 / 20%); box-shadow: none; }
+.bd .bd-hint button:hover { color: #fff; transform: none; box-shadow: none; }
+
+/* the big on-screen buttons, in the bottom corners (the ball rolls in the middle) */
+.bd-pad {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  left: 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+.bd-pad-side { display: flex; gap: 0.5rem; pointer-events: auto; }
+.bd .bd-pad-btn {
+  display: inline-flex;
+  min-width: 4rem;
+  min-height: 4rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border-radius: 22px;
+  padding: 0 0.9rem;
+  background: rgb(255 255 255 / 92%);
+  font-size: 1.15rem;
+}
+.bd .bd-pad-btn span { font-size: 1.4rem; }
+.bd .bd-pad-btn.is-jump { background: #d7efff; }
+.bd .bd-pad-btn.is-shrink { background: #efe4ff; }
+
+/* pause and results */
+.bd-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  padding: 1rem;
+  place-items: center;
+  background: rgb(27 42 73 / 45%);
+}
+.bd-card {
+  width: min(28rem, 100%);
+  max-height: 100%;
+  overflow: auto;
+  border: var(--toy-border);
+  border-radius: 28px;
+  padding: 1.4rem 1.25rem;
+  background: var(--surface);
+  box-shadow: 0 7px 0 var(--ink);
+  text-align: center;
+}
+.bd-card h2 { margin: 0 0 0.75rem; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+.bd-card-actions { display: grid; gap: 0.6rem; margin-top: 1rem; }
+.bd-result-badge { margin: 0; font-size: 3rem; line-height: 1; }
+.bd-result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin: 0; }
+.bd-result-stats > div { border-radius: 16px; padding: 0.5rem; background: var(--surface-muted); }
+.bd-result-stats dt { color: var(--text-muted); font-size: 0.85rem; font-weight: 800; }
+.bd-result-stats dd { margin: 0; font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; }
+.bd-record { margin: 0.75rem 0 0; color: var(--grape); font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; }
+.bd-xp { margin: 0.4rem 0 0; color: var(--grape); font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .bd-toast { animation: bd-pop 320ms cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+  .bd-pill.is-bumped { animation: bd-shake 420ms ease; }
+}
+@keyframes bd-pop { from { opacity: 0; transform: translate(-50%, -8px) scale(0.9); } }
+@keyframes bd-shake {
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd button { transition: none; }
+  .bd button:hover { transform: none; }
+}
+
+/* ---------- small screens ---------- */
+@media (max-width: 760px) {
+  .bd-start { grid-template-columns: minmax(0, 1fr); }
+  .bd-preview { aspect-ratio: 16 / 9; }
+  .bd-start-row { grid-template-columns: minmax(0, 1fr); }
+  .bd-stage { aspect-ratio: 3 / 4; }
+  .bd-start-actions > button { flex: 1 1 10rem; }
+}
+@media (max-width: 420px) {
+  .bd-pill { min-height: 2.2rem; padding: 0 0.45rem; font-size: 0.88rem; }
+  .bd-hud-group { gap: 0.3rem; }
+  /* four even buttons across the bottom, so none is cut off on narrow phones */
+  .bd-pad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.35rem; }
+  .bd-pad-side { display: contents; }
+  .bd .bd-pad-btn { min-width: 0; min-height: 3.6rem; padding: 0 0.3rem; font-size: 0.92rem; }
+  .bd .bd-pad-btn span { font-size: 1.2rem; }
+  .bd-toast { top: 6.2rem; }
+}
+
+/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
+   While playing, the track takes all the height under the compact heading. It never gets
+   narrower than its phone shape (3:4), so all three lanes stay in view. */
+.game-fs-ball-dash.is-fullscreen .bd {
+  display: flex;
+  flex-direction: column;
+  max-width: 1500px;
+  min-height: 100%;
+  padding-top: 0;
+}
+.game-fs-ball-dash.is-fullscreen .bd:not(.is-playing) { max-width: 1100px; justify-content: center; }
+.game-fs-ball-dash.is-fullscreen .bd.is-playing { height: 100%; }
+.game-fs-ball-dash.is-fullscreen .bd.is-playing .bd-stage {
+  flex: 1 1 0;
+  min-height: 16rem;
+  max-height: calc((100vw - 2rem) * 4 / 3);
+  aspect-ratio: auto;
+}

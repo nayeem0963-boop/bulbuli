@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import {
   CATEGORY_FILTERS, categoryCounts, categoryOf, DEFAULT_FILTER, GAME_CATEGORIES, gamesInCategory,
   GAME_ZONES, gamesInZone, zoneOf,
+  categoryCountsInZone, DEFAULT_HOME_MODE, HOME_MODE_STORAGE_KEY, parseHomeMode,
 } from './categories.js'
 import { COURSE_CATALOG } from '../courses/catalog.js'
 
@@ -71,10 +72,11 @@ const EXPECTED_ZONES = {
   'shape-hunt': 'play-learn',
   'shape-sorting': 'play-learn',
   'sky-runner': 'play-learn',
+  'ball-dash': 'play-learn',
   'skyward-explorer': 'build-create',
   'neon-velocity': 'build-create',
-  'sky-typewriter': 'build-create',
-  'html-architect': 'build-create',
+  'sky-typewriter': 'play-learn',
+  'html-architect': 'play-learn',
   'math-master': 'build-create',
 }
 
@@ -91,4 +93,27 @@ test('every game in the registry names a zone, and the HTML Course sits in Build
   assert.deepEqual(found, EXPECTED_ZONES)
   for (const course of COURSE_CATALOG) assert.ok(GAME_ZONES.includes(course.zone), `course ${course.id} needs a zone`)
   assert.equal(COURSE_CATALOG.find((c) => c.id === 'html').zone, 'build-create')
+})
+
+test('home mode: a stored mode is used only when it is a real zone; anything else is Play & Learn', () => {
+  assert.equal(HOME_MODE_STORAGE_KEY, 'bulbuli.home.mode')
+  assert.equal(parseHomeMode('build-create'), 'build-create')
+  assert.equal(parseHomeMode('play-learn'), 'play-learn')
+  for (const bad of [null, undefined, '', 'BUILD-CREATE', 'arcade', '{"x":1}']) assert.equal(parseHomeMode(bad), 'play-learn')
+  assert.equal(DEFAULT_HOME_MODE, 'play-learn')
+})
+
+test('home mode: each zone counts only its own games, and the two zones add up to the whole catalog', () => {
+  const games = [
+    { id: 'a', category: 'young', zone: 'play-learn' },
+    { id: 'b', category: 'logic', zone: 'play-learn' },
+    { id: 'c', category: 'arcade', zone: 'build-create' },
+    { id: 'd', category: 'logic', zone: 'build-create', hidden: true },
+  ]
+  assert.deepEqual(categoryCountsInZone(games, 'play-learn'), { all: 2, young: 1, logic: 1, arcade: 0 })
+  assert.deepEqual(categoryCountsInZone(games, 'build-create'), { all: 1, young: 0, logic: 0, arcade: 1 })
+  const whole = categoryCounts(games)
+  for (const key of Object.keys(whole)) {
+    assert.equal(categoryCountsInZone(games, 'play-learn')[key] + categoryCountsInZone(games, 'build-create')[key], whole[key])
+  }
 })

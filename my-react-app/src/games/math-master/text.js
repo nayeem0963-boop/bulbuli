@@ -4,6 +4,8 @@
 const en = {
   eyebrow: 'Bulbuli · Ages 12+',
   title: 'Math Master',
+  themeToLight: 'Switch to light mode',
+  themeToDark: 'Switch to dark mode',
   tagline: 'Master mathematics through challenging puzzles, interactive 3D challenges and progressively harder questions.',
   questionsInEnglish: '',
   rank: 'Rank',
@@ -100,6 +102,8 @@ const bn = {
   ...en,
   eyebrow: 'বুলবুলি · বয়স ১২+',
   title: 'ম্যাথ মাস্টার',
+  themeToLight: 'হালকা রঙে দেখো',
+  themeToDark: 'গাঢ় রঙে দেখো',
   tagline: 'চ্যালেঞ্জিং ধাঁধা, ইন্টারঅ্যাকটিভ ৩ডি চ্যালেঞ্জ আর ধাপে ধাপে কঠিন প্রশ্নে গণিতে দক্ষ হও।',
   questionsInEnglish: 'প্রশ্ন ও ব্যাখ্যা আপাতত ইংরেজিতে।',
   rank: 'র‍্যাঙ্ক',

@@ -51,3 +51,37 @@ export function zoneOf(game) {
 export function gamesInZone(games, zone) {
   return games.filter((game) => zoneOf(game) === zone)
 }
+
+// ---------- home-page mode ----------
+// The home page shows one zone at a time, picked with the Play & Learn | Build & Create slider in
+// the header (src/arcade/ModeToggle.jsx). The choice is a zone id, remembered on this device.
+
+export const HOME_MODE_STORAGE_KEY = 'bulbuli.home.mode'
+export const DEFAULT_HOME_MODE = GAME_ZONES[0]
+
+/** A stored or requested mode, or Play & Learn when it is missing or not a zone. */
+export function parseHomeMode(value) {
+  return GAME_ZONES.includes(value) ? value : DEFAULT_HOME_MODE
+}
+
+/**
+ * The mode a shared link asks for with ?mode=play-learn|build-create (Bulbuli Buddies
+ * invitations), or null when the address has no ?mode= or names something that isn't a mode.
+ */
+export function requestedHomeMode(search) {
+  const value = new URLSearchParams(search ?? '').get('mode')
+  return GAME_ZONES.includes(value) ? value : null
+}
+
+/** The address search without its ?mode= (once the mode is applied, the address stays tidy). */
+export function searchWithoutMode(search) {
+  const params = new URLSearchParams(search ?? '')
+  params.delete('mode')
+  const rest = params.toString()
+  return rest ? `?${rest}` : ''
+}
+
+/** Pill counts for one zone's games ({ all, young, logic, arcade }), so the pills match what that mode shows. */
+export function categoryCountsInZone(games, zone) {
+  return categoryCounts(gamesInZone(games, zone))
+}

@@ -23,52 +23,18 @@ import GameLoadingSpinner from '../components/game/GameLoadingSpinner.jsx'
 import useGameSession from '../session/useGameSession.js'
 import { GameErrorBoundary, getLazyGame, prefetchGame } from './gameLoader.jsx'
 import { useMuted } from './preferences.js'
+import { useFullscreen } from '../shared/hooks/useFullscreen.js'
 
 const FOCUSABLE = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-
-const canFullscreen = () => typeof document !== 'undefined' && !!document.documentElement.requestFullscreen
-
-function useFullscreen(ref) {
-  const [native, setNative] = useState(false)   // the browser's own full screen
-  const [filled, setFilled] = useState(false)   // fallback: dialog fills the window
-
-  useEffect(() => {
-    const sync = () => setNative(document.fullscreenElement === ref.current)
-    document.addEventListener('fullscreenchange', sync)
-    return () => document.removeEventListener('fullscreenchange', sync)
-  }, [ref])
-
-  const enter = useCallback(async () => {
-    const el = ref.current
-    if (!el) return
-    if (canFullscreen()) {
-      try {
-        await el.requestFullscreen({ navigationUI: 'hide' })
-        // phones play better sideways; most browsers only allow this lock in full screen
-        await window.screen?.orientation?.lock?.('landscape').catch(() => {})
-        return
-      } catch {
-        // refused (e.g. not from a click): fall back below
-      }
-    }
-    setFilled(true)
-  }, [ref])
-
-  const exit = useCallback(() => {
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
-    window.screen?.orientation?.unlock?.()
-    setFilled(false)
-  }, [])
-
-  return { isFullscreen: native || filled, enter, exit }
-}
 
 export default function GameModal({ game, playerId, language, text, onClose }) {
   const dialog = useRef(null)
   const titleId = useId()
   const [phase, setPhase] = useState('launch') // 'launch' | 'playing'
   const { muted, toggleMuted } = useMuted()
-  const { isFullscreen, enter, exit } = useFullscreen(dialog)
+  // shared with the game page (src/shared/hooks/useFullscreen.js); phones are asked to turn sideways,
+  // and Esc stays with the game (it pauses)
+  const { isFullscreen, enter, exit } = useFullscreen(dialog, { lockLandscape: true, escapeExitsFallback: false })
   // the session (and its clock) starts when the game does, not on the launch card
   const session = useGameSession(game, { active: phase === 'playing', surface: 'launcher', language })
   const { requestExit } = session

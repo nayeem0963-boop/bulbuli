@@ -280,3 +280,22 @@
   .ssf-result-badge { animation: none; }
   .ssf-progress span { transition: none; }
 }
+
+/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
+   While playing, the factory takes the height left between the prompt and the bin keys. It never
+   gets narrower than its phone shape (1:1.08), so the belt and bins stay in view. */
+.game-fs-shape-sorting.is-fullscreen .ssf {
+  display: flex;
+  flex-direction: column;
+  max-width: 1500px;
+  min-height: 100%;
+  padding-top: 0;
+}
+.game-fs-shape-sorting.is-fullscreen .ssf:not(.is-playing) { max-width: 1000px; justify-content: center; }
+.game-fs-shape-sorting.is-fullscreen .ssf.is-playing { height: 100%; }
+.game-fs-shape-sorting.is-fullscreen .ssf.is-playing .ssf-stage {
+  flex: 1 1 0;
+  min-height: 14rem;
+  max-height: calc((100vw - 2rem) * 1.08);
+  aspect-ratio: auto;
+}

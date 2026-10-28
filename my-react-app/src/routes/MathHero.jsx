@@ -19,6 +19,7 @@ import {
 } from '../utils/mathHero.js'
 import { formatDigits, MATH_HERO_TEXT } from '../utils/mathHeroText.js'
 import { useLanguage } from '../arcade/preferences.js'
+import { GameFullscreenButton } from '../arcade/GameFullscreen.jsx'
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -286,7 +287,9 @@ function MathHero({ userId }) {
           <h1>{text.title}</h1>
           <p>{text.subtitle}</p>
         </div>
-</header>
+        {/* full screen: only inside the arcade's game frame (renders nothing elsewhere) */}
+        <GameFullscreenButton />
+      </header>
 
       {storageError && <p className="notice" role="alert">{storageError}</p>}
 

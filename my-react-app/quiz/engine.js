@@ -6,6 +6,10 @@
    ========================================================= */
 import { getCourse } from '../src/courses/index.js'
 import { OPTION_COUNT, validateCourse } from '../src/courses/validate.js'
+import { fullInvitation, shareMessage, shareTitle } from '../src/buddies/shareMessages.js'
+import { SHARE_PATHS, shareUrl } from '../src/buddies/shareLinks.js'
+import { canNativeShare, copyText, nativeShare } from '../src/buddies/shareActions.js'
+import { BUDDIES_TEXT } from '../src/buddies/text.js'
 
 const BRAND = 'Pro Coder'
 const course = getCourse(new URLSearchParams(window.location.search).get('course'))
@@ -71,7 +75,9 @@ const els = {
   badge: $('badge'), badgeIcon: $('badge-icon'), badgeTitle: $('badge-title'), badgeDesc: $('badge-desc'),
   resScore: $('res-score'), resAccuracy: $('res-accuracy'), resTime: $('res-time'), resFirst: $('res-first'),
   levelBars: $('level-bars'), reviewList: $('review-list'), restartBtn: $('restart-btn'), overviewBtn: $('overview-btn'),
-  fsBtn: $('fs-btn'), fsIcon: $('fs-icon'), fsLabel: $('fs-label'),
+  fsBtn: $('fs-btn'), fsIconEnter: $('fs-icon-enter'), fsIconExit: $('fs-icon-exit'), fsLabel: $('fs-label'),
+  shareBtn: $('share-btn'), shareStatus: $('share-status'),
+  themeBtn: $('theme-btn'), themeSun: $('theme-icon-sun'), themeMoon: $('theme-icon-moon'), themeLabel: $('theme-label'),
 }
 
 /* =========================================================
@@ -138,18 +144,53 @@ function onTimeUp() {
 }
 
 /* =========================================================
+   THEME
+   Pro Coder's own light/dark choice: dark by default, saved on this device as
+   bulbuli.pro-coder.theme. The <head> script applies a saved choice before the first paint;
+   this keeps the button and the browser's theme colour in step. Switching never touches the
+   quiz state, so it works mid-question and in full screen.
+   ========================================================= */
+const Theme = {
+  KEY: 'bulbuli.pro-coder.theme',
+  current() {
+    return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
+  },
+  toggle() {
+    const next = this.current() === 'light' ? 'dark' : 'light'
+    document.documentElement.dataset.theme = next
+    try { localStorage.setItem(this.KEY, next) } catch { /* not saved: fine for this visit */ }
+    this.sync()
+  },
+  sync() {
+    const light = this.current() === 'light'
+    // the icon shows where the button takes you: the moon in light mode, the sun in dark mode
+    // (SVG elements have no .hidden property: set the attribute itself)
+    els.themeSun.toggleAttribute('hidden', light)
+    els.themeMoon.toggleAttribute('hidden', !light)
+    const label = light ? 'Switch to dark mode' : 'Switch to light mode'
+    els.themeLabel.textContent = light ? 'Dark' : 'Light'
+    els.themeBtn.title = label
+    els.themeBtn.setAttribute('aria-label', label)
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', light ? '#f4f6fb' : '#0f172a')
+  },
+}
+
+/* =========================================================
    FULLSCREEN
    Standard Fullscreen API, with the webkit-prefixed versions for older Safari.
-   The button stays hidden where fullscreen isn't available (e.g. iPhone Safari).
+   Full screen takes the course's own root (.app), not the page. The button stays hidden
+   where full screen isn't available (e.g. iPhone Safari).
    ========================================================= */
 const Fullscreen = {
   supported: Boolean(document.fullscreenEnabled || document.webkitFullscreenEnabled),
+  // The course itself (.app, which also holds the lesson drawer): not the whole document.
+  root: document.getElementById('app'),
 
   isOn() {
-    return Boolean(document.fullscreenElement || document.webkitFullscreenElement)
+    return (document.fullscreenElement || document.webkitFullscreenElement || null) === this.root
   },
   async enter() {
-    const el = document.documentElement
+    const el = this.root
     if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' })
     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
   },
@@ -164,16 +205,18 @@ const Fullscreen = {
     } catch (err) {
       console.warn('Fullscreen request failed:', err)
     }
+    this.sync() // whatever happened, the button shows the real state
   },
   /** Runs on every change, including leaving with Esc or the browser's own controls. */
   sync() {
     const on = this.isOn()
-    document.documentElement.classList.toggle('is-fullscreen', on)
-    els.fsBtn.setAttribute('aria-pressed', String(on))
-    els.fsIcon.textContent = on ? '✕' : '⛶'
-    els.fsLabel.textContent = on ? ' Exit Fullscreen' : ' Fullscreen'
-    els.fsBtn.title = on ? 'Exit fullscreen (F or Esc)' : 'Fullscreen (F)'
-    els.fsBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Enter fullscreen')
+    this.root.classList.toggle('is-fullscreen', on)
+    els.fsBtn.classList.toggle('is-on', on)
+    els.fsIconEnter.toggleAttribute('hidden', on)
+    els.fsIconExit.toggleAttribute('hidden', !on)
+    els.fsLabel.textContent = on ? 'Exit full screen' : 'Full screen'
+    els.fsBtn.title = on ? 'Exit full screen (F or Esc)' : 'Enter full screen (F)'
+    els.fsBtn.setAttribute('aria-label', on ? 'Exit full screen' : 'Enter full screen')
   },
 }
 
@@ -181,7 +224,7 @@ const Fullscreen = {
    COURSE OVERVIEW (intro screen)
    ========================================================= */
 function renderIntro() {
-  document.title = `${course.title} | ${BRAND}`
+  document.title = `${BRAND}: ${course.title} | Bulbuli`
   els.courseName.textContent = course.title
   els.introTitle.textContent = course.title
   els.introTagline.textContent = course.tagline ?? ''
@@ -558,6 +601,36 @@ els.overlay.addEventListener('click', () => closeDrawer())
 els.nextBtn.addEventListener('click', nextQuestion)
 els.restartBtn.addEventListener('click', restartQuiz)
 els.overviewBtn.addEventListener('click', showIntro)
+
+// ===== Bulbuli Buddies: share this course =====
+// The course's public page (https://bulbuli.org/quiz/?course=html), never this page's own address
+// and nothing about the player's progress. The device's share sheet where there is one, otherwise
+// the message and link go on the clipboard. The note says only what really happened.
+const Share = {
+  timer: 0,
+  say(message) {
+    clearTimeout(this.timer)
+    els.shareStatus.textContent = message
+    this.timer = setTimeout(() => { els.shareStatus.textContent = '' }, 4000)
+  },
+  async run() {
+    const words = BUDDIES_TEXT.en.status
+    const url = shareUrl(SHARE_PATHS.proCoder)
+    const text = shareMessage('game', 'en')
+    const data = { title: shareTitle('game', BRAND), text, url }
+    if (canNativeShare(data)) {
+      const result = await nativeShare(data)
+      if (result === 'shared') return this.say(words.ready)
+      if (result === 'cancelled') return this.say(words.cancelled)
+    }
+    const copied = await copyText(fullInvitation(text, url))
+    this.say(copied ? words.copiedFallback : words.messageCopyFailed)
+  },
+}
+
+els.shareBtn.addEventListener('click', () => Share.run())
+els.themeBtn.addEventListener('click', () => Theme.toggle())
+Theme.sync()
 
 if (Fullscreen.supported) {
   els.fsBtn.hidden = false

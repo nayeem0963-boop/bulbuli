@@ -27,12 +27,28 @@ import Stage from './ui/Stage.jsx'
 import { preloadScene } from './ui/sceneLoader.js'
 import { MATH_MASTER_TEXT } from './text.js'
 import './math-master.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
+import { Moon, Sun } from 'lucide-react'
+import { useStoredTheme } from '../../shared/hooks/useStoredTheme.js'
+
+// Math Master's own light/dark choice (dark is its usual look), kept on this device.
+const THEME_KEY = 'bulbuli.math-master.theme'
+
+function ThemeButton({ theme, onToggle, text }) {
+  const label = theme === 'light' ? text.themeToDark : text.themeToLight
+  const Icon = theme === 'light' ? Moon : Sun
+  return (
+    <button type="button" className="mm-tool-button" onClick={onToggle} aria-label={label} title={label}>
+      <Icon aria-hidden="true" focusable="false" size={20} strokeWidth={2.5} />
+    </button>
+  )
+}
 
 const MAX_STARS = LEVELS.length * 3
 const CHOICE_KEYS = ['1', '2', '3', '4']
 const LETTER_KEYS = ['a', 'b', 'c', 'd']
 
-function Header({ record, totalXp, compact, language, text, n }) {
+function Header({ record, totalXp, compact, language, text, n, theme, onToggleTheme }) {
   const stars = record.totalStars ?? 0
   const cleared = LEVELS.filter((level) => isCleared(level.id, record)).length
   return (
@@ -59,11 +75,17 @@ function Header({ record, totalXp, compact, language, text, n }) {
           <div><dt>{text.totalXp}</dt><dd>{n(totalXp)}</dd></div>
         </dl>
       )}
+      {/* the game's own controls: light/dark, then full screen (inside the arcade only) */}
+      <div className="mm-header-tools">
+        <ThemeButton theme={theme} onToggle={onToggleTheme} text={text} />
+        <GameFullscreenButton className="mm-tool-button" iconSize={20} />
+      </div>
     </header>
   )
 }
 
 export default function MathMaster({ playerId, language }) {
+  const [theme, toggleTheme] = useStoredTheme(THEME_KEY, 'dark')
   const text = MATH_MASTER_TEXT[language] ?? MATH_MASTER_TEXT.en
   const n = useCallback((value) => formatDigits(value, language), [language])
   const { games, saveGameResult, totalXp, storageError } = useGameProgress(playerId)
@@ -258,8 +280,17 @@ export default function MathMaster({ playerId, language }) {
   const inArena = view === 'brief' || view === 'play'
 
   return (
-    <div className="mm" lang={language} ref={rootRef}>
-      <Header record={record} totalXp={totalXp} compact={view === 'play'} language={language} text={text} n={n} />
+    <div className="mm" data-mm-theme={theme} lang={language} ref={rootRef}>
+      <Header
+        record={record}
+        totalXp={totalXp}
+        compact={view === 'play'}
+        language={language}
+        text={text}
+        n={n}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
       {storageError && <p className="mm-notice" role="alert">{storageError}</p>}
 
       {view === 'map' && (

@@ -103,3 +103,8 @@ The game then also receives:
 Pattern Quest (`pattern-quest/`) is a complete app with its own styles, so it
 runs inside a frame (`/embed/pattern-quest`, see `src/main.jsx`) and sets
 `ownControls: true` so the game bar hides the language and sound buttons.
+
+Add `fullscreen: true` to give the game a full-screen button in its game bar. It uses the
+browser Fullscreen API on the game frame (game bar + game, not the whole site) through
+`src/shared/hooks/useFullscreen.js`, and keeps the game mounted, so scores and levels carry
+through. Canvases should size from their frame (react-three-fiber does) so they follow along.

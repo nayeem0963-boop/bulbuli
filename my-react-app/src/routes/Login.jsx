@@ -149,8 +149,8 @@ export default function Login() {
     <main className="page login-page auth-page">
       <div className="auth-layout">
         <aside className="auth-welcome-panel">
-          <Link className="dashboard-brand auth-brand" to="/" aria-label="Pro Coder home">
-            Pro Coder<span>.</span>
+          <Link className="dashboard-brand auth-brand" to="/" aria-label="Bulbuli home">
+            Bulbuli<span>.</span>
           </Link>
           <div className="auth-welcome-copy">
             <p className="eyebrow">Every game is free to play</p>

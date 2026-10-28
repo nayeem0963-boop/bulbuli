@@ -383,7 +383,7 @@ export async function renderAdCardBlob({ link, ...options } = {}) {
   })
   if (!link) return blob
   return addPngText(blob, {
-    Title: 'Math Hero on Pro Coder',
+    Title: 'Math Hero on Bulbuli',
     Source: link,
     Comment: `Play Math Hero free: ${link}`,
   })

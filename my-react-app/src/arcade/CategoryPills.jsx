@@ -9,14 +9,15 @@ import { playPath } from './zone.js'
  * can be shared, opened in a new tab and read by search engines; switching plays a view
  * transition (cards glide to their new places) where the browser supports it.
  *
- * On narrow screens the row scrolls sideways instead of wrapping, keeping the grid high up.
+ * The row wraps (a 2 × 2 grid on phones). `filters` lists the pills to show: the home page passes
+ * only the audiences the current mode has, so no pill leads to an empty grid.
  */
-export default function CategoryPills({ category, counts, text, language }) {
+export default function CategoryPills({ category, counts, filters = CATEGORY_FILTERS, text, language }) {
   const { search } = useLocation()
   return (
     <nav className="category-pills" aria-label={text.filterLabel}>
       <ul className="category-pills-list">
-        {CATEGORY_FILTERS.map((id) => {
+        {filters.map((id) => {
           const active = id === category
           const ages = CATEGORY_AGES[id]
           return (

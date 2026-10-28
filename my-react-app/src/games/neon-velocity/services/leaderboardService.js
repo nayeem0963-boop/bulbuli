@@ -10,7 +10,7 @@ import { createSupabaseLeaderboard } from './supabaseLeaderboard.js'
  *
  * Global backend: Supabase, table public.leaderboards (services/supabaseLeaderboard.js),
  * one best run per (board_id, user_id) with its ghost. Boards are split by difficulty.
- * The old Firestore REST backend (firestoreRest.js, firestore.rules) is no longer used.
+ * (An older Firestore REST backend was removed.)
  *
  * The local backend mirrors the same shapes in localStorage (top 50 per board,
  * one personal-best ghost per board), so the UI never cares which one it's using.

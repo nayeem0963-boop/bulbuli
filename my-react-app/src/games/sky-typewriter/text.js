@@ -11,7 +11,7 @@ export const SKY_TYPEWRITER_WORDS = [
 ]
 
 const en = {
-  title: 'SkyTypewriter 3D',
+  title: 'Sky Typewriter 3D',
   loading: 'Getting the sky ready…',
   intro: 'Words are flying at Bulbuli! Type each word before it reaches you.',
   howTo: 'Type the letters of any word. Esc pauses.',

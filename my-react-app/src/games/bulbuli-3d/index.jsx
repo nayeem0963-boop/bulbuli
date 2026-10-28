@@ -17,6 +17,7 @@ import { playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import { BULBULI_3D_TEXT } from './text.js'
 import './bulbuli-3d.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 // The canvas frame's styles load with the page, so the loading box has the same size as the scene.
 import '../../components/game/GameCanvas.css'
 
@@ -82,9 +83,10 @@ export default function Bulbuli3D({ playerId, language }) {
 
   return (
     <div className="b3d" lang={language}>
-      <header className="b3d-header">
+      <header className="b3d-header game-fs-header is-centered">
         <h1>{text.title}</h1>
         <p>{text.intro}</p>
+        <GameFullscreenButton />
       </header>
 
       <div className="b3d-hud" aria-live="polite">

@@ -56,7 +56,7 @@ export async function renderAdGif({ language = 'en', width = 600, siteLabel = 'b
     palette: palette.palette,
     transparentIndex: palette.transparentIndex,
     frames,
-    comment: link ? `Math Hero on Pro Coder - play free at ${link}` : undefined,
+    comment: link ? `Math Hero on Bulbuli - play free at ${link}` : undefined,
   })
   onProgress?.(1)
   return new Blob([bytes], { type: 'image/gif' })

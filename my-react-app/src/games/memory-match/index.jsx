@@ -8,6 +8,7 @@ import {
 } from './engine.js'
 import { MEMORY_MATCH_TEXT } from './text.js'
 import './memory-match.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 
 const GAME_ID = 'memory-match'
 
@@ -134,9 +135,10 @@ export default function MemoryMatch({ playerId, language }) {
   if (!game) {
     return (
       <div className="mm" lang={language}>
-        <header className="mm-header">
+        <header className="mm-header game-fs-header">
           <h1>{text.title}</h1>
           <p>{text.intro}</p>
+          <GameFullscreenButton />
         </header>
         {storageError && <p className="notice" role="alert">{storageError}</p>}
 
@@ -189,9 +191,10 @@ export default function MemoryMatch({ playerId, language }) {
 
   return (
     <div className="mm is-playing" lang={language}>
-      <header className="mm-header is-compact">
+      <header className="mm-header is-compact game-fs-header">
         <h1>{text.title}</h1>
         <p>{deck.icon} {deck.name[language]} · {text.levelName(n(level.id))}</p>
+        <GameFullscreenButton />
       </header>
 
       <div className="mm-bar">
@@ -215,7 +218,7 @@ export default function MemoryMatch({ playerId, language }) {
 
       <div
         className="mm-grid"
-        style={{ '--columns': level.columns }}
+        style={{ '--columns': level.columns, '--rows': Math.ceil(game.cards.length / level.columns) }}
         data-cards={game.cards.length}
       >
         {game.cards.map((card, index) => (

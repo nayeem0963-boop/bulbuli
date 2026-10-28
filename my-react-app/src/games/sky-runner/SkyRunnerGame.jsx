@@ -21,6 +21,7 @@ import { isMuted, playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import { SKY_RUNNER_TEXT } from './text.js'
 import './SkyRunnerGame.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 
 // three.js + the scene load only when a run starts; fetched early while the child picks a level.
 const loadCanvas = () => import('./RunnerCanvas.jsx')
@@ -277,9 +278,10 @@ export default function SkyRunnerGame({ playerId, language }) {
   if (phase === 'menu') {
     return (
       <div className="srg" lang={language}>
-        <header className="srg-header">
+        <header className="srg-header game-fs-header">
           <h1>{text.title}</h1>
           <p>{text.intro}</p>
+          <GameFullscreenButton />
         </header>
         {storageError && <p className="notice" role="alert">{storageError}</p>}
 
@@ -340,6 +342,7 @@ export default function SkyRunnerGame({ playerId, language }) {
             <button type="button" className="srg-secondary" onClick={() => { playSound('click'); setPhase('menu') }}>
               {text.changeLevel}
             </button>
+            <GameFullscreenButton />
           </div>
         </section>
       </div>
@@ -352,9 +355,10 @@ export default function SkyRunnerGame({ playerId, language }) {
 
   return (
     <div className="srg is-playing" lang={language}>
-      <header className="srg-header is-compact">
+      <header className="srg-header is-compact game-fs-header">
         <h1>{text.title}</h1>
         <p>{text.levelName(n(level.id))} · {text.points(n(pointsFor(stars, distance)))}</p>
+        <GameFullscreenButton />
       </header>
 
       <div className="srg-hud">

@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
-   Pro Coder arcade: the home page (the games) and the game frame.
+   Bulbuli arcade: the home page (the games) and the game frame.
    Toy-like on purpose: thick navy outlines, a hard drop "lift" under
    anything you can press, and big rounded type a young reader can follow.
    ------------------------------------------------------------------ */
@@ -75,7 +75,7 @@
 .arcade-brand .brand-mark { width: 2.75rem; height: 2.75rem; }
 .arcade-brand-name { white-space: nowrap; }
 
-/* ---------- navigation: the Play tab and the Educational | Adventure switch ---------- */
+/* ---------- navigation: the Play & Learn | Build & Create mode slider (ModeToggle.jsx) ---------- */
 
 .arcade-toggles {
   display: flex;
@@ -133,68 +133,9 @@
 .arcade .zone-toggle-option:hover { border: 0; color: var(--ink); background: transparent; box-shadow: none; transform: none; }
 .arcade .zone-toggle-option:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
 
-/* Educational | Adventure: the slimmer switch beside the Play tab (thin teal line, flat, smaller) */
-.zone-toggle.is-track {
-  border: 2px solid var(--teal);
-  padding: 3px;
-  background: var(--surface, #fff);
-  box-shadow: 0 3px 0 var(--switch-line);
-}
-
-.zone-toggle.is-track .zone-toggle-thumb {
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
-  width: calc(50% - 3px);
-  background: var(--teal);
-  box-shadow: none;
-}
-
-.arcade .zone-toggle.is-track .zone-toggle-option {
-  min-height: 2.35rem;
-  padding: 0 1rem;
-  color: var(--teal-dark);
-  font-size: 1.02rem;
-}
-
-.arcade .zone-toggle.is-track .zone-toggle-option:hover { color: var(--teal-dark); }
-.arcade .zone-toggle.is-track .zone-toggle-option[aria-checked='true'] { color: #fff; }
-.app-shell[data-theme='dark'] .arcade .zone-toggle.is-track .zone-toggle-option[aria-checked='true'] { color: #062521; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .zone-toggle.is-track { animation: track-toggle-in 360ms cubic-bezier(0.3, 1.3, 0.5, 1); }
-}
-
-@keyframes track-toggle-in {
-  from { opacity: 0; transform: translateX(-12px) scale(0.92); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .zone-toggle-thumb { transition: none; }
 }
-
-/* The Play tab: the site's one section, so it is always "on" (sun pill, like the old switch's thumb). */
-.arcade .play-tab {
-  display: inline-flex;
-  min-height: 3.15rem;
-  align-items: center;
-  gap: 0.4rem;
-  border: var(--toy-border);
-  border-radius: 999px;
-  padding: 0 1.3rem;
-  color: var(--ink);
-  background: var(--sun);
-  box-shadow: 0 4px 0 var(--ink);
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 800;
-  line-height: 1;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.arcade .play-tab:hover { color: var(--ink); background: var(--sun); }
-.arcade .play-tab:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
 
 .arcade-controls {
   display: flex;
@@ -204,8 +145,7 @@
 
 .arcade .arcade-icon-button,
 .arcade .arcade-lang,
-.arcade .arcade-back,
-.arcade .studio-tab {
+.arcade .arcade-back {
   display: inline-grid;
   min-width: 3rem;
   min-height: 3rem;
@@ -231,8 +171,7 @@
 
 .arcade .arcade-icon-button:hover,
 .arcade .arcade-lang:hover,
-.arcade .arcade-back:hover,
-.arcade .studio-tab:hover {
+.arcade .arcade-back:hover {
   border-color: var(--ink);
   color: var(--ink);
   background: var(--sun-soft);
@@ -242,8 +181,7 @@
 
 .arcade .arcade-icon-button:active,
 .arcade .arcade-lang:active,
-.arcade .arcade-back:active,
-.arcade .studio-tab:active {
+.arcade .arcade-back:active {
   transform: translateY(3px);
   box-shadow: var(--toy-lift-press);
 }
@@ -256,16 +194,6 @@
 }
 
 .arcade .arcade-back span { font-size: 1.6rem; line-height: 0.6; }
-
-/* "3D Game Studio" (VoxelCraft, /game): the second stop in the nav, a white pill beside Play. */
-.arcade .studio-tab {
-  display: inline-flex;
-  min-height: 3.15rem;
-  gap: 0.4rem;
-  padding: 0 1.2rem;
-  font-size: 1.15rem;
-  white-space: nowrap;
-}
 
 /* ---------- hero ---------- */
 
@@ -687,50 +615,7 @@
   .game-zone-tags { grid-column: 1 / -1; justify-content: flex-start; }
 }
 
-/* ---------- "share Math Hero" strip: the way into /share/math-hero ---------- */
-
-.share-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem 1.25rem;
-  margin-top: clamp(1.5rem, 4vw, 2.25rem);
-  border: var(--toy-border);
-  border-radius: var(--radius-panel);
-  padding: 0.9rem 1.25rem;
-  background: var(--sun-soft);
-  box-shadow: 0 6px 0 var(--ink);
-}
-
-.share-strip img { width: 64px; height: auto; flex: 0 0 auto; margin: -1.4rem 0 -0.6rem; }
-.share-strip-copy { flex: 1 1 14rem; }
-.share-strip h2 { margin: 0; font-size: 1.45rem; line-height: 1.15; }
-.share-strip p { margin: 0.15rem 0 0; color: var(--text); }
-.app-shell[data-theme='dark'] .share-strip { background: var(--surface); }
-
-.arcade .share-strip-button {
-  display: inline-flex;
-  min-height: 3rem;
-  align-items: center;
-  border: var(--toy-border);
-  border-radius: 999px;
-  padding: 0 1.4rem;
-  color: var(--ink);
-  background: var(--sun);
-  box-shadow: var(--toy-lift);
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 800;
-  text-decoration: none;
-  transition: transform 120ms ease, box-shadow 120ms ease;
-}
-
-.arcade .share-strip-button:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
-.arcade .share-strip-button:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
-
-@media (max-width: 640px) {
-  .arcade .share-strip-button { width: 100%; justify-content: center; }
-}
+/* (the home page invite card, "Play better together!", is styled in src/buddies/buddies.css) */
 
 /* ---------- footer ---------- */
 
@@ -794,8 +679,72 @@
   box-shadow: 0 7px 0 var(--ink);
 }
 
+/* Pattern Quest asks for full screen from inside its frame (its own top bar): the frame, i.e. the
+   game, then fills the screen edge to edge. */
+.embedded-game-frame:fullscreen {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* Math Hero keeps its own layout; inside the arcade it just needs a little less top space. */
 .arcade .game-stage .math-hero-page { width: 100%; padding-top: 1rem; }
+
+/* ---------- a game in full screen (GameFullscreen.jsx) ----------
+   The frame around one game is what goes full screen, so the game (not the arcade page)
+   fills the screen. The frame scrolls on its own when a screen of the game is taller than
+   the display. Each game lays itself out for full screen in its own CSS, under
+   .game-fs-<id>.is-fullscreen. */
+
+.game-fs-frame.is-fullscreen {
+  box-sizing: border-box;
+  width: 100vw;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding:
+    max(0.75rem, env(safe-area-inset-top))
+    max(clamp(0.75rem, 2vw, 1.5rem), env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom))
+    max(clamp(0.75rem, 2vw, 1.5rem), env(safe-area-inset-left));
+  color: var(--text);
+  background: var(--page-sky), var(--page-bg);
+  background-color: var(--page-bg);
+  background-repeat: no-repeat;
+}
+
+/* where the browser has no full screen for pages (iPhone Safari), the frame fills the window */
+.game-fs-frame.is-filled {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+}
+
+.game-fs-frame::backdrop { background: #eaf6ff; }
+.app-shell[data-theme='dark'] .game-fs-frame::backdrop { background: #0e1830; }
+
+/* The full-screen button sits in each game's own header. A header made of a title and a line of
+   text gets .game-fs-header: the text keeps its column, the button lines up on the right.
+   .is-centered keeps a centred title centred. */
+.game-fs-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1rem;
+}
+.game-fs-header > * { grid-column: 1; }
+.game-fs-header > .game-fs-toggle { grid-column: 2; grid-row: 1 / span 2; }
+.game-fs-header.is-centered { grid-template-columns: 3rem minmax(0, 1fr) 3rem; }
+.game-fs-header.is-centered > * { grid-column: 2; }
+.game-fs-header.is-centered > .game-fs-toggle { grid-column: 3; }
+
+.arcade .game-fs-toggle svg { display: block; flex: none; }
+.arcade .game-fs-toggle:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 
 /* ---------- small screens ---------- */
 
@@ -806,11 +755,9 @@
   .arcade-toggles { order: 3; width: 100%; gap: 0.5rem; }
   .arcade-toggles .zone-toggle { flex: 1 1 15rem; min-width: 0; }
   .arcade .zone-toggle-option { padding: 0 0.5rem; font-size: 1.05rem; }
-  .arcade .zone-toggle.is-track .zone-toggle-option { padding: 0 0.4rem; font-size: 0.95rem; }
   .arcade-controls { gap: 0.45rem; }
   .arcade .arcade-icon-button,
   .arcade .arcade-lang { min-width: 2.75rem; min-height: 2.75rem; }
-  .arcade .studio-tab { padding: 0 1rem; font-size: 1.05rem; }
 
   .arcade-hero { grid-template-columns: minmax(0, 1fr) 112px; gap: 0.5rem; }
   .arcade-hero-mascot { width: 112px; margin-bottom: -1rem; align-self: start; margin-top: 2.5rem; }
@@ -1272,4 +1219,192 @@
   ::view-transition-old(*),
   ::view-transition-new(*) { animation: none !important; }
   .arcade .category-pill { transition: none; }
+}
+
+/* ==================================================================
+   Landing page refresh (2026-10): same toy look, clearer hierarchy.
+   - hero: one prominent "Start playing" action beside the XP pill
+   - audience pills wrap instead of sliding off the edge
+   - each zone says what it is for (games that teach | tools and big challenges)
+   - game cards: calmer titles, chips pinned to the card's foot, so a row lines up
+   - Build & Create's 3D Game Studio card looks like a tool (StudioTile.jsx)
+   - phones: compact side-by-side cards instead of full-screen-tall tiles
+   ================================================================== */
+
+.arcade-header { padding: 1rem 0 0.75rem; }
+
+/* hero */
+.arcade-hero-copy { max-width: 40rem; }
+.arcade-hero h1 {
+  font-size: clamp(2.3rem, 5.6vw, 4.2rem);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.arcade-hero-text {
+  max-width: 34rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+}
+.arcade-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+.arcade .arcade-hero-cta {
+  display: inline-flex;
+  min-height: 3.4rem;
+  align-items: center;
+  gap: 0.55rem;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0 1.7rem 0 1.45rem;
+  color: #fff;
+  background: var(--berry);
+  box-shadow: var(--toy-lift);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+.arcade .arcade-hero-cta span { font-size: 0.85em; }
+.arcade .arcade-hero-cta:hover { color: #fff; background: #e23744; transform: translateY(-2px); box-shadow: 0 7px 0 var(--ink); }
+.arcade .arcade-hero-cta:active { transform: translateY(3px); box-shadow: var(--toy-lift-press); }
+.app-shell[data-theme='dark'] .arcade .arcade-hero-cta,
+.app-shell[data-theme='dark'] .arcade .arcade-hero-cta:hover { color: #1a0509; }
+.arcade-games:focus { outline: none; }
+.arcade-games { scroll-margin-top: 1rem; }
+
+/* audience pills: wrap onto a second line on small screens, so none is cut off at the edge */
+.category-pills-list { flex-wrap: wrap; overflow: visible; scroll-snap-type: none; }
+
+/* zones: a short line saying what the zone is for, in the zone's colour */
+.game-zone.is-play-learn { --zone-ink: var(--teal-dark); }
+.game-zone.is-build-create { --zone-ink: #6a3fb5; }
+.app-shell[data-theme='dark'] .game-zone.is-build-create { --zone-ink: #d2b8ff; }
+.game-zone-kind {
+  margin: 0 0 0.15rem;
+  color: var(--zone-ink, var(--text-muted));
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.game-zone-text { max-width: 48rem; }
+
+/* cards */
+.game-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 235px), 1fr)); }
+.game-tile-art { height: 176px; }
+.game-tile-body {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.15rem 0.25rem;
+}
+.game-tile h3 {
+  font-size: clamp(1.35rem, 1.05rem + 0.6vw, 1.6rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.game-tile-body p { font-size: 1rem; }
+/* the skill and age chips sit at the foot of the text, so every card in a row lines up */
+.game-tile-body .game-tile-meta { margin-top: auto; }
+.game-tile-meta span:last-child { color: var(--text); background: color-mix(in srgb, var(--tile-bg) 45%, var(--surface)); }
+.game-tile-play {
+  margin: 0.85rem 1.15rem 1.15rem;
+  padding: 0.4rem 1.35rem;
+  font-size: 1.15rem;
+}
+.game-tile-link:focus-visible { outline-offset: -2px; }
+
+/* the 3D Game Studio card: a tool, so a teal "Create" action and a flat "Creative tool" badge */
+.game-tile-badge.is-tool {
+  background: var(--teal);
+  transform: none;
+  font-size: 0.9rem;
+}
+.game-tile-play.is-create { background: var(--teal); }
+.game-tile-play.is-create::after { content: ' ➜'; }
+.app-shell[data-theme='dark'] .game-tile-badge.is-tool { color: #062521; }
+
+/* phones: side-by-side cards (small art left, text and action right) */
+@media (max-width: 560px) {
+  .game-grid { gap: 1rem; }
+  .game-tile-link {
+    display: grid;
+    grid-template-columns: 7.25rem minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .game-tile-art {
+    grid-row: 1 / span 2;
+    height: auto;
+    min-height: 9.5rem;
+    border-right: var(--toy-border);
+    border-bottom: 0;
+    border-radius: calc(var(--radius-panel) - 3px) 0 0 calc(var(--radius-panel) - 3px);
+  }
+  /* each tile's art is drawn at its usual card size, then scaled down whole, so nothing is cut off */
+  .game-tile-art > .art {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 250px;
+    height: 176px;
+    transform: translate(-50%, -50%) scale(0.46);
+  }
+  .game-tile-body { padding: 0.8rem 0.9rem 0.1rem; }
+  /* the heart moves to the foot of the art column, out of the text's way */
+  .game-tile .fav-button.is-on-tile { top: auto; right: auto; bottom: 0.5rem; left: calc(3.625rem - 1.3rem); }
+  .game-tile h3 { margin-bottom: 0.2rem; font-size: 1.25rem; }
+  .game-tile-body p { margin-bottom: 0.5rem; font-size: 0.95rem; }
+  .game-tile-body .game-tile-meta { gap: 0.3rem; font-size: 0.8rem; }
+  .game-tile-play { margin: 0.5rem 0.9rem 0.85rem; padding: 0.3rem 1.1rem; font-size: 1.05rem; }
+  .game-tile-badge,
+  .game-tile:has(.fav-button.is-on-tile) .game-tile-badge {
+    top: 0.45rem;
+    right: auto;
+    left: 0.45rem;
+    padding: 0 0.5rem;
+    font-size: 0.78rem;
+    transform: rotate(-4deg);
+  }
+  .game-tile-badge.is-tool { transform: none; white-space: nowrap; font-size: 0.7rem; }
+  .arcade .arcade-hero-cta { min-height: 3.1rem; font-size: 1.15rem; }
+
+  /* the four audience pills as a 2 × 2 grid; a long name may wrap inside its pill */
+  .category-pills-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+  .arcade .category-pill { width: 100%; height: 100%; gap: 0.4rem; padding: 0.3rem 0.4rem 0.3rem 0.65rem; white-space: normal; }
+  .category-pill-text { flex: 1; min-width: 0; }
+  .category-pill-label { font-size: 0.95rem; }
+  .category-pill-icon { font-size: 1.1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arcade .arcade-hero-cta { transition: none; }
+}
+
+/* ---------- the home page's mode slider (ModeToggle.jsx) ----------
+   Built on the .zone-toggle switch above: one sun-yellow thumb slides under the chosen mode,
+   which also turns bold; the other option tints on hover. Full width on phones. */
+.zone-toggle.is-mode { min-width: min(100%, 25rem); background: var(--surface); }
+.arcade .zone-toggle.is-mode .zone-toggle-option {
+  min-height: 2.9rem;
+  padding: 0 1.15rem;
+  color: var(--text);
+  font-weight: 700;
+}
+.arcade .zone-toggle.is-mode .zone-toggle-option[aria-checked='true'] { color: var(--ink); font-weight: 800; }
+.arcade .zone-toggle.is-mode .zone-toggle-option[aria-checked='false']:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--sun) 24%, transparent);
+}
+.zone-toggle-icon { font-size: 1.15em; line-height: 1; }
+
+@media (max-width: 640px) {
+  .arcade-toggles .zone-toggle.is-mode { flex: 1 1 100%; min-width: 0; }
+  .arcade .zone-toggle.is-mode .zone-toggle-option { gap: 0.3rem; padding: 0 0.45rem; font-size: 1rem; }
+}
+@media (max-width: 350px) {
+  .zone-toggle.is-mode .zone-toggle-icon { display: none; }
 }

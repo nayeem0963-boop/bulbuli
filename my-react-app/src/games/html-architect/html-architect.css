@@ -20,3 +20,30 @@
   .arcade.game-page-html-architect .game-stage { width: 100%; }
   .html-architect-page .ha-game--in-page { border-radius: 0; border-left: 0; border-right: 0; }
 }
+
+/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
+   The button ends the game's own header. In full screen the editor and the 3D building fill the
+   screen edge to edge, as in the game's own full-window layout. */
+.html-architect-page .ha-fs-button { display: grid; place-items: center; padding: 0; }
+
+.game-fs-html-architect.is-fullscreen { padding: 0; background: #f6f1ff; }
+.game-fs-html-architect.is-fullscreen .html-architect-page {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  padding: 0;
+}
+.game-fs-html-architect.is-fullscreen .ha-game--in-page {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.game-fs-html-architect.is-fullscreen .ha-game--in-page .ha-header { border-radius: 0; }
+.game-fs-html-architect.is-fullscreen .html-architect-note { display: none; }
+@media (max-width: 900px) {
+  .game-fs-html-architect.is-fullscreen .html-architect-page { height: auto; min-height: 100%; }
+  .game-fs-html-architect.is-fullscreen .ha-game--in-page { height: auto; min-height: 100%; }
+}

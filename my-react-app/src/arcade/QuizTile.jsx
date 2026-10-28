@@ -2,7 +2,7 @@ import { formatDigits } from '../utils/mathHeroText.js'
 import { COURSE_CATALOG } from '../courses/catalog.js'
 
 /**
- * Home-page tile for the Pro Coder HTML Course. The course is not a registry game: it is played
+ * Home-page tile for Pro Coder (the HTML course; the card shows "Pro Coder", ages 12+). The course is not a registry game: it is played
  * on its own standalone page (quiz/index.html at the project root, data in src/courses/), served
  * at /quiz/ by vite.config.js in dev and built to dist/quiz/. So this tile uses a plain <a>
  * (a full page load), not <Link>. Its numbers come from src/courses/catalog.js, which the tests

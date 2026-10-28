@@ -18,7 +18,8 @@ High-speed 3D parkour runner (React Three Fiber + Rapier + Zustand). Registered 
 - `stores/`, `components/`, `systems/`, `audio/`, `clip/`, `services/`: see the comments in
   each file
 - Local saves use `neonVelocity.*` localStorage keys (separate from the arcade's `bulbuli:*`)
-- Optional global leaderboards: see `env.example` and `firestore.rules`
+- Optional global leaderboards: Supabase, table `public.leaderboards` (see `services/supabaseLeaderboard.js`
+  and `supabase/migrations/`); without it the game keeps on-device leaderboards
 
 Dependencies: only what the arcade already has (`three`, `@react-three/fiber`,
 `@react-three/drei`) plus `zustand`, which drei already installs.

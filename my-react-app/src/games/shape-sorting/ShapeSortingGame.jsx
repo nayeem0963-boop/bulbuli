@@ -23,6 +23,7 @@ import {
 import { speak, stopSpeaking } from './speech.js'
 import { SHAPE_SORTING_TEXT } from './text.js'
 import './ShapeSortingGame.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 
 const loadCanvas = () => import('./SortingCanvas.jsx')
 const SortingCanvas = lazy(loadCanvas)
@@ -218,9 +219,10 @@ export default function ShapeSortingGame({ playerId, language }) {
   if (!game) {
     return (
       <div className="ssf" lang={language}>
-        <header className="ssf-header">
+        <header className="ssf-header game-fs-header">
           <h1>{text.title}</h1>
           <p>{text.intro}</p>
+          <GameFullscreenButton />
         </header>
         {storageError && <p className="notice" role="alert">{storageError}</p>}
 
@@ -273,6 +275,7 @@ export default function ShapeSortingGame({ playerId, language }) {
             <button type="button" className="ssf-secondary" onClick={() => { playSound('click'); setGame(null) }}>
               {text.changeLevel}
             </button>
+            <GameFullscreenButton />
           </div>
         </section>
       </div>
@@ -285,9 +288,10 @@ export default function ShapeSortingGame({ playerId, language }) {
 
   return (
     <div className="ssf is-playing" lang={language}>
-      <header className="ssf-header is-compact">
+      <header className="ssf-header is-compact game-fs-header">
         <h1>{text.title}</h1>
         <p>{text.levelName(n(level.id))} · {text.itemOf(n(game.itemNumber), n(game.total))}</p>
+        <GameFullscreenButton />
       </header>
 
       <div className="ssf-hud">

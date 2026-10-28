@@ -20,6 +20,7 @@ import GameViewport from '../../components/game/GameViewport.jsx'
 import { lazyWithPreload } from '../../shared/lib/lazyWithPreload.js'
 import { SHAPE_HUNT_TEXT } from './text.js'
 import './shape-hunt.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 
 // three.js and the scene load only when this game opens (and start downloading on the level picker).
 const ShapeScene = lazyWithPreload(() => import('./ShapeScene.jsx'))
@@ -148,9 +149,10 @@ export default function ShapeHunt({ playerId, language }) {
   if (!game) {
     return (
       <div className="sh" lang={language}>
-        <header className="sh-header">
+        <header className="sh-header game-fs-header">
           <h1>{text.title}</h1>
           <p>{text.intro}</p>
+          <GameFullscreenButton />
         </header>
         {storageError && <p className="notice" role="alert">{storageError}</p>}
 
@@ -201,6 +203,7 @@ export default function ShapeHunt({ playerId, language }) {
             <button type="button" className="sh-secondary" onClick={() => { playSound('click'); setGame(null) }}>
               {text.changeLevel}
             </button>
+            <GameFullscreenButton />
           </div>
         </section>
       </div>
@@ -222,9 +225,10 @@ export default function ShapeHunt({ playerId, language }) {
 
   return (
     <div className="sh is-playing" lang={language}>
-      <header className="sh-header is-compact">
+      <header className="sh-header is-compact game-fs-header">
         <h1>{text.title}</h1>
         <p>{text.levelName(n(level.id))} · {text.roundOf(n(game.roundNumber), n(game.rounds))}</p>
+        <GameFullscreenButton />
       </header>
 
       <div className="sh-prompt">

@@ -1029,3 +1029,57 @@ button:active:not(:disabled),
     flex: 1 1 0;
   }
 }
+
+/* ---------- Math Hero in full screen (src/arcade/GameFullscreen.jsx) ----------
+   The button sits at the end of Math Hero's own heading. In full screen the game fills the
+   screen: heading across the top, the stats in a column on the left, and the question card
+   taking the rest, with a bigger sum and answer buttons sized from the screen height. */
+.math-hero-heading > .game-fs-toggle { margin-left: auto; align-self: flex-start; }
+
+.game-fs-math-hero.is-fullscreen .math-hero-page {
+  display: grid;
+  grid-template-areas: "head head" "stats card" ". note";
+  grid-template-columns: minmax(13rem, 18rem) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  column-gap: clamp(1.25rem, 3vw, 2.5rem);
+  width: 100%;
+  max-width: 1400px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+.game-fs-math-hero.is-fullscreen .math-hero-heading { grid-area: head; margin-bottom: clamp(0.75rem, 2.5vh, 1.5rem); }
+.game-fs-math-hero.is-fullscreen .math-hero-page > .notice { grid-column: 1 / -1; }
+.game-fs-math-hero.is-fullscreen .math-hero-stats {
+  grid-area: stats;
+  flex-direction: column;
+  align-self: start;
+  margin: 0;
+}
+.game-fs-math-hero.is-fullscreen .math-hero-game {
+  grid-area: card;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+}
+.game-fs-math-hero.is-fullscreen .math-hero-problem {
+  margin: clamp(1rem, 4vh, 2.75rem) 0 clamp(0.5rem, 2vh, 1.5rem);
+  font-size: clamp(3.5rem, min(11vh, 8vw), 7.5rem);
+}
+.game-fs-math-hero.is-fullscreen .math-hero-options { gap: clamp(0.8rem, 2vh, 1.4rem); }
+.game-fs-math-hero.is-fullscreen .math-hero-option {
+  min-height: clamp(4.25rem, 11vh, 7.5rem);
+  font-size: clamp(1.5rem, 4.2vh, 2.6rem);
+}
+.game-fs-math-hero.is-fullscreen .math-hero-save-note { grid-area: note; }
+
+/* narrow or upright screens: one column, the stats as a row above the card */
+@media (max-width: 860px), (orientation: portrait) and (max-width: 1100px) {
+  .game-fs-math-hero.is-fullscreen .math-hero-page {
+    grid-template-areas: "head" "stats" "card" "note";
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+  .game-fs-math-hero.is-fullscreen .math-hero-stats { flex-direction: row; margin-bottom: 1rem; }
+}

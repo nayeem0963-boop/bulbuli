@@ -34,6 +34,14 @@
     &:active:not(:disabled) { transform: scale(0.94); box-shadow: none; }
     &[aria-pressed='false'] { background: #e3e9f0; opacity: 0.85; }
   }
+  /* the full-screen pill (FullscreenButton.jsx): icon + label in one line; just the icon on phones */
+  .btn--pill.fs-button { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .btn--pill.fs-button svg { flex: none; }
+  .btn--pill.fs-button:focus-visible { outline: 3px solid var(--ink, #1b2a49); outline-offset: 2px; }
+  @media (max-width: 520px) {
+    .btn--pill.fs-button { padding-inline: 0.7rem; }
+    .fs-button-label { display: none; }
+  }
   .pill.is-bump { animation: bump 0.35s ease-out; }
   .pill.is-hot { background: var(--sun); animation: wiggle 0.6s ease-in-out; }
 

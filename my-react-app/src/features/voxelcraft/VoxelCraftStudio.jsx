@@ -102,7 +102,7 @@ const starterLevel = parseLevel(mockStarterLevel).level
  *   initialLevel a LevelState to open in the Build Studio (default: the level saved on this
  *                device, else the starter level).
  */
-export function VoxelCraftStudio({ onExit, exitHref = '/', exitLabel = 'Pro Coder', height = '100dvh', initialLevel }) {
+export function VoxelCraftStudio({ onExit, exitHref = '/', exitLabel = 'Bulbuli', height = '100dvh', initialLevel }) {
   const [studioLevel] = useState(() => initialLevel ?? loadStudioLevel() ?? starterLevel)
   const [root, setRoot] = useState(null)
   useGameFonts()

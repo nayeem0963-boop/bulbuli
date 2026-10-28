@@ -299,3 +299,27 @@
   .mm-bar-actions .mm-secondary { flex: 1; }
   .mm-count { flex: 1; }
 }
+
+/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
+   The board grows to fill the screen: each card's height comes from the screen height and the
+   number of rows (--rows, set on .mm-grid), and the board is as wide as those cards need, so the
+   cards keep their shape and the whole board fits without scrolling. The bar stays above it. */
+.game-fs-memory-match.is-fullscreen .mm {
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  min-height: 100%;
+  padding-top: 0;
+}
+.game-fs-memory-match.is-fullscreen .mm:not(.is-playing) { max-width: 1000px; justify-content: center; }
+.game-fs-memory-match.is-fullscreen .mm-grid {
+  --mm-gap: clamp(0.5rem, 1.6vh, 1rem);
+  --card-h: calc((100dvh - 14rem - (var(--rows, 4) - 1) * var(--mm-gap)) / var(--rows, 4));
+  width: 100%;
+  max-width: min(100%, calc(var(--columns) * max(5rem, var(--card-h)) * 5 / 6 + (var(--columns) - 1) * var(--mm-gap)));
+  gap: var(--mm-gap);
+  margin: auto;
+}
+.game-fs-memory-match.is-fullscreen .mm-card-front { font-size: clamp(2rem, calc(var(--card-h) * 0.42), 5.5rem); }
+.game-fs-memory-match.is-fullscreen .mm-card-front.is-word { font-size: clamp(1rem, calc(var(--card-h) * 0.17), 2.4rem); }
+.game-fs-memory-match.is-fullscreen .mm-card-front.is-word.is-long { font-size: clamp(0.8rem, calc(var(--card-h) * 0.13), 1.9rem); }

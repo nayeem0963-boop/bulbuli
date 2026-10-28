@@ -17,6 +17,7 @@
  *   savedStars    { [levelId]: stars }    — stars already saved elsewhere; merged with local ones
  *   muted         boolean                 — follow an app-wide sound switch (hides the built-in mute button)
  *   inPage        boolean                 — sized to sit under an app header instead of filling the window
+ *   headerActions node                    — extra controls at the end of the header (e.g. the arcade's full-screen button)
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -172,7 +173,7 @@ const Stars = ({ count, max = 3, size = 'md' }) => (
 /* ================================================================== */
 
 export default function HTMLArchitectGame({
-  onLevelComplete, storageKey = DEFAULT_KEY, savedStars, muted: mutedProp, inPage = false,
+  onLevelComplete, storageKey = DEFAULT_KEY, savedStars, muted: mutedProp, inPage = false, headerActions = null,
 }) {
   const initial = useMemo(() => loadProgress(storageKey), [storageKey]);
   const [levelIndex, setLevelIndex] = useState(Math.min(initial.levelIndex, LEVELS.length - 1));
@@ -355,6 +356,7 @@ export default function HTMLArchitectGame({
           >
             ▶ Check Code
           </button>
+          {headerActions}
         </div>
       </header>
 

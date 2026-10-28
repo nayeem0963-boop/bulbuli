@@ -193,3 +193,23 @@
 .sh-result p { margin: 0; font-size: 1.15rem; font-weight: 700; }
 .sh-xp { color: var(--grape); font-family: var(--font-display); font-size: 1.6rem !important; }
 .sh-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 0.75rem; }
+
+/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
+   While playing, the 3D view takes the height left between the prompt and the keys. It never
+   gets narrower than its phone shape (4:5), so no shape is cut off at the sides. */
+.game-fs-shape-hunt.is-fullscreen .sh {
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  min-height: 100%;
+  padding-top: 0;
+}
+.game-fs-shape-hunt.is-fullscreen .sh:not(.is-playing) { max-width: 1000px; justify-content: center; }
+.game-fs-shape-hunt.is-fullscreen .sh.is-playing { height: 100%; }
+.game-fs-shape-hunt.is-fullscreen .sh.is-playing .sh-canvas {
+  flex: 1 1 0;
+  min-height: 14rem;
+  max-height: calc((100vw - 2rem) * 5 / 4);
+  aspect-ratio: auto;
+}
+.game-fs-shape-hunt.is-fullscreen .sh-result .game-fs-toggle { min-height: 2.9rem; }

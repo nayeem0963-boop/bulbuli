@@ -32,3 +32,24 @@
   color: var(--text-muted);
   font-weight: 700;
 }
+
+/* ---------- full screen (src/arcade/GameFullscreen.jsx) ----------
+   The 3D scene takes all the height left under the heading and the star count. The canvas
+   follows its box (react-three-fiber measures it), so the camera keeps the right shape. */
+.game-fs-bulbuli-3d.is-fullscreen .b3d {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  height: 100%;
+  padding-top: 0;
+}
+.game-fs-bulbuli-3d.is-fullscreen .b3d-header { margin-bottom: 0.5rem; }
+.game-fs-bulbuli-3d.is-fullscreen .bulbuli-canvas {
+  flex: 1 1 0;
+  width: 100%;
+  max-width: none;
+  min-height: 16rem;
+  max-height: none;
+  aspect-ratio: auto;
+}
+.game-fs-bulbuli-3d.is-fullscreen .b3d-status { margin-bottom: 0; }

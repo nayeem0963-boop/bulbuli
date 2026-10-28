@@ -5,6 +5,7 @@ import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { mutedPreference } from '../../arcade/preferences.js'
 import { xpForClear } from './rewards.js'
 import './html-architect.css'
+import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 
 const GAME_ID = 'html-architect'
 
@@ -50,6 +51,7 @@ export default function HTMLArchitect({ playerId }) {
         savedStars={savedStars}
         onLevelComplete={onLevelComplete}
         storageKey={`bulbuli.html-architect.v1.${encodeURIComponent(playerId)}`}
+        headerActions={<GameFullscreenButton className="ha-icon-btn ha-fs-button" iconSize={18} />}
       />
       <p className="html-architect-note">
         {LEVELS.length} chapters · up to {LEVELS.length * 3} stars · first clear {xpForClear(0, 1)}–{xpForClear(0, 3)} XP

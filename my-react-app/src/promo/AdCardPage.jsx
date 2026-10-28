@@ -4,8 +4,8 @@ import '../arcade/arcade.css'
 import MathHeroAdCard from './MathHeroAdCard.jsx'
 
 const PAGE_TEXT = {
-  en: { title: 'Share Math Hero', intro: 'Share this page with your friends, and play Math Hero together on Pro Coder.' },
-  bn: { title: 'ম্যাথ হিরো শেয়ার করো', intro: 'এই পাতাটি বন্ধুদের সাথে শেয়ার করো, তারপর Pro Coder-এ একসাথে ম্যাথ হিরো খেলো।' },
+  en: { title: 'Share Math Hero', intro: 'Share this page with your friends, and play Math Hero together on Bulbuli.' },
+  bn: { title: 'ম্যাথ হিরো শেয়ার করো', intro: 'এই পাতাটি বন্ধুদের সাথে শেয়ার করো, তারপর Bulbuli-এ একসাথে ম্যাথ হিরো খেলো।' },
 }
 
 /** /share/math-hero: the Math Hero ad card on its own page, ready to download or share. */

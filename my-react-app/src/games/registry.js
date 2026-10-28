@@ -5,6 +5,7 @@ import Bulbuli3DArt from './bulbuli-3d/Art.jsx'
 import ShapeHuntArt from './shape-hunt/Art.jsx'
 import ShapeSortingArt from './shape-sorting/Art.jsx'
 import SkyRunnerArt from './sky-runner/Art.jsx'
+import BallDashArt from './ball-dash/Art.jsx'
 import SkywardExplorerArt from './skyward-explorer/Art.jsx'
 import SkyTypewriterArt from './sky-typewriter/Art.jsx'
 import NeonVelocityArt from './neon-velocity/Art.jsx'
@@ -37,6 +38,10 @@ import MathMasterArt from './math-master/Art.jsx'
  *   controls      { en, bn } one line on how to play, shown on the launcher.
  *   path          the game's own address instead of /games/<id> (the tile and dashboard link there;
  *                 App.jsx must have a matching route, and /games/<id> redirects to it).
+ *   fullscreen    true puts the game in a frame of its own on its page (GameFullscreen.jsx) that can go
+ *                 full screen: the game fills the screen, not the arcade page around it. The game shows
+ *                 the button in its own header with <GameFullscreenButton />. (Pattern Quest has its own
+ *                 button in its own top bar, inside its frame, so it doesn't need this.)
  *
  * A game component receives { playerId, language } and should save through useGameProgress(playerId).
  */
@@ -53,6 +58,7 @@ export const GAMES = [
     zone: 'play-learn',
     Art: MathHeroArt,
     load: () => import('./math-hero/index.jsx'),
+    fullscreen: true,
   },
   {
     id: 'memory-match',
@@ -66,6 +72,7 @@ export const GAMES = [
     zone: 'play-learn',
     Art: MemoryMatchArt,
     load: () => import('./memory-match/index.jsx'),
+    fullscreen: true,
     isNew: true,
   },
   {
@@ -96,6 +103,7 @@ export const GAMES = [
     Art: Bulbuli3DArt,
     // three.js + the 3 MB model load only when this game is opened.
     load: () => import('./bulbuli-3d/index.jsx'),
+    fullscreen: true,
     isNew: true,
   },
   {
@@ -111,6 +119,7 @@ export const GAMES = [
     Art: ShapeHuntArt,
     // three.js loads only when the game is opened.
     load: () => import('./shape-hunt/index.jsx'),
+    fullscreen: true,
     isNew: true,
   },
   {
@@ -126,6 +135,7 @@ export const GAMES = [
     Art: ShapeSortingArt,
     // three.js loads only when the game is opened; the 3D scene itself is lazy-loaded inside.
     load: () => import('./shape-sorting/index.jsx'),
+    fullscreen: true,
     isNew: true,
   },
   {
@@ -141,6 +151,26 @@ export const GAMES = [
     Art: SkyRunnerArt,
     // three.js and the Bulbuli model load only when a run starts.
     load: () => import('./sky-runner/index.jsx'),
+    fullscreen: true,
+    isNew: true,
+  },
+  {
+    id: 'ball-dash',
+    title: { en: 'Bulbuli Ball Dash', bn: 'বুলবুলি বল ড্যাশ' },
+    tagline: {
+      en: 'Roll, jump, shrink, and dodge your way through a colourful 3D adventure!',
+      bn: 'গড়িয়ে চলো, লাফাও, ছোট হও আর বাধা এড়িয়ে রঙিন ৩ডি অভিযানে এগিয়ে যাও!',
+    },
+    skill: { en: 'Reflexes & timing', bn: 'দ্রুত সাড়া ও সময়জ্ঞান' },
+    ages: '5–11',
+    color: 'sun',
+    icon: '🟡',
+    category: 'young',
+    zone: 'play-learn',
+    Art: BallDashArt,
+    // three.js and the scene load only when the game is opened.
+    load: () => import('./ball-dash/index.jsx'),
+    fullscreen: true,
     isNew: true,
   },
   {
@@ -188,14 +218,14 @@ export const GAMES = [
   },
   {
     id: 'sky-typewriter',
-    title: { en: 'SkyTypewriter 3D', bn: 'স্কাই টাইপরাইটার ৩ডি' },
+    title: { en: 'Sky Typewriter 3D', bn: 'স্কাই টাইপরাইটার ৩ডি' },
     tagline: { en: 'Type the flying words before they reach Bulbuli.', bn: 'উড়ে আসা শব্দগুলো বুলবুলির কাছে পৌঁছানোর আগেই টাইপ করো।' },
     skill: { en: 'Typing & spelling', bn: 'টাইপিং ও বানান' },
     ages: '7–12',
     color: 'sky',
     icon: '⌨️',
     category: 'logic',
-    zone: 'build-create',
+    zone: 'play-learn',
     Art: SkyTypewriterArt,
     // three.js and the scene load only when the game is opened.
     load: () => import('./sky-typewriter/index.jsx'),
@@ -218,11 +248,12 @@ export const GAMES = [
     color: 'grape',
     icon: '🏗️',
     category: 'logic',
-    zone: 'build-create',
+    zone: 'play-learn',
     Art: HTMLArchitectArt,
     path: '/play/html-architect',
     // three.js and the code editor load only when the game is opened.
     load: () => import('./html-architect/index.jsx'),
+    fullscreen: true,
     isNew: true,
   },
   {
@@ -241,6 +272,7 @@ export const GAMES = [
     Art: MathMasterArt,
     // three.js and the 3D lab load only when the game is opened. Separate from Math Hero (ages 6–10).
     load: () => import('./math-master/index.jsx'),
+    fullscreen: true,
     isNew: true,
   },
 ]
@@ -256,5 +288,5 @@ export const getGame = (id) => GAMES.find((game) => game.id === id) ?? null
 export {
   ALL_GAMES, CATEGORY_AGES, CATEGORY_FILTERS, CATEGORY_ICONS, DEFAULT_FILTER, GAME_CATEGORIES,
   categoryCounts, categoryOf, gamesInCategory,
-  GAME_ZONES, ZONE_ICONS, gamesInZone, zoneOf,
+  GAME_ZONES, ZONE_ICONS, gamesInZone, zoneOf, categoryCountsInZone,
 } from './categories.js'

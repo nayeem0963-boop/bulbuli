@@ -3,9 +3,11 @@ import { useLanguage, useMuted } from './preferences.js'
 import { ARCADE_TEXT } from './text.js'
 import BrandMark from './BrandMark.jsx'
 import AccountButton from '../auth/AccountButton.jsx'
-import PlayTab from './PlayNav.jsx'
+import ModeToggle from './ModeToggle.jsx'
 import { playPath } from './zone.js'
-import { preloadVoxelCraftStudio } from '../features/voxelcraft/lazy.js'
+import { gamePath } from '../games/registry.js'
+import ShareGameButton from '../buddies/ShareGameButton.jsx'
+import { shareUrl } from '../buddies/shareLinks.js'
 
 function IconButton({ label, pressed, onClick, children, lang }) {
   return (
@@ -26,12 +28,12 @@ function IconButton({ label, pressed, onClick, children, lang }) {
 /**
  * The bar across the top of every arcade screen.
  *
- * Home page (navigation): the brand, the Play tab with its Educational | Adventure switch and
- * the 3D Game Studio tab (/game), then the language switch and the profile button.
+ * Home page (navigation): the brand, the Play & Learn | Build & Create mode slider (ModeToggle.jsx),
+ * then the language switch and the profile button.
  *
  * Game pages: `game` (or `back` = { to, label }) turns it into a game bar. A big "All games"
  * button replaces the navigation, and the in-game controls (sound, day/night) join the
- * language switch and profile button. "All games" returns to the full grid.
+ * language switch, a "share this game" button and the profile button. "All games" returns to the full grid.
  */
 export default function ArcadeHeader({ theme, onToggleTheme, game = null, back = null, showControls = true, onBack = null }) {
   const [language, , toggleLanguage] = useLanguage()
@@ -60,21 +62,12 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
         <>
           <Link className="arcade-brand" to="/" aria-label={text.brandLabel}>
             <BrandMark />
-            <span className="arcade-brand-name">Pro Coder</span>
+            <span className="arcade-brand-name">Bulbuli</span>
           </Link>
-          <nav className="arcade-toggles" aria-label={text.navLabel}>
-            <PlayTab text={text} />
-            {/* VoxelCraft UGC Studio (src/features/voxelcraft), its own full-page route */}
-            <Link
-              className="studio-tab"
-              to="/game"
-              onPointerEnter={preloadVoxelCraftStudio}
-              onFocus={preloadVoxelCraftStudio}
-              onTouchStart={preloadVoxelCraftStudio}
-            >
-              <span aria-hidden="true">🧊</span> {text.navStudio}
-            </Link>
-          </nav>
+          {/* the home page's two modes; the 3D Game Studio opens from its card in Build & Create */}
+          <div className="arcade-toggles">
+            <ModeToggle text={text} />
+          </div>
         </>
       )}
 
@@ -103,6 +96,15 @@ export default function ArcadeHeader({ theme, onToggleTheme, game = null, back =
             >
               <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
             </IconButton>
+          )}
+          {/* Bulbuli Buddies: send this game's public page to a friend (optional, never needed to play) */}
+          {inGame && game && (
+            <ShareGameButton
+              className="arcade-icon-button"
+              title={game.title[language] ?? game.title.en}
+              url={shareUrl(gamePath(game))}
+              language={language}
+            />
           )}
           <AccountButton language={language} />
         </div>
