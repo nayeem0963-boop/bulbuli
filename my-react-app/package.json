@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "test": "node --test \"src/**/*.test.js\"",
     "build:voxelcraft-css": "node scripts/build-voxelcraft-css.mjs",
+    "build:math-hero-pro-css": "node scripts/build-math-hero-pro-css.mjs",
+    "build:math-hero-pro-plus-css": "node scripts/build-math-hero-pro-plus-css.mjs",
     "check:voxelcraft-levels": "node scripts/check-voxelcraft-levels.js"
   },
   "dependencies": {
@@ -28,6 +30,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
+    "tailwindcss": "^4.1.11",
     "vite": "^8.3.0"
   },
   "description": "Bulbuli: free learning games and coding courses for kids."

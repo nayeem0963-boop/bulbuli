@@ -1,10 +1,6 @@
-import mascot from '../../assets/math-hero-mascot-cutout.webp'
+import MathHeroSeriesArt from './SeriesArt.jsx'
 
+/** Home-page tile: the Math Hero series' 3D scene, part one of three (3 + 4 = ?). */
 export default function MathHeroArt() {
-  return (
-    <div className="art art-math" aria-hidden="true">
-      <span className="art-math-sum">3 + 4 = ?</span>
-      <img src={mascot} alt="" width="160" height="196" loading="lazy" />
-    </div>
-  )
+  return <MathHeroSeriesArt tier={1} />
 }

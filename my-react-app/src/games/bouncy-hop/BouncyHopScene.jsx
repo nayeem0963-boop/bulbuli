@@ -11,8 +11,8 @@
  *
  * Look: a soft gradient sky sphere, low-poly drifting clouds above and below the path, twinkling
  * star sparkles (one Points draw call), floating rounded tiles with neon outlines and an underglow,
- * a bird-ball with squash and stretch, a projected landing shadow that shows where the ball will
- * come down, sparkle bursts, a rainbow trail and a little camera shake on super bounces.
+ * a bird-ball with squash and stretch, landing rings on the next row's tiles (the one the ball is lined
+ * up with glows), a landing marker that shows where the ball will come down (red over a gap), sparkle bursts, a rainbow trail and a little camera shake on super bounces.
  * Performance: dpr capped at 1.75, no shadow maps, instancing for particles, the loop stops while paused.
  */
 import { Component, useEffect, useMemo, useRef } from 'react'
@@ -23,7 +23,7 @@ import {
   PlaneGeometry, RingGeometry, ShaderMaterial, SphereGeometry, SRGBColorSpace,
 } from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { HOP_CONFIG as CFG, ballPosition, bob, ballVerticalSpeed, drainEvents, stepRun, tileUnder, tileX } from './engine.js'
+import { HOP_CONFIG as CFG, ballPosition, bob, ballVerticalSpeed, drainEvents, landingPreview, stepRun, tileX } from './engine.js'
 
 const R = CFG.ballRadius
 const TILE_H = 0.5
@@ -43,6 +43,7 @@ const GOOD = new Color('#25e07a')
 const BAD = new Color('#ff3b4e')
 const PAD_BODY = '#ffffff'
 const PAD_NEON = '#ffb703'
+const WHITE = new Color('#ffffff')
 
 const dummy = new Object3D()
 const tmpColor = new Color()
@@ -304,6 +305,7 @@ function useTileAssets() {
       outline: new MeshBasicMaterial({ color: NEON[0], side: BackSide, transparent: true, opacity: 0.95, toneMapped: false }),
       glow: new MeshBasicMaterial({ map: glowTex, color: NEON[0], transparent: true, opacity: 0.6, blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
       label: new MeshBasicMaterial({ transparent: true, depthWrite: false, toneMapped: false }),
+      ring: new MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
       key: '', // which tile is drawn in this slot (row:index), to know when to repaint
       text: '',
     }))
@@ -311,6 +313,7 @@ function useTileAssets() {
       body,
       label: new PlaneGeometry(1.42, 1.42),
       glow: new PlaneGeometry(1, 1),
+      ring: new RingGeometry(0.68, 0.79, 48), // the landing ring around a label
       slots,
     }
   }, [])
@@ -321,6 +324,7 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
   const bodies = useRef([])
   const labels = useRef([])
   const glows = useRef([])
+  const rings = useRef([])
   const formatRef = useRef(formatLabel)
   useEffect(() => { formatRef.current = formatLabel; for (const s of assets.slots) s.text = '' }, [formatLabel, assets])
 
@@ -330,6 +334,8 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
     const t = run.t
     const now = performance.now() / 1000
     let used = 0
+    // the row the ball is heading for, and the tile it is lined up with (null = the gap)
+    const preview = landingPreview(run)
     const first = Math.max(0, run.row - 2)
     const last = Math.min(run.rows.length - 1, run.row + ROWS_AHEAD)
     for (let k = first; k <= last; k += 1) {
@@ -377,15 +383,34 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
         else slot.outline.color.set(neon)
         const hint = row.hint && tile.correct && !tile.hit
         const pulse = hint ? 0.5 + 0.5 * Math.sin(now * 8) : 0
+        // landing anticipation: every tile in the next row shows a soft ring; the one the ball is
+        // lined up with lights up (whether it is right or wrong is never shown)
+        const upcoming = preview && preview.k === k && !tile.hit && row.clearedAt == null
+        const aimed = upcoming && preview.tile === tile
+        const beat = reducedMotion ? 0 : Math.sin(now * 6)
         slot.body.emissive.copy(tile.hit === 'correct' ? GOOD : tile.hit === 'wrong' ? BAD : tmpColor.set(neon))
         slot.body.emissiveIntensity = tile.hit === 'correct' ? 0.35 * Math.max(0, 1 - hitAge) + 0.1
-          : tile.hit === 'wrong' ? 0.25 : hint ? 0.25 + pulse * 0.4 : 0.06
+          : tile.hit === 'wrong' ? 0.25 : hint ? 0.25 + pulse * 0.4 : aimed ? 0.3 + beat * 0.06 : 0.06
         slot.body.opacity = fade * (tile.hit === 'wrong' ? 0.75 : 1)
         slot.outline.opacity = 0.95 * fade
         slot.glow.color.copy(slot.outline.color)
-        slot.glow.opacity = (0.45 + pulse * 0.5 + (hitAge < 0.5 ? (0.5 - hitAge) : 0)) * fade
+        slot.glow.opacity = (0.45 + pulse * 0.5 + (aimed ? 0.35 : 0) + (hitAge < 0.5 ? (0.5 - hitAge) : 0)) * fade
         const glow = glows.current[used]
-        glow.scale.set(tile.w * 1.9 * (1 + pulse * 0.15), CFG.tile.depth * 1.9, 1)
+        const swell = 1 + pulse * 0.15 + (aimed ? 0.12 : 0)
+        glow.scale.set(tile.w * 1.9 * swell, CFG.tile.depth * 1.9 * (aimed ? 1.12 : 1), 1)
+        const ring = rings.current[used]
+        if (ring) {
+          ring.visible = Boolean(upcoming)
+          if (upcoming) {
+            // soft white rings on every tile ahead; the lined-up one bright, in its own neon
+            if (aimed) slot.ring.color.set('#ffffff')
+            else slot.ring.color.set(neon).lerp(WHITE, 0.55)
+            slot.ring.opacity = aimed ? 0.9 + beat * 0.1 : 0.62
+            const rs = Math.min(1, (tile.w - 0.2) / 1.6) * (aimed ? 1 + beat * 0.04 : 1)
+            ring.scale.set(rs, rs, rs)
+            ring.position.y = 0.02 - spring * 0.16
+          }
+        }
 
         // the label
         const text = formatRef.current ? formatRef.current(tile.label) : tile.label
@@ -411,6 +436,7 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
         <mesh geometry={assets.body} material={slot.outline} scale={[1.06, 1.14, 1.06]} />
       </mesh>
       <mesh ref={(el) => { labels.current[i] = el }} geometry={assets.label} material={slot.label} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2} />
+      <mesh ref={(el) => { rings.current[i] = el }} geometry={assets.ring} material={slot.ring} rotation={[-Math.PI / 2, 0, 0]} renderOrder={3} visible={false} />
       <mesh ref={(el) => { glows.current[i] = el }} geometry={assets.glow} material={slot.glow} rotation={[-Math.PI / 2, 0, 0]} position={[0, -TILE_H - 0.25, 0]} />
     </group>
   ))
@@ -527,8 +553,9 @@ function Ball({ runRef, reducedMotion, ballRef }) {
 /* ------------------------------------------------------------------ landing shadow */
 
 /**
- * A soft shadow projected onto the row the ball is heading for, right under the ball: it grows and
- * darkens as the ball comes down, and a ring turns green over a tile, so players can line up.
+ * Where the ball will come down: a soft shadow on the row it is heading for that grows and darkens as
+ * it falls, and a ring that is white over a tile and red over a gap, so a miss is seen in time to
+ * steer. While the ball rests on a tile the ring already shows on the next row, faintly.
  */
 function LandingShadow({ runRef, reducedMotion }) {
   const blob = useRef(null)
@@ -541,25 +568,24 @@ function LandingShadow({ runRef, reducedMotion }) {
   useFrame((state) => {
     const run = runRef.current
     if (!run || !blob.current) return
+    const preview = landingPreview(run)
+    const row = preview ? run.rows[preview.k] : null
+    blob.current.visible = ring.current.visible = Boolean(row)
+    if (!row) return
     const airborne = run.phase === 'air'
-    const k = airborne ? run.to : run.phase === 'contact' ? run.row : run.from
-    const row = run.rows[k]
-    const p = airborne ? clamp(run.phaseT / run.phaseDur, 0, 1) : 1
-    const over = row ? tileUnder(row, run.x, run.t) : null
-    const visible = row && run.phase !== 'fall' && run.phase !== 'back'
-    blob.current.visible = ring.current.visible = Boolean(visible && (airborne ? over : true))
-    if (!visible) return
-    const y = bob(k, reducedMotion ? 0 : run.t) + 0.03
+    const p = airborne ? clamp(run.phaseT / run.phaseDur, 0, 1) : 0
+    const over = preview.tile
+    const y = bob(preview.k, reducedMotion ? 0 : run.t) + (over ? 0.03 : -0.2) // over a gap: at tile level
     const size = 0.5 + p * 0.55
+    blob.current.visible = airborne && Boolean(over)
     blob.current.position.set(run.x, y, row.z)
     blob.current.scale.set(size * 1.4, size * 1.4, 1)
     mats.blob.opacity = 0.35 + p * 0.55
-    ring.current.visible = airborne && Boolean(over)
     ring.current.position.set(run.x, y + 0.005, row.z)
-    const pulse = 1 + Math.sin(state.clock.elapsedTime * 10) * 0.06
+    const pulse = reducedMotion ? 1 : 1 + Math.sin(state.clock.elapsedTime * 10) * (over ? 0.06 : 0.12)
     ring.current.scale.set(pulse * (1.2 - p * 0.3), pulse * (1.2 - p * 0.3), 1)
-    mats.ring.color.set(over?.correct && row.hint ? '#25e07a' : '#ffffff')
-    mats.ring.opacity = 0.35 + p * 0.5
+    mats.ring.color.set(!over ? '#ff4d6a' : over.correct && row.hint ? '#25e07a' : '#ffffff')
+    mats.ring.opacity = airborne ? 0.45 + p * 0.5 : 0.3
   })
   return (
     <>

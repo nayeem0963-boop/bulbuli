@@ -251,6 +251,9 @@ export default function BouncyHopGame({ playerId, language }) {
           sfx.milestone()
           showToast(text.milestone(n(e.correct)), 'good')
           break
+        case 'pace': // the hops just got a little quicker: say so, kindly, so it never comes as a surprise
+          showToast(text.paceUp, 'good')
+          break
         case 'over': setTimeout(finish, 450); break
         default: break
       }

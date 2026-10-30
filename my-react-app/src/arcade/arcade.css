@@ -438,31 +438,217 @@
 
 .art { position: relative; display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; }
 
-.art-math img {
+/* ---------- Math Hero series tiles (Math Hero, Pro, Pro+): a 3D floating sum ----------
+   One scene for all three games (games/math-hero/SeriesArt.jsx), so they read as a family:
+   extruded numbers bobbing over a glowing navy platform, tilted in perspective, a different
+   floating prop per game, and a series plate whose pips count 1, 2, 3. Plain DOM + CSS. */
+.art-mh3d {
+  --mh3d-op: #ff6b5b;
+  --mh3d-glow: rgb(255 190 40 / 0.75);
+  --mh3d-ink: #1b2a49;
+}
+.art-mh3d.is-tier-2 { --mh3d-op: #2b7fff; --mh3d-glow: rgb(56 189 248 / 0.8); }
+.art-mh3d.is-tier-3 { --mh3d-op: #8b5cf6; --mh3d-glow: rgb(244 114 182 / 0.8); }
+
+.mh3d-stage {
   position: absolute;
-  bottom: -18px;
-  right: 6%;
-  width: auto;
-  height: 205px;
+  inset: 0;
+  perspective: 560px;
+  perspective-origin: 50% 20%;
 }
 
-.art-math-sum {
-  border: var(--toy-border);
-  border-radius: 16px;
-  color: var(--ink);
-  background: #fff;
+/* the platform: a navy slab laid flat in perspective, with a grid, a thick edge and a coloured glow */
+.mh3d-platform {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 196px;
+  height: 104px;
+  border: 3px solid var(--mh3d-ink);
+  border-radius: 26px;
+  background:
+    linear-gradient(rgb(148 163 184 / 0.16) 1.5px, transparent 1.5px) 0 0 / 22px 22px,
+    linear-gradient(90deg, rgb(148 163 184 / 0.16) 1.5px, transparent 1.5px) 0 0 / 22px 22px,
+    radial-gradient(ellipse at 50% 35%, #2c4478, #14203f 75%);
+  box-shadow:
+    inset 0 0 0 2px var(--mh3d-glow),
+    0 12px 0 #0a1226,
+    0 12px 0 3px var(--mh3d-ink),
+    0 0 40px 8px var(--mh3d-glow);
+  transform: translateX(-50%) rotateX(66deg);
+  transform-origin: 50% 100%;
+}
+
+/* the soft shadow the numbers cast on the platform */
+.mh3d-floor-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: 150px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(2 6 23 / 0.6), transparent);
+  transform: translateX(-50%);
+}
+
+/* the sum: chunky numbers extruded down-right, tilted a little so they read as solid */
+.mh3d-sum {
+  position: absolute;
+  left: 50%;
+  top: 62px;
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  white-space: nowrap;
+  transform: translateX(-50%) rotateX(14deg) rotateY(-18deg);
+}
+.mh3d-glyph {
+  --ex: var(--mh3d-ink);
+  display: inline-block;
+  color: #fffaf0;
   font-family: var(--font-display);
+  font-size: 46px;
   font-weight: 800;
+  line-height: 1;
+  -webkit-text-stroke: 1.5px var(--ex);
+  text-shadow:
+    1px 1px 0 var(--ex), 2px 2px 0 var(--ex), 3px 3px 0 var(--ex),
+    4px 4px 0 var(--ex), 5px 5px 0 var(--ex), 6px 6px 0 var(--ex),
+    9px 14px 12px rgb(2 6 23 / 0.45);
+}
+.mh3d-glyph.is-op { color: var(--mh3d-op); font-size: 44px; }
+.mh3d-glyph.is-ask,
+.mh3d-glyph.is-var {
+  color: #ffd23f;
+  text-shadow:
+    1px 1px 0 var(--ex), 2px 2px 0 var(--ex), 3px 3px 0 var(--ex),
+    4px 4px 0 var(--ex), 5px 5px 0 var(--ex), 6px 6px 0 var(--ex),
+    0 0 22px rgb(255 210 63 / 0.85);
+}
+.mh3d-glyph.is-var { font-style: italic; }
+
+/* each game's floating prop, top left (the New badge and the heart sit top right) */
+.mh3d-prop {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  display: grid;
+  place-items: center;
+}
+.mh3d-prop.is-cube {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--mh3d-ink);
+  border-radius: 9px;
+  background: linear-gradient(135deg, #ff9466 0 50%, #ff6a3d 50%);
+  box-shadow: 5px 5px 0 var(--mh3d-ink), 7px 10px 10px rgb(2 6 23 / 0.3);
+  rotate: -12deg;
+}
+.mh3d-cube-face {
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  -webkit-text-stroke: 1px var(--mh3d-ink);
+}
+.mh3d-prop.is-coin {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--mh3d-ink);
+  border-radius: 50%;
+  background:
+    linear-gradient(var(--mh3d-ink), var(--mh3d-ink)) 50% 0 / 3px 100% no-repeat,
+    linear-gradient(var(--mh3d-ink), var(--mh3d-ink)) 0 50% / 100% 3px no-repeat,
+    conic-gradient(#fb7185 0 270deg, #e2e8f0 270deg);
+  box-shadow: 0 6px 0 #b4234a, 0 6px 0 3px var(--mh3d-ink), 4px 14px 12px rgb(2 6 23 / 0.3);
+  transform: rotateX(28deg) rotate(-10deg);
+}
+/* a triangular prism: the drop shadow (on the wrapper, so the clip doesn't cut it) is its depth */
+.mh3d-prop.is-prism {
+  width: 46px;
+  height: 42px;
+  filter: drop-shadow(5px 5px 0 var(--mh3d-ink)) drop-shadow(5px 9px 8px rgb(2 6 23 / 0.3));
+}
+.mh3d-prop.is-prism::before {
+  content: '';
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(100deg, #bae6fd 0 50%, #38bdf8 50%);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
-.art-math-sum {
+/* the series plate: Math Hero ●○○, Pro ●●○, Pro+ ●●● */
+.mh3d-series {
   position: absolute;
-  z-index: 1;
-  top: 1.1rem;
-  left: 0.9rem;
-  padding: 0.1rem 0.65rem;
-  font-size: 1.35rem;
-  transform: rotate(-6deg);
+  left: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  border: 2px solid rgb(255 255 255 / 0.18);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: var(--mh3d-ink);
+  box-shadow: 0 3px 0 rgb(2 6 23 / 0.5);
+}
+.mh3d-series i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.22);
+}
+.mh3d-series i.is-on { background: #ffd23f; box-shadow: 0 0 6px rgb(255 210 63 / 0.9); }
+.mh3d-series b {
+  margin-left: 3px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mh3d-glyph { animation: mh3d-bob 3s ease-in-out infinite; animation-delay: calc(var(--i) * -0.4s); }
+  .mh3d-prop { animation: mh3d-float 4s ease-in-out infinite; }
+  .mh3d-glyph.is-ask { animation-name: mh3d-bob, mh3d-pulse; animation-duration: 3s, 1.6s; }
+}
+@keyframes mh3d-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes mh3d-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@keyframes mh3d-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+
+/* the series cards themselves: two cards stacked behind each one (a trilogy), so they have the
+   same depth as the 3D games' cards. Drawn with box-shadows, so nothing changes the layout. */
+.game-tile.is-series {
+  --layer-1: color-mix(in srgb, var(--tile-bg) 65%, var(--surface));
+  --layer-2: color-mix(in srgb, var(--tile-bg) 35%, var(--surface));
+  box-shadow:
+    0 7px 0 var(--ink),
+    7px -7px 0 -3px var(--layer-1), 7px -7px 0 0 var(--ink),
+    14px -14px 0 -3px var(--layer-2), 14px -14px 0 0 var(--ink);
+}
+.game-tile.is-series:has(.game-tile-link:hover) {
+  box-shadow:
+    0 11px 0 var(--ink),
+    9px -9px 0 -3px var(--layer-1), 9px -9px 0 0 var(--ink),
+    18px -18px 0 -3px var(--layer-2), 18px -18px 0 0 var(--ink);
+}
+.game-tile.is-series:has(.game-tile-link:active) {
+  box-shadow:
+    0 3px 0 var(--ink),
+    5px -5px 0 -3px var(--layer-1), 5px -5px 0 0 var(--ink),
+    10px -10px 0 -3px var(--layer-2), 10px -10px 0 0 var(--ink);
+}
+/* the art panel gets a little inner shade at its foot, like a window into a deeper scene */
+.game-tile.is-series .game-tile-art { box-shadow: inset 0 -16px 22px -14px rgb(2 6 23 / 0.35); }
+@media (max-width: 560px) {
+  .game-tile.is-series {
+    box-shadow:
+      0 7px 0 var(--ink),
+      5px -5px 0 -3px var(--layer-1), 5px -5px 0 0 var(--ink),
+      10px -10px 0 -3px var(--layer-2), 10px -10px 0 0 var(--ink);
+  }
 }
 
 /* ---------- age zones: Play & Learn · Build & Create ----------
@@ -624,7 +810,6 @@
   .arcade-bubble { margin-bottom: 0.75rem; }
 
   .game-tile-art { height: 170px; }
-  .art-math img { height: 185px; }
 }
 
 /* the loading screen before we know who is playing */

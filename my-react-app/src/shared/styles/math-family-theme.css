@@ -1,0 +1,138 @@
+/*
+  The Math Hero family's shared design tokens: Math Hero, Math Hero Pro and Math Hero Pro+.
+  Math Master (the family's reference look) keeps its own --mm-* tokens; these follow the same palette,
+  so the four games read as one set: soft-blue light theme, deep-navy dark theme, golden "go" accents.
+
+  A game puts data-mf-theme="light" | "dark" on its own root element (never on <html> or the frame),
+  so the choice is local to that game and nothing else on the page changes. Each game keeps its
+  accent identity by overriding --mf-accent / --mf-accent-2 on its root.
+
+  Every token is a plain custom property, so it also reaches inside the Tailwind-scoped games
+  (Pro / Pro+), whose isolation reset (`all: initial`) leaves custom properties alone.
+*/
+
+[data-mf-theme] {
+  /* geometry and motion shared by all three games */
+  --mf-radius-sm: 12px;
+  --mf-radius: 18px;
+  --mf-radius-lg: 26px;
+  --mf-ease-pop: cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  --mf-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mf-fast: 160ms;
+  --mf-med: 320ms;
+}
+
+/* ---------- dark: deep navy (the family's default for Pro and Pro+) ---------- */
+[data-mf-theme='dark'] {
+  color-scheme: dark;
+  --mf-bg: #0b1230;
+  --mf-bg-2: #101a45;
+  --mf-panel: #131c44;
+  --mf-panel-2: #1a2557;
+  --mf-sunken: #0e1638;
+  --mf-line: #2e3d7c;
+  --mf-line-soft: #222f63;
+  --mf-edge: #050a17;
+  --mf-text: #eef3ff;
+  --mf-muted: #b3c0e4;
+  --mf-faint: #8392c2;
+  --mf-gold: #ffc93c;
+  --mf-gold-2: #ffb020;
+  --mf-gold-ink: #ffd66b;
+  --mf-on-gold: #1b2a49;
+  --mf-star: #ffc93c;
+  --mf-star-off: #2e3d7c;
+  --mf-accent: #7cc4ff;
+  --mf-accent-2: #a78bfa;
+  --mf-good: #4fe39a;
+  --mf-good-ink: #7af0b6;
+  --mf-good-bg: #123b33;
+  --mf-bad: #ff9f5a;
+  --mf-bad-ink: #ffbe8c;
+  --mf-bad-bg: #40261a;
+  --mf-track: #22305f;
+  --mf-focus: #7cc4ff;
+  --mf-shadow: 0 18px 40px -22px rgb(0 0 0 / 70%);
+  --mf-shadow-lift: 0 22px 46px -20px rgb(0 0 0 / 75%);
+  --mf-glow-gold: 0 0 28px -6px rgb(255 201 60 / 65%);
+  --mf-page:
+    radial-gradient(1200px 520px at 85% -10%, rgb(124 92 255 / 20%), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, rgb(46 180 255 / 12%), transparent 60%),
+    #0b1230;
+}
+
+/* ---------- light: soft blue page, white panels, navy ink ---------- */
+[data-mf-theme='light'] {
+  color-scheme: light;
+  --mf-bg: #e6f2ff;
+  --mf-bg-2: #d8eaff;
+  --mf-panel: #ffffff;
+  --mf-panel-2: #f2f6ff;
+  --mf-sunken: #eaf1fc;
+  --mf-line: #c3d1ec;
+  --mf-line-soft: #dbe4f5;
+  --mf-edge: #1b2a49;
+  --mf-text: #13204a;
+  --mf-muted: #45557f;
+  --mf-faint: #6b7a9f;
+  --mf-gold: #ffc93c;
+  --mf-gold-2: #ffb020;
+  --mf-gold-ink: #8a5a00;
+  --mf-on-gold: #1b2a49;
+  --mf-star: #f2a900;
+  --mf-star-off: #cfd8ec;
+  --mf-accent: #2f6fe0;
+  --mf-accent-2: #6d4fe0;
+  --mf-good: #22b26b;
+  --mf-good-ink: #0d6b41;
+  --mf-good-bg: #e2f7ea;
+  --mf-bad: #ee8a3e;
+  --mf-bad-ink: #9a420c;
+  --mf-bad-bg: #fff0e2;
+  --mf-track: #dfe7f5;
+  --mf-focus: #2463d1;
+  --mf-shadow: 0 16px 34px -20px rgb(27 42 73 / 35%);
+  --mf-shadow-lift: 0 22px 40px -18px rgb(27 42 73 / 40%);
+  --mf-glow-gold: 0 0 0 3px rgb(255 201 60 / 35%);
+  --mf-page:
+    radial-gradient(1100px 480px at 85% -10%, rgb(124 92 255 / 9%), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, rgb(46 180 255 / 12%), transparent 60%),
+    linear-gradient(180deg, #eaf4ff 0%, #e2efff 100%);
+}
+
+/* In browser full screen the frame is the whole display: paint it in the game's theme, so no
+   arcade sky shows around the game (game-shell.css paints the frame with the arcade's page colours). */
+.game-fs-frame.is-fullscreen:has([data-mf-theme='dark']) { background: #0b1230; }
+.game-fs-frame.is-fullscreen:has([data-mf-theme='light']) { background: #e6f2ff; }
+.game-fs-frame:has([data-mf-theme='dark'])::backdrop { background: #0b1230; }
+
+/* ---------- shared motion (global names, prefixed mf-) ---------- */
+@keyframes mf-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes mf-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mf-pop {
+  0% { transform: scale(0.88); }
+  55% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes mf-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+}
+@keyframes mf-star-in {
+  0% { opacity: 0; transform: scale(0.2) rotate(-40deg); }
+  60% { opacity: 1; transform: scale(1.25) rotate(8deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes mf-sparkle {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -2.6rem) scale(1.1); }
+}
+@keyframes mf-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Pro / Pro+ draw their own rounded panel (Tailwind, scoped under their root ids); in browser full
+   screen it fills the display edge to edge instead, like Math Master's. */
+.game-fs-frame.is-fullscreen #math-hero-pro-root .mhp-shell,
+.game-fs-frame.is-fullscreen #math-hero-pro-plus-root .mhpp-shell { border: 0; border-radius: 0; box-shadow: none; }

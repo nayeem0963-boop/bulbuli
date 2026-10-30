@@ -1,0 +1,50 @@
+/*
+ * Source for math-hero-pro.css (the file the game imports). Bulbuli itself doesn't use Tailwind, so
+ * this is compiled ahead of time and then scoped to #math-hero-pro-root, the same way as VoxelCraft:
+ *
+ *   npm run build:math-hero-pro-css
+ *
+ * Only the Math Hero Pro folder is scanned for class names.
+ */
+@import "tailwindcss" source(none);
+@source "../";
+
+/* The Math Hero family's colour tokens (src/shared/styles/math-family-theme.css), as Tailwind colours:
+   bg-mf-panel, text-mf-muted, border-mf-line, bg-mf-panel/70… They follow data-mf-theme on the root. */
+@theme inline {
+  --color-mf-bg: var(--mf-bg);
+  --color-mf-panel: var(--mf-panel);
+  --color-mf-panel-2: var(--mf-panel-2);
+  --color-mf-sunken: var(--mf-sunken);
+  --color-mf-line: var(--mf-line);
+  --color-mf-line-soft: var(--mf-line-soft);
+  --color-mf-edge: var(--mf-edge);
+  --color-mf-text: var(--mf-text);
+  --color-mf-muted: var(--mf-muted);
+  --color-mf-faint: var(--mf-faint);
+  --color-mf-gold: var(--mf-gold);
+  --color-mf-gold-ink: var(--mf-gold-ink);
+  --color-mf-on-gold: var(--mf-on-gold);
+  --color-mf-star: var(--mf-star);
+  --color-mf-star-off: var(--mf-star-off);
+  --color-mf-accent: var(--mf-accent);
+  --color-mf-accent-2: var(--mf-accent-2);
+  --color-mf-good: var(--mf-good);
+  --color-mf-good-ink: var(--mf-good-ink);
+  --color-mf-good-bg: var(--mf-good-bg);
+  --color-mf-bad: var(--mf-bad);
+  --color-mf-bad-ink: var(--mf-bad-ink);
+  --color-mf-bad-bg: var(--mf-bad-bg);
+  --color-mf-track: var(--mf-track);
+  --color-mf-focus: var(--mf-focus);
+  /* a mission's own colour (style="--lvl: #…" on .mhp-lvl), and a readable ink of it */
+  --color-lvl: var(--lvl);
+  --color-lvl-ink: var(--lvl-ink);
+}
+
+@theme {
+  --font-hero: "Baloo 2", "Baloo Da 2", "Trebuchet MS", ui-rounded, system-ui, sans-serif;
+  --font-copy: "Nunito", "Hind Siliguri", ui-rounded, system-ui, "Segoe UI", sans-serif;
+}
+
+@import "./math-hero-pro-base.css";

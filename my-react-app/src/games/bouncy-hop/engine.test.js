@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  ALPHABETS, HOP_CONFIG as CFG, MODE_IDS, ballPosition, createRun, drainEvents, hopDuration, makeRow,
+  ALPHABETS, HOP_CONFIG as CFG, MODE_IDS, ballPosition, createRun, drainEvents, hopDuration, landingPreview, makeRow,
   multiplier, numberDistractors, createRng, questionFor, stepRun, summary, targetFor, tileUnder, tileX, xpForRun,
 } from './engine.js'
 
@@ -51,7 +51,7 @@ test('the run starts on the wide start pad with 3 hearts and rows already made a
   assert.ok(run.rows.length > 10)
 })
 
-test('every row has exactly one correct tile, distinct labels, and tiles that never overlap', () => {
+test('every row has exactly one correct tile, distinct labels, and tiles that never touch', () => {
   for (const mode of MODE_IDS) {
     for (const alphabet of ['en', 'bn']) {
       const run = createRun({ seed: 11, mode, alphabet })
@@ -62,10 +62,26 @@ test('every row has exactly one correct tile, distinct labels, and tiles that ne
         assert.equal(new Set(labels).size, labels.length, `${mode} row ${k} labels ${labels}`)
         const xs = row.tiles.map((t) => t.x).sort((a, b) => a - b)
         for (let i = 1; i < xs.length; i += 1) {
-          // a real gap between neighbours (bigger than the forgiving edge on both sides)
-          assert.ok(xs[i] - xs[i - 1] > row.tiles[0].w + 2 * CFG.forgive, `${mode} row ${k} gap`)
+          // a visible gap between neighbours (landing in it goes to the nearer tile: see tileUnder)
+          assert.ok(xs[i] - xs[i - 1] > row.tiles[0].w + 0.3, `${mode} row ${k} gap`)
         }
         for (const x of xs) assert.ok(Math.abs(x) + row.tiles[0].w / 2 < CFG.xLimit + 1.2)
+      }
+    }
+  }
+})
+
+test('fair reach: the correct tile is never more than one lane from the last correct tile', () => {
+  const lane = (tile) => CFG.slots.reduce((best, x, i) => (Math.abs(x - tile.x) < Math.abs(CFG.slots[best] - tile.x) ? i : best), 0)
+  for (const mode of MODE_IDS) {
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const run = createRun({ seed, mode })
+      while (run.rows.length < 120) run.rows.push(makeRow(run.rows.length, run))
+      let prev = 1 // the start pad is the middle lane
+      for (let k = 1; k < run.rows.length; k += 1) {
+        const now = lane(run.rows[k].tiles.find((t) => t.correct))
+        assert.ok(Math.abs(now - prev) <= 1, `${mode} seed ${seed} row ${k}: lane ${prev} → ${now}`)
+        prev = now
       }
     }
   }
@@ -176,9 +192,9 @@ test('every 5 in a row raises the multiplier and gives a super bounce (with a bo
   assert.ok(seen.some((e) => e.type === 'boost'))
   assert.equal(run.phase, 'air')
   const boosted = run.phaseDur
-  assert.ok(boosted > hopDuration(run.row), 'the super hop floats longer')
+  assert.equal(boosted, hopDuration(run.paceTier), 'a super hop keeps the rhythm: the same time as any hop')
   for (let i = 0; i < Math.floor(boosted / DT / 2); i += 1) stepRun(run, DT)
-  assert.ok(ballPosition(run).y > CFG.hop.height * 1.5, 'and goes higher')
+  assert.ok(ballPosition(run).y > CFG.hop.height * 1.3, 'it only flies higher')
   assert.equal(multiplier(4), 1)
   assert.equal(multiplier(5), 2)
   assert.equal(multiplier(99), CFG.maxMultiplier)
@@ -188,21 +204,94 @@ test('every 5 in a row raises the multiplier and gives a super bounce (with a bo
 
 test('steering: keys move the ball, a drag pulls it toward the finger, and it stays on the board', () => {
   const run = createRun({ seed: 1 })
+  run.phaseDur = 99 // hold the ball on the start pad, so this tests steering alone (not hops and falls)
   run.input.dir = 1
-  for (let i = 0; i < 120; i += 1) stepRun(run, DT)
+  for (let i = 0; i < 120; i += 1) { stepRun(run, DT); assert.ok(Math.abs(run.vx) <= CFG.steer.speed + 1e-9, 'never faster than the top speed') }
   assert.ok(run.x <= CFG.xLimit + 1e-9 && run.x > CFG.xLimit - 0.01)
   run.input.dir = 0
   run.input.dragX = -1
-  for (let i = 0; i < 40; i += 1) stepRun(run, DT)
+  for (let i = 0; i < 60; i += 1) { stepRun(run, DT); assert.ok(Math.abs(run.vx) <= CFG.steer.dragMax + 1e-9, 'a drag never jerks the ball') }
   assert.ok(Math.abs(run.x + 1) < 0.05)
   run.input.dragX = -99
   for (let i = 0; i < 60; i += 1) stepRun(run, DT)
   assert.ok(run.x >= -CFG.xLimit)
 })
 
-test('hops get a little quicker further on, but never too quick', () => {
-  assert.ok(hopDuration(0) > hopDuration(20))
+test('hops get a little quicker per pace step, but never too quick', () => {
+  assert.equal(hopDuration(0), CFG.hop.calm)
+  assert.ok(hopDuration(0) > hopDuration(1) && hopDuration(1) - hopDuration(2) <= 0.03, 'small steps')
   assert.equal(hopDuration(500), CFG.hop.min)
+})
+
+/** Plays perfectly (always the correct tile) until `seconds` of game time have passed. */
+function playFor(run, seconds, onHop = () => {}) {
+  while (run.t < seconds && !run.over) { hopOnce(run, aimAt(correctTile)); onHop(run); settle(run) }
+  return run
+}
+
+test('the first 30 seconds keep one calm, steady rhythm, however well it goes', () => {
+  const run = createRun({ seed: 31 })
+  const durations = new Set()
+  playFor(run, CFG.pace.calmSeconds - 1.5, () => { if (run.phase === 'air') durations.add(run.phaseDur) })
+  settle(run)
+  assert.ok(run.correct >= 20, `a good player hops a lot in 30 s (${run.correct})`)
+  assert.equal(run.paceTier, 0)
+  assert.equal(run.phaseDur, CFG.hop.calm)
+  assert.ok(!drainEvents(run).some((e) => e.type === 'pace'))
+})
+
+test('after the calm start the pace quickens one small step per 12 good hops, and a mistake eases it', () => {
+  const run = createRun({ seed: 32 })
+  const tiers = []
+  playFor(run, 120, (r) => { for (const e of drainEvents(r)) if (e.type === 'pace') tiers.push({ tier: e.tier, at: r.correct, t: r.t }) })
+  assert.ok(tiers.length >= 3, 'it does speed up')
+  assert.ok(tiers[0].t >= CFG.pace.calmSeconds, 'never before the calm 30 seconds are over')
+  tiers.forEach((x, i) => assert.equal(x.tier, i + 1, 'one step at a time'))
+  for (let i = 1; i < tiers.length; i += 1) assert.ok(tiers[i].at - tiers[i - 1].at >= CFG.pace.tierEvery)
+  assert.ok(hopDuration(run.paceTier) >= 0.8 - 1e-9, `two minutes of perfect play is still not frantic (${hopDuration(run.paceTier)} s)`)
+  const before = run.paceTier
+  hopOnce(run, voidX)
+  assert.equal(run.paceTier, before - 1, 'a fall eases the pace back a step')
+})
+
+test('landing is forgiving: just past a tile’s edge still counts, and between two tiles the nearer wins', () => {
+  const row = { sway: null, tiles: [{ x: -1.3, w: 2 }, { x: 1.3, w: 2 }] }
+  assert.equal(tileUnder(row, -2.3 - CFG.forgive + 0.01, 0), row.tiles[0], 'just past the outer edge')
+  assert.equal(tileUnder(row, -0.1, 0), row.tiles[0], 'in the gap, nearer the left tile')
+  assert.equal(tileUnder(row, 0.1, 0), row.tiles[1], 'in the gap, nearer the right tile')
+  assert.equal(tileUnder(row, 2.3 + CFG.forgive + 0.05, 0), null, 'too far is still a fall')
+})
+
+test('on landing the ball settles onto the tile instead of sliding off it', () => {
+  const run = createRun({ seed: 33 })
+  settle(run)
+  const row = run.rows[1]
+  const tile = correctTile(row)
+  // aim right at the forgiving edge, then hold the key outward through the landing
+  hopOnce(run, (r) => tileX(row, tile, r.t) + tile.w / 2 + CFG.forgive * 0.8)
+  assert.equal(run.correct, 1)
+  run.input.dir = 1
+  while (run.phase === 'contact') stepRun(run, DT)
+  run.input.dir = 0
+  const cx = tileX(row, tile, run.t)
+  assert.ok(Math.abs(run.x - cx) <= tile.w / 2, `it ends the landing on the tile (x ${run.x.toFixed(2)}, tile ${cx.toFixed(2)})`)
+})
+
+test('the landing preview says which tile the ball will come down on, before and during each hop', () => {
+  const run = createRun({ seed: 34 })
+  const row = run.rows[1]
+  const target = wrongTile(row)
+  run.x = tileX(row, target, 0)
+  let preview = landingPreview(run)
+  assert.equal(preview.k, 1, 'while resting, it previews the next row')
+  assert.equal(preview.tile, target)
+  settle(run)
+  preview = landingPreview(run)
+  assert.equal(preview.tile, target)
+  hopOnce(run)
+  assert.equal(run.rows[1].tiles.find((t) => t.hit === 'wrong'), target, 'and that is where it landed')
+  run.x = 99
+  assert.equal(landingPreview(run), null, 'nothing to preview while bouncing back')
 })
 
 test('a long frame never skips a landing', () => {

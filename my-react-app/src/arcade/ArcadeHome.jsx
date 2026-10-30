@@ -40,7 +40,7 @@ function GameTile({ game, language, text, category, search, index }) {
   const to = modal ? launchPath(category, game.id, search) : gamePath(game)
   return (
     <li
-      className={`game-tile is-${game.color}`}
+      className={`game-tile is-${game.color}${game.series ? ' is-series' : ''}`}
       // a stable name per game lets a view transition glide each card to its new place
       // when the filter changes; --i staggers the fallback entrance animation
       style={{ viewTransitionName: `game-${game.id}`, '--i': index }}

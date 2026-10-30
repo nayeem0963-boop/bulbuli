@@ -9,6 +9,8 @@ import SkyTypewriterArt from './sky-typewriter/Art.jsx'
 import NeonVelocityArt from './neon-velocity/Art.jsx'
 import HTMLArchitectArt from './html-architect/Art.jsx'
 import MathMasterArt from './math-master/Art.jsx'
+import MathHeroProArt from './math-hero-pro/Art.jsx'
+import MathHeroProPlusArt from './math-hero-pro-plus/Art.jsx'
 
 /**
  * Every game in the arcade, in the order it appears on the home page.
@@ -36,6 +38,8 @@ import MathMasterArt from './math-master/Art.jsx'
  *   controls      { en, bn } one line on how to play, shown on the launcher.
  *   path          the game's own address instead of /games/<id> (the tile and dashboard link there;
  *                 App.jsx must have a matching route, and /games/<id> redirects to it).
+ *   series        { id, part } for games that form a series (the Math Hero trilogy): their tiles share one
+ *                 3D picture and get the stacked-card look (.game-tile.is-series in arcade.css).
  *   fullscreen    true when the game shows the full-screen button in its own header with
  *                 <GameFullscreenButton />. Every game's page puts it in a frame of its own
  *                 (GameFullscreen.jsx + arcade/game-shell.css) that fills the screen under the game bar
@@ -49,15 +53,56 @@ export const GAMES = [
     id: 'math-hero',
     title: { en: 'Math Hero', bn: 'ম্যাথ হিরো' },
     tagline: { en: 'Add and take away to beat the clock.', bn: 'যোগ-বিয়োগ করে ঘড়িকে হারাও।' },
-    skill: { en: 'Addition & subtraction', bn: 'যোগ ও বিয়োগ' },
+    skill: { en: 'Classic foundational arithmetic', bn: 'ক্লাসিক মৌলিক গণিত' },
     ages: '6–10',
     color: 'sun',
     icon: '➕',
     category: 'logic',
     zone: 'play-learn',
     Art: MathHeroArt,
+    series: { id: 'math-hero', part: 1 },
     load: () => import('./math-hero/index.jsx'),
     fullscreen: true,
+  },
+  {
+    id: 'math-hero-pro',
+    title: { en: 'Math Hero Pro', bn: 'ম্যাথ হিরো প্রো' },
+    tagline: {
+      en: 'Five maths missions: add, multiply, share, fractions and word puzzles. Win stars and badges!',
+      bn: 'পাঁচটি গণিত মিশন: যোগ, গুণ, ভাগ, ভগ্নাংশ আর গল্পের ধাঁধা। তারা আর ব্যাজ জেতো!',
+    },
+    skill: { en: 'Multi-mission math operations', bn: 'বহু মিশনের গণিত প্রক্রিয়া' },
+    ages: '6–11',
+    color: 'sky',
+    icon: '🌟',
+    category: 'logic',
+    zone: 'play-learn',
+    Art: MathHeroProArt,
+    series: { id: 'math-hero', part: 2 },
+    // The ages 6–11 maths levels; Math Master (below) is the 12+ version. Styles are precompiled Tailwind.
+    load: () => import('./math-hero-pro/index.jsx'),
+    fullscreen: true,
+    isNew: true,
+  },
+  {
+    id: 'math-hero-pro-plus',
+    title: { en: 'Math Hero Pro+', bn: 'ম্যাথ হিরো প্রো+' },
+    tagline: {
+      en: 'Level up your pre-algebra and problem-solving skills! Five missions from PEMDAS to geometry.',
+      bn: 'বীজগণিতের প্রস্তুতি আর সমস্যা সমাধানের দক্ষতা বাড়াও! কাজের ক্রম থেকে জ্যামিতি, পাঁচটি মিশন।',
+    },
+    skill: { en: 'Pre-algebra, percentages & geometry', bn: 'প্রাক-বীজগণিত, শতকরা ও জ্যামিতি' },
+    ages: '10–12',
+    color: 'berry',
+    icon: '⚡',
+    category: 'logic',
+    zone: 'play-learn',
+    Art: MathHeroProPlusArt,
+    series: { id: 'math-hero', part: 3 },
+    // The bridge between Math Hero Pro (6–11) and Math Master (12+). Styles are precompiled Tailwind.
+    load: () => import('./math-hero-pro-plus/index.jsx'),
+    fullscreen: true,
+    isNew: true,
   },
   {
     id: 'shape-hunt',

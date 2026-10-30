@@ -40,11 +40,11 @@ const stylesDir = path.resolve(here, '../src/features/voxelcraft/styles')
 const input = path.join(stylesDir, 'tailwind.input.css')
 const output = path.join(stylesDir, 'voxelcraft.css')
 
-function compileTailwind() {
+export function compileTailwind(inputFile = input) {
   const dir = mkdtempSync(path.join(tmpdir(), 'voxelcraft-css-'))
   const out = path.join(dir, 'tailwind.css')
   try {
-    const args = ['--yes', TAILWIND_CLI, '-i', input, '-o', out, '--optimize']
+    const args = ['--yes', TAILWIND_CLI, '-i', inputFile, '-o', out, '--optimize']
     if (process.platform === 'win32') {
       // npx is a .cmd on Windows, which needs a shell: quote the paths (they may contain spaces)
       execSync(`npx ${args.map((a) => `"${a}"`).join(' ')}`, { stdio: 'inherit' })
@@ -59,10 +59,10 @@ function compileTailwind() {
 
 // Elements Bulbuli (or any host) may style with bare element selectors.
 const REVERTED = 'a, abbr, article, aside, b, blockquote, button, code, dd, details, dialog, dl, dt, em, fieldset, figcaption, figure, footer, form, h1, h2, h3, h4, h5, h6, header, hr, i, input, kbd, label, legend, li, main, mark, nav, ol, optgroup, option, p, pre, progress, q, s, samp, section, select, small, span, strong, sub, summary, sup, table, tbody, td, textarea, tfoot, th, thead, tr, u, ul'
-const ISOLATION = `/* Isolation from the host page (see scripts/build-voxelcraft-css.mjs, step 5). */
-${ROOT} { all: initial; display: block; }
-${ROOT} :where(${REVERTED}) { all: revert; }
-${ROOT} :where(svg, img, canvas, video) {
+const isolationFor = (root) => `/* Isolation from the host page (see scripts/build-voxelcraft-css.mjs, step 5). */
+${root} { all: initial; display: block; }
+${root} :where(${REVERTED}) { all: revert; }
+${root} :where(svg, img, canvas, video) {
   display: revert; position: revert; float: revert; vertical-align: revert;
   margin: revert; padding: revert; border: revert; border-radius: revert; outline: revert;
   min-width: revert; max-width: revert; min-height: revert; max-height: revert;
@@ -95,18 +95,21 @@ function splitPseudoElement(selector) {
   return [selector, '']
 }
 
-/** Scopes one selector. `weak` = reset/theme rule (keeps zero specificity under the root id). */
-export function scopeSelector(selector, weak) {
+/**
+ * Scopes one selector. `weak` = reset/theme rule (keeps zero specificity under the root id).
+ * `root` is the game's root selector (VoxelCraft's by default; other games pass their own).
+ */
+export function scopeSelector(selector, weak, root = ROOT) {
   const sel = selector.trim()
   if (ROOT_ALIAS.test(sel)) {
     const rest = sel.replace(ROOT_ALIAS, '')
-    return rest ? `${ROOT}${rest}` : ROOT
+    return rest ? `${root}${rest}` : root
   }
-  if (!weak) return sel === '*' ? `${ROOT}, ${ROOT} *` : `${ROOT} ${sel}`
+  if (!weak) return sel === '*' ? `${root}, ${root} *` : `${root} ${sel}`
   const [head, pseudo] = splitPseudoElement(sel)
-  if (!head) return `${ROOT} ${pseudo}` // ::before, ::backdrop…
-  const scoped = `${ROOT} :where(${head})${pseudo}`
-  return head === '*' && !pseudo ? `${ROOT}, ${scoped}` : scoped
+  if (!head) return `${root} ${pseudo}` // ::before, ::backdrop…
+  const scoped = `${root} :where(${head})${pseudo}`
+  return head === '*' && !pseudo ? `${root}, ${scoped}` : scoped
 }
 
 const layerOf = (node) => {
@@ -122,21 +125,26 @@ const nestedInRule = (node) => {
   return false
 }
 
-export function scopeCss(css) {
-  const root = postcss.parse(css)
+/**
+ * Scopes a whole Tailwind build. Options let other precompiled-Tailwind games reuse this:
+ *   root            the game's root id selector, e.g. '#math-hero-pro-root'
+ *   keyframePrefix  prefix for its (global) @keyframes names, e.g. 'mhp-'
+ */
+export function scopeCss(css, { root: rootSelector = ROOT, keyframePrefix = KEYFRAME_PREFIX } = {}) {
+  const ast = postcss.parse(css)
 
   // 4. global keyframe names → vc-*
   const renames = new Map()
-  root.walkAtRules(/keyframes$/, (at) => {
+  ast.walkAtRules(/keyframes$/, (at) => {
     const name = at.params.trim()
-    if (!name.startsWith(KEYFRAME_PREFIX)) {
-      renames.set(name, KEYFRAME_PREFIX + name)
-      at.params = KEYFRAME_PREFIX + name
+    if (!name.startsWith(keyframePrefix)) {
+      renames.set(name, keyframePrefix + name)
+      at.params = keyframePrefix + name
     }
   })
   if (renames.size) {
     const pattern = new RegExp(`(^|[\\s,])(${[...renames.keys()].join('|')})(?=$|[\\s,])`, 'g')
-    root.walkDecls((decl) => {
+    ast.walkDecls((decl) => {
       if (/^(animation|animation-name)$/.test(decl.prop) || decl.prop.startsWith('--animate')) {
         decl.value = decl.value.replace(pattern, (_, pre, name) => pre + renames.get(name))
       }
@@ -144,31 +152,31 @@ export function scopeCss(css) {
   }
 
   // 1 + 3. scope every rule
-  root.walkRules((rule) => {
+  ast.walkRules((rule) => {
     if (insideKeyframes(rule) || nestedInRule(rule)) return
     const layer = layerOf(rule)
     const weak = layer === 'theme' || layer === 'base' || layer === 'properties'
-    rule.selectors = rule.selectors.map((s) => scopeSelector(s, weak))
+    rule.selectors = rule.selectors.map((s) => scopeSelector(s, weak, rootSelector))
   })
 
   // 2. remove cascade layers (keep their contents, in order)
-  root.walkAtRules('layer', (at) => {
+  ast.walkAtRules('layer', (at) => {
     if (at.nodes?.length) at.replaceWith(at.nodes)
     else at.remove()
   })
 
   // guard: nothing may match outside the game
-  root.walkRules((rule) => {
+  ast.walkRules((rule) => {
     if (insideKeyframes(rule) || nestedInRule(rule)) return
     for (const s of rule.selectors) {
-      if (!s.startsWith(ROOT)) throw new Error(`Unscoped selector in VoxelCraft CSS: "${s}"`)
+      if (!s.startsWith(rootSelector)) throw new Error(`Unscoped selector in ${rootSelector} CSS: "${s}"`)
     }
   })
-  root.walkAtRules(/keyframes$/, (at) => {
-    if (!at.params.trim().startsWith(KEYFRAME_PREFIX)) throw new Error(`Unprefixed @keyframes ${at.params}`)
+  ast.walkAtRules(/keyframes$/, (at) => {
+    if (!at.params.trim().startsWith(keyframePrefix)) throw new Error(`Unprefixed @keyframes ${at.params}`)
   })
 
-  return ISOLATION + root.toString()
+  return isolationFor(rootSelector) + ast.toString()
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
