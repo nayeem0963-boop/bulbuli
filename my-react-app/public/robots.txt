@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /embed/
+# certificate verification pages are about children: keep them out of search results
+Disallow: /certificate/
 
 Sitemap: https://bulbuli.org/sitemap.xml

@@ -4,6 +4,9 @@ import { useAuth } from './auth/AuthContext.jsx'
 import { FavoritesProvider } from './favorites/FavoritesContext.jsx'
 import { BadgesProvider } from './badges/BadgesContext.jsx'
 import AchievementToasts from './badges/AchievementToast.jsx'
+import { CertificatesProvider } from './achievements/CertificatesContext.jsx'
+import AchievementCelebrations from './achievements/AchievementCelebration.jsx'
+import CertificateVerifyPage from './achievements/CertificateVerifyPage.jsx'
 import AuthModal from './auth/AuthModal.jsx'
 import AuthCallback from './auth/AuthCallback.jsx'
 import { getAuthRedirectPath } from './utils/authRedirect.js'
@@ -53,6 +56,9 @@ function RouteTitle() {
     } else if (pathname === '/dashboard') {
       title = 'My Progress | Bulbuli'
       description = 'Your Bulbuli level, XP and game activity.'
+    } else if (pathname.startsWith('/certificate/')) {
+      title = 'Certificate Verification | Bulbuli'
+      description = 'Check that a Bulbuli Certificate of Achievement is genuine.'
     } else if (pathname === '/game') {
       title = 'VoxelCraft: 3D Game Studio | Bulbuli'
       description = 'Build your own 3D voxel levels, play levels made by other players and vote for the best.'
@@ -95,7 +101,8 @@ function AppThemeToggle({ theme, onToggleTheme }) {
   const { pathname } = useLocation()
   // The arcade has its own day/night button in its header; the dashboard has one in its sidebar.
   // The 3D Game Studio is always dark and has its own header.
-  if (pathname === '/dashboard' || pathname === '/game' || isArcadePath(pathname)) return null
+  // The certificate verification page is a clean public page without app controls.
+  if (pathname === '/dashboard' || pathname === '/game' || pathname.startsWith('/certificate/') || isArcadePath(pathname)) return null
 
   return <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} className="theme-toggle app-theme-toggle" />
 }
@@ -160,6 +167,8 @@ function App() {
     <FavoritesProvider>
       {/* Badges: checked as XP comes in; "Badge unlocked!" toasts show on any page (src/badges/). */}
       <BadgesProvider>
+      {/* Certificates: issued and verified by the server; history + privacy (src/achievements/). */}
+      <CertificatesProvider>
       <div className="app-shell" data-theme={theme}>
         {loading ? (
           <main className="loading-state" role="status">
@@ -170,6 +179,8 @@ function App() {
             <AppThemeToggle theme={theme} onToggleTheme={toggleTheme} />
             <RouteTitle />
             <AchievementToasts theme={theme} />
+            {/* "Achievement unlocked!" once per new badge, never in the middle of a game. */}
+            <AchievementCelebrations />
             {/* Optional sign-in, opened from the Play banner or the header. Never required to play. */}
             <AuthModal />
             <Routes>
@@ -198,11 +209,14 @@ function App() {
               <Route path="/game" element={<GameStudioRoute />} />
               {/* The HTML quiz is its own page (quiz/index.html); this only catches the app loading at /quiz. */}
               <Route path="/quiz" element={<QuizRedirect />} />
+              {/* Public certificate verification (the QR code on every certificate opens this). */}
+              <Route path="/certificate/:token" element={<CertificateVerifyPage theme={theme} />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         )}
       </div>
+      </CertificatesProvider>
       </BadgesProvider>
     </FavoritesProvider>
   )

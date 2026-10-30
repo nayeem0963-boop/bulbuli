@@ -1,7 +1,7 @@
 /**
  * Badges for the signed-in player, shared by the whole app.
  *
- *   const { unlocked, unlockedById, ready, toasts, dismissToast } = useBadges()
+ *   const { unlocked, unlockedById, ready, toasts, dismissToast, celebrations, dismissCelebration } = useBadges()
  *
  * How unlocks happen: games award XP → award_xp() saves it → AuthContext updates `profile`
  * (xp, level, stats) → this provider re-checks every badge against the new numbers, records
@@ -9,6 +9,9 @@
  *
  * Badges a player already qualifies for when they first load the app (say, from before badges
  * existed, or earned on another device) are recorded quietly, without a pile of toasts.
+ * Each newly earned badge also gets one celebration (AchievementCelebration.jsx). The queue is
+ * kept on the device until the player closes it, so it shows exactly once, even if they leave
+ * the game before it appears, and never again when the dashboard is reopened.
  * Guests have no badges: there's nowhere to show them, and their XP isn't on an account yet.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
@@ -17,6 +20,7 @@ import { BADGES } from '../data/badgesConfig.js'
 import { playLevelUp } from '../utils/sound.js'
 import { mergeUnlocked, newlyEarned, snapshotFromProfile } from './engine.js'
 import { fetchRemoteBadges, pushRemoteBadges, readLocalBadges, writeLocalBadges } from './badgeStore.js'
+import { readCelebrations, writeCelebrations } from './celebrationStore.js'
 
 const BadgesContext = createContext(null)
 
@@ -27,6 +31,7 @@ export function BadgesProvider({ children }) {
   const [unlocked, setUnlocked] = useState([])
   const [ready, setReady] = useState(false)
   const [toasts, setToasts] = useState([])
+  const [celebrations, setCelebrations] = useState([])
 
   const unlockedRef = useRef([])
   const userRef = useRef(userId)
@@ -57,6 +62,7 @@ export function BadgesProvider({ children }) {
     remoteAvailable.current = true
     setReady(false)
     setToasts([])
+    setCelebrations(userId ? readCelebrations(userId) : [])
 
     if (!userId) {
       unlockedRef.current = []
@@ -98,11 +104,27 @@ export function BadgesProvider({ children }) {
 
     if (!quiet) {
       setToasts((current) => [...current, ...earned.map((badge) => ({ key: `${badge.id}:${now}`, badge, unlockedAt: now }))])
+      setCelebrations((current) => {
+        const have = new Set(current.map((entry) => entry.badgeId))
+        const next = [...current, ...earned.filter((badge) => !have.has(badge.id)).map((badge) => ({ badgeId: badge.id, unlockedAt: now }))]
+        writeCelebrations(userId, next)
+        return next
+      })
       playLevelUp()
     }
   }, [ready, profile, userId, commit, sync])
 
   const dismissToast = useCallback((key) => setToasts((current) => current.filter((toast) => toast.key !== key)), [])
+
+  const dismissCelebration = useCallback((badgeId) => {
+    setCelebrations((current) => {
+      const next = current.filter((entry) => entry.badgeId !== badgeId)
+      if (userRef.current) writeCelebrations(userRef.current, next)
+      return next
+    })
+    // its toast has done its job too
+    setToasts((current) => current.filter((toast) => toast.badge.id !== badgeId))
+  }, [])
 
   const value = useMemo(() => ({
     unlocked,
@@ -110,7 +132,9 @@ export function BadgesProvider({ children }) {
     ready,
     toasts,
     dismissToast,
-  }), [unlocked, ready, toasts, dismissToast])
+    celebrations,
+    dismissCelebration,
+  }), [unlocked, ready, toasts, dismissToast, celebrations, dismissCelebration])
 
   return <BadgesContext.Provider value={value}>{children}</BadgesContext.Provider>
 }

@@ -145,3 +145,30 @@ npm test
 npm run build   # dist/ should contain share/math-hero/index.html too
 npm run check:voxelcraft-levels   # optional, slow: every built-in VoxelCraft level is beatable
 ```
+
+## Achievements, certificates and sharing
+
+Badges (`src/data/badgesConfig.js`, `src/badges/`) now come with a celebration, verifiable
+certificates and a share panel (`src/achievements/`).
+
+- **Celebration**: each newly earned badge gets one "Achievement unlocked!" dialog
+  (`AchievementCelebration.jsx`). It waits while a game is being played (only the small toast
+  shows then) and is queued on the device until closed, so it appears exactly once.
+  Messages live in `src/achievements/messages.js` (per badge, per game, per category).
+- **Certificates**: painted from real data on a canvas (`render/renderCertificate.js`): the
+  dashboard avatar, name, badge medal, XP, award date, certificate ID, and a real QR code (`uqr`)
+  for `https://bulbuli.org/certificate/<token>`. **Download PDF** builds an A4 landscape PDF in the
+  browser (`pdf.js`) with the QR code as vector squares and the address as a clickable link;
+  **Print** prints the same page (Save as PDF keeps the link clickable).
+- **Verification**: run `supabase/migrations/20261030000000_certificates.sql`. Certificates are
+  issued only by `issue_certificate()`, which re-checks the badge requirement against the
+  server-side XP, refuses duplicates and creates a random 128-bit token. `/certificate/:token`
+  calls `verify_certificate()` (public; returns valid / revoked / private / not found, never the
+  email or account id). Revoke in the SQL editor: `select revoke_certificate('BLB-XXXX-XXXX', 'reason');`.
+  Certificate badges must also be listed in that migration (a test checks they match).
+  Until the migration is run, certificates still display but are marked "not yet verifiable"
+  and carry no QR code.
+- **Sharing & privacy**: the share panel offers the device share sheet, PDF, a 1200 × 1200 PNG,
+  copy link and an editable message; nothing is posted automatically. On the dashboard, a parent
+  picks how the name appears publicly (first name by default, initials, full, or none), and each
+  certificate's public link can be turned off.

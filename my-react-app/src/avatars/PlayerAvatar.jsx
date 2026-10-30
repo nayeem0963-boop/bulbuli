@@ -1,10 +1,7 @@
 import { useState } from 'react'
 import BirdArt from './BirdArt.jsx'
 import { getAvatar } from './avatarCatalog.js'
-
-// every picture in src/assets/avatars/, bundled by Vite: { '../assets/avatars/animals/leo.webp': url }
-const IMAGES = import.meta.glob('../assets/avatars/**/*.{webp,png,jpg,svg}', { eager: true, import: 'default' })
-const imageUrl = (avatar) => (avatar.image ? IMAGES[`../assets/avatars/${avatar.image}`] : undefined)
+import { avatarImageUrl as imageUrl } from './avatarImages.js'
 
 /**
  * Draws one avatar, filling its (round) parent. Any image that fails to load falls back to

@@ -1,8 +1,8 @@
 /* ==================================================================
-   Certificate (CertificateModal.jsx)
-   The sheet is A4 landscape (297 × 210). Everything inside is sized in
-   container units (cqw = 1% of the sheet's width), so the same design
-   fits a phone preview and a printed page exactly.
+   Certificate dialog (CertificateModal.jsx)
+   The certificate itself is a painted image (src/achievements/render/), so the
+   preview, the PDF and the print-out are identical. The sheet keeps the A4
+   landscape shape (297 × 210) on any screen.
    ================================================================== */
 
 .cert-dialog {
@@ -21,7 +21,7 @@
   font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-.cert-dialog::backdrop { background: rgb(15 23 42 / 70%); backdrop-filter: blur(4px); }
+.cert-dialog::backdrop { background: rgb(15 23 42 / 72%); backdrop-filter: blur(4px); }
 .cert-dialog[open] { animation: cert-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 
 @keyframes cert-in {
@@ -48,13 +48,15 @@
   background: #0f172a;
 }
 
-.cert-toolbar-title { font-weight: 800; }
+.cert-toolbar-title { font-size: 1rem; font-weight: 800; }
+.cert-toolbar-sub { color: #94a3b8; font-size: 0.8rem; font-weight: 700; }
 .cert-toolbar-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
 .cert-btn {
   display: inline-flex;
   min-height: 2.5rem;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
   margin: 0;
   border: 1px solid #334155;
@@ -62,141 +64,94 @@
   padding: 0.5rem 1rem;
   color: #f8fafc;
   background: #1e293b;
+  box-shadow: none;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
+  transform: none;
 }
 
-.cert-btn:hover { background: #334155; }
-.cert-btn:focus-visible { outline: 3px solid #c084fc; outline-offset: 2px; }
-.cert-btn svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.cert-btn-primary { border-color: #a855f7; color: #1e0b33; background: #c084fc; }
-.cert-btn-primary:hover { background: #d8b4fe; }
+.cert-btn:hover:not(:disabled) { border-color: #475569; color: #fff; background: #334155; box-shadow: none; transform: none; }
+.cert-btn:disabled { cursor: wait; opacity: 0.6; }
+.cert-btn:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+.cert-btn svg,
+.cert-status svg { width: 1.1em; height: 1.1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cert-btn-primary { border-color: #f59e0b; color: #1c1300; background: linear-gradient(180deg, #fcd34d, #f59e0b); }
+.cert-btn-primary:hover:not(:disabled) { border-color: #fbbf24; color: #1c1300; background: linear-gradient(180deg, #fde68a, #fbbf24); }
+
+.cert-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0 1rem 0.75rem !important;
+  border-radius: 0.85rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.cert-status svg { margin-top: 0.1rem; }
+.cert-status strong { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: 0.04em; }
+.cert-status-ok { color: #bbf7d0; background: rgb(22 163 74 / 18%); }
+.cert-status-wait { color: #bae6fd; background: rgb(14 165 233 / 16%); }
+.cert-status-warn { color: #fde68a; background: rgb(245 158 11 / 16%); }
+.cert-status-bad { color: #fecaca; background: rgb(220 38 38 / 22%); }
 
 .cert-stage { padding: 0 1rem 1rem; }
 
-/* ---------- the sheet ---------- */
+/* the sheet keeps A4 landscape proportions whatever the screen shape */
 .cert-sheet {
   position: relative;
-  width: 100%;
-  aspect-ratio: 297 / 210;
-  overflow: hidden;
-  container-type: inline-size;
-  border-radius: 0.25rem;
-  color: #1b2a49;
-  background:
-    radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 0%) 55%, rgb(201 162 39 / 10%) 100%),
-    #fffdf6;
-  font-family: 'Nunito', system-ui, sans-serif;
-  text-align: center;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
-}
-
-.cert-border { position: absolute; inset: 0; width: 100%; height: 100%; }
-
-/* faint bird watermark behind the text */
-.cert-sheet::after {
-  position: absolute;
-  inset: 22% 34%;
-  content: '';
-  background: url('/favicon.svg') center / contain no-repeat;
-  opacity: 0.05;
-  pointer-events: none;
-}
-
-.cert-content {
-  position: absolute;
-  inset: 8.5cqw 9cqw 6.5cqw;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.cert-brand { display: flex; align-items: center; gap: 1.2cqw; text-align: left; }
-.cert-brand .brand-mark { width: 6.2cqw; height: 6.2cqw; }
-
-.cert-brand-name {
-  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
-  font-size: 3cqw;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.cert-brand-tag { color: #64748b; font-size: 1.15cqw; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-
-.cert-heading {
-  margin-top: 2.2cqw;
-  color: #1e3a8a;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 3.6cqw;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  line-height: 1.1;
-  text-transform: uppercase;
-}
-
-.cert-line { margin-top: 1.4cqw; color: #475569; font-family: Georgia, serif; font-size: 1.55cqw; font-style: italic; }
-
-.cert-name {
-  max-width: 100%;
-  margin-top: 0.6cqw;
-  border-bottom: 0.2cqw solid #c9a227;
-  padding: 0 3cqw 0.4cqw;
-  color: #1b2a49;
-  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
-  font-size: 5cqw;
-  font-weight: 800;
-  line-height: 1.15;
-  overflow-wrap: anywhere;
-}
-
-.cert-badge {
-  margin-top: 0.7cqw;
-  color: #7c3aed;
-  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
-  font-size: 3cqw;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.cert-desc { max-width: 70cqw; margin-top: 0.5cqw; color: #475569; font-size: 1.45cqw; }
-
-.cert-foot {
   display: grid;
   width: 100%;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: end;
-  gap: 3cqw;
-  margin-top: auto;
+  aspect-ratio: 297 / 210;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 0.35rem;
+  background: #fffdf6;
+  box-shadow: 0 12px 30px -12px rgb(0 0 0 / 55%);
 }
 
-.cert-sign { border-top: 0.12cqw solid #1b2a49; padding-top: 0.6cqw; }
-.cert-sign-value { min-height: 2.4cqw; font-size: 1.6cqw; font-weight: 800; }
-.cert-sign-label { color: #64748b; font-size: 1.1cqw; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-.cert-signature { font-family: 'Segoe Script', 'Brush Script MT', 'Snell Roundhand', cursive; font-size: 2cqw; font-weight: 400; color: #1e3a8a; }
+.cert-preview { display: block; width: 100%; height: 100%; object-fit: contain; }
 
-.cert-seal { position: relative; width: 10cqw; }
-.cert-seal svg { display: block; width: 100%; height: auto; }
-.cert-seal-icon { position: absolute; top: 41.6%; left: 50%; font-size: 4.2cqw; line-height: 1; transform: translate(-50%, -50%); }
+.cert-loading { display: inline-flex; align-items: center; gap: 0.6rem; color: #64748b; font-weight: 800; }
+.cert-loading > span {
+  width: 1.4rem;
+  height: 1.4rem;
+  border: 3px solid #e2e8f0;
+  border-top-color: #d4a017;
+  border-radius: 9999px;
+  animation: cert-spin 800ms linear infinite;
+}
 
-.cert-verify { margin-top: 1.2cqw; color: #64748b; font-size: 1cqw; letter-spacing: 0.04em; }
-.cert-verify strong { color: #1b2a49; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: 0.08em; }
+@keyframes cert-spin { to { transform: rotate(360deg); } }
+
+.cert-link { margin-top: 0.75rem !important; color: #94a3b8; font-size: 0.82rem; font-weight: 700; overflow-wrap: anywhere; }
+.cert-link a { color: #fcd34d; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; }
+.cert-note { margin-top: 0.6rem !important; font-size: 0.85rem; font-weight: 700; }
+.cert-note-ok { color: #86efac; }
+.cert-note-error { color: #fca5a5; }
+
+/* the print-only page is invisible on screen */
+.cert-print { display: none; }
 
 @media (max-width: 640px) {
-  .cert-toolbar { justify-content: center; }
+  .cert-toolbar { justify-content: center; text-align: center; }
+  .cert-toolbar-text { width: 100%; }
   .cert-toolbar-actions { width: 100%; }
-  .cert-toolbar-actions .cert-btn { flex: 1; justify-content: center; }
+  .cert-toolbar-actions .cert-btn { flex: 1 1 40%; }
   .cert-stage { padding: 0 0.5rem 0.75rem; }
+  .cert-status { margin: 0 0.5rem 0.6rem !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cert-dialog[open] { animation: none; }
+  .cert-loading > span { animation-duration: 2.4s; }
 }
 
-/* ---------- printing: only the sheet, on one A4 landscape page ---------- */
+/* ---------- printing: only the certificate, on one A4 landscape page ---------- */
 @media print {
   @page { size: A4 landscape; margin: 0; }
 
@@ -210,32 +165,30 @@
     background: #fff !important;
   }
 
-  html.bulbuli-printing-certificate body > :not(.cert-root) { display: none !important; }
+  html.bulbuli-printing-certificate body > :not(.cert-root),
+  html.bulbuli-printing-certificate .cert-dialog { display: none !important; }
 
-  html.bulbuli-printing-certificate .cert-dialog {
+  html.bulbuli-printing-certificate .cert-print {
     position: fixed;
     inset: 0;
+    display: block;
     width: 297mm;
-    height: 210mm;
-    max-width: none;
-    max-height: none;
-    margin: 0;
-    border-radius: 0;
+    height: 209.5mm; /* a hair under the page, so no blank second page */
     overflow: hidden;
-    background: #fff;
-    box-shadow: none;
-    animation: none;
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  html.bulbuli-printing-certificate .cert-dialog::backdrop { background: #fff; backdrop-filter: none; }
-  html.bulbuli-printing-certificate .cert-toolbar { display: none; }
-  html.bulbuli-printing-certificate .cert-stage { padding: 0; }
+  html.bulbuli-printing-certificate .cert-print img { display: block; width: 100%; height: 100%; object-fit: fill; }
 
-  html.bulbuli-printing-certificate .cert-sheet {
-    width: 297mm;
-    height: 209.5mm;   /* a hair under the page, so no blank second page */
-    aspect-ratio: auto;
-    border-radius: 0;
-    break-inside: avoid;
+  /* invisible, but real: "Save as PDF" turns these into clickable links */
+  html.bulbuli-printing-certificate .cert-print a {
+    position: absolute;
+    display: block;
+    overflow: hidden;
+    color: transparent;
+    font-size: 1px;
+    text-decoration: none;
   }
 }

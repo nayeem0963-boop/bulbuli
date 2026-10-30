@@ -411,7 +411,7 @@ export default function Dashboard({ session, theme, onToggleTheme }) {
           gamesPlayed={Object.keys(stats).length}
           lastPlayedAt={profile.last_played_at}
         />
-        <BadgesSection profile={profile} playerName={displayName} userId={user?.id ?? profile.id} />
+        <BadgesSection profile={profile} />
         <GameHistory stats={stats} />
       </>
     )

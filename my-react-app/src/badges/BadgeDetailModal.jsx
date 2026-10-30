@@ -4,7 +4,7 @@ import { formatDate } from '../dashboard/format.js'
 import { useModalDialog } from './useModalDialog.js'
 
 /** Details for one unlocked badge, with the certificate button when the badge has one. */
-export default function BadgeDetailModal({ badge, unlockedAt, howToEarn, onClose, onOpenCertificate }) {
+export default function BadgeDetailModal({ badge, unlockedAt, howToEarn, onClose, onOpenCertificate, onShare }) {
   const dialogProps = useModalDialog(onClose)
   const titleId = useId()
   const descId = useId()
@@ -41,7 +41,12 @@ export default function BadgeDetailModal({ badge, unlockedAt, howToEarn, onClose
               <span aria-hidden="true">🎓</span> View &amp; Print Certificate
             </button>
           )}
-          <button type="button" className="db-btn db-btn-ghost" onClick={onClose} autoFocus={!badge.certificateEligible}>
+          {onShare && (
+            <button type="button" className="db-btn db-btn-ghost" onClick={onShare} autoFocus={!badge.certificateEligible}>
+              <span aria-hidden="true">💌</span> Share My Achievement
+            </button>
+          )}
+          <button type="button" className="db-btn db-btn-ghost" onClick={onClose} autoFocus={!badge.certificateEligible && !onShare}>
             Close
           </button>
         </div>

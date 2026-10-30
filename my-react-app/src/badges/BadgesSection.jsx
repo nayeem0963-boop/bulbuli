@@ -7,6 +7,8 @@ import { useBadges } from './BadgesContext.jsx'
 import { badgeProgress, requirementText, snapshotFromProfile } from './engine.js'
 import BadgeDetailModal from './BadgeDetailModal.jsx'
 import CertificateModal from './CertificateModal.jsx'
+import CertificatesPanel from '../achievements/CertificatesPanel.jsx'
+import ShareAchievementModal from '../achievements/ShareAchievementModal.jsx'
 import './badges.css'
 
 const gameName = (id) => getGame(id)?.title.en
@@ -22,15 +24,17 @@ function LockIcon() {
   )
 }
 
-function UnlockedCard({ badge, unlockedAt, onOpen }) {
+function UnlockedCard({ badge, unlockedAt, onOpen, onCertificate, onShare }) {
   const date = formatDate(unlockedAt)
   return (
-    <button
-      type="button"
-      className={`bdg-card bdg-unlocked bdg-cat-${badge.category}`}
-      onClick={() => onOpen(badge.id)}
-      aria-label={`${badge.title}. Unlocked ${date}.${badge.certificateEligible ? ' Has a certificate.' : ''} Open details`}
-    >
+    <div className={`bdg-card bdg-unlocked bdg-cat-${badge.category}`}>
+      {/* the whole card opens the details; the small buttons sit above it */}
+      <button
+        type="button"
+        className="bdg-card-open"
+        onClick={() => onOpen(badge.id)}
+        aria-label={`${badge.title}. Unlocked ${date}.${badge.certificateEligible ? ' Has a certificate.' : ''} Open details`}
+      />
       <span className="bdg-medal" aria-hidden="true"><span>{badge.icon}</span></span>
       <span className="bdg-title">{badge.title}</span>
       <span className="bdg-desc">{badge.description}</span>
@@ -41,7 +45,46 @@ function UnlockedCard({ badge, unlockedAt, onOpen }) {
         </span>
         {badge.certificateEligible && <span className="bdg-cert-tag" title="Comes with a certificate">🎓</span>}
       </span>
-    </button>
+      <span className="bdg-card-actions">
+        {badge.certificateEligible && (
+          <button type="button" className="bdg-mini" onClick={() => onCertificate(badge.id)} aria-label={`View certificate: ${badge.title}`}>
+            <span aria-hidden="true">🎓</span> Certificate
+          </button>
+        )}
+        <button type="button" className="bdg-mini" onClick={() => onShare(badge.id)} aria-label={`Share achievement: ${badge.title}`}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /></svg>
+          Share
+        </button>
+      </span>
+    </div>
+  )
+}
+
+/** The three most recently earned badges, each one tap from sharing. */
+function RecentAchievements({ items, onOpen, onShare }) {
+  const recent = items
+    .filter((item) => item.entry)
+    .sort((a, b) => Date.parse(b.entry.unlockedAt) - Date.parse(a.entry.unlockedAt))
+    .slice(0, 3)
+  if (recent.length === 0) return null
+  return (
+    <div className="bdg-recent">
+      <h3 className="bdg-recent-title">Recently earned</h3>
+      <ul className="bdg-recent-list">
+        {recent.map(({ badge, entry }) => (
+          <li key={badge.id} className={`bdg-recent-item bdg-cat-${badge.category}`}>
+            <button type="button" className="bdg-recent-open" onClick={() => onOpen(badge.id)}>
+              <span className="bdg-recent-icon" aria-hidden="true">{badge.icon}</span>
+              <span className="bdg-recent-text">
+                <span className="bdg-recent-name">{badge.title}</span>
+                <span className="bdg-recent-date">{formatDate(entry.unlockedAt)}</span>
+              </span>
+            </button>
+            <button type="button" className="bdg-mini" onClick={() => onShare(badge.id)} aria-label={`Share achievement: ${badge.title}`}>Share</button>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
@@ -75,16 +118,18 @@ function LockedCard({ badge, progress, howToEarn }) {
 
 /**
  * "Achievements & Badges" on the dashboard: every badge in src/data/badgesConfig.js,
- * unlocked ones in colour (click for details + certificate), locked ones greyed with progress.
+ * unlocked ones in colour (details, certificate, share), locked ones greyed with progress and
+ * no sharing controls. Then the recently earned strip and "My certificates" (history + privacy).
  * /dashboard#badge-<id> opens that badge's details (the unlock toast links there).
  */
-export default function BadgesSection({ profile, playerName, userId }) {
+export default function BadgesSection({ profile }) {
   const { unlockedById } = useBadges()
   const { hash, pathname } = useLocation()
   const navigate = useNavigate()
   const [filter, setFilter] = useState('all')
   const [openId, setOpenId] = useState(null)
   const [certificateId, setCertificateId] = useState(null)
+  const [shareId, setShareId] = useState(null)
 
   const items = useMemo(() => {
     const snapshot = snapshotFromProfile(profile)
@@ -114,6 +159,11 @@ export default function BadgesSection({ profile, playerName, userId }) {
 
   const openBadge = activeId ? getBadge(activeId) : null
   const certBadge = certificateId ? getBadge(certificateId) : null
+  const shareBadge = shareId ? getBadge(shareId) : null
+  const openShare = (id) => {
+    setCertificateId(null)
+    setShareId(id)
+  }
 
   return (
     <section className="bdg-section" id="db-badges" aria-labelledby="db-badges-title">
@@ -144,11 +194,13 @@ export default function BadgesSection({ profile, playerName, userId }) {
         <span style={{ width: `${Math.round((unlockedCount / BADGES.length) * 100)}%` }} />
       </div>
 
+      <RecentAchievements items={items} onOpen={setOpenId} onShare={openShare} />
+
       <ul className="bdg-grid">
         {visible.map(({ badge, entry, progress }) => (
           <li key={badge.id}>
             {entry
-              ? <UnlockedCard badge={badge} unlockedAt={entry.unlockedAt} onOpen={setOpenId} />
+              ? <UnlockedCard badge={badge} unlockedAt={entry.unlockedAt} onOpen={setOpenId} onCertificate={setCertificateId} onShare={openShare} />
               : <LockedCard badge={badge} progress={progress} howToEarn={requirementText(badge, gameName)} />}
           </li>
         ))}
@@ -164,18 +216,31 @@ export default function BadgesSection({ profile, playerName, userId }) {
             closeDetails()
             setCertificateId(openBadge.id)
           }}
+          onShare={() => {
+            closeDetails()
+            openShare(openBadge.id)
+          }}
         />
       )}
 
       {certBadge && unlockedById.has(certBadge.id) && (
         <CertificateModal
-          playerName={playerName}
           badge={certBadge}
           unlockedAt={unlockedById.get(certBadge.id).unlockedAt}
-          userId={userId}
           onClose={() => setCertificateId(null)}
+          onShare={() => openShare(certBadge.id)}
         />
       )}
+
+      {shareBadge && unlockedById.has(shareBadge.id) && (
+        <ShareAchievementModal
+          badge={shareBadge}
+          unlockedAt={unlockedById.get(shareBadge.id).unlockedAt}
+          onClose={() => setShareId(null)}
+        />
+      )}
+
+      <CertificatesPanel onView={setCertificateId} onShare={openShare} />
     </section>
   )
 }
