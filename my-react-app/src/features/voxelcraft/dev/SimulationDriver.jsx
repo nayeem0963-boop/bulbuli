@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { SIM_TICK_MS } from '../community/simulation.js'
-import { useGameActions, useGameState } from '../state/GameStateProvider.jsx'
+import { useGameActions, useGameState } from '../state/gameStateContext.js'
 import { DEV_TOOLS } from './devMode.js'
 
 /**

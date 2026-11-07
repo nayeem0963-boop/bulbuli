@@ -44,7 +44,8 @@ export default function VehicleGame() {
   const resetTriggerRef = useRef(false);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
     // --- 1. SCENE & RENDERER SETUP ---
     const scene = new THREE.Scene();
@@ -367,9 +368,7 @@ export default function VehicleGame() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       resizeObserver.disconnect();
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-      }
+      container.innerHTML = '';
     };
   }, [isNight]);
 

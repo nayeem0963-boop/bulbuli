@@ -76,17 +76,24 @@ export default function MathHeroAdCard({
     if (handle.method !== 'none') voice.current = handle
   }
 
-  const [intro, setIntro] = useState(false)
-
   // The share page opens with Math Hero "speaking" his message word by word (sound needs a tap:
-  // browsers never let a page start talking on its own).
+  // browsers never let a page start talking on its own). The intro is on from the first render
+  // (and again when the message changes); only switching it off is asynchronous.
+  const wantsIntro = Boolean(introTalk) && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const [intro, setIntro] = useState(wantsIntro)
+  const introKey = `${wantsIntro}|${text.speech}`
+  const [introFor, setIntroFor] = useState(introKey)
+  if (introFor !== introKey) {
+    setIntroFor(introKey)
+    setIntro(wantsIntro)
+  }
+
   useEffect(() => {
-    if (!introTalk || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
-    setIntro(true)
+    if (!wantsIntro) return undefined
     const words = text.speech.split(' ').length
     const timer = window.setTimeout(() => setIntro(false), 600 + words * 110 + 900)
     return () => window.clearTimeout(timer)
-  }, [introTalk, text.speech])
+  }, [wantsIntro, text.speech])
 
   /**
    * Shares the landing page with the phone's or computer's share sheet. Where sharing isn't

@@ -13,12 +13,12 @@
  */
 import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useLatest } from '../../shared/hooks/useLatest.js'
 
 export default function SceneReady({ onReady }) {
   const fired = useRef(false)
   const raf = useRef(0)
-  const callback = useRef(onReady)
-  callback.current = onReady
+  const callback = useLatest(onReady)
 
   useFrame(() => {
     if (fired.current) return

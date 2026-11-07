@@ -5,11 +5,13 @@ const easeOutCubic = (p) => 1 - (1 - p) ** 3;
 
 /** Animates a number toward `target` whenever it changes (score ticking up, results count-up). */
 export function useCountUp(target, { duration = 700, from = 0 } = {}) {
-  const [shown, setShown] = useState(prefersReducedMotion() ? target : from);
+  // With reduced motion the number is simply the target (derived during render, no extra state).
+  const reduced = prefersReducedMotion();
+  const [shown, setShown] = useState(reduced ? target : from);
   const current = useRef(shown);
 
   useEffect(() => {
-    if (prefersReducedMotion()) { current.current = target; setShown(target); return undefined; }
+    if (reduced) { current.current = target; return undefined; }
     const start = performance.now();
     const origin = current.current;
     let raf;
@@ -23,7 +25,7 @@ export function useCountUp(target, { duration = 700, from = 0 } = {}) {
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
+  }, [target, duration, reduced]);
 
-  return shown;
+  return reduced ? target : shown;
 }

@@ -9,8 +9,10 @@ import { highlightRecorder } from '../../../clip/highlightRecorder'
  * (GIF, video, photo). Uses the native share sheet on mobile, downloads elsewhere.
  */
 export function ClipCard({ run }) {
-  // grab the highlight once per finished run
-  const highlight = useMemo(() => highlightRecorder.getHighlight(), [run])
+  // grab the highlight once per finished run (re-grabbed during render when `run` changes)
+  const [captured, setCaptured] = useState(() => ({ run, highlight: highlightRecorder.getHighlight() }))
+  if (captured.run !== run) setCaptured({ run, highlight: highlightRecorder.getHighlight() })
+  const highlight = captured.run === run ? captured.highlight : highlightRecorder.getHighlight()
   const [job, setJob] = useState(null) // { kind, progress, status: 'working'|'done'|'error', message }
   const canVideo = useMemo(() => !!videoSupport(), [])
   // stable identity so the preview loop doesn't restart on every progress update

@@ -26,7 +26,7 @@ const GAME_ID = 'neon-velocity'
 const FONTS_URL = 'https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Monoton&display=swap'
 
 /** XP for a run: about 1 per 150 points, plus a little for Neon Surges. Capped so one run can't dominate. */
-export const xpForRun = (run) => Math.min(80, Math.floor(run.score / 150) + run.surges * 2)
+const xpForRun = (run) => Math.min(80, Math.floor(run.score / 150) + run.surges * 2)
 
 function loadFontsOnce() {
   if (document.querySelector(`link[data-nv-fonts]`)) return

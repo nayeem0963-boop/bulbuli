@@ -25,12 +25,20 @@ export default function FeedbackModal({ open, game, trigger = 'completed', langu
   const [tags, setTags] = useState([])
   const [sent, setSent] = useState(false)
 
-  // fresh card each time it opens; focus moves into it
+  // fresh card each time it opens (reset during render when `open` turns on) ...
+  const [wasOpen, setWasOpen] = useState(open)
+  if (wasOpen !== open) {
+    setWasOpen(open)
+    if (open) {
+      setReaction(null)
+      setTags([])
+      setSent(false)
+    }
+  }
+
+  // ... and focus moves into it
   useEffect(() => {
     if (!open) return undefined
-    setReaction(null)
-    setTags([])
-    setSent(false)
     const frame = requestAnimationFrame(() => card.current?.querySelector('.fb-reaction')?.focus({ preventScroll: true }))
     return () => cancelAnimationFrame(frame)
   }, [open])

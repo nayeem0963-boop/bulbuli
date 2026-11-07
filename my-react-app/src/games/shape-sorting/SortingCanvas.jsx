@@ -17,6 +17,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html, useCursor } from '@react-three/drei'
 import { Color, MathUtils, MeshStandardMaterial, Object3D, Plane, Raycaster, Vector2, Vector3 } from 'three'
 import './SortingCanvas.css'
+import { useLatest } from '../../shared/hooks/useLatest.js'
 
 const ITEM_SCALE = 0.62
 const DRAG_Y = 1.45 // height of the invisible plane the dragged shape slides on
@@ -103,6 +104,14 @@ function CameraRig({ layout }) {
 
 /* ------------------------------------------------------------------ effects */
 
+// Scratch objects, used synchronously inside effects, frames and pointer handlers only.
+const scratchObject = new Object3D()
+const scratchColor = new Color()
+const raycaster = new Raycaster()
+const dragPlane = new Plane(new Vector3(0, 1, 0), -DRAG_Y)
+const ndc = new Vector2()
+const hit = new Vector3()
+
 /** Shared, non-React store for bin bounces / wobbles and the confetti trigger. */
 function createFx() {
   const bins = {}
@@ -115,27 +124,26 @@ function createFx() {
   }
 }
 
-function Confetti({ fx, reducedMotion }) {
+function Confetti({ fxRef, reducedMotion }) {
   const mesh = useRef()
-  const parts = useMemo(
-    () => Array.from({ length: CONFETTI_COUNT }, () => ({ p: new Vector3(), v: new Vector3(), life: 0, spin: 0 })),
-    [],
-  )
-  const dummy = useMemo(() => new Object3D(), [])
-  const color = useMemo(() => new Color(), [])
+  // particle pool: simulation state in a ref (lazy init is the one allowed ref write during render)
+  const pool = useRef(null)
+  if (pool.current === null) pool.current = Array.from({ length: CONFETTI_COUNT }, () => ({ p: new Vector3(), v: new Vector3(), life: 0, spin: 0 }))
   const active = useRef(false)
 
   useLayoutEffect(() => {
     const m = mesh.current
-    dummy.scale.setScalar(0)
-    dummy.updateMatrix()
+    scratchObject.scale.setScalar(0)
+    scratchObject.updateMatrix()
     for (let i = 0; i < CONFETTI_COUNT; i += 1) {
-      m.setMatrixAt(i, dummy.matrix)
-      m.setColorAt(i, color.set(CONFETTI[i % CONFETTI.length]))
+      m.setMatrixAt(i, scratchObject.matrix)
+      m.setColorAt(i, scratchColor.set(CONFETTI[i % CONFETTI.length]))
     }
     m.instanceMatrix.needsUpdate = true
     if (m.instanceColor) m.instanceColor.needsUpdate = true
 
+    const fx = fxRef.current
+    const parts = pool.current
     fx.burst = (position, itemColor) => {
       parts.forEach((part, i) => {
         const angle = Math.random() * Math.PI * 2
@@ -144,33 +152,33 @@ function Confetti({ fx, reducedMotion }) {
         part.v.set(Math.cos(angle) * speed, (reducedMotion ? 2 : 3.2) + Math.random() * 2.4, Math.sin(angle) * speed)
         part.life = 0.8 + Math.random() * 0.45
         part.spin = Math.random() * 10
-        m.setColorAt(i, color.set(i % 4 === 0 ? itemColor : CONFETTI[i % CONFETTI.length]))
+        m.setColorAt(i, scratchColor.set(i % 4 === 0 ? itemColor : CONFETTI[i % CONFETTI.length]))
       })
       if (m.instanceColor) m.instanceColor.needsUpdate = true
       active.current = true
     }
     return () => { fx.burst = () => {} }
-  }, [fx, parts, dummy, color, reducedMotion])
+  }, [fxRef, reducedMotion])
 
   useFrame((_, delta) => {
     if (!active.current) return
     const m = mesh.current
     const dt = Math.min(delta, MAX_DT)
     let alive = false
-    parts.forEach((part, i) => {
+    pool.current.forEach((part, i) => {
       if (part.life > 0) {
         part.life -= dt
         part.v.y -= 9 * dt
         part.p.addScaledVector(part.v, dt)
-        dummy.position.copy(part.p)
-        dummy.rotation.set(part.life * part.spin, part.life * 6, 0)
-        dummy.scale.setScalar(MathUtils.clamp(part.life * 2.5, 0, 1))
+        scratchObject.position.copy(part.p)
+        scratchObject.rotation.set(part.life * part.spin, part.life * 6, 0)
+        scratchObject.scale.setScalar(MathUtils.clamp(part.life * 2.5, 0, 1))
         alive = true
       } else {
-        dummy.scale.setScalar(0)
+        scratchObject.scale.setScalar(0)
       }
-      dummy.updateMatrix()
-      m.setMatrixAt(i, dummy.matrix)
+      scratchObject.updateMatrix()
+      m.setMatrixAt(i, scratchObject.matrix)
     })
     m.instanceMatrix.needsUpdate = true
     active.current = alive
@@ -231,7 +239,7 @@ function useTap(onTap) {
  *        belt → fall → spawn (rolled off the end)
  */
 const Item = memo(function Item({
-  item, layout, speed, paused, selected, label, reducedMotion, fx, hoverBin, apiRef, overlay,
+  item, layout, speed, paused, selected, label, reducedMotion, fxRef, hoverBin, apiRef, overlay,
   onSelectChange, onDrop, onMiss,
 }) {
   const camera = useThree((state) => state.camera)
@@ -243,13 +251,14 @@ const Item = memo(function Item({
   useCursor(hovered)
 
   const half = HALF[item.shape] * ITEM_SCALE
-  const layoutRef = useRef(layout)
-  layoutRef.current = layout
-  const props = useRef(null)
-  props.current = { speed, paused, selected, onSelectChange, onDrop, onMiss }
+  // latest props for handlers and the frame loop (refreshed after each commit, not during render)
+  const layoutRef = useLatest(layout)
+  const propsRef = useLatest({ speed, paused, selected, onSelectChange, onDrop, onMiss })
+  // where a new item appears (the frame loop moves it from then on)
+  const [spawnPosition] = useState(() => [layout.spawnX, layout.belt.top + half, layout.belt.z])
 
   const st = useRef(null)
-  if (!st.current) {
+  if (st.current === null) {
     st.current = {
       mode: 'spawn',
       t: 0,
@@ -264,10 +273,6 @@ const Item = memo(function Item({
     }
   }
 
-  const raycaster = useMemo(() => new Raycaster(), [])
-  const plane = useMemo(() => new Plane(new Vector3(0, 1, 0), -DRAG_Y), [])
-  const ndc = useMemo(() => new Vector2(), [])
-  const hit = useMemo(() => new Vector3(), [])
   const cleanupRef = useRef(null)
   useEffect(() => () => cleanupRef.current?.(), [])
 
@@ -280,7 +285,7 @@ const Item = memo(function Item({
     s.fired = false
     s.pos.set(L.spawnX, L.belt.top + half, L.belt.z)
     if (spinner.current) spinner.current.rotation.z = 0
-  }, [half])
+  }, [half, layoutRef])
 
   const goBack = useCallback(() => {
     const s = st.current
@@ -289,7 +294,7 @@ const Item = memo(function Item({
     s.t = 0
     s.from.copy(s.pos)
     s.to.set(MathUtils.clamp(s.pos.x, L.spawnX + 0.4, L.belt.end - 0.5), L.belt.top + half, L.belt.z)
-  }, [half])
+  }, [half, layoutRef])
 
   const dropInto = useCallback((binId) => {
     const s = st.current
@@ -297,8 +302,8 @@ const Item = memo(function Item({
     if (!['spawn', 'belt', 'drag'].includes(s.mode)) return
     const bin = L.bins.find((candidate) => candidate.id === binId)
     if (!bin) return
-    props.current.onSelectChange(false)
-    const outcome = props.current.onDrop(binId)
+    propsRef.current.onSelectChange(false)
+    const outcome = propsRef.current.onDrop(binId)
     s.t = 0
     s.fired = false
     s.binId = binId
@@ -312,7 +317,7 @@ const Item = memo(function Item({
     } else {
       goBack()
     }
-  }, [goBack])
+  }, [goBack, layoutRef, propsRef])
 
   useEffect(() => {
     const api = { dropInto }
@@ -324,13 +329,13 @@ const Item = memo(function Item({
     const rect = gl.domElement.getBoundingClientRect()
     ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1)
     raycaster.setFromCamera(ndc, camera)
-    return raycaster.ray.intersectPlane(plane, hit)
-  }, [gl, camera, raycaster, plane, ndc, hit])
+    return raycaster.ray.intersectPlane(dragPlane, hit)
+  }, [gl, camera])
 
   const onPointerDown = useCallback((e) => {
     e.stopPropagation()
     const s = st.current
-    if (props.current.paused || !['spawn', 'belt'].includes(s.mode) || cleanupRef.current) return
+    if (propsRef.current.paused || !['spawn', 'belt'].includes(s.mode) || cleanupRef.current) return
     const start = { x: e.clientX, y: e.clientY, id: e.pointerId, dragging: false }
 
     const move = (ev) => {
@@ -341,7 +346,7 @@ const Item = memo(function Item({
         start.dragging = true
         s.mode = 'drag'
         s.drag.copy(s.pos)
-        props.current.onSelectChange(false)
+        propsRef.current.onSelectChange(false)
       }
       if (s.mode !== 'drag') return
       const point = pointToPlane(ev.clientX, ev.clientY)
@@ -364,7 +369,7 @@ const Item = memo(function Item({
         if (binId) dropInto(binId)
         else goBack()
       } else if (!cancelled && ['spawn', 'belt'].includes(s.mode)) {
-        props.current.onSelectChange(!props.current.selected)
+        propsRef.current.onSelectChange(!propsRef.current.selected)
       }
     }
     const up = (ev) => finish(ev, false)
@@ -378,7 +383,7 @@ const Item = memo(function Item({
       window.removeEventListener('pointercancel', cancel)
       cleanupRef.current = null
     }
-  }, [dropInto, goBack, hoverBin, pointToPlane])
+  }, [dropInto, goBack, hoverBin, pointToPlane, layoutRef, propsRef])
 
   useFrame((state, delta) => {
     const g = group.current
@@ -387,7 +392,7 @@ const Item = memo(function Item({
     if (!g || !sp || !m) return
     const dt = Math.min(delta, MAX_DT)
     const s = st.current
-    const p = props.current
+    const p = propsRef.current
     const L = layoutRef.current
     const restY = L.belt.top + half
     const time = state.clock.elapsedTime
@@ -443,8 +448,8 @@ const Item = memo(function Item({
         } else {
           if (!s.fired) {
             s.fired = true
-            fx.bounce(s.binId)
-            fx.burst(s.to, item.color)
+            fxRef.current.bounce(s.binId)
+            fxRef.current.burst(s.to, item.color)
           }
           s.pos.y = MathUtils.damp(s.pos.y, s.to.y - 0.6, 10, dt)
           targetScale = 0
@@ -460,7 +465,7 @@ const Item = memo(function Item({
         } else if (s.t < 0.95) {
           if (!s.fired) {
             s.fired = true
-            fx.wobble(s.binId)
+            fxRef.current.wobble(s.binId)
           }
           const fade = 1 - (s.t - 0.3) / 0.65
           shakeX = Math.sin(s.t * (reducedMotion ? 18 : 38)) * 0.14 * fade
@@ -497,7 +502,7 @@ const Item = memo(function Item({
   })
 
   return (
-    <group ref={group} position={st.current.pos.toArray()}>
+    <group ref={group} position={spawnPosition}>
       <group ref={spinner} rotation={[0, 0.6, 0]} scale={ITEM_SCALE}>
         <mesh castShadow>
           <ShapeGeometry shape={item.shape} />
@@ -534,13 +539,13 @@ const Item = memo(function Item({
 
 /* ------------------------------------------------------------------ bins */
 
-const Bin = memo(function Bin({ bin, spec, fx, hoverBin, armed, reducedMotion, overlay, onTap }) {
+const Bin = memo(function Bin({ bin, spec, fxRef, hoverBin, armed, reducedMotion, overlay, onTap }) {
   const group = useRef()
   const icon = useRef()
+  const wall = useRef() // one wall mesh: its (shared) material is animated through it
   const [hovered, setHovered] = useState(false)
   useCursor(hovered)
-  const armedRef = useRef(armed)
-  armedRef.current = armed
+  const armedRef = useLatest(armed)
 
   const wallMaterial = useMemo(
     () => new MeshStandardMaterial({ color: spec.color, emissive: spec.color, emissiveIntensity: 0, roughness: 0.55 }),
@@ -554,7 +559,7 @@ const Bin = memo(function Bin({ bin, spec, fx, hoverBin, armed, reducedMotion, o
     if (!g) return
     const dt = Math.min(delta, MAX_DT)
     const time = state.clock.elapsedTime
-    const f = fx.get(bin.id)
+    const f = fxRef.current.get(bin.id)
 
     // Correct: squash-and-stretch bounce (damped spring). Wrong: a short rocking wobble.
     f.bounceVel += (-140 * f.bounce - 9 * f.bounceVel) * dt
@@ -567,7 +572,8 @@ const Bin = memo(function Bin({ bin, spec, fx, hoverBin, armed, reducedMotion, o
     const over = hoverBin.current === bin.id
     const pulse = armedRef.current ? 0.18 + Math.sin(time * 4.5) * 0.12 : 0
     const target = over ? 0.6 : Math.max(pulse, hovered ? 0.15 : 0)
-    wallMaterial.emissiveIntensity = MathUtils.damp(wallMaterial.emissiveIntensity, target, 12, dt)
+    const material = wall.current?.material
+    if (material) material.emissiveIntensity = MathUtils.damp(material.emissiveIntensity, target, 12, dt)
 
     if (icon.current) icon.current.rotation.y += dt * (reducedMotion ? 0.2 : 0.8)
   })
@@ -590,7 +596,7 @@ const Bin = memo(function Bin({ bin, spec, fx, hoverBin, armed, reducedMotion, o
           <meshStandardMaterial color={floorColor} roughness={0.8} />
         </mesh>
         {walls.map(([x, y, z, sx, sy, sz], i) => (
-          <mesh key={i} position={[x, y, z]} material={wallMaterial} castShadow receiveShadow>
+          <mesh key={i} ref={i === 0 ? wall : undefined} position={[x, y, z]} material={wallMaterial} castShadow receiveShadow>
             <boxGeometry args={[sx, sy, sz]} />
           </mesh>
         ))}
@@ -741,13 +747,14 @@ const Scene = memo(function Scene({
   const binKey = bins.map((bin) => bin.id).join('|')
   const binIds = useMemo(() => binKey.split('|'), [binKey])
   const layout = useMemo(() => makeLayout(portrait, binIds), [portrait, binIds])
-  const fx = useMemo(createFx, [])
+  // bounces / wobbles / confetti trigger: a small mutable store, kept in a ref
+  const fxRef = useRef(null)
+  if (fxRef.current === null) fxRef.current = createFx()
   const hoverBin = useRef(null)
   const itemApi = useRef(null)
 
   const [selected, setSelected] = useState(false)
-  const selectedRef = useRef(selected)
-  selectedRef.current = selected
+  const selectedRef = useLatest(selected)
   const [prevItemId, setPrevItemId] = useState(item.id)
   if (prevItemId !== item.id) {
     setPrevItemId(item.id)
@@ -763,7 +770,7 @@ const Scene = memo(function Scene({
   const handleBinTap = useCallback((binId) => {
     if (selectedRef.current && itemApi.current) itemApi.current.dropInto(binId)
     else onBinInfo(binId)
-  }, [onBinInfo])
+  }, [onBinInfo, selectedRef])
 
   const effectiveSpeed = speed * (reducedMotion ? 0.85 : 1)
   const shadowExtent = 7
@@ -802,7 +809,7 @@ const Scene = memo(function Scene({
           key={bin.id}
           bin={bin}
           spec={bins[i]}
-          fx={fx}
+          fxRef={fxRef}
           hoverBin={hoverBin}
           armed={selected}
           reducedMotion={reducedMotion}
@@ -820,7 +827,7 @@ const Scene = memo(function Scene({
         selected={selected}
         label={itemLabel}
         reducedMotion={reducedMotion}
-        fx={fx}
+        fxRef={fxRef}
         hoverBin={hoverBin}
         apiRef={itemApi}
         overlay={overlay}
@@ -829,7 +836,7 @@ const Scene = memo(function Scene({
         onMiss={onMiss}
       />
 
-      <Confetti fx={fx} reducedMotion={reducedMotion} />
+      <Confetti fxRef={fxRef} reducedMotion={reducedMotion} />
     </>
   )
 })

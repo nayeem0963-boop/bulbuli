@@ -3,12 +3,12 @@ import { MathUtils } from 'three'
 import { GameEvents } from '../systems/events'
 import { vfx } from '../systems/vfx'
 import { useGameStore } from '../stores/useGameStore'
+import { useLatest } from '../../../shared/hooks/useLatest.js'
 
 /** Subscribe to a gameplay event for the component's lifetime. The handler can change freely. */
 export function useGameEvent(type, handler) {
-  const ref = useRef(handler)
-  ref.current = handler
-  useEffect(() => GameEvents.on(type, (payload) => ref.current(payload)), [type])
+  const ref = useLatest(handler)
+  useEffect(() => GameEvents.on(type, (payload) => ref.current(payload)), [type, ref])
 }
 
 /** True when the OS asks for reduced motion — disables shake, aberration spikes and FOV punches. */

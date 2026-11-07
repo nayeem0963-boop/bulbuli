@@ -23,6 +23,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import GameViewport from '../game/GameViewport.jsx';
 import { lazyWithPreload } from '../../shared/lib/lazyWithPreload.js';
+import { useLatest } from '../../shared/hooks/useLatest.js';
 import WorkspaceEditor from './WorkspaceEditor';
 import { LEVELS } from './levelsData';
 import { validateHTML } from './htmlValidator';
@@ -193,10 +194,9 @@ export default function HTMLArchitectGame({
   const [shake, setShake] = useState(0);
   const attempt = useRef({ hints: 0, fails: 0 });
 
-  const sound = useMemo(createSound, []);
-  const mutedRef = useRef(muted);
-  mutedRef.current = muted;
-  const play = useCallback((name) => { if (!mutedRef.current) sound[name](); }, [sound]);
+  const [sound] = useState(createSound);
+  const mutedRef = useLatest(muted);
+  const play = useCallback((name) => { if (!mutedRef.current) sound[name](); }, [sound, mutedRef]);
 
   const level = LEVELS[levelIndex];
   const code = codes[level.id] ?? level.starterCode;

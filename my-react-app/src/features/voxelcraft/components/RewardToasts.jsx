@@ -1,6 +1,6 @@
 import { Gem, Medal, Zap } from 'lucide-react'
 import { useEffect } from 'react'
-import { useGameActions, useGameState } from '../state/GameStateProvider.jsx'
+import { useGameActions, useGameState } from '../state/gameStateContext.js'
 
 const TOAST_MS = 2600
 const BADGE_TOAST_MS = 5000 // badges deserve a longer look

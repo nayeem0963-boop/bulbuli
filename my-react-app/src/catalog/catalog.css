@@ -1,0 +1,49 @@
+/* The learning-catalogue cards (CatalogTile.jsx). They reuse the arcade's .game-tile look
+   (arcade.css); this only adds the "You'll learn" line, the category / level chips, the
+   "N modes" badge and the learning-category pill colours. */
+
+.game-tile.is-catalog .game-tile-body { display: flex; flex-direction: column; }
+
+.game-tile-body .catalog-learn {
+  margin: 0 0 0.75rem;
+  border-left: 4px solid color-mix(in srgb, var(--tile-bg) 80%, var(--ink));
+  border-radius: 4px;
+  padding: 0.3rem 0.55rem;
+  background: color-mix(in srgb, var(--tile-bg) 18%, var(--surface));
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+.catalog-learn-label { font-weight: 800; }
+
+/* category, level and age chips; the age chip keeps arcade.css's tinted :last-child style */
+.game-tile-meta .catalog-chip.is-level { color: var(--text); }
+
+/* "3 modes": flat, like the studio's "Creative tool" badge */
+.game-tile-badge.is-modes {
+  background: var(--ink);
+  transform: none;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.app-shell[data-theme='dark'] .game-tile-badge.is-modes { color: #fff; background: #0b1530; border-color: #fff; }
+
+/* learning-category pills (CategoryPills.jsx) */
+.arcade .category-pill.is-all { --pill-accent: var(--teal); }
+.arcade .category-pill.is-math { --pill-accent: #c96a00; }
+.arcade .category-pill.is-shapes { --pill-accent: #1f8a5b; }
+.arcade .category-pill.is-language { --pill-accent: #2f7fd1; }
+.arcade .category-pill.is-coding { --pill-accent: #8a4fd8; }
+.arcade .category-pill.is-create { --pill-accent: #c23a6b; }
+.app-shell[data-theme='dark'] .arcade .category-pill.is-math { --pill-accent: #ffb062; }
+.app-shell[data-theme='dark'] .arcade .category-pill.is-shapes { --pill-accent: #6fdcaa; }
+.app-shell[data-theme='dark'] .arcade .category-pill.is-language { --pill-accent: #7ab8ff; }
+.app-shell[data-theme='dark'] .arcade .category-pill.is-coding { --pill-accent: #c9a8f5; }
+.app-shell[data-theme='dark'] .arcade .category-pill.is-create { --pill-accent: #ff8fb6; }
+
+@media (max-width: 560px) {
+  .game-tile-body .catalog-learn { margin-bottom: 0.5rem; padding: 0.2rem 0.45rem; font-size: 0.85rem; }
+  .game-tile-badge.is-modes { transform: none; font-size: 0.7rem; }
+}
+
+/* the category emoji inside a chip: plain, not a chip of its own */
+.catalog-chip-icon { font-style: normal; }

@@ -10,7 +10,7 @@ const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.
  * The avatar jogs a small loop on a glowing pad so the trail is visible. Drag to turn the stage.
  * Everything animates by mutating refs in useFrame (no React renders per frame).
  */
-function Stage({ look, spin }) {
+function Stage({ look, spinRef }) {
   const runner = useRef(null)
   const body = useRef(null)
   const stage = useRef(null)
@@ -28,7 +28,7 @@ function Stage({ look, spin }) {
     }
     if (body.current) body.current.scale.y = 1 + Math.sin(t * 18) * 0.02
     if (stage.current) {
-      const s = spin.current
+      const s = spinRef.current
       if (!s.dragging) s.yaw += (0 - s.yaw) * Math.min(1, dt * 0.6) // drift back to front
       stage.current.rotation.y = s.yaw
     }
@@ -92,7 +92,7 @@ export default function AvatarPreview({ look, className = '' }) {
         gl={{ antialias: true, alpha: true }}
         fallback={<p className="grid h-full place-items-center p-4 text-center text-sm text-slate-400">3D preview needs WebGL.</p>}
       >
-        <Stage look={look} spin={spin} />
+        <Stage look={look} spinRef={spin} />
       </Canvas>
     </div>
   )

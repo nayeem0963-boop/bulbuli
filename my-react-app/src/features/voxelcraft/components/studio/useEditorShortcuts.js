@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { BLOCK_TYPE_LIST } from '../../level/blockTypes.js'
-import { useEditorActions } from '../../level/LevelEditorProvider.jsx'
+import { useEditorActions } from '../../level/levelEditorContext.js'
 
 const typing = (el) =>
   el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))

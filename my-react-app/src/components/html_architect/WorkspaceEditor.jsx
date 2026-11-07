@@ -201,38 +201,47 @@ export default function WorkspaceEditor({
   );
 
   /* ---------- stuck detection ---------- */
-  const lastProgress = useRef({ count: -1, at: Date.now() });
+  // State that follows the level / progress is adjusted during render (React's "adjust state when
+  // a prop changes" pattern); the progress *timestamp* is a ref, kept up to date in effects.
+  const levelId = level?.id;
+  const [seenLevel, setSeenLevel] = useState(levelId);
+  const [seenDone, setSeenDone] = useState(doneCount);
+  if (seenLevel !== levelId) {
+    setSeenLevel(levelId);
+    setHintStage(0);
+    setStuck(false);
+    setConfirmReset(false);
+  }
+  if (seenDone !== doneCount) {
+    setSeenDone(doneCount);
+    if (doneCount > seenDone) setStuck(false); // progress clears "stuck"
+  }
+
+  const lastProgress = useRef(null); // { count, at }; created on mount (Date.now() is impure in render)
   useEffect(() => {
-    if (doneCount > lastProgress.current.count) {
-      lastProgress.current = { count: doneCount, at: Date.now() };
-      setStuck(false);
-    } else if (doneCount < lastProgress.current.count) {
-      lastProgress.current.count = doneCount;
-    }
+    const last = lastProgress.current;
+    if (!last || doneCount > last.count) lastProgress.current = { count: doneCount, at: Date.now() };
+    else if (doneCount < last.count) last.count = doneCount;
   }, [doneCount]);
 
   useEffect(() => {
     lastProgress.current = { count: -1, at: Date.now() };
-    setHintStage(0);
-    setStuck(false);
-    setConfirmReset(false);
-  }, [level?.id]);
+  }, [levelId]);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setStuck(!allDone && Date.now() - lastProgress.current.at > stuckDelayMs);
+      const since = lastProgress.current ? Date.now() - lastProgress.current.at : 0;
+      setStuck(!allDone && since > stuckDelayMs);
     }, 2000);
     return () => clearInterval(id);
   }, [allDone, stuckDelayMs]);
 
   // Hints are about one tag; once that tag is fixed, start fresh for the next one
-  const hintTagRef = useRef(firstUnmet);
-  useEffect(() => {
-    if (hintTagRef.current !== firstUnmet) {
-      hintTagRef.current = firstUnmet;
-      setHintStage(0);
-    }
-  }, [firstUnmet]);
+  const [hintTag, setHintTag] = useState(firstUnmet);
+  if (hintTag !== firstUnmet) {
+    setHintTag(firstUnmet);
+    setHintStage(0);
+  }
 
   /* ---------- editing ---------- */
   useLayoutEffect(() => {

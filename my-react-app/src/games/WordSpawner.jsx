@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { advanceWord } from './wordField.js'
 import { useFrame } from '@react-three/fiber'
 import { Html, Text } from '@react-three/drei'
 import { getSkyTypewriterDifficulty } from './skyTypewriterDifficulty.js'
@@ -69,6 +70,13 @@ function WordSpawner({
   const wordIndex = useRef(0)
   const difficulty = getSkyTypewriterDifficulty(score)
 
+  // a new run starts with no words on screen (reset during render; the refs reset in the effect)
+  const [shownRun, setShownRun] = useState(runId)
+  if (shownRun !== runId) {
+    setShownRun(runId)
+    setVisibleWords([])
+  }
+
   useEffect(() => {
     records.current = []
     groups.current.clear()
@@ -76,7 +84,6 @@ function WordSpawner({
     elapsed.current = 0
     nextId.current = 0
     wordIndex.current = 0
-    setVisibleWords([])
     if (wordsRef) wordsRef.current = []
   }, [runId, wordsRef])
 
@@ -105,9 +112,9 @@ function WordSpawner({
         changed = true
         continue
       }
-      word.position.z -= speed * difficulty.speedMultiplier * delta
+      const z = advanceWord(word, speed * difficulty.speedMultiplier * delta)
       const group = groups.current.get(word.id)
-      if (group) group.position.z = word.position.z
+      if (group) group.position.z = z
       if (renderedProgress.current.get(word.id) !== word.progressIndex) {
         renderedProgress.current.set(word.id, word.progressIndex)
         changed = true
@@ -159,7 +166,8 @@ function WordSpawner({
       elapsed.current = interval
     }
     if (changed) {
-      setVisibleWords([...records.current])
+      // React gets a snapshot; the live records stay owned by this frame loop (never mutate state)
+      setVisibleWords(records.current.map((word) => ({ ...word, position: { ...word.position } })))
       if (wordsRef) wordsRef.current = [...records.current]
     }
   })

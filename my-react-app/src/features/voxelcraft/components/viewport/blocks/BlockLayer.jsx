@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { memo, useEffect, useMemo, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { BLOCK } from '../../../level/blockTypes.js'
@@ -13,19 +13,27 @@ const CUBE = 0.98 // tiny gap so neighbouring blocks read as separate voxels
  * Adding a platform therefore re-uploads only the platform instance buffer; bounce and lava
  * meshes see identical props and skip rendering entirely (they're memo'd).
  */
+function groupBlocks(blocks, previous) {
+  const next = { [BLOCK.PLATFORM]: [], [BLOCK.BOUNCE]: [], [BLOCK.LAVA]: [], [BLOCK.SPAWN]: [], [BLOCK.FINISH]: [] }
+  for (const b of blocks) next[b.type].push(b)
+  for (const type of Object.keys(next)) {
+    const old = previous[type]
+    const cur = next[type]
+    if (old && old.length === cur.length && old.every((b, i) => b === cur[i])) next[type] = old
+  }
+  return next
+}
+
 function useStableGroups(blocks) {
-  const prev = useRef({})
-  return useMemo(() => {
-    const next = { [BLOCK.PLATFORM]: [], [BLOCK.BOUNCE]: [], [BLOCK.LAVA]: [], [BLOCK.SPAWN]: [], [BLOCK.FINISH]: [] }
-    for (const b of blocks) next[b.type].push(b)
-    for (const type of Object.keys(next)) {
-      const old = prev.current[type]
-      const cur = next[type]
-      if (old && old.length === cur.length && old.every((b, i) => b === cur[i])) next[type] = old
-    }
-    prev.current = next
-    return next
-  }, [blocks])
+  // The previous grouping lives in state ("storing information from previous renders"): when
+  // `blocks` changes, regroup during render, reusing every unchanged per-type array.
+  const [state, setState] = useState(() => ({ blocks, groups: groupBlocks(blocks, {}) }))
+  if (state.blocks !== blocks) {
+    const groups = groupBlocks(blocks, state.groups)
+    setState({ blocks, groups })
+    return groups
+  }
+  return state.groups
 }
 
 /** Geometries + materials are created once and shared by every block of a type. */
@@ -64,20 +72,27 @@ function BlockLayer({ blocks, handlers }) {
   const groups = useStableGroups(blocks)
   const a = useBlockAssets()
   const lavaHalo = useMemo(() => ({ material: a.lavaHalo, scale: 1.1 }), [a])
+  // the instanced meshes, so the shared materials are animated through the live objects
+  const lavaMesh = useRef(null)
+  const lavaHaloMesh = useRef(null)
+  const bounceMesh = useRef(null)
 
   // Living materials: one uniform update per frame, regardless of block count.
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
-    a.lava.emissiveIntensity = 0.75 + Math.sin(t * 2.2) * 0.18 + Math.sin(t * 7.3) * 0.06
-    a.lavaHalo.opacity = 0.18 + Math.sin(t * 2.2) * 0.06
-    a.bounce.emissiveIntensity = 0.55 + Math.sin(t * 3.5) * 0.2
+    const lava = lavaMesh.current?.material
+    const halo = lavaHaloMesh.current?.material
+    const bounce = bounceMesh.current?.material
+    if (lava) lava.emissiveIntensity = 0.75 + Math.sin(t * 2.2) * 0.18 + Math.sin(t * 7.3) * 0.06
+    if (halo) halo.opacity = 0.18 + Math.sin(t * 2.2) * 0.06
+    if (bounce) bounce.emissiveIntensity = 0.55 + Math.sin(t * 3.5) * 0.2
   })
 
   return (
     <group>
       <VoxelInstances blocks={groups[BLOCK.PLATFORM]} geometry={a.cube} material={a.platform} {...handlers} />
-      <VoxelInstances blocks={groups[BLOCK.BOUNCE]} geometry={a.rounded} material={a.bounce} {...handlers} />
-      <VoxelInstances blocks={groups[BLOCK.LAVA]} geometry={a.cube} material={a.lava} halo={lavaHalo} {...handlers} />
+      <VoxelInstances blocks={groups[BLOCK.BOUNCE]} geometry={a.rounded} material={a.bounce} meshRef={bounceMesh} {...handlers} />
+      <VoxelInstances blocks={groups[BLOCK.LAVA]} geometry={a.cube} material={a.lava} halo={lavaHalo} meshRef={lavaMesh} haloRef={lavaHaloMesh} {...handlers} />
       {groups[BLOCK.SPAWN].map((b) => <SpawnPedestal key={b.id} block={b} handlers={handlers} />)}
       {groups[BLOCK.FINISH].map((b) => <FinishRing key={b.id} block={b} handlers={handlers} />)}
     </group>

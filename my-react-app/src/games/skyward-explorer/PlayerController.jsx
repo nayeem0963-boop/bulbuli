@@ -9,14 +9,15 @@
  *
  * Props:
  *   world, colliders   from layout.js / physics.js
- *   input              the shared input object (input.js)
+ *   inputRef           ref to the shared input object (input.js)
  *   active             true while the game is being played (input counts)
  *   crystals           world.crystals
  *   collectedRef       Map of crystal id → time taken (read here, written by the parent)
  *   onCollect(crystal) Bulbuli touched a crystal
- *   live               object the HUD reads: stamina and gliding are written here
+ *   liveRef            ref to the object the HUD reads: stamina and gliding are written here
  */
 import { memo, useEffect, useMemo, useRef } from 'react'
+import { useLatest } from '../../shared/hooks/useLatest.js'
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Vector3 } from 'three'
 import BulbuliAvatar from './BulbuliAvatar.jsx'
@@ -74,18 +75,17 @@ function useCameraDrag(view) {
   }, [gl, view])
 }
 
-function PlayerController({ world, colliders, input, active, crystals, collectedRef, onCollect, live }) {
+function PlayerController({ world, colliders, inputRef, active, crystals, collectedRef, onCollect, liveRef }) {
   const spawn = useMemo(() => spawnPoint(world), [world])
   const player = useRef(null)
-  if (!player.current) player.current = createPlayer(spawn)
+  if (player.current === null) player.current = createPlayer(spawn)
 
   const root = useRef()
   const camera = useThree((state) => state.camera)
   const view = useRef({ yaw: spawn.facing + Math.PI, pitch: CAMERA.pitch, distance: CAMERA.distance })
   const cam = useRef({ ready: false, look: new Vector3(), want: new Vector3(), desired: new Vector3() })
-  const seenPresses = useRef(input.jumpPresses)
-  const activeRef = useRef(active)
-  activeRef.current = active
+  const seenPresses = useRef(null) // jump presses already handled (set on the first frame)
+  const activeRef = useLatest(active)
 
   useCameraDrag(view)
 
@@ -93,6 +93,8 @@ function PlayerController({ world, colliders, input, active, crystals, collected
     const p = player.current
     const dt = Math.min(delta, 0.1)
     const playing = activeRef.current
+    const input = inputRef.current
+    if (seenPresses.current === null) seenPresses.current = input.jumpPresses
 
     // ---- input (ignored unless playing; presses made before the start don't count)
     const v = view.current
@@ -144,6 +146,7 @@ function PlayerController({ world, colliders, input, active, crystals, collected
     }
 
     // ---- HUD values
+    const live = liveRef.current
     live.stamina = p.stamina
     live.gliding = p.gliding
     live.focus = p.pos // the sun's shadow box follows Bulbuli

@@ -1,5 +1,6 @@
 import { CornerDownLeft, Flag, LogOut, RotateCcw, Timer, Trophy } from 'lucide-react'
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
+import { mulberry32 } from '../../../core/rng.js'
 import { formatStopwatch } from './playStore.js'
 
 const CONFETTI_COLORS = ['#818cf8', '#a855f7', '#34d399', '#fbbf24', '#f472b6', '#22d3ee']
@@ -34,19 +35,19 @@ function DeathFlash({ flash }) {
 }
 
 function DomConfetti() {
-  // Fixed random layout per mount (pure CSS animation afterwards).
-  const pieces = useMemo(
-    () => Array.from({ length: 70 }, (_, i) => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 0.6,
-      dur: 2.2 + Math.random() * 1.6,
-      drift: (Math.random() - 0.5) * 160,
-      spin: (Math.random() - 0.5) * 1080,
+  // Fixed, seeded layout (pure render: no Math.random), then pure CSS animation.
+  const pieces = useMemo(() => {
+    const random = mulberry32(0xc0ffee)
+    return Array.from({ length: 70 }, (_, i) => ({
+      left: random() * 100,
+      delay: random() * 0.6,
+      dur: 2.2 + random() * 1.6,
+      drift: (random() - 0.5) * 160,
+      spin: (random() - 0.5) * 1080,
       color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-      w: 6 + Math.random() * 6,
-    })),
-    [],
-  )
+      w: 6 + random() * 6,
+    }))
+  }, [])
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       {pieces.map((p, i) => (

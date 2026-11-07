@@ -4,10 +4,10 @@ import { playSfx } from '../../audio/sfx.js'
 import { DESCRIPTION_MAX, DIFFICULTIES } from '../../community/creatorStorage.js'
 import { REWARDS } from '../../data/mockData.js'
 import { BLOCK } from '../../level/blockTypes.js'
-import { useEditorActions, useLevel } from '../../level/LevelEditorProvider.jsx'
+import { useEditorActions, useLevel } from '../../level/levelEditorContext.js'
 import { TITLE_MAX, cellKey } from '../../level/levelSchema.js'
 import { FIRST_CREATOR_BADGE, communityIdFor, isContestOpen } from '../../state/gameReducer.js'
-import { useGameActions, useGameState } from '../../state/GameStateProvider.jsx'
+import { useGameActions, useGameState } from '../../state/gameStateContext.js'
 
 const DIFFICULTY_STYLE = {
   Easy: 'peer-checked:bg-emerald-500/25 peer-checked:text-emerald-100 peer-checked:ring-emerald-400/70',

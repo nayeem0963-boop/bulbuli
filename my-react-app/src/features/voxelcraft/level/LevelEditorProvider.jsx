@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { playPlaceSfx, playSfx, setSfxMuted } from '../audio/sfx.js'
 import { BLOCK, BLOCK_TYPES } from './blockTypes.js'
 import { createEditorState, editorReducer } from './editorReducer.js'
@@ -16,9 +16,7 @@ import { createEmptyLevel } from './levelSchema.js'
  *   ToolContext    tool, block type, paint colour, mute → hotbar
  *   ActionsContext stable functions (never change)  → everything, with zero re-renders
  */
-const LevelContext = createContext(null)
-const ToolContext = createContext(null)
-const ActionsContext = createContext(null)
+import { ActionsContext, LevelContext, ToolContext } from './levelEditorContext.js'
 
 const MUTE_KEY = STORAGE_KEYS.sfxMuted
 const readMuted = () => {
@@ -163,13 +161,3 @@ export function LevelEditorProvider({ initialLevel, children }) {
     </ActionsContext.Provider>
   )
 }
-
-const useRequired = (ctx, name) => {
-  const value = useContext(ctx)
-  if (!value) throw new Error(`${name} must be used inside <LevelEditorProvider>`)
-  return value
-}
-
-export const useLevel = () => useRequired(LevelContext, 'useLevel')
-export const useEditorTool = () => useRequired(ToolContext, 'useEditorTool')
-export const useEditorActions = () => useRequired(ActionsContext, 'useEditorActions')

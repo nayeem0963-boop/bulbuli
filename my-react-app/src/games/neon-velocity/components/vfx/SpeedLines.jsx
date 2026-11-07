@@ -23,7 +23,8 @@ export function SpeedLines() {
   const group = useRef()
   const mesh = useRef()
 
-  const lines = useMemo(() => Array.from({ length: count }, () => spawn({}, true)), [count])
+  // the moving lines are frame-loop state: a ref, rebuilt when the quality changes the count
+  const linesRef = useRef(null)
   const geometry = useMemo(() => new BoxGeometry(1, 1, 1), [])
   const material = useMemo(() => new MeshBasicMaterial({
     color: new Color(2.5, 2.5, 2.5),
@@ -36,14 +37,16 @@ export function SpeedLines() {
   useEffect(() => () => { geometry.dispose(); material.dispose() }, [geometry, material])
 
   useEffect(() => {
-    lines.forEach((l, i) => mesh.current.setColorAt(i, palette[i % palette.length]))
+    linesRef.current = Array.from({ length: count }, () => spawn({}, true))
+    for (let i = 0; i < count; i++) mesh.current.setColorAt(i, palette[i % palette.length])
     mesh.current.instanceColor.needsUpdate = true
-  }, [lines])
+  }, [count])
 
   useFrame((_, delta) => {
     const amount = smoothstep(0.35, 1, vfx.speedFactor) * 0.5 + vfx.surge * 0.9
-    material.opacity = Math.min(1, amount)
-    if (!group.current) return
+    if (mesh.current) mesh.current.material.opacity = Math.min(1, amount)
+    const lines = linesRef.current
+    if (!group.current || !lines) return
     group.current.visible = amount > 0.01
     if (!group.current.visible) return
 

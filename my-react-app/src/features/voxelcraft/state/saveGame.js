@@ -176,8 +176,7 @@ export function selectSaveData(state) {
     levels: community.levels
       .filter((l) => isPublishedHere(l, player.handle))
       .slice(0, MAX_SAVED_LEVELS)
-      // eslint-disable-next-line no-unused-vars
-      .map(({ votedByMe, voteRewarded, ...entry }) => entry),
+      .map(({ votedByMe: _votedByMe, voteRewarded: _voteRewarded, ...entry }) => entry), // drop per-device vote flags
     publishedIds: studio.publishedIds,
     pastContests: community.pastContests,
     sim,

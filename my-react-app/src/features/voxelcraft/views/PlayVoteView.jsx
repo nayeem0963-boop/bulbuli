@@ -4,7 +4,7 @@ import { playSfx } from '../audio/sfx.js'
 import ContestBanner from '../community/ContestBanner.jsx'
 import { SORT_TABS, selectGallery } from '../community/gallery.js'
 import LevelCard from '../community/LevelCard.jsx'
-import { useGameActions, useGameState } from '../state/GameStateProvider.jsx'
+import { useGameActions, useGameState } from '../state/gameStateContext.js'
 
 // 3D is lazy: the hub's first paint is HTML + SVG thumbnails; previews go live when ready.
 const GalleryCanvas = lazy(() => import('../community/Gallery3D.jsx').then((m) => ({ default: m.GalleryCanvas })))

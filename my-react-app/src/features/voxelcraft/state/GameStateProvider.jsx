@@ -1,10 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, useRef } from 'react'
+import { useEffect, useReducer, useRef } from 'react'
 import { mockPlayer } from '../data/mockData.js'
 import { createInitialGameState, gameReducer } from './gameReducer.js'
-import { clearSave, loadSave, selectSaveData, writeSave } from './saveGame.js'
+import { loadSave, selectSaveData, writeSave } from './saveGame.js'
 
-const GameStateContext = createContext(null)
-const GameDispatchContext = createContext(null)
+import { GameDispatchContext, GameStateContext } from './gameStateContext.js'
 
 /**
  * Holds all mock game state in one reducer. State and dispatch live in separate contexts so
@@ -37,50 +36,5 @@ export function GameStateProvider({ children, initialState }) {
     <GameDispatchContext.Provider value={dispatch}>
       <GameStateContext.Provider value={state}>{children}</GameStateContext.Provider>
     </GameDispatchContext.Provider>
-  )
-}
-
-export function useGameState() {
-  const ctx = useContext(GameStateContext)
-  if (!ctx) throw new Error('useGameState must be used inside <GameStateProvider>')
-  return ctx
-}
-
-export function useGameDispatch() {
-  const ctx = useContext(GameDispatchContext)
-  if (!ctx) throw new Error('useGameDispatch must be used inside <GameStateProvider>')
-  return ctx
-}
-
-/** Named action creators, so components never hand-write action objects. */
-export function useGameActions() {
-  const dispatch = useGameDispatch()
-  return useMemo(
-    () => ({
-      setTab: (tab) => dispatch({ type: 'tab/set', tab }),
-      reward: (reward, reason) => dispatch({ type: 'player/reward', reward, reason }),
-      /** publishBuild(level, { description, difficulty, contest, thumbnail }) */
-      publishBuild: (level, meta = {}) => dispatch({ type: 'studio/publish', level, ...meta }),
-      clearHighlight: () => dispatch({ type: 'community/clearHighlight' }),
-      submitContestEntry: (level) => dispatch({ type: 'community/submit', level }),
-      toggleVote: (id) => dispatch({ type: 'community/toggleVote', id }),
-      recordPlay: (id) => dispatch({ type: 'community/recordPlay', id }),
-      dismissToast: (id) => dispatch({ type: 'toast/dismiss', id }),
-      levelBeaten: (levelId, title, ms) => dispatch({ type: 'player/levelBeaten', levelId, title, ms }),
-      settleContest: () => dispatch({ type: 'contest/settle' }),
-      // Dev / Test Mode (simulated community voters)
-      configureSim: (patch) => dispatch({ type: 'sim/configure', ...patch }),
-      simTick: (hours = 1) => dispatch({ type: 'sim/tick', hours }),
-      fastForwardContest: () => dispatch({ type: 'contest/fastForward' }),
-      buyCosmetic: (itemId) => dispatch({ type: 'cosmetics/buy', itemId }),
-      equipCosmetic: (itemId) => dispatch({ type: 'cosmetics/equip', itemId }),
-      setCosmeticColor: (slot, color) => dispatch({ type: 'cosmetics/color', slot, color }),
-      /** Wipes this device's save and starts over (the Studio is reset by its own provider). */
-      resetProgress: () => {
-        clearSave()
-        dispatch({ type: 'state/replace', state: createInitialGameState(Date.now(), null) })
-      },
-    }),
-    [dispatch],
   )
 }

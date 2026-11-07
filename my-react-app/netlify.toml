@@ -7,3 +7,11 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Phase 2A CONTROLLED REVIEW BUILD (docs/PHASE-2A-REVIEW-BUILD.md).
+# Only deploys of the branch "phase2a-review" build the review site (World Explorer 3D + Sky
+# Science Explorer, unapproved content, no real XP, no account) into dist-review/. Production
+# deploys of main are unaffected and keep using the [build] settings above.
+[context.phase2a-review]
+  command = "npm run build:review"
+  publish = "dist-review"

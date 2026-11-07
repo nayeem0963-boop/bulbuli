@@ -7,7 +7,7 @@
  * seconds from performance.now()), it spins up, rises and shrinks away.
  * All of it runs in one useFrame: React never re-renders for crystals.
  */
-import { memo, useMemo, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { AdditiveBlending, MathUtils, MeshBasicMaterial, MeshStandardMaterial, Object3D, OctahedronGeometry, SphereGeometry } from 'three'
 
@@ -31,6 +31,7 @@ function CrystalColor({ color, crystals, collectedRef }) {
     shard: new MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.3, flatShading: true }),
     halo: new MeshBasicMaterial({ color, transparent: true, opacity: 0.22, blending: AdditiveBlending, depthWrite: false, fog: false }),
   }), [color])
+  useEffect(() => () => Object.values(materials).forEach((m) => m.dispose()), [materials])
 
   useFrame(({ clock }) => {
     if (!gems.current) return
@@ -72,7 +73,8 @@ function CrystalColor({ color, crystals, collectedRef }) {
     gems.current.instanceMatrix.needsUpdate = true
     shards.current.instanceMatrix.needsUpdate = true
     halos.current.instanceMatrix.needsUpdate = true
-    materials.halo.opacity = 0.22 + Math.sin(t * 2.4) * 0.06
+    // animate the live material through the mesh ref (render-time values stay immutable)
+    halos.current.material.opacity = 0.22 + Math.sin(t * 2.4) * 0.06
   })
 
   // they move every frame, so bounds would be stale: skip culling (only a few dozen triangles each)

@@ -12,8 +12,8 @@ function formatTime(seconds, n) {
   return `${n(Math.floor(s / 60))}:${n(String(s % 60).padStart(2, '0'))}`
 }
 
-/** On-screen stick: drag inside the circle to move. Writes input.touchX / touchY (-1..1). */
-function TouchStick({ input, label }) {
+/** On-screen stick: drag inside the circle to move. Writes inputRef.current.touchX / touchY (-1..1). */
+function TouchStick({ inputRef, label }) {
   const knob = useRef()
   const state = useRef({ id: null, cx: 0, cy: 0 })
   const RANGE = 46
@@ -27,6 +27,7 @@ function TouchStick({ input, label }) {
       dx = (dx / len) * RANGE
       dy = (dy / len) * RANGE
     }
+    const input = inputRef.current
     input.touchX = dx / RANGE
     input.touchY = -dy / RANGE
     if (knob.current) knob.current.style.transform = `translate(${dx}px, ${dy}px)`
@@ -34,6 +35,7 @@ function TouchStick({ input, label }) {
   const end = (e) => {
     if (e.pointerId !== state.current.id) return
     state.current.id = null
+    const input = inputRef.current
     input.touchX = 0
     input.touchY = 0
     if (knob.current) knob.current.style.transform = ''
@@ -59,8 +61,8 @@ function TouchStick({ input, label }) {
   )
 }
 
-function TouchJump({ input, label }) {
-  const release = () => { input.touchJump = false }
+function TouchJump({ inputRef, label }) {
+  const release = () => { inputRef.current.touchJump = false }
   return (
     <button
       type="button"
@@ -68,6 +70,7 @@ function TouchJump({ input, label }) {
       aria-label={label}
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture(e.pointerId)
+        const input = inputRef.current
         input.jumpPresses += 1
         input.touchJump = true
       }}
@@ -91,7 +94,7 @@ function Card({ children, tone = '' }) {
 }
 
 export default function HUD({
-  text, n, status, paused, score, total, timeLeft, stamina, gliding, result, input,
+  text, n, status, paused, score, total, timeLeft, stamina, gliding, result, inputRef,
   onStart, onPause, onResume, onPlayAgain, onNewIsland,
 }) {
   const playing = status === 'playing'
@@ -134,8 +137,8 @@ export default function HUD({
       {/* ---- touch controls */}
       {playing && !paused && (
         <div className="skx-touch">
-          <TouchStick input={input} label={text.touchMove} />
-          <TouchJump input={input} label={text.touchJump} />
+          <TouchStick inputRef={inputRef} label={text.touchMove} />
+          <TouchJump inputRef={inputRef} label={text.touchJump} />
         </div>
       )}
 

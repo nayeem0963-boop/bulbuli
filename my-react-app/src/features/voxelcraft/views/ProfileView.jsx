@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { playSfx } from '../audio/sfx.js'
 import { formatCount, timeAgo } from '../community/gallery.js'
 import { mockStarterLevel } from '../data/mockData.js'
-import { useEditorActions } from '../level/LevelEditorProvider.jsx'
+import { useEditorActions } from '../level/levelEditorContext.js'
 import { parseLevel } from '../level/levelSchema.js'
 import { formatStopwatch } from '../play/playStore.js'
 import { ownLevels } from '../profile/achievements.js'
@@ -14,7 +14,7 @@ import StatsOverview, { MedalChip } from '../profile/StatsOverview.jsx'
 import { CARD, CARD_PAD, H2, StatusTag } from '../profile/ui.jsx'
 import DevPanel from '../dev/DevPanel.jsx'
 import { DEV_TOOLS } from '../dev/devMode.js'
-import { useGameActions, useGameState } from '../state/GameStateProvider.jsx'
+import { useGameActions, useGameState } from '../state/gameStateContext.js'
 
 /** Your published levels: stats, best time, and "Edit in Studio" for ones built here. */
 function MyLevels({ state }) {

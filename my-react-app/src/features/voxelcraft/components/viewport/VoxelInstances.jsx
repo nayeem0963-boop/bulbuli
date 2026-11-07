@@ -1,4 +1,4 @@
-import { memo, useLayoutEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useLayoutEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { cellCenter } from './sceneConfig.js'
 
@@ -33,10 +33,19 @@ function writeMatrices(mesh, blocks, scale = 1, withColor = true) {
  *
  * Pointer events report the clicked block (instanceId → block), not the raw mesh.
  * `halo` adds a slightly larger additive shell that reuses the same layout (used for lava glow).
+ * `meshRef` / `haloRef` (optional) receive the instanced meshes, e.g. to animate their materials.
  */
-function VoxelInstances({ blocks, geometry, material, halo, onPointerMove, onPointerOut, onClick, onContextMenu }) {
+function VoxelInstances({ blocks, geometry, material, halo, meshRef, haloRef, onPointerMove, onPointerOut, onClick, onContextMenu }) {
   const mesh = useRef(null)
   const haloMesh = useRef(null)
+  const setMesh = useCallback((node) => {
+    mesh.current = node
+    if (meshRef) meshRef.current = node
+  }, [meshRef])
+  const setHaloMesh = useCallback((node) => {
+    haloMesh.current = node
+    if (haloRef) haloRef.current = node
+  }, [haloRef])
   const blocksRef = useRef(blocks)
   const capacity = capacityFor(blocks.length)
 
@@ -46,36 +55,40 @@ function VoxelInstances({ blocks, geometry, material, halo, onPointerMove, onPoi
     if (haloMesh.current) writeMatrices(haloMesh.current, blocks, halo.scale, false)
   }, [blocks, capacity, halo])
 
-  // Handlers translate instanceId → block. Built once; they read the latest blocks via ref.
-  const handlers = useMemo(() => {
-    const wrap = (fn) => fn && ((e) => {
-      const block = blocksRef.current[e.instanceId]
-      if (block) fn(e, block)
-    })
-    return {
-      onPointerMove: wrap(onPointerMove),
-      onClick: wrap(onClick),
-      onContextMenu: wrap(onContextMenu),
-      onPointerOut,
-    }
-  }, [onPointerMove, onPointerOut, onClick, onContextMenu])
+  // Event handlers translate instanceId → block; they read the latest blocks via the ref (events only).
+  const handlePointerMove = useCallback((e) => {
+    const block = blocksRef.current[e.instanceId]
+    if (block) onPointerMove(e, block)
+  }, [onPointerMove])
+  const handleClick = useCallback((e) => {
+    const block = blocksRef.current[e.instanceId]
+    if (block) onClick(e, block)
+  }, [onClick])
+  const handleContextMenu = useCallback((e) => {
+    const block = blocksRef.current[e.instanceId]
+    if (block) onContextMenu(e, block)
+  }, [onContextMenu])
 
   return (
     <>
       <instancedMesh
         // key on capacity: a bigger buffer needs a new InstancedMesh; same-size edits reuse it.
         key={capacity}
-        ref={mesh}
+        ref={setMesh}
         args={[geometry, material, capacity]}
         castShadow
         receiveShadow
         frustumCulled={false}
-        {...handlers}
+        // unset handlers stay unset (no pointer work for meshes nobody listens to)
+        onPointerMove={onPointerMove ? handlePointerMove : undefined}
+        onClick={onClick ? handleClick : undefined}
+        onContextMenu={onContextMenu ? handleContextMenu : undefined}
+        onPointerOut={onPointerOut}
       />
       {halo && (
         <instancedMesh
           key={`halo-${capacity}`}
-          ref={haloMesh}
+          ref={setHaloMesh}
           args={[geometry, halo.material, capacity]}
           raycast={() => null}
           frustumCulled={false}

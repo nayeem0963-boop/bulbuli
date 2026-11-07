@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { CourseMode } from '../../services/course'
@@ -20,8 +20,10 @@ export function GhostRunner() {
   const status = useGameStore((s) => s.status)
   const ghost = useLeaderboardStore((s) => (course ? s.ghosts[course.boardId] : null))
   const group = useRef()
-  const cursor = useMemo(() => ({ i: 0 }), [ghost])
-  const sample = useMemo(() => ({ x: 0, y: 0, z: 0, mode: 'RUN' }), [])
+  // playback state (mutated every frame): refs; the cursor restarts when the ghost changes
+  const cursor = useRef({ i: 0 })
+  const sample = useRef({ x: 0, y: 0, z: 0, mode: 'RUN' })
+  useEffect(() => { cursor.current = { i: 0 } }, [ghost])
 
   const enabled = !!ghost?.data && raceGhost !== 'off' && course?.mode === CourseMode.DAILY
     && status !== 'START'
@@ -29,11 +31,12 @@ export function GhostRunner() {
   useFrame(() => {
     if (!group.current) return
     if (!enabled) { group.current.visible = false; runtime.ghostLead = null; return }
-    const alive = sampleGhost(ghost.data, runtime.gameTime, cursor, sample)
+    const s = sample.current
+    const alive = sampleGhost(ghost.data, runtime.gameTime, cursor.current, s)
     group.current.visible = alive
     if (!alive) { runtime.ghostLead = null; return }
-    group.current.position.set(sample.x, sample.y, sample.z)
-    runtime.ghostLead = sample.z - runtime.playerPosition.z
+    group.current.position.set(s.x, s.y, s.z)
+    runtime.ghostLead = s.z - runtime.playerPosition.z
   })
 
   if (!enabled) return null

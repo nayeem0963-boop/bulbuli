@@ -1,10 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from './auth/AuthContext.jsx'
-import { FavoritesProvider } from './favorites/FavoritesContext.jsx'
-import { BadgesProvider } from './badges/BadgesContext.jsx'
+import { FavoritesProvider } from './favorites/FavoritesProvider.jsx'
+import { BadgesProvider } from './badges/BadgesProvider.jsx'
 import AchievementToasts from './badges/AchievementToast.jsx'
-import { CertificatesProvider } from './achievements/CertificatesContext.jsx'
+import { CertificatesProvider } from './achievements/CertificatesProvider.jsx'
 import AchievementCelebrations from './achievements/AchievementCelebration.jsx'
 import CertificateVerifyPage from './achievements/CertificateVerifyPage.jsx'
 import AuthModal from './auth/AuthModal.jsx'
@@ -127,7 +127,7 @@ function GameStudioRoute() {
 }
 
 function App() {
-  // Session state lives in AuthProvider (src/auth/AuthContext.jsx), driven by onAuthStateChange.
+  // Session state lives in AuthProvider (src/auth/AuthProvider.jsx), driven by onAuthStateChange.
   const { session, loading, authError, retryAuth } = useAuth()
   const [theme, setTheme] = useState(() => {
     try {

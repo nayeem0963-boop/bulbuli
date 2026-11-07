@@ -13,8 +13,10 @@ import MathHeroProArt from './math-hero-pro/Art.jsx'
 import MathHeroProPlusArt from './math-hero-pro-plus/Art.jsx'
 
 /**
- * Every game in the arcade, in the order it appears on the home page.
- * Adding a game = a folder in src/games/<id>/ plus one entry here. See src/games/README.md.
+ * Every game in the arcade. Adding a game = a folder in src/games/<id>/ plus one entry here
+ * (see src/games/README.md), and a card or mode for it in src/catalog/learningCatalog.js: the home page
+ * shows the learning catalogue, which groups these games into cards and modes. Ids, routes and saved
+ * progress stay here, unchanged, so XP, badges and certificates keep working.
  *
  * Fields:
  *   id            URL slug: the game lives at /games/<id>. Lowercase letters, digits and dashes.
@@ -229,6 +231,10 @@ export const GAMES = [
     load: () => import('./neon-velocity/index.jsx'),
     fullscreen: true,
     launch: 'modal',
+    // Archived from the educational catalogue (Phase 1): no card, count, filter or sitemap entry.
+    // /games/neon-velocity (and ?play=neon-velocity) still open it; code, assets and saved data are kept.
+    // See ARCHIVED_GAME_IDS in src/catalog/learningCatalog.js.
+    hidden: true,
     controls: {
       en: 'A/D or arrows to switch lanes · W/Space to jump (again in the air to double jump, hold to glide) · S to slide · Esc to pause. On touch screens: swipe or use the buttons.',
       bn: 'A/D বা তীর চিহ্নে লেন বদলাও · W/Space-এ লাফ (শূন্যে আবার চাপলে ডাবল জাম্প, চেপে ধরলে গ্লাইড) · S-এ স্লাইড · Esc-এ থামাও। টাচ স্ক্রিনে: সোয়াইপ করো বা বোতাম চাপো।',
