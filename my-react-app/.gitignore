@@ -26,3 +26,7 @@ dist-ssr
 # Local backups made during the arcade refactor
 _backup-*.tar.gz
 _tmp-claude-*
+
+# Environment files (keep secrets out of git; .env.example lists the names)
+.env*
+!.env.example
