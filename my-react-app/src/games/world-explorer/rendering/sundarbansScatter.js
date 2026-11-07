@@ -476,5 +476,45 @@ export function scatterSundarbans(biome) {
     carpetCount += 1
   }
 
+  /* ---------------------------------------------------------------- deep forest */
+  // Appended last, on its own seed, so every placement above (and the near trees' collider ids)
+  // stays exactly as it was. Fills the widest gaps in the far forest and lifts its skyline with
+  // varied heights and occasional emergent crowns, keeping true clearings in the stand field.
+  // Starts well beyond the playable land and only uses the cheap 'far' silhouettes.
+  const deepRandom = mulberry32(0x2545f491)
+  let deep = 0
+  for (let attempt = 0; attempt < 16000 && deep < 210; attempt += 1) {
+    const a = deepRandom() * Math.PI * 2
+    const dc = Math.sqrt(50 * 50 + deepRandom() * (156 * 156 - 50 * 50))
+    const x = field.center.x + Math.cos(a) * dc
+    const z = field.center.z + Math.sin(a) * dc
+    const h = field.heightAt(x, z)
+    if (h < water + 0.08 || field.channelAt(x, z) > 0.25) continue
+    if (field.walkSD(x, z) < 12) continue // well clear of the playable land and the follow camera
+    const stand = grove(x, z)
+    if (stand < 0.24) continue // keep the natural clearings
+    const gap = (2.3 + dc * 0.022) * (1.35 - 0.8 * stand) * 0.86
+    if (bgGrid.near(x, z, 8, (t) => Math.hypot(x - t.x, z - t.z) < gap)) continue
+    if (shoreGrid.near(x, z, 3, (t) => Math.hypot(x - t.x, z - t.z) < 1.4)) continue
+    const tall = fbm(x * 0.05 + 3.1, z * 0.05 - 1.7, 137, 2)
+    const variant = TREE_SPECIES[Math.floor(deepRandom() * TREE_SPECIES.length)]
+    const emergent = deepRandom() < 0.18
+    const shrub = !emergent && h < water + 0.34 && hash01(x, z, 7) < 0.6
+    addBackground({
+      kind: 'backgroundMangrove',
+      lod: 'far',
+      variant,
+      form: shrub ? 3 : emergent ? (variant === 'keora' ? 2 : 0) : FAR_FORM_OF[variant],
+      x,
+      z,
+      y: h,
+      scale: (0.95 + tall * 0.8 + deepRandom() * 0.4) * (1 + dc * 0.003) * (emergent ? 1.3 : shrub ? 0.8 : 1),
+      stretch: emergent ? 1.12 + deepRandom() * 0.25 : 0.82 + deepRandom() * 0.4,
+      rot: deepRandom() * Math.PI * 2,
+      deep: true,
+    })
+    deep += 1
+  }
+
   return placements
 }

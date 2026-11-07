@@ -22,9 +22,10 @@
  * Levels of detail: 'near' (full), 'mid' (fewer leaves/roots, coarser tubes) and a separate,
  * very cheap far-forest canopy (buildFarMangrove).
  */
+import { IcosahedronGeometry } from 'three'
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { mulberry32 } from '../../../core/rng.js'
-import { blob, createBuilder, cubic, leaf, linear, tube, v } from './mangroveGeometry.js'
+import { createBuilder, cubic, leaf, linear, tube, v } from './mangroveGeometry.js'
 import { FAR_FORM_OF, MANGROVE_FORMS, MANGROVE_SPECIES } from './mangroveForms.js'
 
 export { FAR_FORM_OF, MANGROVE_FORMS, MANGROVE_SPECIES }
@@ -69,6 +70,126 @@ function varyFoliageColor(color, rng) {
   )
 }
 
+/* ---------------------------------------------------------------- organic crown masses */
+
+/**
+ * A seeded generator from a position. Crown variation draws from this instead of the tree's own
+ * stream, so the trunk, limbs and roots of every form stay exactly as they were.
+ */
+function positionRng(p, salt = 0) {
+  const q = (n) => Math.round(n * 1000)
+  return mulberry32((Math.imul(q(p.x), 73856093) ^ Math.imul(q(p.y), 19349663) ^ Math.imul(q(p.z), 83492791) ^ salt) >>> 0)
+}
+
+const ICO_CACHE = new Map()
+function icosahedron(detail) {
+  if (!ICO_CACHE.has(detail)) ICO_CACHE.set(detail, new IcosahedronGeometry(1, detail).getAttribute('position'))
+  return ICO_CACHE.get(detail)
+}
+
+/** Deterministic -1..1 from a unit-sphere corner, identical for every face sharing that corner. */
+function cornerNoise(x, y, z, phase) {
+  const s = Math.sin(x * 91.7 + y * 47.3 + z * 63.1 + phase * 3.1) * 43758.5453
+  return (s - Math.floor(s)) * 2 - 1
+}
+
+/** Shifts a colour's tone slightly (hue towards olive or blue-green, lightness up or down). */
+function shiftTone(color, rng, { hue = 0.025, light = 0.07, sat = 0.08 } = {}) {
+  const hsl = {}
+  color.getHSL(hsl)
+  return color.clone().setHSL(
+    (hsl.h + (rng() - 0.5) * 2 * hue + 1) % 1,
+    Math.max(0, Math.min(1, hsl.s + (rng() - 0.5) * 2 * sat)),
+    Math.max(0, Math.min(1, hsl.l + (rng() - 0.5) * 2 * light)),
+  )
+}
+
+/**
+ * A leafy crown mass. Same triangle count as the old evenly lumped blob, but every mass gets its
+ * own proportions, turn, corner displacement and tone, and a flatter underside, so neighbouring
+ * masses no longer read as copies of one geometric block.
+ */
+function crownMass(builder, center, radius, scale, { detail = 0, phase = 0, light, dark, lumpy = 0.3 }) {
+  const rng = positionRng(center, 0x51)
+  const sx = scale[0] * (0.82 + rng() * 0.4)
+  const sy = scale[1] * (0.8 + rng() * 0.32)
+  const sz = scale[2] * (0.82 + rng() * 0.4)
+  const yaw = rng() * TAU
+  const cy = Math.cos(yaw)
+  const syaw = Math.sin(yaw)
+  // a slight tilt, so stacked masses (sundari tiers) never lie in perfectly parallel plates
+  const tiltX = (rng() - 0.5) * 0.4
+  const tiltZ = (rng() - 0.5) * 0.4
+  const lit = shiftTone(light, rng)
+  const shadow = shiftTone(dark, rng, { light: 0.05 })
+  const position = icosahedron(detail)
+  const corners = []
+  for (let i = 0; i < position.count; i += 1) {
+    const x = position.getX(i)
+    const y = position.getY(i)
+    const z = position.getZ(i)
+    const bump = 1
+      + Math.sin(x * 4.1 + phase) * Math.cos(z * 3.7 - phase) * lumpy
+      + Math.sin(y * 5.3 + phase * 0.7) * lumpy * 0.5
+      + cornerNoise(x, y, z, phase) * 0.17
+    // a domed top and a softly flattened underside, as a leafy crown hangs
+    const profile = y > 0.3 ? 1.12 : y < -0.35 ? 0.8 : 1
+    let lx = x * radius * sx * bump
+    let ly = y * radius * sy * bump * profile
+    let lz = z * radius * sz * bump
+    ;[ly, lz] = [ly - lz * tiltX, lz + ly * tiltX]
+    ;[lx, ly] = [lx - ly * tiltZ, ly + lx * tiltZ]
+    corners.push(v(center.x + lx * cy - lz * syaw, center.y + ly, center.z + lx * syaw + lz * cy))
+  }
+  const shade = (p) => {
+    const t = Math.max(0, Math.min(1, (p.y - center.y) / (radius * sy) * 0.5 + 0.5))
+    return shadow.clone().lerp(lit, t * t)
+  }
+  for (let i = 0; i < corners.length; i += 3) builder.triangle(corners[i], corners[i + 1], corners[i + 2], shade(corners[i]), shade(corners[i + 1]), shade(corners[i + 2]))
+}
+
+/** Clusters of the tree being built, so gaps between them can be bridged (see bridgeCrown). */
+let crownLog = null
+
+/**
+ * Joins neighbouring leaf clusters that sit apart with a lower, darker mass between them, so a
+ * crown reads as one irregular canopy with depth instead of separate floating blocks. Paid for by
+ * the hidden inner leaves that cluster() no longer emits, so tree triangle budgets hold.
+ */
+function bridgeCrown(builder, clusters, { max, detail }) {
+  const pairs = []
+  for (let i = 0; i < clusters.length; i += 1) {
+    let best = null
+    for (let j = 0; j < clusters.length; j += 1) {
+      if (i === j) continue
+      const a = clusters[i]
+      const b = clusters[j]
+      const d = a.center.distanceTo(b.center)
+      const reach = a.r + b.r
+      if (d < reach * 0.62 || d > reach * 1.9) continue
+      if (!best || d < best.d) best = { i, j, d }
+    }
+    if (best && best.i < best.j) pairs.push(best)
+  }
+  // the widest gaps first: those are what break a crown into blocks
+  pairs.sort((p, q) => (q.d / (clusters[q.i].r + clusters[q.j].r)) - (p.d / (clusters[p.i].r + clusters[p.j].r)))
+  for (const { i, j } of pairs.slice(0, max)) {
+    const a = clusters[i]
+    const b = clusters[j]
+    const mid = a.center.clone().lerp(b.center, b.r / (a.r + b.r)).add(v(0, -0.12 * (a.r + b.r), 0))
+    const rng = positionRng(mid, 0xb7)
+    const pal = a.pal
+    const lit = Math.max(0, Math.min(1, 0.4 + (a.shade + b.shade) * 0.5))
+    crownMass(builder, mid, (a.r + b.r) * (0.36 + rng() * 0.08), [1.25, 0.72, 1.1], {
+      detail,
+      phase: rng() * 10,
+      light: pal.inner.clone().lerp(pal.main, 0.25 + lit * 0.35),
+      dark: pal.inner.clone().multiplyScalar(0.78).lerp(FOLIAGE_DEEP, 0.25),
+      lumpy: 0.32,
+    })
+  }
+}
+
 /* ---------------------------------------------------------------- levels of detail */
 
 /*
@@ -78,9 +199,9 @@ function varyFoliageColor(color, rng) {
  * larger leaf blades break up its outline. The triangle count stays inside the same budgets.
  */
 const LOD = {
-  near: { seg: 6, small: 4, steps: 6, leaves: 0.5, leafSize: 1.5, mass: 0.76, massDetailFrom: 0.9, crown: 1, roots: 1, subRoots: true, surface: true, collar: true, twigs: true, noise: 0.24 },
+  near: { seg: 6, small: 4, steps: 6, leaves: 0.5, leafSize: 2.3, mass: 0.76, massDetailFrom: 0.9, crown: 1, roots: 1, subRoots: true, surface: true, collar: true, twigs: true, noise: 0.24 },
   // Mid LOD uses fewer clusters, larger blades and a fuller core (seen from further away).
-  mid: { seg: 4, small: 3, steps: 3, leaves: 0.09, leafSize: 1.9, mass: 0.88, crown: 1.4, roots: 0.6, subRoots: false, surface: false, collar: false, twigs: false, noise: 0.16 },
+  mid: { seg: 4, small: 3, steps: 3, leaves: 0.09, leafSize: 2.6, mass: 0.88, crown: 1.4, roots: 0.6, subRoots: false, surface: false, collar: false, twigs: false, noise: 0.16 },
 }
 
 /* ---------------------------------------------------------------- trunk */
@@ -241,24 +362,33 @@ function cluster(builder, rng, L, pal, center, radius, { squash = 0.8, count = 2
   if (core > 0) {
     // the leafy core takes the cluster's own light: darker underneath and deep in the crown
     const lit = Math.max(0, Math.min(1, 0.5 + shade))
-    blob(builder, center.clone().add(v(0, -radius * 0.08 * squash, 0)), radius * L.crown * core, [1, squash, 1], {
+    const massCenter = center.clone().add(v(0, -radius * 0.08 * squash, 0))
+    crownMass(builder, massCenter, radius * L.crown * core, [1, squash, 1], {
       // the rounder core only where a cluster is big enough for its outline to show
       detail: radius * L.crown * core > (L.massDetailFrom ?? Infinity) ? 1 : 0,
-      random: rng,
+      phase: rng() * 10, // the tree's stream advances exactly as it did for the old blob
       light: pal.inner.clone().lerp(pal.main, 0.3 + lit * 0.4).lerp(FOLIAGE_SUNLIT, 0.08),
       dark: pal.inner.clone().multiplyScalar(0.8).lerp(FOLIAGE_DEEP, 0.2),
       lumpy: 0.34,
     })
+    crownLog?.push({ center: massCenter, r: radius * L.crown * core, pal, shade })
   }
   const size = L.leafSize
   radius *= L.crown
   const at = (d, depth) => v(center.x + d.x * radius * depth, center.y + d.y * radius * depth * squash, center.z + d.z * radius * depth)
 
-  // inner layer: shaded core leaves
+  // inner layer: shaded core leaves. Inside a leafy core most of them are hidden, so only those
+  // that poke out past the core are drawn; the stream still advances for every one, so the rest
+  // of the tree is unchanged.
   const nInner = Math.max(2, Math.round(count * inner * 0.85 * L.leaves * 1.35))
   for (let k = 0; k < nInner; k += 1) {
     const d = v(rng() - 0.5, (rng() - 0.35) * 0.9, rng() - 0.5).normalize()
-    const p = at(d, 0.12 + rng() * 0.42)
+    const depth = 0.12 + rng() * 0.42
+    if (core > 0 && depth < core * 0.62) {
+      for (let skip = 0; skip < 9; skip += 1) rng()
+      continue
+    }
+    const p = at(d, depth)
     const dir = d.clone().add(v(rng() - 0.5, rng() * 0.6 - 0.1 + lift * 0.3, rng() - 0.5)).normalize()
     const baseColor = pal.inner.clone().multiplyScalar(0.9 + Math.min(0, shade) * 0.4)
       .lerp(FOLIAGE_DEEP, 0.18)
@@ -592,9 +722,18 @@ export function buildMangrove(species, form = 0, lod = 'near') {
   if (!family) throw new Error(`Unknown mangrove family: ${species}`)
   const seed = 7349 * (MANGROVE_SPECIES.indexOf(species) + 1) + 977 * (form + 1) + (lod === 'near' ? 1 : 2)
   const builder = createBuilder()
-  family(builder, mulberry32(seed), LOD[lod] ?? LOD.near, form)
+  crownLog = []
+  try {
+    family(builder, mulberry32(seed), LOD[lod] ?? LOD.near, form)
+    bridgeCrown(builder, crownLog, BRIDGES[lod] ?? BRIDGES.near)
+  } finally {
+    crownLog = null
+  }
   return smoothShaded(builder.build())
 }
+
+/** Bridge masses per level of detail (kept within the triangle budgets in rendering.test.js). */
+const BRIDGES = { near: { max: 9, detail: 0 }, mid: { max: 3, detail: 0 } }
 
 /* ---------------------------------------------------------------- far forest */
 
@@ -621,7 +760,7 @@ export function buildFarMangrove(form = 0) {
   const lobe = (c, r, [sx, sy, sz]) => {
     const s = [sx * 1.25, sy, sz * 1.25]
     c = form === 3 ? c : c.clone().add(v(0, -0.7, 0))
-    blob(builder, c, r * 0.72, s, { detail: 0, random, light: dark.clone().lerp(light, 0.6), dark: dark.clone().multiplyScalar(0.85), lumpy: 0.26 })
+    crownMass(builder, c, r * 0.72, s, { detail: 0, phase: random() * 10, light: dark.clone().lerp(light, 0.6), dark: dark.clone().multiplyScalar(0.85), lumpy: 0.26 })
     lobes.push([c, r, s])
   }
   if (form === 0) {
