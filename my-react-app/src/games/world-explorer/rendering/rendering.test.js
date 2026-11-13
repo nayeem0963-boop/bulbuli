@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { BIOMES } from '../biomes/index.js'
 import { collidersFor } from '../biomes/common.js'
 import { createPlayer, stepPlayer } from '../../skyward-explorer/physics.js'
@@ -11,6 +12,7 @@ import { createSundarbansModels } from './mangroveModels.js'
 import { MANGROVE_FORMS, MANGROVE_SPECIES } from './mangroveForms.js'
 import { FLAT_DECORATION, FLAT_MAX_HEIGHT, FOREST_FLOOR, MID_STANDS, scatterSundarbans } from './sundarbansScatter.js'
 import { CREEK_CHANNELS, createTidalCreekGeometry } from './tidalCreek.js'
+import { MUD_FINISH, MUD_GLSL, SAFE_ROUGHNESS, finishedRoughness, mudFinish } from './mudSurface.js'
 import { scatterAmazon } from './amazonScatter.js'
 import {
   createAmazonDistantTree,
@@ -693,12 +695,15 @@ test('sundarbans pass 2: surface roots show between selected trees and seedlings
     geometry.computeBoundingBox()
     const box = geometry.boundingBox
     assert.ok(box.max.y <= 0.08, `a surface root stands ${box.max.y.toFixed(3)} m proud of the mud`)
+    // ...and is thick enough to be seen as a root from the follow camera
+    assert.ok(box.max.z - box.min.z >= 0.5 && box.max.x - box.min.x >= 1.8)
     assert.ok(box.min.y < 0, 'its ends are buried')
     assert.ok(box.max.z - box.min.z >= 0.45, 'it bends and forks instead of running straight')
     assert.ok(triangleCount(geometry) <= 130)
   }
   models.seedlings.computeBoundingBox()
   assert.ok(models.seedlings.boundingBox.max.y <= 0.36 && triangleCount(models.seedlings) <= 90)
+  for (const s of seedlings) assert.ok(s.scale >= 1.1 && s.scale <= 1.7, 'seedlings are large enough to read, still far below a sapling')
   const cost = roots.length * 115 + seedlings.length * triangleCount(models.seedlings)
   assert.ok(cost <= 11000, `roots and seedlings add ${cost} triangles`)
 })
@@ -738,6 +743,7 @@ test('sundarbans pass 2: forest-floor models are small, flat and cheap', () => {
   models.branch.computeBoundingBox()
   assert.ok(triangleCount(models.branch) <= 140)
   assert.ok(models.branch.boundingBox.max.y <= 0.2 && models.branch.boundingBox.max.x - models.branch.boundingBox.min.x <= 2)
+  assert.ok(models.branch.boundingBox.max.y >= 0.1, 'a fallen branch is thick enough to be seen from the follow camera')
   const { placements } = midStandContext()
   const floor = placements.filter((p) => p.kind === 'leafLitter').length * 28 + placements.filter((p) => p.kind === 'fallenBranch').length * triangleCount(models.branch)
   assert.ok(floor <= 11000, `leaf litter and branches add ${floor} triangles`)
@@ -787,4 +793,40 @@ test('sundarbans pass 2: the station 1 creek is three channels meeting, with ban
   const s1 = BIOMES.sundarbans.stations.find((s) => s.n === 1)
   assert.ok(prop && Math.hypot(prop.x - s1.x, prop.z - s1.z) < 5)
   assert.ok(Math.hypot(prop.x + box.max.x - s1.x, prop.z - s1.z) >= 1.15, 'the creek stops short of the station ring')
+})
+
+/* ------------------------------------------------------------------ Sundarbans Pass 3: mud finish */
+
+test('sundarbans pass 3: dry mud is matte and grainy, damp mud smoother, and nothing can bring the white streak back', () => {
+  // finish follows the same noise as the colour: dry → +1, damp → -1, shade keeps ground from drying
+  assert.equal(mudFinish(0.9, 0.2, 0), 1)
+  assert.equal(mudFinish(0.2, 0.9, 0), -1)
+  assert.equal(mudFinish(0.2, 0.2, 0), 0)
+  assert.ok(mudFinish(0.9, 0.2, 1) < mudFinish(0.9, 0.2, 0), 'ground under the crowns stays damper')
+  for (let d = 0; d <= 1; d += 0.1) for (let w = 0; w <= 1; w += 0.1) for (const shade of [0, 0.5, 1]) {
+    const finish = mudFinish(d, w, shade)
+    assert.ok(finish >= -1 && finish <= 1)
+    // from the mud texture's whole range (its damp pockets stop at SAFE_ROUGHNESS), the finished
+    // roughness never goes below that floor: no mirror, no streak
+    for (const base of [SAFE_ROUGHNESS, 0.7, 0.93, 0.98]) {
+      const r = finishedRoughness(base, finish)
+      assert.ok(r >= SAFE_ROUGHNESS - 1e-9 && r <= 1 + 1e-9, `roughness ${r.toFixed(3)} from ${base} at finish ${finish.toFixed(2)}`)
+    }
+  }
+  // dry is rougher than plain, damp is smoother than plain, and they are clearly apart
+  const plain = 0.93
+  assert.ok(finishedRoughness(plain, 1) > plain && finishedRoughness(plain, 1) >= 0.97, 'dry mud is matte')
+  assert.ok(finishedRoughness(plain, -1) < plain - 0.12, 'damp mud is visibly smoother')
+  assert.ok(finishedRoughness(plain, -1) >= 0.7, 'but only a restrained sheen')
+  assert.ok(MUD_FINISH.dampRoughness >= SAFE_ROUGHNESS + 0.05 && MUD_FINISH.dryRoughness === 1)
+  assert.ok(MUD_FINISH.dryGrain > 0 && MUD_FINISH.dryGrain <= 1 && MUD_FINISH.dampSmooth > 0 && MUD_FINISH.dampSmooth < 1)
+  // the shader uses exactly these numbers
+  assert.ok(MUD_GLSL.roughness.includes(MUD_FINISH.dampRoughness.toFixed(3)) && MUD_GLSL.roughness.includes(MUD_FINISH.dryRoughness.toFixed(3)))
+  assert.ok(MUD_GLSL.normal.includes('nonPerturbedNormal') && MUD_GLSL.grain.includes('wxDetailFade'))
+  // and the texture floor that fixed station 3 is still in place
+  const texture = readFileSync(new URL('./wetlandTextures.js', import.meta.url), 'utf8')
+  const floor = texture.match(/const roughness = Math\.max\(([\d.]+),/)
+  assert.ok(floor && Number(floor[1]) >= SAFE_ROUGHNESS, `mud texture roughness floor is ${floor?.[1]}`)
+  const scenery = readFileSync(new URL('./SundarbansScenery.jsx', import.meta.url), 'utf8')
+  assert.ok(scenery.includes('MUD_GLSL.roughness') && scenery.includes("setAttribute('mudFinish'"), 'the ground uses the finish')
 })

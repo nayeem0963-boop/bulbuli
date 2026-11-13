@@ -788,7 +788,7 @@ export function scatterSundarbans(biome) {
     if (treeGrid.near(x, z, 4, (t) => Math.hypot(x - t.x, z - t.z) < 1)) continue
     if (plantGrid.near(x, z, 2, (t) => Math.hypot(x - t.x, z - t.z) < 0.6)) continue
     if (seedlings.some((t) => Math.hypot(x - t.x, z - t.z) < 1.1)) continue
-    const item = { kind: 'seedling', x, z, y: groundY(home, x, z), scale: 0.8 + seedlingRandom() * 0.6, rot: seedlingRandom() * Math.PI * 2, clearance: 0 }
+    const item = { kind: 'seedling', x, z, y: groundY(home, x, z), scale: 1.1 + seedlingRandom() * 0.6, rot: seedlingRandom() * Math.PI * 2, clearance: 0 }
     placements.push(item)
     seedlings.push(item)
   }

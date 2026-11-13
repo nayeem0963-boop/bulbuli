@@ -155,10 +155,10 @@ function buildFallenBranch() {
   const base = linear('#6f6354')
   const tip = linear('#93866f')
   const main = Array.from({ length: 6 }, (_, i) => v(-0.8 + i * 0.32, 0.045 + Math.sin(i * 1.1) * 0.025, Math.sin(i * 0.8) * 0.1 + (random() - 0.5) * 0.04))
-  tube(builder, main, [0.05, 0.047, 0.042, 0.036, 0.028, 0.018], { segments: 5, base, tip })
-  tube(builder, [main[2].clone(), v(0.02, 0.07, 0.34), v(0.22, 0.05, 0.62)], [0.03, 0.022, 0.012], { segments: 4, base, tip })
-  tube(builder, [main[3].clone(), v(0.36, 0.09, -0.26), v(0.5, 0.06, -0.5)], [0.026, 0.018, 0.01], { segments: 4, base, tip })
-  tube(builder, [main[4].clone(), v(0.66, 0.1, 0.2)], [0.02, 0.009], { segments: 3, base, tip })
+  tube(builder, main, [0.068, 0.064, 0.057, 0.048, 0.038, 0.024], { segments: 5, base, tip })
+  tube(builder, [main[2].clone(), v(0.02, 0.07, 0.34), v(0.22, 0.05, 0.62)], [0.04, 0.03, 0.016], { segments: 4, base, tip })
+  tube(builder, [main[3].clone(), v(0.36, 0.09, -0.26), v(0.5, 0.06, -0.5)], [0.035, 0.024, 0.013], { segments: 4, base, tip })
+  tube(builder, [main[4].clone(), v(0.66, 0.1, 0.2)], [0.027, 0.012], { segments: 3, base, tip })
   return builder.build()
 }
 
@@ -178,12 +178,13 @@ function buildSurfaceRoot(variant = 0) {
     const t = i / (steps - 1)
     // buried at both ends, humped in between, with a second low hump so it is not one even arc
     const rise = Math.sin(t * Math.PI) * (0.02 + 0.012 * Math.sin(t * Math.PI * 3 + variant))
-    return v(-0.95 + t * 1.9, -0.035 + rise * 2.4, Math.sin(t * Math.PI * (1.3 + variant * 0.5)) * bend + (random() - 0.5) * 0.05)
+    return v(-0.95 + t * 1.9, -0.05 + rise * 2.4, Math.sin(t * Math.PI * (1.3 + variant * 0.5)) * bend + (random() - 0.5) * 0.05)
   })
-  tube(builder, main, [0.03, 0.042, 0.046, 0.044, 0.04, 0.034, 0.026, 0.016], { segments: 5, base, tip })
+  // thick enough to read as a root from the follow camera (a 4 cm root is a hairline at 8 m)
+  tube(builder, main, [0.045, 0.062, 0.07, 0.066, 0.06, 0.05, 0.038, 0.022], { segments: 5, base, tip })
   const fork = main[variant === 0 ? 3 : 4]
-  tube(builder, [fork.clone(), v(fork.x + 0.3, 0.0, fork.z + (variant === 0 ? 0.32 : -0.3)), v(fork.x + 0.62, -0.04, fork.z + (variant === 0 ? 0.5 : -0.56))], [0.028, 0.022, 0.012], { segments: 4, base, tip })
-  if (variant === 1) tube(builder, [main[2].clone(), v(main[2].x - 0.1, 0.0, main[2].z + 0.3), v(main[2].x - 0.05, -0.04, main[2].z + 0.55)], [0.024, 0.018, 0.01], { segments: 4, base, tip })
+  tube(builder, [fork.clone(), v(fork.x + 0.3, 0.0, fork.z + (variant === 0 ? 0.32 : -0.3)), v(fork.x + 0.62, -0.04, fork.z + (variant === 0 ? 0.5 : -0.56))], [0.042, 0.032, 0.016], { segments: 4, base, tip })
+  if (variant === 1) tube(builder, [main[2].clone(), v(main[2].x - 0.1, 0.0, main[2].z + 0.3), v(main[2].x - 0.05, -0.04, main[2].z + 0.55)], [0.036, 0.026, 0.014], { segments: 4, base, tip })
   return builder.build()
 }
 

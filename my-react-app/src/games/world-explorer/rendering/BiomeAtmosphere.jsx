@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
+import { SKY_STATE } from './daylight.js'
 import { BufferAttribute, BufferGeometry, Color } from 'three'
 import { mulberry32 } from '../../../core/rng.js'
 
@@ -76,6 +77,7 @@ function SunCycle({ biome, dark }) {
     const angle = phase.current * Math.PI * 2
     const elevation = Math.sin(angle)
     const daylight = Math.max(0, Math.min(1, (elevation + 0.12) / 0.62))
+    SKY_STATE.daylight = daylight
     const night = profile.night
     if (sun.current) {
       // at night the key light becomes a high moon, so shadows never stretch across the whole map

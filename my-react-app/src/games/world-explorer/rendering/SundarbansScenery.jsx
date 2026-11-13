@@ -19,6 +19,7 @@ import { createSundarbansModels } from './mangroveModels.js'
 import { MANGROVE_FORMS } from './mangroveForms.js'
 import { scatterBiomeAssets } from './scattering.js'
 import { createWetlandField, fbm, smoothstep } from './wetland.js'
+import { MUD_GLSL, mudFinish } from './mudSurface.js'
 import { createMudTextures, createReflectionTexture, createRippleNormalMap } from './wetlandTextures.js'
 
 const EMPTY = Object.freeze([])
@@ -193,6 +194,7 @@ function createGroundAndWater(biome, field, trees) {
   const positions = []
   const colors = []
   const shoreWetness = []
+  const finishes = []
   const uvs = []
   const c = new Color()
   const addVertex = (x, z) => {
@@ -241,6 +243,9 @@ function createGroundAndWater(biome, field, trees) {
     positions.push(x, h, z)
     colors.push(c.r, c.g, c.b)
     shoreWetness.push(wetShore)
+    // matte, grainy dry ground and smoother damp ground: only on the land (the banks and the bed
+    // beyond it keep the plain finish)
+    finishes.push(e <= 0.5 ? mudFinish(dry, damp, shade) : 0)
     uvs.push(x / 6.5, z / 6.5)
     heights.push(h)
     xs.push(x)
@@ -271,6 +276,7 @@ function createGroundAndWater(biome, field, trees) {
   ground.setAttribute('position', new Float32BufferAttribute(positions, 3))
   ground.setAttribute('color', new Float32BufferAttribute(colors, 3))
   ground.setAttribute('shoreWetness', new Float32BufferAttribute(shoreWetness, 1))
+  ground.setAttribute('mudFinish', new Float32BufferAttribute(finishes, 1))
   ground.setAttribute('uv', new Float32BufferAttribute(uvs, 2))
   ground.setIndex(indices)
   ground.computeVertexNormals()
@@ -474,10 +480,10 @@ export default function SundarbansScenery({ biome, dark }) {
     })
     groundMaterial.onBeforeCompile = (shader) => {
       shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nattribute float shoreWetness;\nvarying float vShoreWetness;')
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvShoreWetness = shoreWetness;')
+        .replace('#include <common>', '#include <common>\nattribute float shoreWetness;\nattribute float mudFinish;\nvarying float vShoreWetness;\nvarying float vMudFinish;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvShoreWetness = shoreWetness;\nvMudFinish = mudFinish;')
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying float vShoreWetness;')
+        .replace('#include <common>', '#include <common>\nvarying float vShoreWetness;\nvarying float vMudFinish;')
         // The mud's fine detail (6.5 m tile) belongs near Bulbuli. Further away it is faded out
         // and blended with a second, offset scale, so the tile never lines up into the parallel
         // "terraces" that showed from the air; the large-scale colour still comes from the mesh.
@@ -486,14 +492,14 @@ export default function SundarbansScenery({ biome, dark }) {
           vec4 wxNear = texture2D( map, vMapUv );
           vec4 wxWide = texture2D( map, vMapUv * 0.37 + vec2( 0.31, 0.17 ) );
           vec4 sampledDiffuseColor = mix( wxNear, mix( wxNear, wxWide, 0.5 ), smoothstep( 6.0, 18.0, length( vViewPosition ) ) );
-          sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, vec3( 0.9 ), wxDetailFade * 0.85 );
+          sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, vec3( 0.9 ), wxDetailFade * 0.85 );${MUD_GLSL.grain}
           diffuseColor *= sampledDiffuseColor;
         #endif`)
-        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.93, wxDetailFade);\nroughnessFactor = mix(roughnessFactor, 0.35, vShoreWetness);')
+        .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>${MUD_GLSL.roughness}\nroughnessFactor = mix(roughnessFactor, 0.93, wxDetailFade);\nroughnessFactor = mix(roughnessFactor, 0.35, vShoreWetness);`)
         .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.1, vShoreWetness);')
-        .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\nnormal = normalize( mix( normal, nonPerturbedNormal, wxDetailFade ) );')
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>${MUD_GLSL.normal}\nnormal = normalize( mix( normal, nonPerturbedNormal, wxDetailFade ) );`)
     }
-    groundMaterial.customProgramCacheKey = () => 'sundarbans-shore-wetness-detail-fade'
+    groundMaterial.customProgramCacheKey = () => 'sundarbans-shore-wetness-detail-fade-mud-finish'
     groundMaterial.normalScale.set(0.55, 0.55)
     return { models, mud, ripples, surfaces, vegetation, plants, distant, distantPlants, wood, rootCarpet, groundMaterial }
   }, [biome, field, groups.allTrees, viewport])

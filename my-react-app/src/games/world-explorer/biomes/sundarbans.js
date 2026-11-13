@@ -70,6 +70,8 @@ export const SUNDARBANS_MAP = Object.freeze({
   camera,
   // station name labels stay inside the frame and clear of the top buttons (stationLabel.js)
   labels: { cameraAware: true },
+  // a pale pool of ground light under Bulbuli at night, so the dark bird reads against dark mud
+  playerGlow: { radius: 1.9, color: '#a9bccb', opacity: 0.26 },
   sky: {
     top: '#8fcfd0', bottom: '#eaf6ea', fog: '#d3e8dc', horizon: '#dcece0',
     dark: { top: '#132540', bottom: '#2b4d4a', fog: '#203a3b', horizon: '#2a4746' },

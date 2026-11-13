@@ -19,6 +19,7 @@ import { collidersFor } from './biomes/index.js'
 import { nearestStation } from './proximity.js'
 import { readExplorerControls, rescueFromWater } from './drive.js'
 import { advanceCamera, cameraPose, cameraRigFor, createCameraState } from './cameraRig.js'
+import PlayerGlow from './PlayerGlow.jsx'
 
 const BIRD_SCALE = 0.3
 
@@ -99,6 +100,8 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
   // Bulbuli. Both read the same player object, so movement and the camera are identical.
   return (
     <group ref={avatar}>
+      {/* night-time readability on maps that ask for it (playerGlow.js): no light, one small disc */}
+      {biome.playerGlow ? <PlayerGlow settings={biome.playerGlow} motion={player} /> : null}
       {biome.id === 'amazon' ? (
         <Suspense fallback={null}>
           <AmazonBirdAvatar motion={player} />
