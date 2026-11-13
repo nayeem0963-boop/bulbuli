@@ -5,7 +5,8 @@
  * Every destination uses DEFAULT_CAMERA unless its map sets `camera`, so a map that says nothing
  * keeps exactly the framing it always had. A map may also list `avoid` volumes (upright
  * cylinders the camera must not enter or look through, such as the Sundarbans village houses):
- * the camera then moves in towards Bulbuli along its own line of sight until the view is clear.
+ * the camera then swings round to the nearest clear side (settleYaw), and while it gets there it
+ * moves in towards Bulbuli along its own line of sight (cameraPose).
  *
  *   distance    metres behind Bulbuli
  *   height      metres above Bulbuli's position
@@ -73,4 +74,38 @@ export function cameraPose(pos, yaw, rig) {
     lookAt: [pos[0], pos[1] + (pull < 1 ? lookHeight : rig.lookHeight), pos[2]],
     pull,
   }
+}
+
+/** How fast the camera swings round on its own when a volume is in its way (radians a second). */
+export const AUTO_TURN_SPEED = 2.6
+const YAW_STEP = Math.PI / 18
+
+/**
+ * The camera yaw nearest to `yaw` from which the view of Bulbuli is unobstructed at full
+ * distance, or null when the view is already clear (or the map has nothing to avoid, or no clear
+ * direction exists). Pulling the camera in is only a stopgap: right beside a house it would have
+ * to look almost straight down, so the camera swings round the house instead.
+ */
+export function clearYaw(pos, yaw, rig) {
+  if (!rig.avoid.length || cameraPose(pos, yaw, rig).pull >= 1) return null
+  for (let k = 1; k <= 18; k += 1) {
+    for (const side of [1, -1]) {
+      const candidate = yaw + side * k * YAW_STEP
+      if (cameraPose(pos, candidate, rig).pull >= 1) return candidate
+    }
+  }
+  return null
+}
+
+/**
+ * One frame of that swing: the yaw to use next. Returns `yaw` itself when nothing is in the way.
+ * @param snap  true to jump straight there (reduced motion)
+ */
+export function settleYaw(pos, yaw, rig, dt, snap = false) {
+  const target = clearYaw(pos, yaw, rig)
+  if (target === null) return yaw
+  const delta = target - yaw
+  if (snap) return target
+  const step = AUTO_TURN_SPEED * dt
+  return yaw + Math.max(-step, Math.min(step, delta))
 }

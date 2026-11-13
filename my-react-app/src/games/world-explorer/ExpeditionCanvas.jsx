@@ -3,10 +3,11 @@
  * textures, no fonts, so the scene makes no network requests. Per-frame state lives in refs
  * (ExplorerController); React re-renders only when the map changes.
  */
-import { Component, memo, useEffect, useMemo } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Component, memo, useEffect, useMemo, useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { BufferGeometry, CanvasTexture, Float32BufferAttribute, MeshStandardMaterial, PCFShadowMap, SRGBColorSpace } from 'three'
 import ExplorerController from './ExplorerController.jsx'
+import { LABEL, stationLabelPlacement } from './stationLabel.js'
 import AmazonAtmosphere from './rendering/AmazonAtmosphere.jsx'
 import AmazonScenery from './rendering/AmazonScenery.jsx'
 import BiomeAtmosphere from './rendering/BiomeAtmosphere.jsx'
@@ -391,7 +392,20 @@ function Water({ water, dark }) {
 }
 
 /** A station name drawn into a small canvas texture (no DOM overlay, no font download). */
-function Label({ text, background }) {
+function Label({ text, background, base = null }) {
+  const sprite = useRef()
+  // `base` (the station ring's position) is passed only on maps that opt in to camera-aware
+  // labels (stationLabel.js); without it the label never moves.
+  useFrame((state, dt) => {
+    if (!base || !sprite.current) return
+    const { height, scale } = stationLabelPlacement(state.camera, base)
+    // a frame time outside 0..1/30 s (a paused tab, a clock reset) must never overshoot
+    const ease = 1 - Math.exp(-Math.max(0, Math.min(dt, 1 / 30)) * 12)
+    const s = sprite.current
+    s.position.y += (height - s.position.y) * ease
+    s.scale.x += (LABEL.width * scale - s.scale.x) * ease
+    s.scale.y += (LABEL.tall * scale - s.scale.y) * ease
+  })
   const texture = useMemo(() => {
     const c = document.createElement('canvas')
     c.width = 256
@@ -417,13 +431,14 @@ function Label({ text, background }) {
   }, [text, background])
   useEffect(() => () => texture.dispose(), [texture])
   return (
-    <sprite position={[0, 2.8, 0]} scale={[2, 0.5, 1]} renderOrder={2}>
+    <sprite ref={sprite} position={[0, 2.8, 0]} scale={[2, 0.5, 1]} renderOrder={2}>
       <spriteMaterial map={texture} depthTest depthWrite={false} />
     </sprite>
   )
 }
 
-function StationMarker({ station, top, state, label }) {
+function StationMarker({ station, top, state, label, cameraAware = false }) {
+  const base = useMemo(() => (cameraAware ? [station.x, top, station.z] : null), [cameraAware, station.x, station.z, top])
   const color = state === 'complete' ? '#4fc58d' : state === 'near' ? '#ffc93c' : '#ff8a5c'
   return (
     <group position={[station.x, top, station.z]}>
@@ -439,7 +454,7 @@ function StationMarker({ station, top, state, label }) {
         <boxGeometry args={[0.7, 0.45, 0.05]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.35} depthTest depthWrite />
       </mesh>
-      <Label text={label} background={state === 'complete' ? '#c9f2dc' : state === 'near' ? '#ffe9a8' : '#ffffff'} />
+      <Label text={label} base={base} background={state === 'complete' ? '#c9f2dc' : state === 'near' ? '#ffe9a8' : '#ffffff'} />
     </group>
   )
 }
@@ -508,6 +523,7 @@ function ExpeditionCanvas({ biome, dark, inputRef, activeRef, teleportRef, onNea
             top={discTops[s.disc]}
             state={completed.includes(s.n) ? 'complete' : near === s.n ? 'near' : 'open'}
             label={stationLabel(s.n)}
+            cameraAware={Boolean(biome.labels?.cameraAware)}
           />
         ))}
         <ExplorerController key={biome.id} biome={biome} inputRef={inputRef} activeRef={activeRef} teleportRef={teleportRef} onNear={onNear} reducedMotion={reducedMotion} />

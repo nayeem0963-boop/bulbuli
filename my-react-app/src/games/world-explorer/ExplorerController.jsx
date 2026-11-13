@@ -18,7 +18,7 @@ import AmazonBirdAvatar from './AmazonBirdAvatar.jsx'
 import { collidersFor } from './biomes/index.js'
 import { nearestStation } from './proximity.js'
 import { readExplorerControls, rescueFromWater } from './drive.js'
-import { cameraPose, cameraRigFor } from './cameraRig.js'
+import { cameraPose, cameraRigFor, settleYaw } from './cameraRig.js'
 
 const BIRD_SCALE = 0.3
 
@@ -62,6 +62,8 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
       avatar.current.rotation.y = p.facing
     }
     // camera: behind and above Bulbuli, eased (snapped when reduced motion is on)
+    // a map with volumes to avoid (the Sundarbans village) swings the camera clear of them
+    if (rig.avoid.length) yaw.current = settleYaw(p.pos, yaw.current, rig, dt, reducedMotion)
     const pose = cameraPose(p.pos, yaw.current, rig)
     if (rig.fov && state.camera.fov !== rig.fov) {
       state.camera.fov = rig.fov

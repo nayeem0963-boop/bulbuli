@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { BIOMES } from './biomes/index.js'
-import { DEFAULT_CAMERA, DEFAULT_FOV, cameraPose, cameraRigFor } from './cameraRig.js'
+import { AUTO_TURN_SPEED, DEFAULT_CAMERA, DEFAULT_FOV, cameraPose, cameraRigFor, clearYaw, settleYaw } from './cameraRig.js'
 
 const deg = (radians) => (radians * 180) / Math.PI
 
@@ -34,7 +34,12 @@ for (const id of ['amazon', 'sahara']) {
       assert.deepEqual(pose.position, [pos[0] + Math.sin(yaw) * 3.2, pos[1] + 1.8, pos[2] + Math.cos(yaw) * 3.2])
       assert.deepEqual(pose.lookAt, [pos[0], pos[1] + 0.3, pos[2]])
       assert.equal(pose.pull, 1)
+      // nothing to avoid, so the camera never turns on its own
+      assert.equal(clearYaw(pos, yaw, rig), null)
+      assert.equal(settleYaw(pos, yaw, rig, 1 / 30), yaw)
+      assert.equal(settleYaw(pos, yaw, rig, 1 / 30, true), yaw)
     }
+    assert.equal(biome.labels, undefined, `${id} keeps its fixed station labels`)
   })
 }
 
@@ -117,4 +122,66 @@ test('sundarbans: the camera never enters or looks through a village house', () 
   const spawn = cameraPose([sx, sy, sz], biome.spawn.facing + Math.PI, rig)
   assert.equal(spawn.pull, 1)
   assert.deepEqual(spawn.lookAt, [sx, sy + rig.lookHeight, sz])
+})
+
+test('sundarbans: beside a village house the camera swings clear instead of looking straight down', () => {
+  const biome = BIOMES.sundarbans
+  const rig = cameraRigFor(biome)
+  const inside = (x, y, z) => rig.avoid.some((c) => y < c.top && Math.hypot(x - c.x, z - c.z) < c.r)
+  const comfortable = deg(Math.atan2(rig.height - rig.lookHeight, rig.distance))
+  const dt = 1 / 30
+  /** Lets the camera settle for up to three seconds; returns the final yaw and pose. */
+  const settle = (pos, yaw) => {
+    let current = yaw
+    for (let frame = 0; frame < 90; frame += 1) {
+      const next = settleYaw(pos, current, rig, dt)
+      assert.ok(Math.abs(next - current) <= AUTO_TURN_SPEED * dt + 1e-9, 'the swing is rate-limited (smooth)')
+      current = next
+    }
+    return { yaw: current, pose: cameraPose(pos, current, rig) }
+  }
+  const pitchOf = (pose, pos) => deg(Math.atan2(pose.position[1] - pose.lookAt[1], Math.hypot(pose.position[0] - pos[0], pose.position[2] - pos[2])))
+
+  // "Travel here" lands Bulbuli at (x - 1.2, z - 1.2) of the station: for station 5 that is right
+  // beside a house. From every camera direction the view settles to the normal framing.
+  const s5 = biome.stations.find((s) => s.n === 5)
+  const landing = [s5.x - 1.2, 0.2, s5.z - 1.2]
+  let turned = 0
+  for (let yaw = 0; yaw < Math.PI * 2; yaw += Math.PI / 12) {
+    const blockedBefore = cameraPose(landing, yaw, rig).pull < 1
+    const { yaw: settled, pose } = settle(landing, yaw)
+    assert.equal(pose.pull, 1, `view still blocked from yaw ${yaw.toFixed(2)}`)
+    assert.ok(Math.abs(pitchOf(pose, landing) - comfortable) < 1e-6, 'back to the normal third-person framing')
+    assert.ok(!inside(...pose.position))
+    assert.ok(Math.abs(settled - yaw) <= Math.PI * 0.75, 'the camera takes the short way round')
+    if (blockedBefore) turned += 1
+    else assert.equal(settled, yaw, 'a clear view is left alone')
+    assert.equal(settleYaw(landing, yaw, rig, dt, true), clearYaw(landing, yaw, rig) ?? yaw, 'reduced motion jumps straight there')
+  }
+  assert.ok(turned >= 4, 'the landing spot really is beside a house')
+
+  // everywhere Bulbuli can stand round the village
+  const village = biome.props.find((prop) => prop.type === 'village')
+  let spots = 0
+  let stuck = 0
+  for (let x = village.x - 5; x <= village.x + 10; x += 0.5) {
+    for (let z = village.z - 5; z <= village.z + 6; z += 0.5) {
+      if (rig.avoid.some((c) => Math.hypot(x - c.x, z - c.z) < 1.3)) continue // inside a house
+      for (let yaw = 0; yaw < Math.PI * 2; yaw += Math.PI / 6) {
+        spots += 1
+        const { pose } = settle([x, 0.2, z], yaw)
+        if (pose.pull < 1) stuck += 1
+        else assert.ok(pitchOf(pose, [x, 0.2, z]) < comfortable + 1e-6)
+      }
+    }
+  }
+  assert.ok(spots > 2000)
+  assert.ok(stuck / spots <= 0.02, `the camera stays pulled in at ${stuck} of ${spots} spots`)
+
+  // away from the village the camera never turns by itself
+  for (const s of biome.stations.filter((st) => st.n !== 5)) {
+    for (let yaw = 0; yaw < Math.PI * 2; yaw += Math.PI / 4) assert.equal(settleYaw([s.x - 1.2, 0.2, s.z - 1.2], yaw, rig, dt), yaw)
+  }
+  const [sx, sy, sz] = biome.spawn.position
+  assert.equal(settleYaw([sx, sy, sz], biome.spawn.facing + Math.PI, rig, dt), biome.spawn.facing + Math.PI)
 })
