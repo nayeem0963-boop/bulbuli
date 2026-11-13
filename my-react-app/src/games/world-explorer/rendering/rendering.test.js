@@ -9,7 +9,7 @@ import { createTerrainGeometry, hasExpandedTerrainFootprint, terrainFootprintRad
 import { createWetlandField } from './wetland.js'
 import { createSundarbansModels } from './mangroveModels.js'
 import { MANGROVE_FORMS, MANGROVE_SPECIES } from './mangroveForms.js'
-import { FOREST_FLOOR, MID_STANDS, scatterSundarbans } from './sundarbansScatter.js'
+import { FLAT_DECORATION, FLAT_MAX_HEIGHT, FOREST_FLOOR, MID_STANDS, scatterSundarbans } from './sundarbansScatter.js'
 import { CREEK_CHANNELS, createTidalCreekGeometry } from './tidalCreek.js'
 import { scatterAmazon } from './amazonScatter.js'
 import {
@@ -48,6 +48,17 @@ for (const biome of Object.values(BIOMES)) {
       ))
       assert.ok(disc, `${item.kind} must be on its eligible biome terrain`)
       assert.ok(Math.abs(item.y - disc.top) < 0.06)
+      if (item.flat) {
+        // Flat visual decoration (fallen leaves) is the one thing allowed on a walking route and
+        // on the approach to a station: it must be a declared flat kind, have no clearance (so
+        // nothing treats it as an obstacle) and stay outside the station ring itself. Its height
+        // and the absence of colliders are checked in the "flat decoration" test below.
+        assert.ok(FLAT_DECORATION.includes(item.kind), `${item.kind} is not a flat decoration kind`)
+        assert.equal(item.clearance, 0)
+        assert.ok(!biome.stations.some((station) => Math.hypot(item.x - station.x, item.z - station.z) < FOREST_FLOOR.flatStation))
+        continue
+      }
+      // everything else is a physical or raised object: it keeps off the routes and stations
       assert.ok(!biome.links.some(([a, b]) => {
         const dx = b.x - a.x
         const dz = b.z - a.z
@@ -442,7 +453,7 @@ test('sundarbans pass 2: the layout is deterministic and everything placed befor
 
   // Fingerprint of the Pass 1 layout (commit b617a1e): near trees, far forest, understory, shore.
   // The mid-distance stands are appended after it and must not move, add or remove anything else.
-  const PASS_2_FLOOR = ['leafLitter', 'fallenBranch']
+  const PASS_2_FLOOR = ['leafLitter', 'fallenBranch', 'surfaceRoot', 'seedling']
   const before = placements.filter((p) => !p.midStand && !PASS_2_FLOOR.includes(p.kind))
   const round = (key, value) => (typeof value === 'number' ? Math.round(value * 1e6) / 1e6 : value)
   assert.equal(before.length, 2897)
@@ -557,32 +568,139 @@ test('sundarbans pass 2: the forest stays inside the model budgets and a scene t
 
 /* ------------------------------------------------------------------ Sundarbans Pass 2: forest floor and station 1 creek */
 
-test('sundarbans pass 2: leaf litter gathers under the crowns, drifts into the open and leaves stations clean', () => {
+test('sundarbans pass 2: leaf litter gathers under the crowns, drifts into the open and onto the lanes in patches', () => {
   const { biome, placements, field, toSegment } = midStandContext()
   const litter = placements.filter((p) => p.kind === 'leafLitter')
   const trees = placements.filter((p) => p.kind === 'mangrove' || p.kind === 'sapling')
-  assert.equal(litter.length, FOREST_FLOOR.litterUnderTrees + FOREST_FLOOR.litterDrifted)
+  const routeDistance = (p) => Math.min(...biome.links.map(([a, b]) => toSegment(p, a, b)))
+  const stationDistance = (p) => Math.min(...biome.stations.map((s) => Math.hypot(p.x - s.x, p.z - s.z)))
+  const onLane = litter.filter((p) => routeDistance(p) < FOREST_FLOOR.litterPath || stationDistance(p) < FOREST_FLOOR.litterStation)
+  const offLane = litter.filter((p) => !onLane.includes(p))
+  assert.equal(offLane.length, FOREST_FLOOR.litterUnderTrees + FOREST_FLOOR.litterDrifted)
+  assert.ok(onLane.length >= 60 && onLane.length <= FOREST_FLOOR.litterLanes, `${onLane.length} drifts on the lanes`)
   assert.deepEqual(scatterSundarbans(biome).filter((p) => p.kind === 'leafLitter'), litter, 'deterministic')
   const [spawnX, , spawnZ] = biome.spawn.position
+  const planks = biome.discs.filter((disc) => !hasExpandedTerrainFootprint(disc))
   let underCrown = 0
   for (const leaf of litter) {
+    assert.equal(leaf.flat, true)
     assert.ok(field.walkSD(leaf.x, leaf.z) <= 0.6, 'litter lies on the walkable land')
     assert.equal(leaf.clearance, 0, 'litter never blocks Bulbuli')
     assert.ok(leaf.variant === 0 || leaf.variant === 1)
     assert.ok(leaf.scale >= 0.5 && leaf.scale <= 1.35)
-    for (const s of biome.stations) assert.ok(Math.hypot(leaf.x - s.x, leaf.z - s.z) >= FOREST_FLOOR.litterStation, `station ${s.n} stays clean`)
-    for (const [a, b] of biome.links) assert.ok(toSegment(leaf, a, b) >= FOREST_FLOOR.litterPath, 'routes stay clear')
-    assert.ok(Math.hypot(leaf.x - spawnX, leaf.z - spawnZ) >= FOREST_FLOOR.litterSpawn)
+    assert.ok(stationDistance(leaf) >= FOREST_FLOOR.flatStation, 'station rings stay clean')
+    assert.ok(Math.hypot(leaf.x - spawnX, leaf.z - spawnZ) >= FOREST_FLOOR.flatSpawn, 'the spawn point stays clean')
     if (trees.some((t) => Math.hypot(leaf.x - t.x, leaf.z - t.z) < 4)) underCrown += 1
   }
-  assert.ok(underCrown / litter.length >= 0.6, `most litter lies near trees (${underCrown}/${litter.length})`)
-  assert.ok(litter.length - underCrown >= 15, 'some litter has drifted into the open mud')
-  // both variants are used, and drifts do not sit on top of one another
-  assert.ok(litter.filter((l) => l.variant === 0).length >= 60 && litter.filter((l) => l.variant === 1).length >= 60)
-  for (const a of litter) for (const b of litter) if (a !== b) assert.ok(Math.hypot(a.x - b.x, a.z - b.z) >= 0.6)
-  // every island gets some: the floor is not dressed in one corner only
+  // the lanes: no litter on the boardwalk planks, and thinner round the spawn point
+  for (const leaf of onLane) assert.ok(planks.every((plank) => Math.hypot(leaf.x - plank.x, leaf.z - plank.z) >= plank.r + 0.5), 'planks stay clean')
+  // the ground Bulbuli starts on stays readable: a handful of drifts at most within a few steps
+  const laneNearSpawn = (r) => onLane.filter((l) => Math.hypot(l.x - spawnX, l.z - spawnZ) < r).length
+  assert.equal(laneNearSpawn(FOREST_FLOOR.laneSpawn), 0, 'no lane litter where Bulbuli starts')
+  assert.ok(laneNearSpawn(FOREST_FLOOR.laneSpawn + 3) <= 8, `${laneNearSpawn(FOREST_FLOOR.laneSpawn + 3)} lane drifts just beyond the spawn area`)
+  // patches with bare mud between them: of the 2 m squares of lane, some have leaves and many do not
+  const squares = new Map()
   const islands = biome.discs.filter(hasExpandedTerrainFootprint)
+  for (const disc of islands) {
+    const reach = terrainFootprintRadius(disc)
+    for (let x = disc.x - reach; x <= disc.x + reach; x += 2) {
+      for (let z = disc.z - reach; z <= disc.z + reach; z += 2) {
+        const p = { x, z }
+        if (Math.hypot(x - disc.x, z - disc.z) > reach * 0.9 || routeDistance(p) >= FOREST_FLOOR.litterPath) continue
+        squares.set(`${Math.round(x / 2)},${Math.round(z / 2)}`, false)
+      }
+    }
+  }
+  for (const leaf of onLane) {
+    const key = `${Math.round(leaf.x / 2)},${Math.round(leaf.z / 2)}`
+    if (squares.has(key)) squares.set(key, true)
+  }
+  const covered = [...squares.values()].filter(Boolean).length / squares.size
+  assert.ok(squares.size > 30 && covered >= 0.12 && covered <= 0.65, `${(covered * 100).toFixed(0)}% of lane squares have litter (uniform cover is not wanted)`)
+  assert.ok(underCrown / litter.length >= 0.5, `most litter lies near trees (${underCrown}/${litter.length})`)
+  assert.ok(litter.filter((l) => l.variant === 0).length >= 80 && litter.filter((l) => l.variant === 1).length >= 80)
+  for (const a of litter) for (const b of litter) if (a !== b) assert.ok(Math.hypot(a.x - b.x, a.z - b.z) >= 0.55)
   for (const disc of islands) assert.ok(litter.some((l) => Math.hypot(l.x - disc.x, l.z - disc.z) <= terrainFootprintRadius(disc)), `no litter on island ${disc.id}`)
+})
+
+test('sundarbans pass 2: only flat decoration may lie on a route, and it is truly flat and never an obstacle', () => {
+  const { biome, placements, toSegment } = midStandContext()
+  const models = createSundarbansModels()
+  const routeDistance = (p) => Math.min(...biome.links.map(([a, b]) => toSegment(p, a, b)))
+  const land = placements.filter((p) => !p.background)
+  const onRoute = land.filter((p) => routeDistance(p) < 1.8 || biome.stations.some((s) => Math.hypot(p.x - s.x, p.z - s.z) < 2.8))
+  assert.ok(onRoute.length >= 60)
+  for (const item of onRoute) assert.ok(item.flat === true && FLAT_DECORATION.includes(item.kind), `${item.kind} on a route must be flat decoration`)
+  // raised things are never flagged flat, wherever they are
+  for (const kind of ['mangrove', 'sapling', 'understory', 'pneumatophoreField', 'debris', 'fallenBranch', 'surfaceRoot', 'seedling']) {
+    const items = land.filter((p) => p.kind === kind)
+    assert.ok(items.length > 0, `${kind} is placed`)
+    assert.ok(items.every((p) => !p.flat), `${kind} must not be marked flat`)
+    assert.ok(!FLAT_DECORATION.includes(kind))
+  }
+  // "flat" is measured, not declared: the models are a few centimetres high even at the largest scale
+  assert.deepEqual(FLAT_DECORATION, ['leafLitter'])
+  const largest = Math.max(...land.filter((p) => p.flat).map((p) => p.scale))
+  for (const geometry of models.litter) {
+    geometry.computeBoundingBox()
+    assert.ok(geometry.boundingBox.min.y >= 0 && geometry.boundingBox.max.y <= FLAT_MAX_HEIGHT, `leaf litter is ${geometry.boundingBox.max.y.toFixed(3)} m high`)
+    assert.ok(geometry.boundingBox.max.y * largest <= 0.1)
+  }
+  assert.ok(FLAT_MAX_HEIGHT <= 0.08)
+  // no collider is made for flat decoration: the colliders are exactly those of the same map without it
+  const colliders = collidersFor(biome)
+  for (const item of land.filter((p) => p.flat)) {
+    assert.ok(!colliders.some((c) => c.kind !== 'land' && Math.abs(c.x - item.x) < 1e-9 && Math.abs(c.z - item.z) < 1e-9), 'flat decoration has no collider')
+  }
+  // and every station can still be walked up to: nothing solid within the ring's approach
+  for (const s of biome.stations) {
+    const solid = colliders.filter((c) => c.kind !== 'land' && !c.walkable && Math.hypot(c.x - s.x, c.z - s.z) < 2.2)
+    assert.equal(solid.length, 0, `something solid stands at station ${s.n}`)
+  }
+})
+
+test('sundarbans pass 2: surface roots show between selected trees and seedlings grow at grove edges, all off the routes', () => {
+  const { biome, placements, toSegment } = midStandContext()
+  const models = createSundarbansModels()
+  const trees = placements.filter((p) => p.kind === 'mangrove')
+  const growth = placements.filter((p) => p.kind === 'mangrove' || p.kind === 'sapling')
+  const roots = placements.filter((p) => p.kind === 'surfaceRoot')
+  const seedlings = placements.filter((p) => p.kind === 'seedling')
+  assert.ok(roots.length >= 30 && roots.length <= FOREST_FLOOR.surfaceRoots, `${roots.length} surface roots`)
+  assert.ok(seedlings.length >= 25 && seedlings.length <= FOREST_FLOOR.seedlings, `${seedlings.length} seedling groups`)
+  const routeDistance = (p) => Math.min(...biome.links.map(([a, b]) => toSegment(p, a, b)))
+  for (const item of [...roots, ...seedlings]) {
+    assert.equal(item.clearance, 0, 'no collider, no obstacle')
+    assert.ok(routeDistance(item) >= 1.8, `${item.kind} on a route`)
+    for (const s of biome.stations) assert.ok(Math.hypot(item.x - s.x, item.z - s.z) >= 2.8)
+    assert.ok(growth.some((t) => Math.hypot(item.x - t.x, item.z - t.z) <= 6.5), `${item.kind} belongs near a tree`)
+  }
+  // roots between trees: a good share lie between two trees that stand close together
+  const between = roots.filter((r) => trees.some((a) => trees.some((b) => a !== b
+    && Math.hypot(a.x - b.x, a.z - b.z) <= 8.5
+    && toSegment(r, a, b) < 1.1 && Math.hypot(r.x - a.x, r.z - a.z) > 0.6)))
+  assert.ok(between.length >= 12, `${between.length} roots lie between neighbouring trees`)
+  // organic, not ruled: many orientations, both variants, scattered rather than stacked
+  assert.ok(new Set(roots.map((r) => Math.round((((r.rot % Math.PI) + Math.PI) % Math.PI) / (Math.PI / 8)))).size >= 6, 'roots point many ways')
+  assert.ok(roots.some((r) => r.variant === 0) && roots.some((r) => r.variant === 1))
+  for (const a of roots) for (const b of roots) if (a !== b) assert.ok(Math.hypot(a.x - b.x, a.z - b.z) >= 1.3)
+  // the ground is not covered in roots: far fewer than one per 10 m² of island
+  const area = biome.discs.filter(hasExpandedTerrainFootprint).reduce((sum, d) => sum + Math.PI * terrainFootprintRadius(d) ** 2, 0)
+  assert.ok(roots.length / area < 0.1)
+  // models: low, bent (not straight sticks), cheap
+  assert.equal(models.surfaceRoot.length, 2)
+  for (const geometry of models.surfaceRoot) {
+    geometry.computeBoundingBox()
+    const box = geometry.boundingBox
+    assert.ok(box.max.y <= 0.08, `a surface root stands ${box.max.y.toFixed(3)} m proud of the mud`)
+    assert.ok(box.min.y < 0, 'its ends are buried')
+    assert.ok(box.max.z - box.min.z >= 0.45, 'it bends and forks instead of running straight')
+    assert.ok(triangleCount(geometry) <= 130)
+  }
+  models.seedlings.computeBoundingBox()
+  assert.ok(models.seedlings.boundingBox.max.y <= 0.36 && triangleCount(models.seedlings) <= 90)
+  const cost = roots.length * 115 + seedlings.length * triangleCount(models.seedlings)
+  assert.ok(cost <= 11000, `roots and seedlings add ${cost} triangles`)
 })
 
 test('sundarbans pass 2: fallen branches lie beside trees, clear of routes, stations and the spawn view', () => {
@@ -622,7 +740,7 @@ test('sundarbans pass 2: forest-floor models are small, flat and cheap', () => {
   assert.ok(models.branch.boundingBox.max.y <= 0.2 && models.branch.boundingBox.max.x - models.branch.boundingBox.min.x <= 2)
   const { placements } = midStandContext()
   const floor = placements.filter((p) => p.kind === 'leafLitter').length * 28 + placements.filter((p) => p.kind === 'fallenBranch').length * triangleCount(models.branch)
-  assert.ok(floor <= 9000, `forest-floor detail adds ${floor} triangles`)
+  assert.ok(floor <= 11000, `leaf litter and branches add ${floor} triangles`)
 })
 
 test('sundarbans pass 2: the station 1 creek is three channels meeting, with banks that fade into the mud', () => {

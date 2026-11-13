@@ -54,7 +54,20 @@ export const FOREST_FLOOR = Object.freeze({
   litterSpawn: 2,
   branches: 14,
   branchPath: 2.2, // fallen branches keep off the walking routes
+  // second pass
+  litterLanes: 120, // leaf drifts on the walking lanes and station approaches (flat decoration only)
+  flatStation: 1.6, // flat decoration stays outside a station's ring (outer edge 1.15 m)
+  flatSpawn: 2, // ...and off the spot where Bulbuli starts
+  laneSpawn: 4.5, // lane litter starts this far from the spawn point, and is thin for 3 m more
+  surfaceRoots: 56, // lengths of root showing through the mud between and beside trees
+  rootPath: 1.9,
+  seedlings: 46,
 })
+
+/** Kinds that lie flat on the ground (a few centimetres high, no collider): allowed on routes. */
+export const FLAT_DECORATION = Object.freeze(['leafLitter'])
+/** Tallest a flat decoration model may be, in metres at scale 1. */
+export const FLAT_MAX_HEIGHT = 0.07
 
 /** Deterministic 0..1 from a position (does not touch the layout's random streams). */
 function hash01(x, z, salt = 0) {
@@ -644,7 +657,7 @@ export function scatterSundarbans(biome) {
     if (villageSpot && Math.hypot(x - villageSpot.x, z - villageSpot.z) < 4.2) return false
     if (blockers.some((prop) => Math.hypot(x - prop.x, z - prop.z) < prop.block + 0.4)) return false
     if (litterGrid.near(x, z, 1.5, (t) => Math.hypot(x - t.x, z - t.z) < 0.6 * (scale + t.scale))) return false
-    const item = { kind: 'leafLitter', variant: hash01(x, z, 9) < 0.5 ? 0 : 1, x, z, y: groundY(home, x, z), scale, rot: litterRandom() * Math.PI * 2, clearance: 0 }
+    const item = { kind: 'leafLitter', flat: true, variant: hash01(x, z, 9) < 0.5 ? 0 : 1, x, z, y: groundY(home, x, z), scale, rot: litterRandom() * Math.PI * 2, clearance: 0 }
     placements.push(item)
     litterGrid.add(item)
     return true
@@ -684,6 +697,100 @@ export function scatterSundarbans(biome) {
     const item = { kind: 'fallenBranch', x, z, y: groundY(home, x, z), scale: 0.75 + branchRandom() * 0.5, rot: branchRandom() * Math.PI * 2, clearance: 0 }
     placements.push(item)
     branches.push(item)
+  }
+
+  /* ---------------------------------------------------------------- forest floor, second pass */
+  // Leaf litter on the walking lanes. Flat decoration (`flat: true`, a few centimetres high, no
+  // collider) is the one thing allowed on a route: it gathers in irregular patches, thins out
+  // towards the spawn point and leaves every station ring and the boardwalk planks clean.
+  const laneRandom = mulberry32(0x13198a2e)
+  const planks = biome.discs.filter((disc) => !hasExpandedTerrainFootprint(disc))
+  let laneLitter = 0
+  for (let attempt = 0; attempt < 9000 && laneLitter < FOREST_FLOOR.litterLanes; attempt += 1) {
+    const disc = islands[Math.floor(laneRandom() * islands.length)]
+    const a = laneRandom() * Math.PI * 2
+    const r = Math.sqrt(laneRandom()) * disc.r * TERRAIN_FOOTPRINT_SCALE * 0.95
+    const x = disc.x + Math.cos(a) * r
+    const z = disc.z + Math.sin(a) * r
+    const station = stationDistance(x, z)
+    // only the ground the first pass had to leave bare: the lanes and the approach to a station
+    if (pathDistance(x, z) >= FOREST_FLOOR.litterPath && station >= FOREST_FLOOR.litterStation) continue
+    if (station < FOREST_FLOOR.flatStation) continue
+    const fromSpawn = Math.hypot(x - spawnX, z - spawnZ)
+    if (fromSpawn < FOREST_FLOOR.laneSpawn || (fromSpawn < FOREST_FLOOR.laneSpawn + 3 && laneRandom() < 0.6)) continue
+    // patches, with bare mud between them
+    if (fbm(x * 0.21 - 5.3, z * 0.21 + 3.9, 167, 2) < 0.5) continue
+    if (planks.some((plank) => Math.hypot(x - plank.x, z - plank.z) < plank.r + 0.5)) continue
+    const home = landDisc(x, z, 0.97)
+    if (!home) continue
+    const scale = 0.5 + laneRandom() * 0.45
+    if (litterGrid.near(x, z, 1.5, (t) => Math.hypot(x - t.x, z - t.z) < 0.6 * (scale + t.scale))) continue
+    const item = { kind: 'leafLitter', flat: true, variant: hash01(x, z, 9) < 0.5 ? 0 : 1, x, z, y: groundY(home, x, z), scale, rot: laneRandom() * Math.PI * 2, clearance: 0 }
+    placements.push(item)
+    litterGrid.add(item)
+    laneLitter += 1
+  }
+
+  // Surface roots between trees: where two trees stand close, a root shows through the mud part
+  // of the way from each towards the other; a few loose lengths surface near single trees. They
+  // are low but not flat, so they keep off the routes like every other raised thing.
+  const rootRunRandom = mulberry32(0x243f6a88)
+  const rootRuns = []
+  const addRootRun = (x, z, rot, scale) => {
+    const home = landDisc(x, z)
+    if (!home || rootRuns.length >= FOREST_FLOOR.surfaceRoots) return false
+    if (!landClear(x, z, { station: 3, spawn: 4.2, camera: 0, corridor: 3, path: FOREST_FLOOR.rootPath })) return false
+    if (rootRuns.some((t) => Math.hypot(x - t.x, z - t.z) < 1.3)) return false
+    const item = { kind: 'surfaceRoot', variant: hash01(x, z, 11) < 0.5 ? 0 : 1, x, z, y: groundY(home, x, z), scale, rot, clearance: 0 }
+    placements.push(item)
+    rootRuns.push(item)
+    return true
+  }
+  const pairs = []
+  for (let i = 0; i < trees.length; i += 1) {
+    for (let j = i + 1; j < trees.length; j += 1) {
+      const d = Math.hypot(trees[i].x - trees[j].x, trees[i].z - trees[j].z)
+      if (d >= 3.2 && d <= 8.5 && trees[i].variant !== 'goran' && trees[j].variant !== 'goran') pairs.push([trees[i], trees[j], d])
+    }
+  }
+  pairs.sort((a, b) => a[2] - b[2])
+  for (const [a, b] of pairs) {
+    if (rootRunRandom() < 0.35) continue // selected pairs, not every one
+    const along = Math.atan2(b.x - a.x, b.z - a.z)
+    for (const [from, to, t] of [[a, b, 0.2 + rootRunRandom() * 0.12], [b, a, 0.2 + rootRunRandom() * 0.12]]) {
+      // off the straight line between the trunks, and turned a little, so the pair never reads as a ruled line
+      const sway = (rootRunRandom() - 0.5) * 1.1
+      const x = from.x + (to.x - from.x) * t + Math.cos(along) * sway
+      const z = from.z + (to.z - from.z) * t - Math.sin(along) * sway
+      // the model lies along its local x axis
+      addRootRun(x, z, along - Math.PI / 2 + (from === b ? Math.PI : 0) + (rootRunRandom() - 0.5) * 0.7, 0.8 + rootRunRandom() * 0.45)
+    }
+  }
+  for (let attempt = 0; attempt < 600 && rootRuns.length < FOREST_FLOOR.surfaceRoots; attempt += 1) {
+    const tree = trees[Math.floor(rootRunRandom() * trees.length)]
+    const a = rootRunRandom() * Math.PI * 2
+    const r = (1.2 + rootRunRandom() * 1.9) * tree.scale
+    // pointing roughly away from the trunk it belongs to
+    addRootRun(tree.x + Math.cos(a) * r, tree.z + Math.sin(a) * r, -a + (rootRunRandom() - 0.5) * 0.9, 0.45 + rootRunRandom() * 0.3)
+  }
+
+  // Seedlings: small groups of young mangroves in the light at the edge of the groves.
+  const seedlingRandom = mulberry32(0x85a308d3)
+  const seedlings = []
+  for (let attempt = 0; attempt < 2500 && seedlings.length < FOREST_FLOOR.seedlings; attempt += 1) {
+    const tree = canopies[Math.floor(seedlingRandom() * canopies.length)]
+    const a = seedlingRandom() * Math.PI * 2
+    const r = 1.6 + seedlingRandom() * 3.4
+    const x = tree.x + Math.cos(a) * r
+    const z = tree.z + Math.sin(a) * r
+    const home = landDisc(x, z)
+    if (!home || !landClear(x, z, { station: 3, spawn: 4.2, camera: 3.6, corridor: 3.9, path: 1.9 })) continue
+    if (treeGrid.near(x, z, 4, (t) => Math.hypot(x - t.x, z - t.z) < 1)) continue
+    if (plantGrid.near(x, z, 2, (t) => Math.hypot(x - t.x, z - t.z) < 0.6)) continue
+    if (seedlings.some((t) => Math.hypot(x - t.x, z - t.z) < 1.1)) continue
+    const item = { kind: 'seedling', x, z, y: groundY(home, x, z), scale: 0.8 + seedlingRandom() * 0.6, rot: seedlingRandom() * Math.PI * 2, clearance: 0 }
+    placements.push(item)
+    seedlings.push(item)
   }
 
   return placements

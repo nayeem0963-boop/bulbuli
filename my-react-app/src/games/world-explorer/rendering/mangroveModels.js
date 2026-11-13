@@ -162,6 +162,61 @@ function buildFallenBranch() {
   return builder.build()
 }
 
+/**
+ * A length of surface root showing through the mud between trees: it rises out of the ground,
+ * snakes along for a metre or two, forks and dives back in. Mostly buried, so it is never more
+ * than a few centimetres proud of the mud. Two seeded variants.
+ */
+function buildSurfaceRoot(variant = 0) {
+  const random = mulberry32(9173 + variant * 131)
+  const builder = createBuilder()
+  const base = linear('#5f5141')
+  const tip = linear('#8b7c65')
+  const bend = variant === 0 ? 0.22 : -0.3
+  const steps = 8
+  const main = Array.from({ length: steps }, (_, i) => {
+    const t = i / (steps - 1)
+    // buried at both ends, humped in between, with a second low hump so it is not one even arc
+    const rise = Math.sin(t * Math.PI) * (0.02 + 0.012 * Math.sin(t * Math.PI * 3 + variant))
+    return v(-0.95 + t * 1.9, -0.035 + rise * 2.4, Math.sin(t * Math.PI * (1.3 + variant * 0.5)) * bend + (random() - 0.5) * 0.05)
+  })
+  tube(builder, main, [0.03, 0.042, 0.046, 0.044, 0.04, 0.034, 0.026, 0.016], { segments: 5, base, tip })
+  const fork = main[variant === 0 ? 3 : 4]
+  tube(builder, [fork.clone(), v(fork.x + 0.3, 0.0, fork.z + (variant === 0 ? 0.32 : -0.3)), v(fork.x + 0.62, -0.04, fork.z + (variant === 0 ? 0.5 : -0.56))], [0.028, 0.022, 0.012], { segments: 4, base, tip })
+  if (variant === 1) tube(builder, [main[2].clone(), v(main[2].x - 0.1, 0.0, main[2].z + 0.3), v(main[2].x - 0.05, -0.04, main[2].z + 0.55)], [0.024, 0.018, 0.01], { segments: 4, base, tip })
+  return builder.build()
+}
+
+/** A handful of mangrove seedlings: short stems with a few upright young leaves. */
+function buildSeedlings() {
+  const random = mulberry32(9421)
+  const builder = createBuilder()
+  const stem = linear('#6b5a3c')
+  const greens = ['#4f6d34', '#5d7a36', '#6a8440', '#45602f'].map(linear)
+  for (let i = 0; i < 5; i += 1) {
+    const a = random() * Math.PI * 2
+    const r = Math.sqrt(random()) * 0.42
+    const x = Math.cos(a) * r
+    const z = Math.sin(a) * r
+    const h = 0.1 + random() * 0.14
+    tube(builder, [v(x, -0.02, z), v(x + (random() - 0.5) * 0.03, h, z + (random() - 0.5) * 0.03)], [0.012, 0.007], { segments: 3, base: stem, tip: stem })
+    const leaves = 2 + Math.floor(random() * 2)
+    for (let k = 0; k < leaves; k += 1) {
+      const la = a + (k / leaves) * Math.PI * 2 + random()
+      const out = v(Math.cos(la), 0, Math.sin(la))
+      const side = v(-Math.sin(la), 0, Math.cos(la))
+      const from = v(x, h * (0.75 + k * 0.1), z)
+      const length = 0.09 + random() * 0.05
+      const end = from.clone().add(out.clone().multiplyScalar(length)).add(v(0, length * 0.7, 0))
+      const mid = from.clone().lerp(end, 0.5)
+      const color = greens[Math.floor(random() * greens.length)]
+      builder.triangle(from, mid.clone().add(side.clone().multiplyScalar(0.028)), end, color)
+      builder.triangle(from, end, mid.clone().sub(side.clone().multiplyScalar(0.028)), color.clone().multiplyScalar(0.82))
+    }
+  }
+  return builder.build()
+}
+
 /** One boardwalk board: 1.6 m wide, 0.22 m deep, 5 cm thick. */
 function buildBoard() {
   const builder = createBuilder()
@@ -206,11 +261,13 @@ export function createSundarbansModels() {
     debris: buildDebris(),
     litter: [buildLeafLitter(0), buildLeafLitter(1)],
     branch: buildFallenBranch(),
+    surfaceRoot: [buildSurfaceRoot(0), buildSurfaceRoot(1)],
+    seedlings: buildSeedlings(),
     board: buildBoard(),
   }
   const all = [
     ...Object.values(models.tree).flat(), ...Object.values(models.treeMid).flat(), ...models.treeFar,
-    ...Object.values(models.plant), models.roots, models.rootsFar, models.rootsCarpet, models.log, models.debris, ...models.litter, models.branch, models.board,
+    ...Object.values(models.plant), models.roots, models.rootsFar, models.rootsCarpet, models.log, models.debris, ...models.litter, models.branch, ...models.surfaceRoot, models.seedlings, models.board,
   ]
   const triangles = (geometry) => geometry.getAttribute('position').count / 3
   models.dispose = () => all.forEach((geometry) => geometry.dispose())

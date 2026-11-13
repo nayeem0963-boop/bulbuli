@@ -208,13 +208,18 @@ function createGroundAndWater(biome, field, trees) {
     const patch = fbm(px * 0.028 + 3.3, pz * 0.028, 211, 2)
     const silt = fbm(px * 0.045 - 7.1, pz * 0.045 + 2.3, 223, 3)
     const moss = fbm(px * 0.11 + 1.7, pz * 0.11, 227, 2)
+    const shade = shadeAt(x, z)
+    // open ground in the sun dries pale; under the crowns the mud stays dark
+    const sunlit = 1 - shade
     c.copy(GROUND_COLORS.mud).lerp(GROUND_COLORS.grey, smoothstep(0.42, 0.74, silt) * 0.5)
-    c.lerp(GROUND_COLORS.dry, smoothstep(0.4, 0.78, dry) * 0.7)
-    c.lerp(GROUND_COLORS.clearing, smoothstep(0.55, 0.82, patch) * 0.42)
+    c.lerp(GROUND_COLORS.dry, smoothstep(0.4, 0.78, dry) * (0.45 + 0.4 * sunlit))
+    c.lerp(GROUND_COLORS.clearing, smoothstep(0.55, 0.82, patch) * (0.3 + 0.3 * sunlit))
     c.lerp(GROUND_COLORS.moss, smoothstep(0.58, 0.8, moss) * 0.35)
-    // damp hollows: broad, soft-edged and partial, so open mud never shows hard-edged dark sheets
+    // damp hollows: broad, soft-edged and partial, so open mud never shows hard-edged dark sheets.
+    // They keep clear of the dry patches, so dry and damp ground sit side by side, not on top of
+    // each other (which averaged both away into one even brown).
     const damp = fbm(px * 0.09 - 3.7, pz * 0.09 + 8.1, 233, 3)
-    c.lerp(GROUND_COLORS.wet, smoothstep(0.5, 0.82, damp) * 0.32)
+    c.lerp(GROUND_COLORS.wet, smoothstep(0.48, 0.8, damp) * (0.46 - 0.2 * smoothstep(0.4, 0.78, dry)))
     const trodden = flatSpots.reduce((best, s) => Math.max(best, 1 - smoothstep(1.5, 4.5, Math.hypot(x - s.x, z - s.z))), 0)
     c.lerp(GROUND_COLORS.clearing, trodden * 0.3)
     // wet margin towards the tide line: soft, partial and with a noisy edge, so the boundary of
@@ -227,8 +232,12 @@ function createGroundAndWater(biome, field, trees) {
       if (dw < 0) c.lerp(GROUND_COLORS.silt, smoothstep(0, -0.25, dw))
     }
     c.lerp(GROUND_COLORS.wetSilt, wetShore * 0.82)
-    const shade = shadeAt(x, z)
-    c.lerp(GROUND_COLORS.litter, shade * 0.4).multiplyScalar(1 - shade * 0.22)
+    // leaf-covered ground under the crowns: an organic brown that breaks up at its edge, instead
+    // of a clean disc of shade
+    const cover = Math.min(1, shade * (0.75 + 0.6 * fbm(px * 0.33 + 6.1, pz * 0.33 - 1.4, 251, 2)))
+    c.lerp(GROUND_COLORS.litter, cover * 0.55).multiplyScalar(1 - shade * 0.18)
+    // fine mottling, so no stretch of mud is one flat tone
+    c.multiplyScalar(0.95 + 0.1 * fbm(px * 0.41 - 2.2, pz * 0.41 + 7.7, 257, 2))
     positions.push(x, h, z)
     colors.push(c.r, c.g, c.b)
     shoreWetness.push(wetShore)
@@ -432,6 +441,8 @@ export default function SundarbansScenery({ biome, dark }) {
       debris: byKind.debris ?? EMPTY,
       litter: [0, 1].map((variant) => (byKind.leafLitter ?? EMPTY).filter((item) => item.variant === variant)),
       branches: byKind.fallenBranch ?? EMPTY,
+      surfaceRoots: [0, 1].map((variant) => (byKind.surfaceRoot ?? EMPTY).filter((item) => item.variant === variant)),
+      seedlings: byKind.seedling ?? EMPTY,
       allTrees: placements.filter((item) => ['mangrove', 'sapling', 'backgroundMangrove'].includes(item.kind)),
     }
   }, [placements, biome.props, field])
@@ -574,6 +585,10 @@ export default function SundarbansScenery({ biome, dark }) {
         <Instances key={`litter-${variant}`} items={items} geometry={models.litter[variant]} material={resources.plants} />
       ))}
       <Instances items={groups.branches} geometry={models.branch} material={resources.wood} />
+      {groups.surfaceRoots.map((items, variant) => (
+        <Instances key={`surface-root-${variant}`} items={items} geometry={models.surfaceRoot[variant]} material={resources.wood} />
+      ))}
+      <Instances items={groups.seedlings} geometry={models.seedlings} material={resources.plants} />
       <Instances items={boards} geometry={models.board} material={resources.wood} isCollider />
     </group>
   )
