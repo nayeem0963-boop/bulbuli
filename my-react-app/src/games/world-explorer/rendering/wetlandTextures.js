@@ -104,8 +104,9 @@ export function createMudTextures() {
   const roughnessMap = canvasTexture(size, (data) => {
     for (let i = 0; i < size * size; i += 1) {
       const micro = tileNoise((i % size) / size, Math.floor(i / size) / size, 47, 151)
-      // Lower roughness in irregular damp pockets so sunlight catches small wet-mud sheens.
-      const roughness = Math.max(0.24, Math.min(0.98, 0.93 - puddles[i] * 0.66 + (micro - 0.5) * 0.08))
+      // Damp pockets are a little smoother, so they read as wet. They stay well short of a mirror:
+      // at 0.24 the low sun was reflected off the flat mud as a long white streak towards the camera.
+      const roughness = Math.max(0.56, Math.min(0.98, 0.93 - puddles[i] * 0.4 + (micro - 0.5) * 0.08))
       const value = roughness * 255
       data[i * 4] = value
       data[i * 4 + 1] = value

@@ -117,6 +117,51 @@ function buildDebris() {
   return builder.build()
 }
 
+/**
+ * A drift of fallen mangrove leaves lying flat on the mud (no twigs): yellowed, brown and a few
+ * still olive. Two seeded variants, so neighbouring drifts differ. About 1.5 m across.
+ */
+function buildLeafLitter(variant = 0) {
+  const random = mulberry32(7411 + variant * 97)
+  const builder = createBuilder()
+  // the same dull browns and olives as the twig debris: fallen leaves, not petals
+  const colors = ['#7a6233', '#8c7a3c', '#5f6a32', '#6e4f2c', '#84703a', '#57452a', '#6f6a35'].map(linear)
+  const count = 14
+  for (let i = 0; i < count; i += 1) {
+    // denser in the middle, a few strays at the rim
+    const r = (random() ** 1.4) * 0.85
+    const at = random() * Math.PI * 2
+    const c = v(Math.cos(at) * r, 0.014 + i * 0.0012, Math.sin(at) * r)
+    const a = random() * Math.PI
+    // stylised, like the trees: larger than life so a drift reads from the follow camera
+    const length = 0.12 + random() * 0.08
+    const width = length * (0.36 + random() * 0.16)
+    const ax = v(Math.cos(a) * length, 0, Math.sin(a) * length)
+    const sx = v(-Math.sin(a) * width, 0, Math.cos(a) * width)
+    const color = colors[Math.floor(random() * colors.length)]
+    const shade = color.clone().multiplyScalar(0.8)
+    // a slightly curled blade: the two halves meet along the midrib, one edge lifted
+    const lift = v(0, 0.015 + random() * 0.025, 0)
+    builder.triangle(c.clone().sub(ax), c.clone().add(sx).add(lift), c.clone().add(ax), color)
+    builder.triangle(c.clone().sub(ax), c.clone().add(ax), c.clone().sub(sx), shade)
+  }
+  return builder.build()
+}
+
+/** A fallen branch lying on the mud: a bent, forked limb about 1.6 m long, bark weathered grey. */
+function buildFallenBranch() {
+  const random = mulberry32(8089)
+  const builder = createBuilder()
+  const base = linear('#6f6354')
+  const tip = linear('#93866f')
+  const main = Array.from({ length: 6 }, (_, i) => v(-0.8 + i * 0.32, 0.045 + Math.sin(i * 1.1) * 0.025, Math.sin(i * 0.8) * 0.1 + (random() - 0.5) * 0.04))
+  tube(builder, main, [0.05, 0.047, 0.042, 0.036, 0.028, 0.018], { segments: 5, base, tip })
+  tube(builder, [main[2].clone(), v(0.02, 0.07, 0.34), v(0.22, 0.05, 0.62)], [0.03, 0.022, 0.012], { segments: 4, base, tip })
+  tube(builder, [main[3].clone(), v(0.36, 0.09, -0.26), v(0.5, 0.06, -0.5)], [0.026, 0.018, 0.01], { segments: 4, base, tip })
+  tube(builder, [main[4].clone(), v(0.66, 0.1, 0.2)], [0.02, 0.009], { segments: 3, base, tip })
+  return builder.build()
+}
+
 /** One boardwalk board: 1.6 m wide, 0.22 m deep, 5 cm thick. */
 function buildBoard() {
   const builder = createBuilder()
@@ -159,11 +204,13 @@ export function createSundarbansModels() {
     rootsCarpet,
     log: buildLog(),
     debris: buildDebris(),
+    litter: [buildLeafLitter(0), buildLeafLitter(1)],
+    branch: buildFallenBranch(),
     board: buildBoard(),
   }
   const all = [
     ...Object.values(models.tree).flat(), ...Object.values(models.treeMid).flat(), ...models.treeFar,
-    ...Object.values(models.plant), models.roots, models.rootsFar, models.rootsCarpet, models.log, models.debris, models.board,
+    ...Object.values(models.plant), models.roots, models.rootsFar, models.rootsCarpet, models.log, models.debris, ...models.litter, models.branch, models.board,
   ]
   const triangles = (geometry) => geometry.getAttribute('position').count / 3
   models.dispose = () => all.forEach((geometry) => geometry.dispose())

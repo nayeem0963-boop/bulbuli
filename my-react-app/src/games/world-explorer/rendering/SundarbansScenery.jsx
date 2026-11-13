@@ -430,6 +430,8 @@ export default function SundarbansScenery({ biome, dark }) {
       shorePneumatophores: byKind.shorePneumatophore ?? EMPTY,
       logs: propsOf('log').map((prop) => ({ ...prop, y: prop.y - 0.05 })),
       debris: byKind.debris ?? EMPTY,
+      litter: [0, 1].map((variant) => (byKind.leafLitter ?? EMPTY).filter((item) => item.variant === variant)),
+      branches: byKind.fallenBranch ?? EMPTY,
       allTrees: placements.filter((item) => ['mangrove', 'sapling', 'backgroundMangrove'].includes(item.kind)),
     }
   }, [placements, biome.props, field])
@@ -568,6 +570,10 @@ export default function SundarbansScenery({ biome, dark }) {
       <Instances items={groups.shorePneumatophores} geometry={models.rootsCarpet} material={resources.rootCarpet} receiveShadow={false} />
       <Instances items={groups.logs} geometry={models.log} material={resources.wood} castShadow />
       <Instances items={groups.debris} geometry={models.debris} material={resources.wood} />
+      {groups.litter.map((items, variant) => (
+        <Instances key={`litter-${variant}`} items={items} geometry={models.litter[variant]} material={resources.plants} />
+      ))}
+      <Instances items={groups.branches} geometry={models.branch} material={resources.wood} />
       <Instances items={boards} geometry={models.board} material={resources.wood} isCollider />
     </group>
   )

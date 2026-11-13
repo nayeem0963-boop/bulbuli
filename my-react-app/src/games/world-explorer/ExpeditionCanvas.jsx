@@ -5,7 +5,7 @@
  */
 import { Component, memo, useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { BufferGeometry, CanvasTexture, Float32BufferAttribute, MeshStandardMaterial, PCFShadowMap, SRGBColorSpace } from 'three'
+import { CanvasTexture, MeshStandardMaterial, PCFShadowMap, SRGBColorSpace } from 'three'
 import ExplorerController from './ExplorerController.jsx'
 import { LABEL, stationLabelPlacement } from './stationLabel.js'
 import AmazonAtmosphere from './rendering/AmazonAtmosphere.jsx'
@@ -16,6 +16,7 @@ import SundarbansScenery from './rendering/SundarbansScenery.jsx'
 import { SURFACE_PROFILES, createBiomeSurfaceTextures } from './rendering/biomeMaterials.js'
 import { createTerrainGeometry } from './rendering/terrain.js'
 import { createGiantTreeGeometry } from './rendering/giantTree.js'
+import { createTidalCreekGeometry } from './rendering/tidalCreek.js'
 
 /* ------------------------------------------------------------------ scenery pieces */
 
@@ -260,49 +261,14 @@ function Flat({ color, w, d, opacity = 1 }) {
 /** Sundarbans prop types drawn instanced by SundarbansScenery instead of one mesh per part. */
 const SUNDARBANS_INSTANCED_PROPS = new Set(['fern', 'pneumatophores', 'log'])
 
-/** Station 1 dressing: a small winding tidal creek set into a wet mud bed. */
-function createCreekGeometry() {
-  const positions = []
-  const colors = []
-  const indices = []
-  const steps = 24
-  // linear-space vertex colours: dark wet mud bed, olive water
-  const bed = [0.12, 0.092, 0.064]
-  const water = [0.06, 0.085, 0.055]
-  const shine = [0.1, 0.13, 0.085]
-  for (const [half, y, inner, outer] of [[0.62, 0.006, bed, bed], [0.3, 0.014, water, shine]]) {
-    const start = positions.length / 3
-    for (let i = 0; i <= steps; i += 1) {
-      const t = i / steps
-      const x = -2.6 + t * 5.2
-      const z = Math.sin(t * Math.PI * 2.2) * 0.38
-      const dz = Math.cos(t * Math.PI * 2.2) * 0.38 * Math.PI * 2.2 / 5.2
-      const len = Math.hypot(1, dz)
-      const nx = -dz / len
-      const nz = 1 / len
-      const taper = half * (0.55 + Math.sin(t * Math.PI) * 0.45) * (1 + Math.sin(i * 1.7) * 0.08)
-      positions.push(x - nx * taper, y, z - nz * taper, x + nx * taper, y, z + nz * taper)
-      colors.push(...inner, ...outer)
-      if (i > 0) {
-        const c = start + i * 2
-        indices.push(c - 2, c, c - 1, c - 1, c, c + 1)
-      }
-    }
-  }
-  const geometry = new BufferGeometry()
-  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
-  geometry.setAttribute('color', new Float32BufferAttribute(colors, 3))
-  geometry.setIndex(indices)
-  geometry.computeVertexNormals()
-  return geometry
-}
-
+/** Station 1 dressing: three small tidal channels meeting on the mud (rendering/tidalCreek.js). */
 function TidalChannelModel() {
-  const geometry = useMemo(() => createCreekGeometry(), [])
+  const geometry = useMemo(() => createTidalCreekGeometry(), [])
   useEffect(() => () => geometry.dispose(), [geometry])
   return (
-    <mesh geometry={geometry} receiveShadow>
-      <meshStandardMaterial vertexColors roughness={0.35} side={2} />
+    <mesh geometry={geometry} receiveShadow renderOrder={1}>
+      {/* transparent: the wet banks fade into the ground. Rough enough not to mirror the sun. */}
+      <meshStandardMaterial vertexColors transparent depthWrite={false} side={2} roughness={0.55} metalness={0} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
     </mesh>
   )
 }

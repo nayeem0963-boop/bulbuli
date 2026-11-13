@@ -8,8 +8,10 @@ const ENVIRONMENT_PROFILES = Object.freeze({
   // shadows; a readable blue-hour night instead of near-black mud
   sundarbans: {
     fogDensity: 0.014, fogHeight: 24, particles: 'motes', particleCount: 90,
-    dayColor: '#fff1d4', nightColor: '#a9b9d8', nightGround: '#5f6b63', skyFill: '#cde8dc', groundFill: '#6f7450',
-    shadow: { mapSize: 2048, radius: 3.2, intensity: 0.68 },
+    // groundFill is the light the mud bounces up into the crowns: lighter, so the undersides of the
+    // canopy (now in view with the raised camera) are dark green rather than black
+    dayColor: '#fff1d4', nightColor: '#a9b9d8', nightGround: '#5f6b63', skyFill: '#cde8dc', groundFill: '#8d9168',
+    shadow: { mapSize: 2048, radius: 3.2, intensity: 0.58 },
     night: { sunFloor: 0.78, sunElevation: 16, fill: 1.08, ambient: 0.52 },
   },
   // under a closed canopy: softer, partial shadows and a slightly warmer ground bounce, so the

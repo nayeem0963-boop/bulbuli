@@ -45,6 +45,17 @@ export const MID_STANDS = Object.freeze({
   village: 9,
 })
 
+/** Forest-floor detail on the walkable land (Pass 2). Distances in metres. */
+export const FOREST_FLOOR = Object.freeze({
+  litterUnderTrees: 150, // leaf drifts under and around the crowns
+  litterDrifted: 70, // leaf drifts blown into the open mud
+  litterStation: 2.8, // the same clear ground round a station and along a route as every other
+  litterPath: 1.8, //    placement on the land keeps (rendering.test.js checks all of them together)
+  litterSpawn: 2,
+  branches: 14,
+  branchPath: 2.2, // fallen branches keep off the walking routes
+})
+
 /** Deterministic 0..1 from a position (does not touch the layout's random streams). */
 function hash01(x, z, salt = 0) {
   const s = Math.sin(x * 127.1 + z * 311.7 + salt * 74.7) * 43758.5453
@@ -614,6 +625,65 @@ export function scatterSundarbans(biome) {
       midStand: true,
     })
     stands += 1
+  }
+
+  /* ---------------------------------------------------------------- forest floor (Pass 2) */
+  // Flat detail for the open mud the raised camera now shows: drifts of fallen leaves and a few
+  // fallen branches. Appended on their own seeds, so nothing above moves. Neither blocks Bulbuli.
+  //   leafLitter    most drifts gather under the crowns; some are blown into the clearings.
+  //                 Routes, stations and the spawn point keep their usual clear ground.
+  //   fallenBranch  beside the trees, clear of the routes, stations and the view corridor.
+  const litterRandom = mulberry32(0x6c8e9cf5)
+  const litterGrid = createGrid(1.5)
+  const canopies = [...trees, ...saplingItems]
+  const addLitter = (x, z, scale) => {
+    const home = landDisc(x, z, 0.97)
+    if (!home) return false
+    if (stationDistance(x, z) < FOREST_FLOOR.litterStation || Math.hypot(x - spawnX, z - spawnZ) < FOREST_FLOOR.litterSpawn) return false
+    if (pathDistance(x, z) < FOREST_FLOOR.litterPath) return false
+    if (villageSpot && Math.hypot(x - villageSpot.x, z - villageSpot.z) < 4.2) return false
+    if (blockers.some((prop) => Math.hypot(x - prop.x, z - prop.z) < prop.block + 0.4)) return false
+    if (litterGrid.near(x, z, 1.5, (t) => Math.hypot(x - t.x, z - t.z) < 0.6 * (scale + t.scale))) return false
+    const item = { kind: 'leafLitter', variant: hash01(x, z, 9) < 0.5 ? 0 : 1, x, z, y: groundY(home, x, z), scale, rot: litterRandom() * Math.PI * 2, clearance: 0 }
+    placements.push(item)
+    litterGrid.add(item)
+    return true
+  }
+  let underCanopy = 0
+  for (let attempt = 0; attempt < 4000 && underCanopy < FOREST_FLOOR.litterUnderTrees; attempt += 1) {
+    const tree = canopies[Math.floor(litterRandom() * canopies.length)]
+    const reach = (tree.kind === 'sapling' ? 1.1 : CROWN[tree.variant] * tree.scale * 1.25) + 0.6
+    const a = litterRandom() * Math.PI * 2
+    const r = Math.sqrt(litterRandom()) * reach
+    if (addLitter(tree.x + Math.cos(a) * r, tree.z + Math.sin(a) * r, 0.75 + litterRandom() * 0.55)) underCanopy += 1
+  }
+  let drifted = 0
+  for (let attempt = 0; attempt < 4000 && drifted < FOREST_FLOOR.litterDrifted; attempt += 1) {
+    const disc = islands[Math.floor(litterRandom() * islands.length)]
+    const a = litterRandom() * Math.PI * 2
+    const r = Math.sqrt(litterRandom()) * disc.r * TERRAIN_FOOTPRINT_SCALE * 0.95
+    // the wind gathers leaves in patches, not evenly
+    const x = disc.x + Math.cos(a) * r
+    const z = disc.z + Math.sin(a) * r
+    if (fbm(x * 0.16 + 2.7, z * 0.16 - 8.1, 163, 2) < 0.46) continue
+    if (addLitter(x, z, 0.55 + litterRandom() * 0.4)) drifted += 1
+  }
+
+  const branchRandom = mulberry32(0x3243f6a9)
+  const branches = []
+  for (let attempt = 0; attempt < 1500 && branches.length < FOREST_FLOOR.branches; attempt += 1) {
+    const tree = trees[Math.floor(branchRandom() * trees.length)]
+    const a = branchRandom() * Math.PI * 2
+    const r = 1.5 + branchRandom() * 2.6
+    const x = tree.x + Math.cos(a) * r
+    const z = tree.z + Math.sin(a) * r
+    const home = landDisc(x, z)
+    if (!home || !landClear(x, z, { station: 3.6, spawn: 4.5, camera: 3.6, corridor: 3.2, path: FOREST_FLOOR.branchPath })) continue
+    if (treeGrid.near(x, z, 4, (t) => Math.hypot(x - t.x, z - t.z) < 1.2)) continue
+    if (branches.some((t) => Math.hypot(x - t.x, z - t.z) < 3.5)) continue
+    const item = { kind: 'fallenBranch', x, z, y: groundY(home, x, z), scale: 0.75 + branchRandom() * 0.5, rot: branchRandom() * Math.PI * 2, clearance: 0 }
+    placements.push(item)
+    branches.push(item)
   }
 
   return placements
