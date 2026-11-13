@@ -148,44 +148,80 @@ function buildLeafLitter(variant = 0) {
   return builder.build()
 }
 
-/** A fallen branch lying on the mud: a bent, forked limb about 1.6 m long, bark weathered grey. */
-function buildFallenBranch() {
-  const random = mulberry32(8089)
-  const builder = createBuilder()
-  const base = linear('#6f6354')
-  const tip = linear('#93866f')
-  const main = Array.from({ length: 6 }, (_, i) => v(-0.8 + i * 0.32, 0.045 + Math.sin(i * 1.1) * 0.025, Math.sin(i * 0.8) * 0.1 + (random() - 0.5) * 0.04))
-  tube(builder, main, [0.068, 0.064, 0.057, 0.048, 0.038, 0.024], { segments: 5, base, tip })
-  tube(builder, [main[2].clone(), v(0.02, 0.07, 0.34), v(0.22, 0.05, 0.62)], [0.04, 0.03, 0.016], { segments: 4, base, tip })
-  tube(builder, [main[3].clone(), v(0.36, 0.09, -0.26), v(0.5, 0.06, -0.5)], [0.035, 0.024, 0.013], { segments: 4, base, tip })
-  tube(builder, [main[4].clone(), v(0.66, 0.1, 0.2)], [0.027, 0.012], { segments: 3, base, tip })
-  return builder.build()
+/**
+ * Recolours a model by height, so it sits in the mud instead of floating on it: dark and damp
+ * where it touches the ground, pale and weathered where it is up in the light. This is also what
+ * makes low wood readable from the follow camera: mud-coloured wood on mud has no outline.
+ */
+function shadeFromGround(geometry, { low, high, from = 0, to = 0.12 }) {
+  const position = geometry.getAttribute('position')
+  const color = geometry.getAttribute('color')
+  for (let i = 0; i < position.count; i += 1) {
+    const u = Math.max(0, Math.min(1, (position.getY(i) - from) / (to - from)))
+    const t = u * u * (3 - 2 * u)
+    // keep a little of the builder's own variation
+    const keep = 0.9 + 0.2 * ((Math.sin(position.getX(i) * 37.1 + position.getZ(i) * 21.7) + 1) / 2)
+    color.setXYZ(i, (low.r + (high.r - low.r) * t) * keep, (low.g + (high.g - low.g) * t) * keep, (low.b + (high.b - low.b) * t) * keep)
+  }
+  color.needsUpdate = true
+  return geometry
 }
 
 /**
- * A length of surface root showing through the mud between trees: it rises out of the ground,
- * snakes along for a metre or two, forks and dives back in. Mostly buried, so it is never more
- * than a few centimetres proud of the mud. Two seeded variants.
+ * A fallen branch lying on the mud: a tapering limb about 1.7 m long, thick at the broken end
+ * and propped up at the thin end on its own forks, with two twigs still standing up from it.
+ * Sun-bleached grey above, dark where it rests in the mud.
+ */
+function buildFallenBranch() {
+  const random = mulberry32(8089)
+  const builder = createBuilder()
+  const wood = linear('#8d8270')
+  // the limb: resting on the ground at the thick end, lifting towards the thin end, never straight
+  const main = Array.from({ length: 7 }, (_, i) => {
+    const t = i / 6
+    return v(-0.85 + t * 1.7, 0.06 + t * t * 0.12 + Math.sin(t * 5.2) * 0.012, Math.sin(t * 2.6) * 0.16 + (random() - 0.5) * 0.03)
+  })
+  tube(builder, main, [0.078, 0.074, 0.066, 0.056, 0.044, 0.032, 0.018], { segments: 5, base: wood, tip: wood })
+  // a fork that reaches the ground and props the limb up
+  tube(builder, [main[3].clone(), v(0.12, 0.07, 0.36), v(0.3, 0.0, 0.66)], [0.042, 0.03, 0.014], { segments: 4, base: wood, tip: wood })
+  // two twigs left standing: what makes it read as a branch rather than a log
+  tube(builder, [main[4].clone(), v(0.38, 0.2, -0.2), v(0.5, 0.3, -0.42)], [0.034, 0.022, 0.01], { segments: 4, base: wood, tip: wood })
+  tube(builder, [main[5].clone(), v(0.74, 0.25, 0.14), v(0.9, 0.31, 0.24)], [0.024, 0.015, 0.007], { segments: 3, base: wood, tip: wood })
+  // the splintered stub at the broken end
+  tube(builder, [main[0].clone(), v(-0.98, 0.1, -0.06)], [0.05, 0.012], { segments: 4, base: wood, tip: wood })
+  return shadeFromGround(builder.build(), { low: linear('#57493a'), high: linear('#b7ab94'), from: 0.01, to: 0.16 })
+}
+
+/**
+ * A length of surface root between trees: it arches out of the mud, dives back in and comes up
+ * again (the looping "knee" of a mangrove cable root), with a side root leaving the first arch.
+ * Buried at both ends. Weathered pale on top of each arch and dark where it enters the mud, so
+ * the arches stand out and the root visibly belongs to the ground. Two seeded variants: two even
+ * arches, or one long arch and a short loop.
  */
 function buildSurfaceRoot(variant = 0) {
   const random = mulberry32(9173 + variant * 131)
   const builder = createBuilder()
-  const base = linear('#5f5141')
-  const tip = linear('#8b7c65')
-  const bend = variant === 0 ? 0.22 : -0.3
-  const steps = 8
-  const main = Array.from({ length: steps }, (_, i) => {
+  const wood = linear('#8b7c65')
+  const steps = 12
+  const bend = variant === 0 ? 0.2 : -0.26
+  const main = []
+  const radii = []
+  for (let i = 0; i < steps; i += 1) {
     const t = i / (steps - 1)
-    // buried at both ends, humped in between, with a second low hump so it is not one even arc
-    const rise = Math.sin(t * Math.PI) * (0.02 + 0.012 * Math.sin(t * Math.PI * 3 + variant))
-    return v(-0.95 + t * 1.9, -0.05 + rise * 2.4, Math.sin(t * Math.PI * (1.3 + variant * 0.5)) * bend + (random() - 0.5) * 0.05)
-  })
-  // thick enough to read as a root from the follow camera (a 4 cm root is a hairline at 8 m)
-  tube(builder, main, [0.045, 0.062, 0.07, 0.066, 0.06, 0.05, 0.038, 0.022], { segments: 5, base, tip })
-  const fork = main[variant === 0 ? 3 : 4]
-  tube(builder, [fork.clone(), v(fork.x + 0.3, 0.0, fork.z + (variant === 0 ? 0.32 : -0.3)), v(fork.x + 0.62, -0.04, fork.z + (variant === 0 ? 0.5 : -0.56))], [0.042, 0.032, 0.016], { segments: 4, base, tip })
-  if (variant === 1) tube(builder, [main[2].clone(), v(main[2].x - 0.1, 0.0, main[2].z + 0.3), v(main[2].x - 0.05, -0.04, main[2].z + 0.55)], [0.036, 0.026, 0.014], { segments: 4, base, tip })
-  return builder.build()
+    // height above the mud along the root: arches with a buried stretch between them
+    const arch = variant === 0
+      ? Math.abs(Math.sin(t * Math.PI * 2)) ** 0.8 * (t < 0.5 ? 0.185 : 0.15)
+      : (t < 0.64 ? Math.sin((t / 0.64) * Math.PI) ** 0.9 * 0.2 : Math.sin(((t - 0.64) / 0.36) * Math.PI) * 0.115)
+    main.push(v(-1 + t * 2, -0.07 + arch, Math.sin(t * Math.PI * (1.25 + variant * 0.55)) * bend + (random() - 0.5) * 0.04))
+    radii.push(0.036 + 0.02 * Math.min(1, arch / 0.1) - t * 0.008)
+  }
+  tube(builder, main, radii, { segments: 5, base: wood, tip: wood })
+  // a side root leaves the top of the first arch and goes to ground
+  const crest = main[variant === 0 ? 3 : 4]
+  const side = variant === 0 ? 1 : -1
+  tube(builder, [crest.clone(), v(crest.x + 0.22, crest.y - 0.03, crest.z + side * 0.26), v(crest.x + 0.5, -0.06, crest.z + side * 0.52)], [0.036, 0.03, 0.016], { segments: 4, base: wood, tip: wood })
+  return shadeFromGround(builder.build(), { low: linear('#4a3e31'), high: linear('#ad9e82'), from: -0.01, to: 0.11 })
 }
 
 /** A handful of mangrove seedlings: short stems with a few upright young leaves. */

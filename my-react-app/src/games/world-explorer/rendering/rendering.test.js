@@ -689,23 +689,44 @@ test('sundarbans pass 2: surface roots show between selected trees and seedlings
   // the ground is not covered in roots: far fewer than one per 10 m² of island
   const area = biome.discs.filter(hasExpandedTerrainFootprint).reduce((sum, d) => sum + Math.PI * terrainFootprintRadius(d) ** 2, 0)
   assert.ok(roots.length / area < 0.1)
-  // models: low, bent (not straight sticks), cheap
+  // models: they arch out of the mud and dive back in (a root that only lay flat, or was the
+  // colour of the mud, could not be told from the ground even at three metres)
   assert.equal(models.surfaceRoot.length, 2)
+  const luminance = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b
+  const mud = luminance(0.171, 0.112, 0.065) // GROUND_COLORS.mud (#735e48) in linear light
   for (const geometry of models.surfaceRoot) {
     geometry.computeBoundingBox()
     const box = geometry.boundingBox
-    assert.ok(box.max.y <= 0.08, `a surface root stands ${box.max.y.toFixed(3)} m proud of the mud`)
-    // ...and is thick enough to be seen as a root from the follow camera
-    assert.ok(box.max.z - box.min.z >= 0.5 && box.max.x - box.min.x >= 1.8)
-    assert.ok(box.min.y < 0, 'its ends are buried')
-    assert.ok(box.max.z - box.min.z >= 0.45, 'it bends and forks instead of running straight')
-    assert.ok(triangleCount(geometry) <= 130)
+    assert.ok(box.max.y >= 0.12 && box.max.y <= 0.22, `a surface root arches ${box.max.y.toFixed(3)} m out of the mud`)
+    assert.ok(box.min.y <= -0.05, 'both ends are buried')
+    assert.ok(box.max.z - box.min.z >= 0.5 && box.max.x - box.min.x >= 1.8, 'it bends and forks instead of running straight')
+    assert.ok(triangleCount(geometry) <= 140)
+    const position = geometry.getAttribute('position')
+    const color = geometry.getAttribute('color')
+    // it comes up more than once: somewhere in the middle it is back under the mud
+    let buriedMiddle = false
+    let top = 0
+    let topCount = 0
+    let foot = 0
+    let footCount = 0
+    for (let i = 0; i < position.count; i += 1) {
+      const y = position.getY(i)
+      const l = luminance(color.getX(i), color.getY(i), color.getZ(i))
+      if (Math.abs(position.getX(i)) < 0.45 && y < -0.02) buriedMiddle = true
+      if (y > 0.1) { top += l; topCount += 1 }
+      if (y < 0.01) { foot += l; footCount += 1 }
+    }
+    assert.ok(buriedMiddle, 'the root dives back into the mud between its arches')
+    // restrained natural contrast: the crest clearly paler than mud, the foot darker than mud, nothing near white
+    assert.ok(top / topCount >= mud * 2 && top / topCount <= mud * 4.2, `crest is ${(top / topCount / mud).toFixed(1)}x the mud's brightness`)
+    assert.ok(foot / footCount <= mud * 1.05, 'the root is dark where it enters the mud, so it looks grounded')
   }
+  assert.notDeepEqual([...models.surfaceRoot[0].getAttribute('position').array.slice(0, 30)], [...models.surfaceRoot[1].getAttribute('position').array.slice(0, 30)], 'two different roots')
   models.seedlings.computeBoundingBox()
   assert.ok(models.seedlings.boundingBox.max.y <= 0.36 && triangleCount(models.seedlings) <= 90)
   for (const s of seedlings) assert.ok(s.scale >= 1.1 && s.scale <= 1.7, 'seedlings are large enough to read, still far below a sapling')
-  const cost = roots.length * 115 + seedlings.length * triangleCount(models.seedlings)
-  assert.ok(cost <= 11000, `roots and seedlings add ${cost} triangles`)
+  const cost = roots.length * triangleCount(models.surfaceRoot[0]) + seedlings.length * triangleCount(models.seedlings)
+  assert.ok(cost <= 11500, `roots and seedlings add ${cost} triangles`)
 })
 
 test('sundarbans pass 2: fallen branches lie beside trees, clear of routes, stations and the spawn view', () => {
@@ -742,8 +763,27 @@ test('sundarbans pass 2: forest-floor models are small, flat and cheap', () => {
   assert.notDeepEqual([...models.litter[0].getAttribute('position').array.slice(0, 9)], [...models.litter[1].getAttribute('position').array.slice(0, 9)], 'the two drifts differ')
   models.branch.computeBoundingBox()
   assert.ok(triangleCount(models.branch) <= 140)
-  assert.ok(models.branch.boundingBox.max.y <= 0.2 && models.branch.boundingBox.max.x - models.branch.boundingBox.min.x <= 2)
-  assert.ok(models.branch.boundingBox.max.y >= 0.1, 'a fallen branch is thick enough to be seen from the follow camera')
+  // a branch, not a log: it tapers, forks, and has twigs standing up from it
+  const branchBox = models.branch.boundingBox
+  assert.ok(branchBox.max.y >= 0.26 && branchBox.max.y <= 0.36, `twigs stand ${branchBox.max.y.toFixed(2)} m up`)
+  assert.ok(branchBox.min.y >= -0.03 && branchBox.min.y <= 0.02, 'it rests on the mud (not floating, not sunk)')
+  assert.ok(branchBox.max.x - branchBox.min.x >= 1.6 && branchBox.max.x - branchBox.min.x <= 2 && branchBox.max.z - branchBox.min.z >= 0.8, 'forks spread sideways')
+  {
+    const position = models.branch.getAttribute('position')
+    const color = models.branch.getAttribute('color')
+    const lum = (i) => 0.2126 * color.getX(i) + 0.7152 * color.getY(i) + 0.0722 * color.getZ(i)
+    const spread = (test_) => { let lo = Infinity; let hi = -Infinity; for (let i = 0; i < position.count; i += 1) if (test_(position.getX(i))) { lo = Math.min(lo, position.getZ(i)); hi = Math.max(hi, position.getZ(i)) } return hi - lo }
+    // taper: the broken end is much thicker than the far end of the limb
+    assert.ok(spread((x) => x < -0.7 && x > -0.9) > 0.11, 'thick at the broken end')
+    let high = 0; let highCount = 0; let low = 0; let lowCount = 0
+    for (let i = 0; i < position.count; i += 1) {
+      if (position.getY(i) > 0.16) { high += lum(i); highCount += 1 }
+      if (position.getY(i) < 0.03) { low += lum(i); lowCount += 1 }
+    }
+    const mud = 0.2126 * 0.171 + 0.7152 * 0.112 + 0.0722 * 0.065
+    assert.ok(high / highCount >= mud * 2.4 && high / highCount <= mud * 4.6, `sun-bleached wood is ${(high / highCount / mud).toFixed(1)}x the mud's brightness`)
+    assert.ok(low / lowCount <= mud * 1.2, 'dark where it rests in the mud')
+  }
   const { placements } = midStandContext()
   const floor = placements.filter((p) => p.kind === 'leafLitter').length * 28 + placements.filter((p) => p.kind === 'fallenBranch').length * triangleCount(models.branch)
   assert.ok(floor <= 11000, `leaf litter and branches add ${floor} triangles`)
