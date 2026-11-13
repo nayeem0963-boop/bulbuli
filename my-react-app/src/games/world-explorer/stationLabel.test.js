@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { PerspectiveCamera, Vector3 } from 'three'
 import { BIOMES } from './biomes/index.js'
-import { cameraPose, cameraRigFor, settleYaw } from './cameraRig.js'
+import { cameraPose, cameraRigFor, createCameraState, steerYaw } from './cameraRig.js'
 import { LABEL, stationLabelPlacement } from './stationLabel.js'
 
 const ASPECTS = [1236 / 587, 16 / 9, 4 / 3] // the preview frame, full screen, a tablet
@@ -11,7 +11,8 @@ const ASPECTS = [1236 / 587, 16 / 9, 4 / 3] // the preview frame, full screen, a
 function cameraAt(biome, pos, yaw, aspect) {
   const rig = cameraRigFor(biome)
   let settled = yaw
-  for (let i = 0; i < 90; i += 1) settled = settleYaw(pos, settled, rig, 1 / 30)
+  const state = createCameraState()
+  for (let i = 0; i < 90; i += 1) settled = steerYaw(state, pos, settled, rig, 1 / 30)
   const pose = cameraPose(pos, settled, rig)
   const camera = new PerspectiveCamera(rig.fov ?? 50, aspect, 0.1, 320)
   camera.position.set(...pose.position)

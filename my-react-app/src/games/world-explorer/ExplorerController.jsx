@@ -18,7 +18,7 @@ import AmazonBirdAvatar from './AmazonBirdAvatar.jsx'
 import { collidersFor } from './biomes/index.js'
 import { nearestStation } from './proximity.js'
 import { readExplorerControls, rescueFromWater } from './drive.js'
-import { cameraPose, cameraRigFor, settleYaw } from './cameraRig.js'
+import { advanceCamera, cameraPose, cameraRigFor, createCameraState } from './cameraRig.js'
 
 const BIRD_SCALE = 0.3
 
@@ -34,6 +34,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
   const near = useRef(null)
   const lastJumps = useRef(null) // jump-press count already handled (set on the first frame)
   const camTarget = useMemo(() => new Vector3(), [])
+  const camState = useRef(createCameraState()) // only used on maps with volumes to avoid
   const { camera } = useThree()
 
   useFrame((state, dtRaw) => {
@@ -49,6 +50,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
       p.checkpoint = [t.x, t.y, t.z]
     }
     const controls = readExplorerControls(inputRef.current, { active: activeRef.current, yaw: yaw.current, lastJumps: lastJumps.current, dt })
+    const manualTurn = Math.sign(controls.yaw - yaw.current) // the player's own Q / E this frame
     yaw.current = controls.yaw
     lastJumps.current = controls.lastJumps
     const events = stepPlayer(p, controls.step, dt, colliders)
@@ -61,18 +63,30 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
       avatar.current.position.set(p.pos[0], p.pos[1], p.pos[2])
       avatar.current.rotation.y = p.facing
     }
-    // camera: behind and above Bulbuli, eased (snapped when reduced motion is on)
-    // a map with volumes to avoid (the Sundarbans village) swings the camera clear of them
-    if (rig.avoid.length) yaw.current = settleYaw(p.pos, yaw.current, rig, dt, reducedMotion)
-    const pose = cameraPose(p.pos, yaw.current, rig)
     if (rig.fov && state.camera.fov !== rig.fov) {
       state.camera.fov = rig.fov
       state.camera.updateProjectionMatrix()
     }
-    camTarget.set(pose.position[0], pose.position[1], pose.position[2])
-    if (reducedMotion) camera.position.copy(camTarget)
-    else camera.position.lerp(camTarget, 1 - Math.exp(-dt * 6))
-    camera.lookAt(pose.lookAt[0], pose.lookAt[1], pose.lookAt[2])
+    if (rig.avoid.length) {
+      // a map with volumes to avoid (the Sundarbans village): the camera turns round them and
+      // stays at its normal distance and angle (cameraRig.js). Away from them this is the same
+      // eased follow as below.
+      const view = advanceCamera(camState.current, p.pos, yaw.current, rig, dt, {
+        manual: manualTurn,
+        snap: reducedMotion,
+        current: [camera.position.x, camera.position.y, camera.position.z],
+      })
+      yaw.current = view.yaw
+      camera.position.set(view.position[0], view.position[1], view.position[2])
+      camera.lookAt(view.lookAt[0], view.lookAt[1], view.lookAt[2])
+    } else {
+      // camera: behind and above Bulbuli, eased (snapped when reduced motion is on)
+      const pose = cameraPose(p.pos, yaw.current, rig)
+      camTarget.set(pose.position[0], pose.position[1], pose.position[2])
+      if (reducedMotion) camera.position.copy(camTarget)
+      else camera.position.lerp(camTarget, 1 - Math.exp(-dt * 6))
+      camera.lookAt(pose.lookAt[0], pose.lookAt[1], pose.lookAt[2])
+    }
 
     const n = nearestStation(biome.stations, p.pos[0], p.pos[2], p.pos[1], discTops)
     if (n !== near.current) {
