@@ -51,8 +51,22 @@ const props = [
   { type: 'village', x: SUNDARBANS_VILLAGE.x, y: 0, z: SUNDARBANS_VILLAGE.z },
 ]
 
+/**
+ * Follow camera (cameraRig.js): further back, aimed higher and a little wider than the default, so
+ * the mangrove canopy, the far bank and the sky are in frame instead of mostly mud. The village houses are
+ * volumes the camera stays out of (box 1.6 x 1.4 m under a roof that ends 1.95 m up).
+ */
+const camera = {
+  distance: 4.2,
+  height: 2.1,
+  lookHeight: 1.2,
+  fov: 60,
+  avoid: [0, 1, 2].map((i) => ({ x: SUNDARBANS_VILLAGE.x + i * 2.4, z: SUNDARBANS_VILLAGE.z + (i % 2), r: 1.75, top: 2.35 })),
+}
+
 export const SUNDARBANS_MAP = Object.freeze({
   id: 'sundarbans',
+  camera,
   sky: {
     top: '#8fcfd0', bottom: '#eaf6ea', fog: '#d3e8dc', horizon: '#dcece0',
     dark: { top: '#132540', bottom: '#2b4d4a', fog: '#203a3b', horizon: '#2a4746' },

@@ -18,14 +18,15 @@ import AmazonBirdAvatar from './AmazonBirdAvatar.jsx'
 import { collidersFor } from './biomes/index.js'
 import { nearestStation } from './proximity.js'
 import { readExplorerControls, rescueFromWater } from './drive.js'
+import { cameraPose, cameraRigFor } from './cameraRig.js'
 
-const CAM_DIST = 3.2
-const CAM_HEIGHT = 1.8
 const BIRD_SCALE = 0.3
 
 export default function ExplorerController({ biome, inputRef, activeRef, teleportRef, onNear, reducedMotion }) {
   const colliders = useMemo(() => collidersFor(biome), [biome])
   const discTops = useMemo(() => Object.fromEntries(biome.discs.map((d) => [d.id, d.top])), [biome])
+  // framing comes from the map (cameraRig.js): the defaults unless the destination sets its own
+  const rig = useMemo(() => cameraRigFor(biome), [biome])
   // one player per mounted map (remounted per expedition); BulbuliAvatar reads player.current
   const player = useRef(createPlayer(biome.spawn))
   const avatar = useRef()
@@ -35,7 +36,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
   const camTarget = useMemo(() => new Vector3(), [])
   const { camera } = useThree()
 
-  useFrame((_, dtRaw) => {
+  useFrame((state, dtRaw) => {
     const dt = Math.min(dtRaw, 1 / 30)
     const p = player.current
     if (teleportRef.current) {
@@ -61,10 +62,15 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
       avatar.current.rotation.y = p.facing
     }
     // camera: behind and above Bulbuli, eased (snapped when reduced motion is on)
-    camTarget.set(p.pos[0] + Math.sin(yaw.current) * CAM_DIST, p.pos[1] + CAM_HEIGHT, p.pos[2] + Math.cos(yaw.current) * CAM_DIST)
+    const pose = cameraPose(p.pos, yaw.current, rig)
+    if (rig.fov && state.camera.fov !== rig.fov) {
+      state.camera.fov = rig.fov
+      state.camera.updateProjectionMatrix()
+    }
+    camTarget.set(pose.position[0], pose.position[1], pose.position[2])
     if (reducedMotion) camera.position.copy(camTarget)
     else camera.position.lerp(camTarget, 1 - Math.exp(-dt * 6))
-    camera.lookAt(p.pos[0], p.pos[1] + 0.3, p.pos[2])
+    camera.lookAt(pose.lookAt[0], pose.lookAt[1], pose.lookAt[2])
 
     const n = nearestStation(biome.stations, p.pos[0], p.pos[2], p.pos[1], discTops)
     if (n !== near.current) {
