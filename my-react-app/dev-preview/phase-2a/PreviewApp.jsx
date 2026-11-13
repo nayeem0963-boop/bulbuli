@@ -121,6 +121,7 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
             items={items}
             isReviewed={isReviewed}
             dark={theme === 'dark'}
+            onToggleDark={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
             preview
             onQa={onWorldQa}
           />

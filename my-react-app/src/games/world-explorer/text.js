@@ -33,6 +33,8 @@ export const WORLD_TEXT = {
     gameMenu: 'Expedition menu',
     fullscreen: 'Full screen',
     exitFullscreen: 'Leave full screen',
+    darkMode: 'Dark',
+    lightMode: 'Light',
     controlKeys: [
       { keys: ['W', 'A', 'S', 'D'], label: 'Move · W flies up' },
       { keys: ['Space'], label: 'Hold to fly up' },
@@ -131,6 +133,8 @@ export const WORLD_TEXT = {
     gameMenu: 'অভিযানের মেনু',
     fullscreen: 'পূর্ণ পর্দা',
     exitFullscreen: 'পূর্ণ পর্দা থেকে বের হও',
+    darkMode: 'Dark',
+    lightMode: 'Light',
     controlKeys: [
       { keys: ['W', 'A', 'S', 'D'], label: 'চলা · W-তে ওপরে ওঠো' },
       { keys: ['Space'], label: 'ওপরে উড়তে ধরে রাখো' },

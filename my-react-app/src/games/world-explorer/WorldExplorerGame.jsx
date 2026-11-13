@@ -15,6 +15,9 @@
  *   items       learning items (preview: all; release: shippable only)
  *   isReviewed  (item) => boolean; unreviewed items get a visible badge
  *   dark        boolean, for the 3D colours
+ *   onToggleDark optional: the host's own day/night switch. When given, the expedition shows the
+ *               same switch in its top bar while it is full screen (where the host's page bar,
+ *               which normally holds it, cannot be reached). The game keeps no state of its own.
  *   onQa        optional callback for the dev preview's automated tests
  */
 import Investigation from './Investigation.jsx'
@@ -445,7 +448,7 @@ function KeyHints({ text }) {
  *   station      the Observe → Investigate → Explain → Record panel opens as a sheet over the scene
  * Behaviour, saving and the data-* hooks used by the tests are unchanged.
  */
-function ExpeditionScreen({ text, language, expedition, content, record, dark, isReviewed, run, onLeave, onReport, onJournal, practice, preview, paused, onQa }) {
+function ExpeditionScreen({ text, language, expedition, content, record, dark, onToggleDark, isReviewed, run, onLeave, onReport, onJournal, practice, preview, paused, onQa }) {
   const biome = BIOMES[expedition.id]
   const reducedMotion = useReducedMotion()
   const inputRef = useInputState()
@@ -540,6 +543,11 @@ function ExpeditionScreen({ text, language, expedition, content, record, dark, i
               aria-label={isFullscreen || isFilled ? text.exitFullscreen : text.fullscreen} title={isFullscreen || isFilled ? text.exitFullscreen : text.fullscreen}>
               <span aria-hidden="true">{isFullscreen || isFilled ? '🗗' : '⛶'}</span>
             </button>
+            {onToggleDark && (isFullscreen || isFilled) ? (
+              <button type="button" className="wx-pill" onClick={onToggleDark} data-action="toggle-dark">
+                <span aria-hidden="true">{dark ? '☀️' : '🌙'}</span><span className="wx-pill-label">{dark ? text.lightMode : text.darkMode}</span>
+              </button>
+            ) : null}
             <button type="button" className="wx-pill wx-pill-leave" onClick={onLeave} data-action="leave">
               <span aria-hidden="true">🚪</span><span className="wx-pill-label">{text.leave}</span>
             </button>
@@ -615,7 +623,7 @@ function ExpeditionScreen({ text, language, expedition, content, record, dark, i
   )
 }
 
-export default function WorldExplorerGame({ language = 'en', items, isReviewed = () => false, dark = false, preview = false, onQa }) {
+export default function WorldExplorerGame({ language = 'en', items, isReviewed = () => false, dark = false, onToggleDark, preview = false, onQa }) {
   const adapter = useLearningAdapter()
   const snapshot = useLearningSnapshot(adapter.store)
   const { api, record, unfinished, practice } = useWorldSession(adapter, snapshot)
@@ -736,6 +744,7 @@ export default function WorldExplorerGame({ language = 'en', items, isReviewed =
           content={content}
           record={record}
           dark={dark}
+          onToggleDark={onToggleDark}
           isReviewed={isReviewed}
           run={run}
           practice={practice}
