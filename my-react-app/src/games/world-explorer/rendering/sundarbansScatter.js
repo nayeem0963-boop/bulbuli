@@ -27,6 +27,24 @@ const CROWN = { sundari: 2.6, gewa: 2.1, keora: 2.2, garjan: 2.1, goran: 1.3 }
 /** Mature-size range per family at grove level: sundari sets the forest structure. */
 const GROVE_SCALE = { sundari: [0.88, 0.36], keora: [0.84, 0.34], garjan: [0.8, 0.38], gewa: [0.78, 0.34], goran: [0.8, 0.45] }
 
+/**
+ * Mid-distance stands (Pass 2): extra 'mid' detail trees on the banks around the playable land.
+ * Distances in metres. `inner`/`outer` are measured from the wetland centre, the rest from the
+ * walkable edge or from the named gameplay feature.
+ */
+export const MID_STANDS = Object.freeze({
+  max: 110,
+  inner: 14,
+  outer: 62,
+  reach: 44, // farthest from the walkable edge
+  shrubEdge: 5, // goran shrubs may stand this close to the walkable edge
+  treeEdge: 7, // every taller tree stays at least this far from it
+  corridor: 6, // half-width kept open along the spawn view line
+  path: 8, // from any boardwalk or island link
+  station: 10,
+  village: 9,
+})
+
 /** Deterministic 0..1 from a position (does not touch the layout's random streams). */
 function hash01(x, z, salt = 0) {
   const s = Math.sin(x * 127.1 + z * 311.7 + salt * 74.7) * 43758.5453
@@ -514,6 +532,88 @@ export function scatterSundarbans(biome) {
       deep: true,
     })
     deep += 1
+  }
+
+  /* ---------------------------------------------------------------- mid-distance stands */
+  // Pass 2. Thickens the forest the player looks across from the island edges: the banks between
+  // the open-water belt and the far forest. Appended last, on its own seed, so every placement
+  // above stays exactly as it was (rendering.test.js pins that). Reuses the 'mid' models, so it
+  // adds instances to existing draw calls and no new geometry.
+  //   - only on forested bank (plus a few stilt-rooted pioneers stepping into the shallows)
+  //   - follows the same stand field as the rest of the background, so clearings stay open
+  //   - crowns overlap inside a stand; heights are layered (juveniles, mature trees, emergents)
+  //   - families are zoned (pioneers at the water's edge, sundari and gewa on higher bank) and
+  //     patchy, so a stand has a dominant family instead of an even mix
+  const standRandom = mulberry32(0x9e3779b1)
+  const standReach = (t) => (t.lod === 'far' ? 2 : CROWN[t.variant] * t.scale)
+  let stands = 0
+  for (let attempt = 0; attempt < 14000 && stands < MID_STANDS.max; attempt += 1) {
+    const a = standRandom() * Math.PI * 2
+    const dc = Math.sqrt(MID_STANDS.inner ** 2 + standRandom() * (MID_STANDS.outer ** 2 - MID_STANDS.inner ** 2))
+    const x = field.center.x + Math.cos(a) * dc
+    const z = field.center.z + Math.sin(a) * dc
+    const e = field.walkSD(x, z)
+    if (e < MID_STANDS.shrubEdge || e > MID_STANDS.reach) continue
+    if (field.channelAt(x, z) > 0.25) continue
+    const h = field.heightAt(x, z)
+    const shallows = h < water - 0.1
+    if (h < water - 0.24) continue
+    const stand = grove(x, z)
+    if (stand < 0.3) continue // the natural clearings stay open
+    if (standRandom() > 0.35 + stand) continue // denser where the stand field is high
+    // gameplay sight lines: the spawn view corridor, boardwalks, stations and the village
+    if (viewDistance(x, z) < MID_STANDS.corridor) continue
+    if (pathDistance(x, z) < MID_STANDS.path || stationDistance(x, z) < MID_STANDS.station) continue
+    if (villageSpot && Math.hypot(x - villageSpot.x, z - villageSpot.z) < MID_STANDS.village) continue
+    // each patch of bank favours one family
+    const favoured = TREE_SPECIES[Math.floor(fbm(x * 0.045 - 6.3, z * 0.045 + 2.9, 173, 2) * 4.999)]
+    const edge = shallows || h < water + 0.05 || e < 9
+    const weights = edge
+      ? { garjan: 3, goran: 2.4, keora: 1.6 }
+      : { sundari: 3.4, gewa: 2.2, keora: 1.4, garjan: 1, goran: 0.7 }
+    if (weights[favoured]) weights[favoured] *= 2.4
+    const variant = pick(standRandom, weights)
+    if (shallows && (variant === 'keora' || stand < 0.42)) continue // only stilt-rooted pioneers wade
+    if (variant !== 'goran' && e < MID_STANDS.treeEdge) continue // tall trees keep clear of the camera
+    // layered heights: a third are juveniles under the canopy, a few sundari and keora emerge above it
+    const tall = fbm(x * 0.05 + 8.2, z * 0.05 + 5.4, 139, 2)
+    const role = standRandom()
+    const juvenile = role < 0.3
+    const emergent = !juvenile && role > 0.9 && (variant === 'sundari' || variant === 'keora')
+    const scale = (0.74 + tall * 0.42 + standRandom() * 0.26) * (juvenile ? 0.62 : emergent ? 1.26 : 1) * (variant === 'sundari' ? 1.08 : 1)
+    const own = CROWN[variant] * scale * (0.82 - 0.3 * stand)
+    if (bgGrid.near(x, z, 7, (t) => Math.hypot(x - t.x, z - t.z) < own + standReach(t) * 0.5)) continue
+    if (shoreGrid.near(x, z, 3, (t) => Math.hypot(x - t.x, z - t.z) < 1.4)) continue
+    // the silhouette whose nearest same-family twin is farthest away
+    const forms = MANGROVE_FORMS.mid[variant]
+    let form = Math.floor(hash01(x, z, 6) * forms)
+    let farthest = -1
+    for (let i = 0; i < forms; i += 1) {
+      const candidate = (form + i) % forms
+      let nearest = 14
+      bgGrid.near(x, z, 14, (t) => {
+        if (t.lod === 'mid' && t.variant === variant && t.form === candidate) nearest = Math.min(nearest, Math.hypot(x - t.x, z - t.z))
+        return false
+      })
+      if (nearest > farthest) {
+        farthest = nearest
+        form = candidate
+      }
+    }
+    addBackground({
+      kind: 'backgroundMangrove',
+      lod: 'mid',
+      variant,
+      form,
+      x,
+      z,
+      y: h,
+      scale,
+      stretch: (juvenile ? 0.8 : 0.9) + standRandom() * (emergent ? 0.42 : 0.3),
+      rot: standRandom() * Math.PI * 2,
+      midStand: true,
+    })
+    stands += 1
   }
 
   return placements

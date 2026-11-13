@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { BIOMES } from '../biomes/index.js'
 import { collidersFor } from '../biomes/common.js'
 import { createPlayer, stepPlayer } from '../../skyward-explorer/physics.js'
@@ -7,6 +8,8 @@ import { scatterBiomeAssets } from './scattering.js'
 import { createTerrainGeometry, hasExpandedTerrainFootprint, terrainFootprintRadius, terrainHeightAt, TERRAIN_FOOTPRINT_SCALE } from './terrain.js'
 import { createWetlandField } from './wetland.js'
 import { createSundarbansModels } from './mangroveModels.js'
+import { MANGROVE_FORMS, MANGROVE_SPECIES } from './mangroveForms.js'
+import { MID_STANDS, scatterSundarbans } from './sundarbansScatter.js'
 import { scatterAmazon } from './amazonScatter.js'
 import {
   createAmazonDistantTree,
@@ -406,4 +409,146 @@ test('amazon: low-poly tree, understory and log geometries have valid normals an
   }
   assert.ok(compared > 100, 'coincident foliage vertices share smoothed normals')
   smoothTree.dispose()
+})
+
+/* ------------------------------------------------------------------ Sundarbans Pass 2: mid-distance stands */
+
+const midStandContext = () => {
+  const biome = BIOMES.sundarbans
+  const placements = scatterSundarbans(biome)
+  const field = createWetlandField(biome)
+  const [spawnX, , spawnZ] = biome.spawn.position
+  const cameraYaw = biome.spawn.facing + Math.PI
+  const camera = { x: spawnX + Math.sin(cameraYaw) * 8.2, z: spawnZ + Math.cos(cameraYaw) * 8.2 }
+  const viewEnd = { x: spawnX + Math.sin(biome.spawn.facing) * 28, z: spawnZ + Math.cos(biome.spawn.facing) * 28 }
+  const toSegment = (p, a, b) => {
+    const dx = b.x - a.x
+    const dz = b.z - a.z
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz || 1)))
+    return Math.hypot(p.x - (a.x + t * dx), p.z - (a.z + t * dz))
+  }
+  const ring = (p) => Math.hypot(p.x - field.center.x, p.z - field.center.z)
+  return {
+    biome, placements, field, camera, viewEnd, toSegment, ring,
+    stands: placements.filter((p) => p.midStand),
+    mid: placements.filter((p) => p.kind === 'backgroundMangrove' && p.lod === 'mid'),
+  }
+}
+
+test('sundarbans pass 2: the layout is deterministic and everything placed before Pass 2 is unchanged', () => {
+  const { placements } = midStandContext()
+  assert.deepEqual(scatterSundarbans(BIOMES.sundarbans), placements)
+
+  // Fingerprint of the Pass 1 layout (commit b617a1e): near trees, far forest, understory, shore.
+  // The mid-distance stands are appended after it and must not move, add or remove anything else.
+  const before = placements.filter((p) => !p.midStand)
+  const round = (key, value) => (typeof value === 'number' ? Math.round(value * 1e6) / 1e6 : value)
+  assert.equal(before.length, 2897)
+  assert.equal(
+    createHash('sha256').update(JSON.stringify(before, round)).digest('hex'),
+    '61c05b6b1950f7f387feafc936fba4b0170277495c5206012424386c31c59d18',
+    'a placement that existed in Pass 1 has changed',
+  )
+  const count = (matches) => placements.filter(matches).length
+  assert.equal(count((p) => p.kind === 'mangrove'), 33, 'near trees on the islands')
+  assert.equal(count((p) => p.kind === 'backgroundMangrove' && p.lod === 'far'), 737, 'far silhouettes')
+  assert.equal(count((p) => p.kind === 'backgroundMangrove' && p.lod === 'mid' && !p.midStand), 163, 'Pass 1 mid trees')
+  assert.ok(placements.slice(before.length).every((p) => p.midStand), 'the stands come last in the list')
+})
+
+test('sundarbans pass 2: mid-distance stands thicken the banks around the playable land', () => {
+  const { stands, mid, field, ring } = midStandContext()
+  assert.ok(stands.length >= 90 && stands.length <= MID_STANDS.max, `expected 90–${MID_STANDS.max} stand trees, got ${stands.length}`)
+  // the ring the player looks across from the island edges held 61 mid trees in Pass 1
+  const inRing = mid.filter((p) => ring(p) >= 20 && ring(p) < 50).length
+  assert.ok(inRing >= 115 && inRing <= 150, `20–50 m ring should hold 115–150 mid trees, got ${inRing}`)
+  for (const tree of stands) {
+    assert.equal(tree.kind, 'backgroundMangrove')
+    assert.equal(tree.lod, 'mid', 'stands reuse the mid-detail models')
+    assert.ok(tree.background && tree.clearance === 0, 'stands never collide with the player')
+    assert.ok(Number.isInteger(tree.form) && tree.form >= 0 && tree.form < MANGROVE_FORMS.mid[tree.variant])
+    const edge = field.walkSD(tree.x, tree.z)
+    assert.ok(edge >= MID_STANDS.shrubEdge && edge <= MID_STANDS.reach, `stand tree ${edge.toFixed(1)} m from the walkable edge`)
+    if (tree.variant !== 'goran') assert.ok(edge >= MID_STANDS.treeEdge, 'only low goran shrubs stand close to the walkable edge')
+    assert.ok(field.channelAt(tree.x, tree.z) <= 0.25, 'tidal channels stay open')
+    assert.ok(tree.y >= field.waterY - 0.24, 'no tree stands in deep water')
+    assert.ok(Math.abs(tree.y - field.heightAt(tree.x, tree.z)) < 1e-9, 'trees are seated on the ground')
+    // only stilt-rooted pioneers wade into the shallows
+    if (tree.y < field.waterY - 0.1) assert.ok(['garjan', 'goran'].includes(tree.variant), `${tree.variant} in the shallows`)
+  }
+})
+
+test('sundarbans pass 2: stands keep the spawn corridor, boardwalks, stations and village clear', () => {
+  const { biome, stands, camera, viewEnd, toSegment } = midStandContext()
+  const [spawnX, , spawnZ] = biome.spawn.position
+  const village = biome.props.find((prop) => prop.type === 'village')
+  for (const tree of stands) {
+    assert.ok(toSegment(tree, camera, viewEnd) >= MID_STANDS.corridor, 'spawn view corridor stays open')
+    assert.ok(Math.hypot(tree.x - spawnX, tree.z - spawnZ) >= 12, 'nothing new near the spawn point')
+    for (const [a, b] of biome.links) assert.ok(toSegment(tree, a, b) >= MID_STANDS.path, 'boardwalks and island links stay clear')
+    for (const s of biome.stations) assert.ok(Math.hypot(tree.x - s.x, tree.z - s.z) >= MID_STANDS.station, `station ${s.n} stays clear`)
+    assert.ok(Math.hypot(tree.x - (village.x + 2.4), tree.z - (village.z + 0.5)) >= MID_STANDS.village, 'village clearing stays open')
+  }
+})
+
+test('sundarbans pass 2: stands are varied (families, heights, silhouettes), not uniform rows', () => {
+  const { stands, mid } = midStandContext()
+  const families = Object.fromEntries(MANGROVE_SPECIES.map((name) => [name, stands.filter((t) => t.variant === name).length]))
+  for (const [name, n] of Object.entries(families)) {
+    assert.ok(n >= 8, `${name} should appear in the stands (${n})`)
+    assert.ok(n <= stands.length * 0.4, `${name} should not dominate the stands (${n})`)
+  }
+  // layered heights: juveniles under the canopy, mature trees and a few emergents
+  const scales = stands.map((t) => t.scale)
+  assert.ok(scales.filter((s) => s < 0.75).length >= 15, 'juvenile layer')
+  assert.ok(scales.filter((s) => s > 1.2).length >= 5, 'emergent crowns')
+  assert.ok(Math.max(...scales) <= 1.7 && Math.min(...scales) >= 0.45)
+  // spacing: crowns may overlap, trunks never coincide
+  let pairs = 0
+  let twins = 0
+  for (const a of mid) {
+    let nearest = null
+    for (const b of mid) {
+      if (a === b) continue
+      const d = Math.hypot(a.x - b.x, a.z - b.z)
+      assert.ok(d >= 1, `two mid trees ${d.toFixed(2)} m apart`)
+      if (a.variant === b.variant && d < 10 && (!nearest || d < nearest.d)) nearest = { d, b }
+    }
+    if (!nearest) continue
+    pairs += 1
+    if (nearest.b.form === a.form) twins += 1
+  }
+  // each family has two mid silhouettes, so chance would give about half
+  assert.ok(twins / pairs <= 0.35, `neighbouring mid trees repeat a silhouette too often (${twins}/${pairs})`)
+  // no rows: no three neighbouring stand trees on a straight, evenly spaced line
+  let rows = 0
+  for (const a of stands) {
+    const close = stands.filter((b) => b !== a && Math.hypot(a.x - b.x, a.z - b.z) < 6)
+    for (let i = 0; i < close.length; i += 1) {
+      for (let j = i + 1; j < close.length; j += 1) {
+        const mx = (close[i].x + close[j].x) / 2
+        const mz = (close[i].z + close[j].z) / 2
+        if (Math.hypot(mx - a.x, mz - a.z) < 0.12) rows += 1
+      }
+    }
+  }
+  assert.ok(rows <= 2, `stand trees line up in evenly spaced rows (${rows})`)
+})
+
+test('sundarbans pass 2: the forest stays inside the model budgets and a scene triangle ceiling', () => {
+  const models = createSundarbansModels()
+  const { placements } = midStandContext()
+  let total = 0
+  const most = { near: 0, mid: 0, far: 0 }
+  for (const p of placements) {
+    if (p.kind !== 'mangrove' && p.kind !== 'backgroundMangrove') continue
+    const lod = p.kind === 'mangrove' ? 'near' : p.lod
+    const geometry = lod === 'far' ? models.treeFar[p.form] : (lod === 'near' ? models.tree : models.treeMid)[p.variant][p.form]
+    const n = triangleCount(geometry)
+    total += n
+    most[lod] = Math.max(most[lod], n)
+  }
+  assert.ok(most.near <= 3200 && most.mid <= 720 && most.far <= 160, `model budgets: ${JSON.stringify(most)}`)
+  // Pass 1 drew about 246,000 tree triangles; the stands may add at most a quarter more
+  assert.ok(total <= 310000, `tree triangles over all instances: ${total}`)
 })
