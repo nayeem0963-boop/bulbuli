@@ -1,5 +1,5 @@
 import { mulberry32 } from '../../../core/rng.js'
-import { createBuilder, cubic, leaf, linear, tube, v } from './mangroveGeometry.js'
+import { blob, createBuilder, cubic, leaf, linear, tube, v } from './mangroveGeometry.js'
 
 const BARK = linear('#59412d')
 const BARK_LIGHT = linear('#886344')
@@ -31,9 +31,33 @@ function addLiana(builder, random, trunkHeight, angle, reach) {
   })
 }
 
-export function createAmazonTree(seed = 1, layer = 'emergent') {
+/**
+ * Levels of detail for the near forest. Every level is the SAME tree (same seed, same trunk, limbs
+ * and crown layout: the random stream is consumed identically), drawn with less:
+ *   near  every leaf blade, full bark (the model the forest has always used)
+ *   mid   a third of the blades, each larger and flat; coarser bark; no lianas
+ *   far   a twelfth of the blades as large cards; trunk and main branches only
+ * Larger blades keep the crown as full as it was, so a tree does not thin out as it recedes.
+ */
+export const AMAZON_TREE_LOD = Object.freeze({
+  near: { every: 1, clusters: 1, leafScale: 1, leafSegments: 2, trunk: 7, limb: 5, tiers: true, roots: true, lianas: true },
+  mid: { every: 3, clusters: 1, leafScale: 1.75, leafSegments: 1, trunk: 5, limb: 3, tiers: true, roots: true, lianas: false },
+  far: { every: 6, clusters: 2, leafScale: 3.1, leafSegments: 1, trunk: 4, limb: 3, tiers: false, roots: false, lianas: false },
+})
+
+/** Draws bark at a level of detail without disturbing the random stream the full model uses. */
+function bark(builder, random, detail, path, radii, options, kind = 'limb') {
+  if (detail.every === 1) return tube(builder, path, radii, options)
+  tube(createBuilder(), path, radii, options) // advance the stream exactly as the full model does
+  const keep = kind === 'tier' ? detail.tiers : kind === 'root' ? detail.roots : true
+  if (!keep) return undefined
+  return tube(builder, path, radii, { segments: kind === 'trunk' ? detail.trunk : detail.limb, base: options.base, tip: options.tip, cap: options.cap })
+}
+
+export function createAmazonTree(seed = 1, layer = 'emergent', lod = 'near') {
   const random = mulberry32(seed)
   const builder = createBuilder()
+  const detail = AMAZON_TREE_LOD[lod] ?? AMAZON_TREE_LOD.near
   const isEmergent = layer === 'emergent'
   const isSubcanopy = layer === 'subcanopy'
   const height = amazonTreeHeight(seed, layer)
@@ -45,9 +69,9 @@ export function createAmazonTree(seed = 1, layer = 'emergent') {
     v(0, height, 0),
     8,
   )
-  tube(builder, trunkPath, trunkPath.map((_, index) => trunkRadius * (1 - 0.62 * index / 8)), {
+  bark(builder, random, detail, trunkPath, trunkPath.map((_, index) => trunkRadius * (1 - 0.62 * index / 8)), {
     segments: 7, base: BARK, tip: BARK_LIGHT, random, noise: 0.12, mottle: 0.12, lichen: LICHEN,
-  })
+  }, 'trunk')
 
   const branchCount = isEmergent ? 8 : isSubcanopy ? 5 : 6
   const crownY = height * (isEmergent ? 0.73 : isSubcanopy ? 0.64 : 0.67)
@@ -71,9 +95,9 @@ export function createAmazonTree(seed = 1, layer = 'emergent') {
         end,
         4,
       )
-      tube(builder, limbPath, limbPath.map((_, index) => 0.065 * (1 - 0.62 * index / 4)), {
+      bark(builder, random, detail, limbPath, limbPath.map((_, index) => 0.065 * (1 - 0.62 * index / 4)), {
         segments: 5, base: BARK, tip: BARK_LIGHT, random, noise: 0.1,
-      })
+      }, 'tier')
     }
   }
 
@@ -92,7 +116,7 @@ export function createAmazonTree(seed = 1, layer = 'emergent') {
       end,
       4,
     )
-    tube(builder, branch, branch.map((_, i) => (isEmergent ? 0.13 : 0.095) * (1 - 0.65 * i / 4)), {
+    bark(builder, random, detail, branch, branch.map((_, i) => (isEmergent ? 0.13 : 0.095) * (1 - 0.65 * i / 4)), {
       segments: 5, base: BARK, tip: BARK_LIGHT, random, noise: 0.08,
     })
     const leafCount = isEmergent ? 20 : isSubcanopy ? 14 : 17
@@ -117,19 +141,24 @@ export function createAmazonTree(seed = 1, layer = 'emergent') {
         )
         const shade = LEAF_DARK.clone().lerp(LEAF_LIGHT, random())
         const tip = shade.clone().lerp(LEAF_LIGHT, 0.28 + random() * 0.48)
-        leaf(builder, base, direction, 0.3 + random() * 0.28, 0.065 + random() * 0.045, shade, tip, {
+        // every random draw is made for every blade, whether or not this level draws it
+        const length = 0.3 + random() * 0.28
+        const width = 0.065 + random() * 0.045
+        const shape = {
           droop: 0.12 + random() * 0.2,
           fold: 0.32 + random() * 0.32,
           curl: 0.18 + random() * 0.28,
-          segments: 2,
+          segments: detail.leafSegments,
           roll: (random() - 0.5) * 1.1,
-        })
+        }
+        if (leafIndex % detail.clusters !== 0 || blade % detail.every !== 0) continue
+        leaf(builder, base, direction, length * detail.leafScale, width * detail.leafScale, shade, tip, shape)
       }
     }
   }
 
   if (isEmergent) {
-    for (let index = 0; index < 3; index += 1) addLiana(builder, random, height, index * 2.2 + random(), 1.7 + random() * 0.8)
+    for (let index = 0; index < 3; index += 1) addLiana(detail.lianas ? builder : createBuilder(), random, height, index * 2.2 + random(), 1.7 + random() * 0.8)
   }
   const rootCount = isEmergent ? 7 : isSubcanopy ? 4 : 5
   for (let index = 0; index < rootCount; index += 1) {
@@ -144,16 +173,40 @@ export function createAmazonTree(seed = 1, layer = 'emergent') {
       v(dx * reach, -0.02, dz * reach),
       4,
     )
-    tube(builder, rootPath, rootPath.map((_, point) => 0.09 * (1 - 0.78 * point / 4)), {
+    bark(builder, random, detail, rootPath, rootPath.map((_, point) => 0.09 * (1 - 0.78 * point / 4)), {
       segments: 5, base: BARK, tip: BARK_LIGHT, random, noise: 0.12,
-    })
+    }, 'root')
   }
   return builder.build({ smoothNormals: true })
 }
 
-export function createAmazonDistantTree(seed = 1, form = 'canopy') {
+/**
+ * What an emergent tree casts as a shadow: its trunk and four soft crown masses, about a hundred
+ * triangles instead of the tree's eighteen thousand. Never drawn to the screen.
+ */
+export function createAmazonShadowProxy(seed = 11) {
+  const builder = createBuilder()
+  const height = amazonTreeHeight(seed, 'emergent')
+  const grey = linear('#808080')
+  tube(builder, [v(0, 0, 0), v(0, height * 0.5, 0), v(0, height, 0)], [0.28, 0.2, 0.1], { segments: 4, base: grey, tip: grey })
+  const crownY = height * 0.73
+  const options = { detail: 0, random: mulberry32(seed + 900), light: grey, dark: grey, lumpy: 0.2 }
+  blob(builder, v(0, crownY + height * 0.2, 0), 2.1, [1, 0.5, 1], options)
+  for (let index = 0; index < 3; index += 1) {
+    const angle = index * 2.094 + 0.4
+    blob(builder, v(Math.cos(angle) * 1.7, crownY + height * 0.08, Math.sin(angle) * 1.7), 1.7, [1, 0.45, 1], options)
+  }
+  return builder.build()
+}
+
+/**
+ * A tree of the forest beyond the playable floor. `lod` 'horizon' is the same tree for the far
+ * rings, where fog has taken most of the detail: a quarter of the leaf cards, each larger.
+ */
+export function createAmazonDistantTree(seed = 1, form = 'canopy', lod = 'distant') {
   const random = mulberry32(seed)
   const builder = createBuilder()
+  const horizon = lod === 'horizon'
   const isEmergent = form === 'emergent'
   const isSubcanopy = form === 'subcanopy'
   const height = isEmergent ? 5.8 : isSubcanopy ? 3.2 : 4.5
@@ -173,7 +226,7 @@ export function createAmazonDistantTree(seed = 1, form = 'canopy') {
   tube(builder, trunk, trunk.map((_, index) => (
     (isEmergent ? 0.15 : 0.105) * (1 - 0.72 * index / (trunk.length - 1))
   )), {
-    segments: 5,
+    segments: horizon ? 3 : 5,
     base: linear('#51432e'),
     tip: linear('#80603c'),
   })
@@ -193,7 +246,7 @@ export function createAmazonDistantTree(seed = 1, form = 'canopy') {
       end,
       3,
     )
-    tube(builder, branch, branch.map((_, point) => 0.055 * (1 - 0.72 * point / 3)), {
+    tube(horizon ? createBuilder() : builder, branch, branch.map((_, point) => 0.055 * (1 - 0.72 * point / 3)), {
       segments: 4,
       base: linear('#59412d'),
       tip: linear('#886344'),
@@ -215,13 +268,18 @@ export function createAmazonDistantTree(seed = 1, form = 'canopy') {
         Math.sin(azimuth) * Math.cos(elevation),
       )
       const color = leafColor.clone().lerp(leafLight, random())
-      leaf(builder, base, leafDirection, 0.38 + random() * 0.28, 0.09 + random() * 0.055, color, color.clone().lerp(leafLight, 0.45), {
+      const length = 0.38 + random() * 0.28
+      const width = 0.09 + random() * 0.055
+      const shape = {
         droop: 0.14 + random() * 0.2,
         fold: 0.35 + random() * 0.3,
         curl: 0.2 + random() * 0.3,
-        segments: 2,
+        segments: horizon ? 1 : 2,
         roll: (random() - 0.5) * 1.2,
-      })
+      }
+      if (horizon && card % 4 !== 0) continue
+      const size = horizon ? 2.1 : 1
+      leaf(builder, base, leafDirection, length * size, width * size, color, color.clone().lerp(leafLight, 0.45), shape)
     }
   }
   return builder.build({ smoothNormals: true })
