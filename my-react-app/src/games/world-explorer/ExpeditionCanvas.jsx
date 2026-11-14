@@ -3,9 +3,9 @@
  * textures, no fonts, so the scene makes no network requests. Per-frame state lives in refs
  * (ExplorerController); React re-renders only when the map changes.
  */
-import { Component, memo, useEffect, useMemo, useRef } from 'react'
+import { Component, memo, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { CanvasTexture, MeshStandardMaterial, PCFShadowMap, SRGBColorSpace } from 'three'
+import { CanvasTexture, MeshStandardMaterial, Object3D, PCFShadowMap, SRGBColorSpace } from 'three'
 import ExplorerController from './ExplorerController.jsx'
 import { LABEL, stationLabelPlacement } from './stationLabel.js'
 import AmazonAtmosphere from './rendering/AmazonAtmosphere.jsx'
@@ -15,6 +15,7 @@ import BiomeScatter from './rendering/BiomeScatter.jsx'
 import SundarbansScenery from './rendering/SundarbansScenery.jsx'
 import { SURFACE_PROFILES, createBiomeSurfaceTextures } from './rendering/biomeMaterials.js'
 import { createTerrainGeometry } from './rendering/terrain.js'
+import { createSurroundGeometry, distantDunes } from './rendering/saharaSurround.js'
 import { createGiantTreeGeometry } from './rendering/giantTree.js'
 import { createTidalCreekGeometry } from './rendering/tidalCreek.js'
 import { DUNE, ROCK } from './biomes/sandShapes.js'
@@ -330,7 +331,11 @@ function Ground({ biome, dark }) {
     Object.values(textures).forEach((value) => value.dispose())
   }, [geometry, textures])
 
-  return biome.discs.map((disc, index) => (
+  const sand = biome.id === 'sahara'
+  return [
+    // the Sahara's sand carries on past the plain to the horizon, in the plain's own material
+    sand ? <SaharaSurround key="surround" colour={biome.looks.gravel} textures={textures} profile={profile} dark={dark} /> : null,
+    ...biome.discs.map((disc, index) => (
     <mesh key={disc.id} geometry={geometry[index]} position={[disc.x, disc.top, disc.z]} receiveShadow>
       <meshStandardMaterial
         color={biome.looks[disc.look] ?? '#8a7a5a'}
@@ -345,7 +350,51 @@ function Ground({ biome, dark }) {
         emissive={dark ? '#111111' : '#000000'}
       />
     </mesh>
-  ))
+    )),
+  ]
+}
+
+/**
+ * The desert round the Sahara map (rendering/saharaSurround.js): a skirt of sand and a ring of
+ * far dunes. Two draw calls, no shadows cast, nothing to collide with.
+ */
+function SaharaSurround({ colour, textures, profile, dark }) {
+  const skirt = useMemo(() => createSurroundGeometry(), [])
+  const dunes = useMemo(() => distantDunes(), [])
+  const mesh = useRef()
+  useEffect(() => () => skirt.dispose(), [skirt])
+  useLayoutEffect(() => {
+    if (!mesh.current) return
+    const helper = new Object3D()
+    dunes.forEach((dune, index) => {
+      helper.position.set(dune.x, dune.y, dune.z)
+      helper.rotation.set(0, dune.rot, 0)
+      helper.scale.set(dune.length, dune.height, dune.width)
+      helper.updateMatrix()
+      mesh.current.setMatrixAt(index, helper.matrix)
+    })
+    mesh.current.instanceMatrix.needsUpdate = true
+  }, [dunes])
+  return (
+    <group>
+      <mesh geometry={skirt} receiveShadow>
+        <meshStandardMaterial
+          color={colour}
+          map={textures.map}
+          normalMap={textures.normalMap}
+          normalScale={[profile.normalScale, profile.normalScale]}
+          roughnessMap={textures.roughnessMap}
+          roughness={Math.max(0.68, profile.roughness)}
+          metalness={profile.metalness}
+          emissive={dark ? '#111111' : '#000000'}
+        />
+      </mesh>
+      <instancedMesh ref={mesh} args={[undefined, undefined, dunes.length]} frustumCulled={false}>
+        <sphereGeometry args={[1, 20, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#e6c07e" roughness={0.98} emissive={dark ? '#111111' : '#000000'} />
+      </instancedMesh>
+    </group>
+  )
 }
 
 function Water({ water, dark }) {

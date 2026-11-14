@@ -14,6 +14,7 @@ import { scatterAmazon } from '../rendering/amazonScatter.js'
 import { amazonBoughs, amazonTreeHeight } from '../rendering/amazonTrees.js'
 import { MANGROVE_FORMS, mangroveBoughs } from '../rendering/mangroveTrees.js'
 import { scatterBiomeAssets } from '../rendering/scattering.js'
+import { SURROUND } from '../rendering/saharaSurround.js'
 import { amazonPlacement, boughColliders, sundarbansPlacement } from './boughs.js'
 import { createColliderIndex } from './colliderIndex.js'
 import { ROCK_STEP, duneHeightAt, duneReach, rockTopAt } from './sandShapes.js'
@@ -298,6 +299,23 @@ export function collidersFor(biome) {
     })
   }
   const dunes = duneColliders(biome, out.filter((c) => c.kind === 'land'))
+  if (biome.id === 'sahara') {
+    // The first metres of the desert round the map (rendering/saharaSurround.js): the sand that
+    // is drawn there carries Bulbuli, so walking past the plain's edge is a few more steps on
+    // sand (until recovery.js carries it back), not a drop through the ground. It only carries:
+    // no wall, nothing to explore, and never a safe spot.
+    out.push({
+      id: 'desert-skirt',
+      kind: 'prop',
+      x: 0,
+      z: 0,
+      r: SURROUND.support,
+      top: SURROUND.base,
+      bottom: SURROUND.base - 1,
+      walkable: true,
+      supportOnly: true,
+    })
+  }
   const discsById = Object.fromEntries(biome.discs.map((d) => [d.id, d]))
   biome.stations.forEach((station) => {
     const surface = discsById[station.disc]

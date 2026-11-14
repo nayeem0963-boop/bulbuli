@@ -115,7 +115,7 @@ test('recovery: the playable area is the drawn terrain, and everything in the ex
   assert.ok(Math.min(...BIOMES.sahara.discs.map((d) => d.top)) - RECOVERY.dropBelow > PHYS.fallLimit + 10)
 })
 
-test('recovery: walking off the edge of the Sahara: a warning first, then a gentle carry back', () => {
+test('recovery: walking out past the edge of the Sahara: a warning first, a few steps on the sand, then a gentle carry back', () => {
   for (const id of ['sahara']) {
     const { biome } = world[id]
     for (const fps of [60, 24]) {
@@ -138,8 +138,10 @@ test('recovery: walking off the edge of the Sahara: a warning first, then a gent
       assert.equal(s.carries, 1, `${id} at ${fps} fps: never carried back (furthest ${s.furthest.toFixed(1)} m outside, lowest ${s.lowest.toFixed(1)})`)
       // warned while still on the ground, before the edge
       assert.ok(warnedAt !== null && warnedAt < 0 && warnedAt > -RECOVERY.warnInsideEdge - 1.5, `${id}: warned ${warnedAt} m from the edge`)
-      // caught soon after the edge: nowhere near the far fall, and no fall event at all
-      assert.ok(s.lowest > Math.min(...biome.discs.map((d) => d.top)) - RECOVERY.dropBelow - 2.5, `${id}: fell to ${s.lowest.toFixed(1)}`)
+      // past the edge the desert that is drawn carries it (no drop through the sand, no fall at all),
+      // and it is turned back within the margin
+      assert.ok(s.lowest > -0.5, `${id}: sank to ${s.lowest.toFixed(1)}`)
+      assert.ok(s.furthest > RECOVERY.limitBeyond - 0.5 && s.furthest <= RECOVERY.limitBeyond + 0.6, `${id}: walked ${s.furthest.toFixed(1)} m past the edge`)
       assert.equal(s.fell, 0)
       // carried, not teleported: about a second, at a steady speed
       s.run(1.2, [], fps)
@@ -153,7 +155,7 @@ test('recovery: walking off the edge of the Sahara: a warning first, then a gent
       assert.ok(Math.hypot(s.p.pos[0] - home[0], s.p.pos[2] - home[2]) > 5, 'the last safe spot, not the spawn point')
       assert.ok(Math.hypot(s.p.pos[0] - s.p.checkpoint[0], s.p.pos[2] - s.p.checkpoint[2]) < 45)
       // told kindly, in order: warning, returning, returned; the note then clears by itself
-      assert.deepEqual(s.told.filter(Boolean).slice(-3), ['warning', 'returning', 'returned:edge'])
+      assert.deepEqual(s.told.filter(Boolean).slice(-3), ['warning', 'returning', 'returned:far'])
       s.run(RECOVERY.noteSeconds + 0.3, [], fps)
       assert.equal(s.told.at(-1), null)
       assert.equal(s.carries, 1, 'and it is not carried again')

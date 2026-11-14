@@ -268,7 +268,7 @@ test('sahara rocks: all twelve stop a walking Bulbuli at the outline that is dra
     }
     const onCliff = cliffDistance(rock.x, rock.z) < wide + 0.5 // another pokes out of the first step's wall
     // (one more has always stood right against the oasis well, with no free run-up of its own)
-    const crowded = colliders.some((o) => o !== c && o.kind === 'prop' && !o.id.startsWith('dune-') && Math.hypot(o.x - rock.x, o.z - rock.z) < wide + 0.5)
+    const crowded = colliders.some((o) => o !== c && o.kind === 'prop' && !o.supportOnly && Math.hypot(o.x - rock.x, o.z - rock.z) < wide + 0.5)
     // walk straight at it from every side that has a clear, level run-up, at three frame rates
     let sides = 0
     for (let k = 0; k < 8 && !onCliff; k += 1) {
@@ -281,7 +281,7 @@ test('sahara rocks: all twelve stop a walking Bulbuli at the outline that is dra
         const sand = drawnTerrain(x, z)
         clear = sand !== null && Math.abs(sand - rock.y) < 0.12 && cliffDistance(x, z) > 0.8
           && dunes.every((d) => duneHeightAt(d, x, z) === -Infinity)
-          && colliders.every((o) => o === c || o.id.startsWith('dune-') || o.kind === 'land' || Math.hypot(o.x - x, o.z - z) > (o.supportRadius ?? o.r) + 0.4)
+          && colliders.every((o) => o === c || o.supportOnly || o.kind === 'land' || Math.hypot(o.x - x, o.z - z) > (o.supportRadius ?? o.r) + 0.4)
       }
       if (!clear) continue
       sides += 1
@@ -381,7 +381,7 @@ test('sahara terrain: across the whole walkable desert Bulbuli rests within 10 c
   let off = 0
   const worst = { d: 0, at: null }
   const scattered = colliders.filter((c) => c.id.startsWith('scattered-rock-') || c.id.startsWith('station-post-'))
-  const solids = colliders.filter((c) => c.kind === 'prop' && !c.id.startsWith('dune-'))
+  const solids = colliders.filter((c) => c.kind === 'prop' && !c.supportOnly)
   for (let x = -34; x <= 34; x += 1.7) {
     for (let z = -34; z <= 34; z += 1.7) {
       if (drawnTerrain(x, z) === null) continue
