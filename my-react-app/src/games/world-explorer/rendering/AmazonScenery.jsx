@@ -3,7 +3,6 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { DoubleSide, Frustum, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, RingGeometry, Sphere, Vector2 } from 'three'
 import { scatterAmazon } from './amazonScatter.js'
 import {
-  amazonTreeHeight,
   createAmazonDistantTree,
   createAmazonLog,
   createAmazonRootCluster,
@@ -11,13 +10,15 @@ import {
   createAmazonTree,
   createAmazonUnderstory,
 } from './amazonTrees.js'
-import { AMAZON_LOD, createLodSet, selectVisible } from './amazonLod.js'
+import { AMAZON_BOUNDS, AMAZON_LOD, createLodSet, selectVisible } from './amazonLod.js'
 
 const EMPTY = Object.freeze([])
 const TAG = Object.freeze({ isCollider: true, collisionKind: 'amazon-prop' })
 const PLAYER_VIEW_DEPTH = 5.4
 /** Extra radius (metres) given to every item when testing whether it is in view. */
 const VIEW_MARGIN = 2
+/** ...plus this much per metre of distance (about 5 degrees of camera turn). */
+const VIEW_MARGIN_PER_METRE = 0.09
 
 function createFoliageFade(viewport) {
   const material = new MeshStandardMaterial({
@@ -127,8 +128,9 @@ function LodInstances({ items, layers, levels, reach, centre, receiveShadow = tr
     view.frustum.setFromProjectionMatrix(view.matrix)
     const inView = (x, y, z, r) => {
       view.sphere.center.set(x, y, z)
-      // a little generous: this runs just before the camera's move for the frame is applied
-      view.sphere.radius = r + VIEW_MARGIN
+      // generous, and more so with distance: this runs just before the camera's move for the frame
+      // is applied, and a turn sweeps far trees across the screen edge faster than near ones
+      view.sphere.radius = r + VIEW_MARGIN + VIEW_MARGIN_PER_METRE * Math.hypot(x - camera.position.x, z - camera.position.z)
       return view.frustum.intersectsSphere(view.sphere)
     }
     selectVisible(set, camera.position, inView)
@@ -162,9 +164,6 @@ function LodInstances({ items, layers, levels, reach, centre, receiveShadow = tr
   ))
 }
 
-const TREE_REACH = { emergent: { height: amazonTreeHeight(11, 'emergent'), crown: 4.4 }, canopy: { height: amazonTreeHeight(23, 'canopy'), crown: 3.6 }, subcanopy: { height: amazonTreeHeight(37, 'subcanopy'), crown: 2.8 } }
-const treeBounds = (layer) => ({ centre: TREE_REACH[layer].height * 0.62, reach: Math.hypot(TREE_REACH[layer].height * 0.7, TREE_REACH[layer].crown) })
-
 export default function AmazonScenery({ biome }) {
   const { size } = useThree()
   const viewport = useMemo(() => ({ value: new Vector2(1, 1) }), [])
@@ -182,8 +181,8 @@ export default function AmazonScenery({ biome }) {
     return result
   }, [items])
   const resources = useMemo(() => {
-    const tree = (seed, layer) => ['near', 'mid', 'far'].map((lod) => createAmazonTree(seed, layer, lod))
-    const distant = (seed, form) => ['distant', 'horizon'].map((lod) => createAmazonDistantTree(seed, form, lod))
+    const tree = (seed, layer) => AMAZON_LOD.tree.map(({ level }) => createAmazonTree(seed, layer, level))
+    const distant = (seed, form) => AMAZON_LOD.distant.map(({ level }) => createAmazonDistantTree(seed, form, level))
     return {
       emergent: tree(11, 'emergent'),
       canopy: tree(23, 'canopy'),
@@ -220,11 +219,9 @@ export default function AmazonScenery({ biome }) {
     }
   }, [resources])
 
-  const treeLevels = (geometries) => [
-    { geometry: geometries[0], material: resources.foliage },
-    { geometry: geometries[1], material: resources.foliageFar },
-    { geometry: geometries[2], material: resources.foliageFar },
-  ]
+  const treeLevels = (geometries) => geometries.map((geometry, level) => (
+    { geometry, material: level < AMAZON_LOD.ditherLevels ? resources.foliage : resources.foliageFar }
+  ))
   const distantLevels = (geometries) => geometries.map((geometry) => ({ geometry, material: resources.foliageFar }))
   const small = (geometry, material = resources.foliage) => [{ geometry, material }]
   const trees = groups.emergent ?? EMPTY
@@ -238,19 +235,19 @@ export default function AmazonScenery({ biome }) {
       />
       {/* emergent trees cast their shadows through a simple stand-in shape (never drawn itself) */}
       <AmazonInstances items={trees} geometry={resources.shadow} material={resources.shadowOnly} castShadow receiveShadow={false} />
-      <LodInstances items={trees} layers={AMAZON_LOD.tree} levels={treeLevels(resources.emergent)} {...treeBounds('emergent')} collider kind="emergent-tree" />
-      <LodInstances items={groups.canopy ?? EMPTY} layers={AMAZON_LOD.tree} levels={treeLevels(resources.canopy)} {...treeBounds('canopy')} collider kind="canopy-tree" />
-      <LodInstances items={groups.subcanopy ?? EMPTY} layers={AMAZON_LOD.tree} levels={treeLevels(resources.subcanopy)} {...treeBounds('subcanopy')} collider kind="subcanopy-tree" />
-      <LodInstances items={groups.understory ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.understory)} reach={1.4} centre={0.4} collider kind="understory" />
-      <LodInstances items={groups.fern ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.fern)} reach={1} centre={0.3} />
-      <LodInstances items={groups.heliconia ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.heliconia)} reach={1.8} centre={0.6} />
-      <LodInstances items={groups.bromeliad ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.bromeliad)} reach={1} centre={0.3} />
-      <LodInstances items={groups.roots ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.roots, resources.bark)} reach={1.6} centre={0.1} />
+      <LodInstances items={trees} layers={AMAZON_LOD.tree} levels={treeLevels(resources.emergent)} {...AMAZON_BOUNDS.emergent} collider kind="emergent-tree" />
+      <LodInstances items={groups.canopy ?? EMPTY} layers={AMAZON_LOD.tree} levels={treeLevels(resources.canopy)} {...AMAZON_BOUNDS.canopy} collider kind="canopy-tree" />
+      <LodInstances items={groups.subcanopy ?? EMPTY} layers={AMAZON_LOD.tree} levels={treeLevels(resources.subcanopy)} {...AMAZON_BOUNDS.subcanopy} collider kind="subcanopy-tree" />
+      <LodInstances items={groups.understory ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.understory)} {...AMAZON_BOUNDS.understory} collider kind="understory" />
+      <LodInstances items={groups.fern ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.fern)} {...AMAZON_BOUNDS.fern} />
+      <LodInstances items={groups.heliconia ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.heliconia)} {...AMAZON_BOUNDS.heliconia} />
+      <LodInstances items={groups.bromeliad ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.bromeliad)} {...AMAZON_BOUNDS.bromeliad} />
+      <LodInstances items={groups.roots ?? EMPTY} layers={AMAZON_LOD.small} levels={small(resources.roots, resources.bark)} {...AMAZON_BOUNDS.roots} />
       <AmazonInstances items={groups.log ?? EMPTY} geometry={resources.log} material={resources.bark} castShadow collider kind="fallen-log" />
       <AmazonInstances items={groups.trail ?? EMPTY} geometry={resources.trail} material={resources.trailMaterial} />
-      <LodInstances items={groups.distantEmergent ?? EMPTY} layers={AMAZON_LOD.distant} levels={distantLevels(resources.distantEmergent)} reach={5} centre={3.2} receiveShadow={false} kind="distant-emergent" />
-      <LodInstances items={groups.distantCanopy ?? EMPTY} layers={AMAZON_LOD.distant} levels={distantLevels(resources.distantCanopy)} reach={4} centre={2.5} receiveShadow={false} kind="distant-canopy" />
-      <LodInstances items={groups.distantSubcanopy ?? EMPTY} layers={AMAZON_LOD.distant} levels={distantLevels(resources.distantSubcanopy)} reach={3.4} centre={1.8} receiveShadow={false} kind="distant-subcanopy" />
+      <LodInstances items={groups.distantEmergent ?? EMPTY} layers={AMAZON_LOD.distant} levels={distantLevels(resources.distantEmergent)} {...AMAZON_BOUNDS.distantEmergent} receiveShadow={false} kind="distant-emergent" />
+      <LodInstances items={groups.distantCanopy ?? EMPTY} layers={AMAZON_LOD.distant} levels={distantLevels(resources.distantCanopy)} {...AMAZON_BOUNDS.distantCanopy} receiveShadow={false} kind="distant-canopy" />
+      <LodInstances items={groups.distantSubcanopy ?? EMPTY} layers={AMAZON_LOD.distant} levels={distantLevels(resources.distantSubcanopy)} {...AMAZON_BOUNDS.distantSubcanopy} receiveShadow={false} kind="distant-subcanopy" />
     </group>
   )
 }

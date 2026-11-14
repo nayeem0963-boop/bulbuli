@@ -34,15 +34,17 @@ function addLiana(builder, random, trunkHeight, angle, reach) {
 /**
  * Levels of detail for the near forest. Every level is the SAME tree (same seed, same trunk, limbs
  * and crown layout: the random stream is consumed identically), drawn with less:
- *   near  every leaf blade, full bark (the model the forest has always used)
- *   mid   a third of the blades, each larger and flat; coarser bark; no lianas
- *   far   a twelfth of the blades as large cards; trunk and main branches only
+ *   near   every leaf blade, cupped; full bark (the model the forest has always used)
+ *   close  every leaf blade, flat; full bark. Nothing is missing, only the blades' curl
+ *   mid    a third of the blades, each larger and flat; coarser bark; no lianas
+ *   far    an eighth of the blades as large cards; trunk and main branches only
  * Larger blades keep the crown as full as it was, so a tree does not thin out as it recedes.
  */
 export const AMAZON_TREE_LOD = Object.freeze({
   near: { every: 1, clusters: 1, leafScale: 1, leafSegments: 2, trunk: 7, limb: 5, tiers: true, roots: true, lianas: true },
+  close: { every: 1, clusters: 1, leafScale: 1, leafSegments: 1, trunk: 7, limb: 5, tiers: true, roots: true, lianas: true },
   mid: { every: 3, clusters: 1, leafScale: 1.75, leafSegments: 1, trunk: 5, limb: 3, tiers: true, roots: true, lianas: false },
-  far: { every: 6, clusters: 2, leafScale: 3.1, leafSegments: 1, trunk: 4, limb: 3, tiers: false, roots: false, lianas: false },
+  far: { every: 4, clusters: 2, leafScale: 2.7, leafSegments: 1, trunk: 4, limb: 3, tiers: false, roots: false, lianas: false },
 })
 
 /** Draws bark at a level of detail without disturbing the random stream the full model uses. */
@@ -201,7 +203,8 @@ export function createAmazonShadowProxy(seed = 11) {
 
 /**
  * A tree of the forest beyond the playable floor. `lod` 'horizon' is the same tree for the far
- * rings, where fog has taken most of the detail: a quarter of the leaf cards, each larger.
+ * rings, where fog has taken most of the detail: half of the leaf cards, each larger, so the crown
+ * covers as much as it did.
  */
 export function createAmazonDistantTree(seed = 1, form = 'canopy', lod = 'distant') {
   const random = mulberry32(seed)
@@ -277,8 +280,8 @@ export function createAmazonDistantTree(seed = 1, form = 'canopy', lod = 'distan
         segments: horizon ? 1 : 2,
         roll: (random() - 0.5) * 1.2,
       }
-      if (horizon && card % 4 !== 0) continue
-      const size = horizon ? 2.1 : 1
+      if (horizon && card % 2 !== 0) continue
+      const size = horizon ? 1.5 : 1
       leaf(builder, base, leafDirection, length * size, width * size, color, color.clone().lerp(leafLight, 0.45), shape)
     }
   }

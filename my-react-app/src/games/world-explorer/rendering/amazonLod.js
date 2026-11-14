@@ -13,10 +13,31 @@
 export const AMAZON_LOD = Object.freeze({
   /** A tree keeps its current level until it is this far past a threshold, so it cannot flicker. */
   hysteresis: 1.5,
-  tree: Object.freeze([{ level: 'near', until: 10 }, { level: 'mid', until: 28 }, { level: 'far', until: Infinity }]),
-  distant: Object.freeze([{ level: 'distant', until: 66 }, { level: 'horizon', until: Infinity }]),
+  tree: Object.freeze([{ level: 'near', until: 6 }, { level: 'close', until: 10 }, { level: 'mid', until: 28 }, { level: 'far', until: Infinity }]),
+  /** The last level of `tree` that is close enough to need the see-through dither (it acts within 7 m). */
+  ditherLevels: 2,
+  distant: Object.freeze([{ level: 'distant', until: 82 }, { level: 'horizon', until: Infinity }]),
   /** Ferns, heliconia, bromeliads, roots and the like: one level, only hidden when out of view. */
   small: Object.freeze([{ level: 'near', until: Infinity }]),
+})
+
+/**
+ * A sphere that contains one item's whole model: `centre` metres above its position and `reach`
+ * metres in radius, at scale 1. An item is drawn whenever its sphere touches the camera's view,
+ * so these must never be smaller than the model (amazonLod.test.js measures the models).
+ */
+export const AMAZON_BOUNDS = Object.freeze({
+  emergent: { centre: 5.4, reach: 7.2 },
+  canopy: { centre: 3.6, reach: 5.2 },
+  subcanopy: { centre: 3.1, reach: 4.4 },
+  distantEmergent: { centre: 3.2, reach: 5.4 },
+  distantCanopy: { centre: 2.5, reach: 4.2 },
+  distantSubcanopy: { centre: 1.9, reach: 3.8 },
+  understory: { centre: 0.4, reach: 1.4 },
+  fern: { centre: 0.3, reach: 1 },
+  heliconia: { centre: 0.6, reach: 1.8 },
+  bromeliad: { centre: 0.3, reach: 1 },
+  roots: { centre: 0.1, reach: 1.6 },
 })
 
 /**
