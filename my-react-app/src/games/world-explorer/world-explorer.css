@@ -124,6 +124,9 @@
   border-radius: 6px; font: 800 0.72rem/1 var(--font-body); color: var(--hud-text);
   background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.28); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
 }
+/* safe recovery: a calm note, never an alarm (no red, no flashing) */
+.wx-safety { padding: 0.55rem 1rem; font-weight: 800; max-width: 26rem; text-align: center; animation: wx-pop 220ms ease-out; }
+.wx-safety.is-warning { background: #fff4cf; color: #5a4300; border-color: #f0c64a; }
 .wx-near { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; justify-content: center; padding: 0.55rem 0.6rem 0.55rem 1rem; margin-left: auto; font-weight: 800; animation: wx-pop 220ms ease-out; }
 @keyframes wx-pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (pointer: coarse) { .wx-hud-keys { display: none; } }
@@ -182,7 +185,7 @@
 @keyframes wx-slide { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .wx-drawer, .wx-drawer.is-open, .wx-scrim, .wx .wx-pill { transition: none; }
-  .wx-near, .wx-sheet-wrap, .wx-sheet .wx-station { animation: none; }
+  .wx-near, .wx-safety, .wx-sheet-wrap, .wx-sheet .wx-station { animation: none; }
 }
 
 /* station panel */

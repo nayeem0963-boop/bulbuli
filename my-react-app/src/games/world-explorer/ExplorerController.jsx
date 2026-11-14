@@ -17,14 +17,16 @@ import BulbuliAvatar from '../skyward-explorer/BulbuliAvatar.jsx'
 import AmazonBirdAvatar from './AmazonBirdAvatar.jsx'
 import { collidersFor } from './biomes/index.js'
 import { createColliderIndex } from './biomes/colliderIndex.js'
+import { createRecovery, markSafe, updateRecovery } from './recovery.js'
 import { nearestStation } from './proximity.js'
 import { readExplorerControls, rescueFromWater, stayOnDunes } from './drive.js'
 import { advanceCamera, cameraPose, cameraRigFor, createCameraState } from './cameraRig.js'
 import PlayerGlow from './PlayerGlow.jsx'
 
 const BIRD_SCALE = 0.3
+const NO_EVENTS = Object.freeze({ jumped: false, landed: false, glideStart: false, fell: false, impact: 0 })
 
-export default function ExplorerController({ biome, inputRef, activeRef, teleportRef, onNear, reducedMotion }) {
+export default function ExplorerController({ biome, inputRef, activeRef, teleportRef, onNear, onSafety, reducedMotion }) {
   // the physics is handed only the colliders round Bulbuli (biomes/colliderIndex.js)
   const colliders = useMemo(() => createColliderIndex(collidersFor(biome)), [biome])
   const discTops = useMemo(() => Object.fromEntries(biome.discs.map((d) => [d.id, d.top])), [biome])
@@ -35,12 +37,17 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
   const avatar = useRef()
   const yaw = useRef(biome.spawn.facing + Math.PI)
   const near = useRef(null)
+  // safe recovery (recovery.js): the last safe spot, the carry back, and what the HUD was last told
+  const recovery = useRef(createRecovery(biome))
+  const carrying = useRef(false)
+  const safety = useRef(null)
   const lastJumps = useRef(null) // jump-press count already handled (set on the first frame)
   const camTarget = useMemo(() => new Vector3(), [])
   const camState = useRef(createCameraState()) // only used on maps with volumes to avoid
   const { camera } = useThree()
 
   useFrame((state, dtRaw) => {
+    if (!(dtRaw > 0)) return // a frame with no time in it (or a clock that stepped back): nothing to do
     const dt = Math.min(dtRaw, 1 / 30)
     const p = player.current
     if (teleportRef.current) {
@@ -51,14 +58,27 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
       p.grounded = false
       p.groundId = null
       p.checkpoint = [t.x, t.y, t.z]
+      markSafe(recovery.current, [t.x, t.y, t.z])
+      carrying.current = false
     }
     const controls = readExplorerControls(inputRef.current, { active: activeRef.current, yaw: yaw.current, lastJumps: lastJumps.current, dt })
     const manualTurn = Math.sign(controls.yaw - yaw.current) // the player's own Q / E this frame
     yaw.current = controls.yaw
     lastJumps.current = controls.lastJumps
-    const events = stepPlayer(p, controls.step, dt, colliders.near(p.pos[0], p.pos[2]))
-    rescueFromWater(p, biome, events)
-    stayOnDunes(p, biome)
+    // while Bulbuli is being carried back to a safe spot the physics rests (recovery.js moves it)
+    const nearby = colliders.near(p.pos[0], p.pos[2])
+    const events = carrying.current ? NO_EVENTS : stepPlayer(p, controls.step, dt, nearby)
+    if (!carrying.current) {
+      rescueFromWater(p, biome, events)
+      stayOnDunes(p, biome)
+    }
+    const safe = updateRecovery(recovery.current, p, biome, dt, { colliders: nearby, events, flying: controls.step.flightHeld, reducedMotion })
+    carrying.current = safe.carrying
+    const told = safe.carrying ? 'returning' : safe.note ? `returned:${safe.note.reason}` : safe.warning ? 'warning' : null
+    if (told !== safety.current) {
+      safety.current = told
+      onSafety?.(told)
+    }
     if (events.jumped) sfx.jump()
     if (events.landed) sfx.land(events.impact)
     if (events.fell) sfx.fall()

@@ -444,7 +444,7 @@ function hasWebGL() {
   }
 }
 
-function ExpeditionCanvas({ biome, dark, inputRef, activeRef, teleportRef, onNear, near, completed, reducedMotion, label, noWebglMessage, stationLabel, paused }) {
+function ExpeditionCanvas({ biome, dark, inputRef, activeRef, teleportRef, onNear, onSafety, near, completed, reducedMotion, label, noWebglMessage, stationLabel, paused }) {
   const supported = useMemo(() => hasWebGL(), [])
   const discTops = useMemo(() => Object.fromEntries(biome.discs.map((d) => [d.id, d.top])), [biome])
   if (!supported) return <p className="wx-no3d" role="status">{noWebglMessage}</p>
@@ -493,7 +493,7 @@ function ExpeditionCanvas({ biome, dark, inputRef, activeRef, teleportRef, onNea
             cameraAware={Boolean(biome.labels?.cameraAware)}
           />
         ))}
-        <ExplorerController key={biome.id} biome={biome} inputRef={inputRef} activeRef={activeRef} teleportRef={teleportRef} onNear={onNear} reducedMotion={reducedMotion} />
+        <ExplorerController key={biome.id} biome={biome} inputRef={inputRef} activeRef={activeRef} teleportRef={teleportRef} onNear={onNear} onSafety={onSafety} reducedMotion={reducedMotion} />
       </Canvas>
     </CanvasBoundary>
   )

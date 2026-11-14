@@ -454,6 +454,7 @@ function ExpeditionScreen({ text, language, expedition, content, record, dark, o
   const inputRef = useInputState()
   const [open, setOpen] = useState(null) // station number with its panel open
   const [near, setNear] = useState(null)
+  const [safety, setSafety] = useState(null) // 'warning' | 'returning' | 'returned:<reason>' (recovery.js)
   const [logOpen, setLogOpen] = useState(false)
   const activeRef = useRef(true)
   const teleportRef = useRef(null)
@@ -507,6 +508,7 @@ function ExpeditionScreen({ text, language, expedition, content, record, dark, o
             activeRef={activeRef}
             teleportRef={teleportRef}
             onNear={setNear}
+            onSafety={setSafety}
             near={near}
             completed={completed}
             reducedMotion={reducedMotion}
@@ -558,6 +560,14 @@ function ExpeditionScreen({ text, language, expedition, content, record, dark, o
         {open === null ? (
           <div className="wx-hud-bottom">
             <div className="wx-hud-card wx-hud-keys"><KeyHints text={text} /></div>
+            {safety ? (
+              <div className={`wx-hud-card wx-safety${safety === 'warning' ? ' is-warning' : ''}`} role="status" data-safety={safety}>
+                {safety === 'warning' ? text.safetyWarning
+                  : safety === 'returning' ? text.safetyReturning
+                    : safety === 'returned:water' ? text.safetyReturnedWater
+                      : text.safetyReturned}
+              </div>
+            ) : null}
             {near ? (
               <div className="wx-hud-card wx-near" role="status">
                 <span>{text.near(n(near), L(content.stations[near - 1].station.title))}</span>

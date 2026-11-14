@@ -511,7 +511,7 @@ test('collider index: a step taken with the colliders near Bulbuli is the step t
   // the controller uses it, with its frame time capped as the margin assumes
   const controller = readFileSync(new URL('../ExplorerController.jsx', import.meta.url), 'utf8')
   assert.ok(controller.includes('createColliderIndex(collidersFor(biome))'))
-  assert.ok(controller.includes('stepPlayer(p, controls.step, dt, colliders.near(p.pos[0], p.pos[2]))'))
+  assert.ok(controller.includes('const nearby = colliders.near(p.pos[0], p.pos[2])') && controller.includes('stepPlayer(p, controls.step, dt, nearby)'))
   assert.ok(controller.includes('const dt = Math.min(dtRaw, 1 / 30)'))
 })
 

@@ -47,6 +47,11 @@ export const WORLD_TEXT = {
     openStation: (n) => `Open station ${n}`,
     stationLabel: (n) => `Station ${n}`,
     near: (n, title) => `You are at station ${n}: ${title}`,
+    // safe recovery (recovery.js): a gentle warning near the edge, and a kind note after a carry back
+    safetyWarning: 'Bulbuli is near the edge of the expedition. Turn back towards the stations.',
+    safetyReturning: 'Carrying Bulbuli back to a safe spot…',
+    safetyReturned: 'Bulbuli is back on safe ground. Nothing is lost. Keep exploring!',
+    safetyReturnedWater: 'Bulbuli got wet and is back on dry ground. Nothing is lost. Keep exploring!',
     leave: 'Leave expedition',
     journal: 'Journal',
     fileReport: 'File expedition report',
@@ -147,6 +152,11 @@ export const WORLD_TEXT = {
     openStation: (n) => `স্টেশন ${n} খোলো`,
     stationLabel: (n) => `স্টেশন ${n}`,
     near: (n, title) => `তুমি স্টেশন ${n}-এ আছ: ${title}`,
+    // নিরাপদ ফিরে আসা (recovery.js) — Bangla wording awaits language review
+    safetyWarning: 'বুলবুলি অভিযানের সীমানার কাছে চলে এসেছে। স্টেশনগুলোর দিকে ফিরে চলো।',
+    safetyReturning: 'বুলবুলিকে নিরাপদ জায়গায় ফিরিয়ে আনা হচ্ছে…',
+    safetyReturned: 'বুলবুলি আবার নিরাপদ জায়গায় ফিরে এসেছে। কিছুই হারায়নি। ঘুরে দেখতে থাকো!',
+    safetyReturnedWater: 'বুলবুলি ভিজে গিয়েছিল, এখন আবার শুকনো মাটিতে। কিছুই হারায়নি। ঘুরে দেখতে থাকো!',
     leave: 'অভিযান ছেড়ে যাও',
     journal: 'জার্নাল',
     fileReport: 'অভিযানের প্রতিবেদন জমা দাও',
