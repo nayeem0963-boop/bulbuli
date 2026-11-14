@@ -445,7 +445,8 @@ test('sahara: nowhere on the plain is Bulbuli trapped between dunes, rocks and s
 })
 
 test('sahara pass: the Amazon and the Sundarbans have exactly the colliders they had', () => {
-  const sign = (id) => createHash('sha256').update(JSON.stringify(collidersFor(BIOMES[id]).map((c) => [c.id, c.kind, +(c.x ?? 0).toFixed(4), +(c.z ?? 0).toFixed(4), +(c.r ?? 0).toFixed(4), +(c.top ?? 0).toFixed(4), +(c.bottom ?? 0).toFixed(4), Boolean(c.walkable)]))).digest('hex').slice(0, 16)
+  // (the colliders they had: the tree-collision pass has since added young-tree stems to the Sundarbans)
+  const sign = (id) => createHash('sha256').update(JSON.stringify(collidersFor(BIOMES[id]).filter((c) => !c.id.startsWith('sapling-trunk-')).map((c) => [c.id, c.kind, +(c.x ?? 0).toFixed(4), +(c.z ?? 0).toFixed(4), +(c.r ?? 0).toFixed(4), +(c.top ?? 0).toFixed(4), +(c.bottom ?? 0).toFixed(4), Boolean(c.walkable)]))).digest('hex').slice(0, 16)
   assert.equal(sign('amazon'), '0c17d8339da7fa80')
   assert.equal(sign('sundarbans'), '5f8f0487cc358af1')
 })

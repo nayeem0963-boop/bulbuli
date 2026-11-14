@@ -15,6 +15,11 @@ import { amazonTreeHeight } from '../rendering/amazonTrees.js'
 import { scatterBiomeAssets } from '../rendering/scattering.js'
 import { ROCK_STEP, duneHeightAt, duneReach, rockTopAt } from './sandShapes.js'
 
+/** The acacia trunk that BiomeScatter.jsx draws, per unit of the tree's scale (radius at its base). */
+export const ACACIA_TRUNK = Object.freeze({ radius: 0.22 * 0.75, height: 4.4 })
+/** Stem radius of a Sundarbans sapling per unit of its scale, by family (mangroveTrees.js). */
+export const SAPLING_STEM = Object.freeze({ sundari: 0.25, gewa: 0.2, keora: 0.19, garjan: 0.15 })
+
 /** Bulbuli's body radius in physics.js (PHYS.radius), for colliders sized to a drawn outline. */
 const PLAYER_RADIUS = 0.35
 
@@ -165,8 +170,40 @@ export function collidersFor(biome) {
       surfaceType: 'prop',
     })
   })
+  // Acacias (the Sahara's scattered trees): a solid trunk exactly as wide as the one drawn
+  // (BiomeScatter.jsx: a 0.22 m base tapering to 0.14 m, 0.75 wide and 4.4 tall, times the tree's
+  // scale). No padding round it, so there is no invisible wall; the flat crown stays soft.
+  scatteredAssets.forEach((tree, i) => {
+    if (tree.kind !== 'acacia') return
+    out.push({
+      id: `acacia-trunk-${i}`,
+      kind: 'prop',
+      x: tree.x,
+      z: tree.z,
+      r: ACACIA_TRUNK.radius * tree.scale,
+      top: tree.y + ACACIA_TRUNK.height * tree.scale,
+      bottom: tree.y - 0.2,
+      walkable: false,
+    })
+  })
   if (biome.id === 'sundarbans') {
     const branchHeight = { sundari: 3.4, gewa: 2.8, keora: 3.2, garjan: 3.1, goran: 1.1 }
+    // Young trees at the grove edges (1 to 3.5 m tall): a solid stem as slim as the one drawn.
+    // Goran saplings are knee-to-chest-high shrubs of finger-thin stems and stay soft, like the
+    // rest of the undergrowth.
+    scatteredAssets.forEach((tree, i) => {
+      if (tree.kind !== 'sapling' || !SAPLING_STEM[tree.variant]) return
+      out.push({
+        id: `sapling-trunk-${i}`,
+        kind: 'prop',
+        x: tree.x,
+        z: tree.z,
+        r: SAPLING_STEM[tree.variant] * tree.scale,
+        top: tree.y + branchHeight[tree.variant] * tree.scale * (tree.stretch ?? 1),
+        bottom: tree.y - 0.2,
+        walkable: false,
+      })
+    })
     scatteredAssets.forEach((tree, i) => {
       if (tree.kind !== 'mangrove' || tree.background) return
       const height = branchHeight[tree.variant] * tree.scale * (tree.stretch ?? 1)

@@ -136,12 +136,15 @@ function playVillage(start, yaw0, keys, seconds) {
     // camera-relative movement: where Bulbuli went, measured against the camera's own axes
     const step = [p.pos[0] - from[0], p.pos[2] - from[2]]
     const length = Math.hypot(step[0], step[1])
+    // (a step spent sliding round a young tree's stem is the tree's doing, not the camera's: those
+    // stems are solid since the tree-collision pass, and one stands on a route walked here)
+    const atStem = colliders.some((c) => c.id.startsWith('sapling-trunk-') && Math.hypot(p.pos[0] - c.x, p.pos[2] - c.z) <= c.r + 0.4)
     if (length > 1e-4 && !events.fell) {
       m.relative[0] += 1
       const forward = (step[0] * -Math.sin(yaw) + step[1] * -Math.cos(yaw)) / length
       const right = (step[0] * Math.cos(yaw) + step[1] * -Math.sin(yaw)) / length
       const want = keys.includes('forward') ? forward : keys.includes('back') ? -forward : keys.includes('right') ? right : keys.includes('left') ? -right : 1
-      if (want > 0.6) m.relative[1] += 1
+      if (want > 0.6 || atStem) m.relative[1] += 1
     }
   }
   return { ...m, net: deg(yaw - yaw0), yaw, state, pos: [...p.pos], rig, view: previous }
