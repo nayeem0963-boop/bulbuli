@@ -94,8 +94,9 @@ function play(biomeId, { at, extra = [] } = {}) {
     const [x, y, z] = p.pos
     let blocker = null
     // anything that blocks at body height: trunks, and ledges such as the giant tree's lowest step
+    // ...and the cliff of a raised piece of ground (the Sahara's steps), which is a wall from below
     const obstacles = colliders.filter((c) => c.shape !== 'aabb' && !c.surfaceOnly && !c.supportOnly
-      && (isSolidPost(c) || c.bottom > y + 0.05))
+      && (isSolidPost(c) || c.bottom > y + 0.05 || (c.kind === 'land' && c.top > y + 0.3)))
     for (const c of obstacles) {
       if (!inBand(c, y)) continue
       const ox = c.x - x

@@ -1,5 +1,5 @@
 import { mulberry32 } from '../../../core/rng.js'
-import { terrainHeightAt, terrainSeed, TERRAIN_FOOTPRINT_SCALE } from './terrain.js'
+import { hasExpandedTerrainFootprint, terrainHeightAt, terrainSeed, TERRAIN_FOOTPRINT_SCALE } from './terrain.js'
 import { scatterSundarbans } from './sundarbansScatter.js'
 
 const ASSET_RULES = Object.freeze({
@@ -28,11 +28,14 @@ function segmentDistance(x, z, a, b) {
   return Math.hypot(x - (a.x + t * dx), z - (a.z + t * dz))
 }
 
+/** Radius of the ground a disc is drawn with (its expanded footprint, or the disc itself). */
+const drawnRadius = (disc) => disc.r * (hasExpandedTerrainFootprint(disc) ? TERRAIN_FOOTPRINT_SCALE : 1)
+
 function weightedDisc(discs, random) {
-  const total = discs.reduce((sum, disc) => sum + Math.PI * disc.r * disc.r, 0)
+  const total = discs.reduce((sum, disc) => sum + Math.PI * drawnRadius(disc) ** 2, 0)
   let value = random() * total
   for (const disc of discs) {
-    value -= Math.PI * disc.r * disc.r
+    value -= Math.PI * drawnRadius(disc) ** 2
     if (value <= 0) return disc
   }
   return discs[discs.length - 1]
@@ -60,7 +63,7 @@ export function scatterBiomeAssets(biome, { densityScale = 1 } = {}) {
     ]
     const eligible = biome.discs.filter((disc) => rule.looks.includes(disc.look))
     if (!eligible.length) return
-    const area = eligible.reduce((sum, disc) => sum + Math.PI * disc.r * disc.r * TERRAIN_FOOTPRINT_SCALE ** 2, 0)
+    const area = eligible.reduce((sum, disc) => sum + Math.PI * drawnRadius(disc) ** 2, 0)
     const count = Math.min(rule.max, Math.max(0, Math.round(area * rule.density * densityScale)))
     const random = mulberry32(seed + ruleIndex * 7919)
     let attempts = 0
@@ -69,7 +72,7 @@ export function scatterBiomeAssets(biome, { densityScale = 1 } = {}) {
       attempts += 1
       const disc = weightedDisc(eligible, random)
       const angle = random() * Math.PI * 2
-      const radius = Math.sqrt(random()) * disc.r * TERRAIN_FOOTPRINT_SCALE * 0.96
+      const radius = Math.sqrt(random()) * drawnRadius(disc) * 0.96
       const x = disc.x + Math.cos(angle) * radius
       const z = disc.z + Math.sin(angle) * radius
       if (biome.links.some(([a, b]) => segmentDistance(x, z, a, b) < 1.8)) continue

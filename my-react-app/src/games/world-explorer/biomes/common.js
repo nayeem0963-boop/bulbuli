@@ -13,12 +13,16 @@ import { hasExpandedTerrainFootprint, terrainFootprintRadius, terrainHeightAt, t
 import { scatterAmazon } from '../rendering/amazonScatter.js'
 import { amazonTreeHeight } from '../rendering/amazonTrees.js'
 import { scatterBiomeAssets } from '../rendering/scattering.js'
+import { ROCK_STEP, duneHeightAt, duneReach, rockTopAt } from './sandShapes.js'
+
+/** Bulbuli's body radius in physics.js (PHYS.radius), for colliders sized to a drawn outline. */
+const PLAYER_RADIUS = 0.35
 
 /** How far (metres) inside a disc's drawn edge the walkable edge sits, so feet never hang over air. */
 export const WALK_INSET = 0.3
 
-export function disc(id, x, z, r, top, look, depth = 0.6) {
-  return { id, x, z, r, top, depth, look }
+export function disc(id, x, z, r, top, look, depth = 0.6, extra = {}) {
+  return { id, x, z, r, top, depth, look, ...extra }
 }
 
 /** Colliders in the physics.js format. */
@@ -31,7 +35,9 @@ export function collidersFor(biome) {
       kind: 'land',
       x: d.x,
       z: d.z,
-      r: d.r - WALK_INSET,
+      // a `cliff` disc is a raised step with a drawn wall: Bulbuli's body stops exactly at the
+      // wall's (slightly wavy) outline instead of 0.3 m inside it, so it cannot stand in the rim
+      r: d.cliff ? terrainFootprintRadius(d) - PLAYER_RADIUS : d.r - WALK_INSET,
       top: d.top,
       bottom: d.top - d.depth,
       walkable: true,
@@ -95,19 +101,28 @@ export function collidersFor(biome) {
       }
       const top = p.blockTop ?? (p.y ?? 0) + (topByType[p.type] ?? 2)
       const walkable = p.walkable ?? ['rock', 'stump', 'well'].includes(p.type)
+      // A rock that knows its own size (sandShapes.js): Bulbuli's body stops at the outline of the
+      // stone that is drawn (not at a fixed 0.6 m), and the rock carries it, as far out as that
+      // outline, on its rounded top (not on a flat lid at its highest point, 0.8 m wide whether
+      // the stone was 0.4 or 1.1 m across).
+      const sized = p.type === 'rock' && p.contactRadius
+      const contact = sized ? Math.max(0.1, p.contactRadius - PLAYER_RADIUS) : p.block
       out.push({
         id: `prop-${i}`,
         kind: 'prop',
         collisionKind: p.type === 'giantTree' || p.type === 'rainTree' ? 'tree-trunk' : undefined,
-        collisionRadius: p.type === 'giantTree' ? Math.max(p.block, 1.2 * scale) : p.block,
+        collisionRadius: p.type === 'giantTree' ? Math.max(p.block, 1.2 * scale) : contact,
         x: p.x,
         z: p.z,
-        r: p.block,
-        supportRadius: walkable ? (p.supportRadius ?? p.block + 0.2) : p.block,
-        top,
+        r: contact,
+        supportRadius: sized ? p.contactRadius : walkable ? (p.supportRadius ?? p.block + 0.2) : p.block,
+        heightAt: sized ? (x, z) => rockTopAt(p, x, z) : undefined,
+        // a sized rock's side wall ends just above its lowest carrying surface: it stops a walking
+        // bird, and never shoves aside one that is landing on the stone's shoulder
+        top: sized ? (p.y ?? 0) + ROCK_STEP + 0.05 : top,
         bottom: p.blockBottom ?? -5,
         walkable,
-        surfaceType: walkable ? 'prop' : undefined,
+        surfaceType: walkable && !sized ? 'prop' : undefined,
       })
     }
 
@@ -235,6 +250,7 @@ export function collidersFor(biome) {
       }
     })
   }
+  const dunes = duneColliders(biome, out.filter((c) => c.kind === 'land'))
   const discsById = Object.fromEntries(biome.discs.map((d) => [d.id, d]))
   biome.stations.forEach((station) => {
     const surface = discsById[station.disc]
@@ -252,7 +268,47 @@ export function collidersFor(biome) {
       walkable: true,
     })
   })
-  return out
+  // dunes come first: where a dune stands, its surface (never lower than the sand under it) is the
+  // ground, so the land beneath never competes with it
+  return [...dunes, ...out]
+}
+
+/**
+ * A walkable surface for each dune prop, shaped exactly like the dune that is drawn
+ * (sandShapes.js). It only carries Bulbuli (supportOnly: no side wall, so the bird is never
+ * pushed away from a dune, on the ground or in the air); drive.js keeps a bird that flies or
+ * jumps into a dune's side on its surface.
+ * Inside the dune's outline the surface is the dune, or the sand where the dune's rim dips below
+ * it; outside the outline it is the sand.
+ */
+function duneColliders(biome, land) {
+  const landHeightAt = (x, z) => {
+    let top = -Infinity
+    for (const c of land) {
+      const distance = Math.hypot(x - c.x, z - c.z)
+      if (distance > c.r || (c.innerRadius != null && distance < c.innerRadius)) continue
+      top = Math.max(top, c.heightAt ? c.heightAt(x, z) : c.top)
+    }
+    return top
+  }
+  return biome.props.filter((p) => p.type === 'dune').map((p, i) => {
+    const s = p.scale ?? 1
+    return {
+      id: `dune-${i}`,
+      kind: 'prop',
+      x: p.x,
+      z: p.z,
+      r: duneReach(p),
+      top: (p.y ?? 0) + 1.6 * s,
+      bottom: (p.y ?? 0) - 1,
+      walkable: true,
+      supportOnly: true,
+      surfaceType: undefined,
+      // (beyond the outline it answers with the sand itself, never with "nothing": a bird that
+      // walks off a dune must always have a finite height under it)
+      heightAt: (x, z) => Math.max(duneHeightAt(p, x, z), landHeightAt(x, z)),
+    }
+  })
 }
 
 const segDist = (px, pz, ax, az, bx, bz) => {

@@ -88,7 +88,10 @@ for (const biome of Object.values(BIOMES)) {
     const expandedDiscs = biome.discs.filter(hasExpandedTerrainFootprint)
     assert.equal(apronColliders.length, expandedDiscs.length)
     coreColliders.forEach((collider, index) => {
-      assert.equal(collider.r, biome.discs[index].r - 0.3)
+      // a raised step with a drawn wall (`cliff`) is solid right up to that wall's outline;
+      // every other piece of ground keeps its walkable edge 0.3 m inside the drawn edge
+      const disc = biome.discs[index]
+      assert.equal(collider.r, disc.cliff ? terrainFootprintRadius(disc) - 0.35 : disc.r - 0.3)
       assert.equal(collider.x, biome.discs[index].x)
       assert.equal(collider.z, biome.discs[index].z)
       assert.equal(collider.heightAt(biome.discs[index].x, biome.discs[index].z), biome.discs[index].top)

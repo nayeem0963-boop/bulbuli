@@ -20,9 +20,16 @@ export function canHop(colliders, from, to, { glide = false } = {}) {
   const p = createPlayer({ position: [from.x, fromC.top, from.z], facing: Math.atan2(to.x - from.x, to.z - from.z) })
   p.groundId = fromC.id
   let jumped = false
+  // Stepping DOWN onto ground that lies partly under this piece (the Sahara's steps overlap like
+  // terraces): the lower piece's centre can be under the upper one, so keep walking the same way
+  // until Bulbuli is off the edge instead of circling a point it is standing above.
+  const terrace = toC.top < fromC.top - 0.04 && gap < 0
+  const away = Math.hypot(to.x - from.x, to.z - from.z) || 1
+  const heading = [(to.x - from.x) / away, (to.z - from.z) / away]
   for (let t = 0; t < 8; t += DT) {
-    const dx = toC.x - p.pos[0]
-    const dz = toC.z - p.pos[2]
+    const over = terrace && p.groundId === fromC.id
+    const dx = over ? heading[0] : toC.x - p.pos[0]
+    const dz = over ? heading[1] : toC.z - p.pos[2]
     const dist = Math.hypot(dx, dz) || 1
     const fromDist = Math.hypot(p.pos[0] - fromC.x, p.pos[2] - fromC.z)
     const press = needsJump && !jumped && p.grounded && p.groundId === fromC.id && (dist - toC.r <= 1.1 || fromDist >= fromC.r - 0.35)

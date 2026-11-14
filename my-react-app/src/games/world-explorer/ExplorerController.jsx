@@ -17,7 +17,7 @@ import BulbuliAvatar from '../skyward-explorer/BulbuliAvatar.jsx'
 import AmazonBirdAvatar from './AmazonBirdAvatar.jsx'
 import { collidersFor } from './biomes/index.js'
 import { nearestStation } from './proximity.js'
-import { readExplorerControls, rescueFromWater } from './drive.js'
+import { readExplorerControls, rescueFromWater, stayOnDunes } from './drive.js'
 import { advanceCamera, cameraPose, cameraRigFor, createCameraState } from './cameraRig.js'
 import PlayerGlow from './PlayerGlow.jsx'
 
@@ -56,6 +56,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
     lastJumps.current = controls.lastJumps
     const events = stepPlayer(p, controls.step, dt, colliders)
     rescueFromWater(p, biome, events)
+    stayOnDunes(p, biome)
     if (events.jumped) sfx.jump()
     if (events.landed) sfx.land(events.impact)
     if (events.fell) sfx.fall()

@@ -5,6 +5,7 @@
  */
 import { cameraRelative } from '../skyward-explorer/physics.js'
 import { cameraTurn, isFlightHeld, isJumpHeld, readStick } from '../skyward-explorer/input.js'
+import { duneHeightAt } from './biomes/sandShapes.js'
 
 export const TURN_SPEED = 1.8
 export const AVATAR_HEIGHT_OFFSET = 0.06
@@ -42,4 +43,26 @@ export function rescueFromWater(p, biome, events) {
   p.vel = [0, 0, 0]
   p.groundId = null
   events.fell = true
+}
+
+const DUNES = new WeakMap()
+const dunesOf = (biome) => {
+  if (!DUNES.has(biome)) DUNES.set(biome, biome.props.filter((prop) => prop.type === 'dune'))
+  return DUNES.get(biome)
+}
+
+/**
+ * Keeps Bulbuli on top of the sand dunes. Walking onto a dune is ordinary ground (its collider in
+ * biomes/common.js); this covers arriving from the side, in a jump or in flight: a bird that
+ * would end the frame inside a dune is set on the dune's surface instead, and stops falling.
+ * Does nothing on maps without dunes.
+ */
+export function stayOnDunes(p, biome) {
+  const dunes = dunesOf(biome)
+  if (!dunes.length) return
+  let surface = -Infinity
+  for (const dune of dunes) surface = Math.max(surface, duneHeightAt(dune, p.pos[0], p.pos[2]))
+  if (p.pos[1] >= surface - 0.01) return
+  p.pos[1] = surface
+  if (p.vel[1] < 0) p.vel[1] = 0
 }

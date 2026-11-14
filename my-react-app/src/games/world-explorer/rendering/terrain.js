@@ -6,7 +6,9 @@ const RINGS = 20
 const EDGE_EXPANSION = 1.018
 export const TERRAIN_FOOTPRINT_SCALE = 2.55
 const TERRAIN_BOUNDARY_MARGIN = 1.02
-const UNEXPANDED_SURFACES = new Set(['plank', 'branch', 'canopy'])
+// 'sand', 'ridge' and 'valley' are the Sahara's steps and dry bed: drawn at exactly the size that is
+// solid, so a step never buries the one below it and the plain's sand never covers them
+const UNEXPANDED_SURFACES = new Set(['plank', 'branch', 'canopy', 'sand', 'ridge', 'valley'])
 
 export function hasExpandedTerrainFootprint(disc) {
   return !UNEXPANDED_SURFACES.has(disc.look)

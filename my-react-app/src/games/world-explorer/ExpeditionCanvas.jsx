@@ -17,6 +17,7 @@ import { SURFACE_PROFILES, createBiomeSurfaceTextures } from './rendering/biomeM
 import { createTerrainGeometry } from './rendering/terrain.js'
 import { createGiantTreeGeometry } from './rendering/giantTree.js'
 import { createTidalCreekGeometry } from './rendering/tidalCreek.js'
+import { DUNE, ROCK } from './biomes/sandShapes.js'
 
 /* ------------------------------------------------------------------ scenery pieces */
 
@@ -182,8 +183,8 @@ function Stump({ scale = 1 }) {
 
 function Rock({ scale = 1, rot = 0 }) {
   return (
-    <mesh position={[0, 0.4 * scale, 0]} scale={[scale * 1.2, scale * 0.8, scale]} rotation-y={rot}>
-      <icosahedronGeometry args={[0.8, 2]} />
+    <mesh position={[0, ROCK.lift * scale, 0]} scale={ROCK.stretch.map((axis) => axis * scale)} rotation-y={rot}>
+      <icosahedronGeometry args={[ROCK.radius, 2]} />
       <meshStandardMaterial color="#9a7a55" roughness={0.96} />
     </mesh>
   )
@@ -191,7 +192,7 @@ function Rock({ scale = 1, rot = 0 }) {
 
 function Dune({ scale = 1 }) {
   return (
-    <mesh position={[0, -0.2, 0]} scale={[scale * 5, scale * 1.6, scale * 3.5]}>
+    <mesh position={[0, -DUNE.sink, 0]} scale={[scale * DUNE.halfLength, scale * DUNE.height, scale * DUNE.halfWidth]}>
       <sphereGeometry args={[1, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
       <meshStandardMaterial color="#e6c07e" roughness={0.98} />
     </mesh>

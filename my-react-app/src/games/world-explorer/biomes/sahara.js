@@ -1,15 +1,27 @@
 /**
  * Sahara map: a wide gravel plain, dune steps up to a lookout ridge, an oasis with a well and
- * palms, a resting camel, and a dry valley one step down.
+ * palms, a resting camel, and a dry river bed.
  */
 import { disc, linksFrom, scatter } from './common.js'
+import { TERRAIN_FOOTPRINT_SCALE } from '../rendering/terrain.js'
+import { rockContactRadius } from './sandShapes.js'
 
+/**
+ * The three steps and the dry bed are drawn at exactly the size that is solid (terrain.js draws
+ * 'sand', 'ridge' and 'valley' unexpanded). Their radii are the size they have always been DRAWN
+ * at: before, only the inner 40% of each was solid, each step's sand buried the step below it, and
+ * the plain's sand covered the whole valley (station 5 and Bulbuli were under it).
+ *   - a step is solid across its whole visible top, with a cliff down to the sand (`depth`)
+ *   - the dry bed lies on the plain as a slightly raised, darker patch
+ */
+const drawn = (r) => r * TERRAIN_FOOTPRINT_SCALE
+const BED_TOP = 0.03
 const discs = [
   disc('plain', 0, 0, 16, 0, 'gravel', 1),
-  disc('d1', 6, 6, 2.2, 1, 'sand'),
-  disc('d2', 8.5, 8.5, 2.1, 2, 'sand'),
-  disc('s1', 11.5, 11, 2.8, 3, 'ridge'),
-  disc('s5', 18, -8, 5, -1, 'valley', 1),
+  disc('d1', 6, 6, drawn(2.2), 1, 'sand', 1.6, { cliff: true }),
+  disc('d2', 8.5, 8.5, drawn(2.1), 2, 'sand', 2.6, { cliff: true }),
+  disc('s1', 11.5, 11, drawn(2.8), 3, 'ridge', 3.6, { cliff: true }),
+  disc('s5', 18, -8, drawn(5), BED_TOP, 'valley', 0.4),
 ]
 
 const links = linksFrom(discs, [['plain', 'd1'], ['d1', 'd2'], ['d2', 's1'], ['plain', 's5']])
@@ -29,7 +41,11 @@ const plain = discs.filter((d) => d.id === 'plain')
 const props = [
   ...scatter({
     seed: 9400, discs: plain, count: 12, type: 'rock', links, keepClear, minSpacing: 3,
-    make: (r) => ({ scale: 0.5 + r() * 0.7, rot: r() * Math.PI * 2, block: 0.6 }),
+    // `block` spaces the scenery round a rock (unchanged); the rock's own collider follows its size
+    make: (r) => {
+      const rock = { scale: 0.5 + r() * 0.7, rot: r() * Math.PI * 2, block: 0.6 }
+      return { ...rock, contactRadius: rockContactRadius(rock) }
+    },
   }),
   { type: 'dune', x: -16, y: 0, z: -14, scale: 1.6 },
   { type: 'dune', x: -22, y: 0, z: -4, scale: 2.2 },
@@ -42,8 +58,8 @@ const props = [
   { type: 'palm', x: -7.6, y: 0, z: 9.8, scale: 1.0, block: 0.3 },
   { type: 'pool', x: -12, y: 0.02, z: 7, scale: 1 },
   { type: 'camel', x: -2, y: 0, z: 12.8, rot: 0.4, block: 0.8 },
-  { type: 'timeline', x: 20.5, y: -1, z: -10.8 },
-  { type: 'dryRiver', x: 18, y: -0.98, z: -8, rot: 0.6 },
+  { type: 'timeline', x: 20.5, y: BED_TOP, z: -10.8 },
+  { type: 'dryRiver', x: 18, y: BED_TOP + 0.02, z: -8, rot: 0.6 },
 ]
 
 export const SAHARA_MAP = Object.freeze({
