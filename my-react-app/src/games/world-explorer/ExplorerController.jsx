@@ -16,6 +16,7 @@ import { sfx } from '../skyward-explorer/sfx.js'
 import BulbuliAvatar from '../skyward-explorer/BulbuliAvatar.jsx'
 import AmazonBirdAvatar from './AmazonBirdAvatar.jsx'
 import { collidersFor } from './biomes/index.js'
+import { createColliderIndex } from './biomes/colliderIndex.js'
 import { nearestStation } from './proximity.js'
 import { readExplorerControls, rescueFromWater, stayOnDunes } from './drive.js'
 import { advanceCamera, cameraPose, cameraRigFor, createCameraState } from './cameraRig.js'
@@ -24,7 +25,8 @@ import PlayerGlow from './PlayerGlow.jsx'
 const BIRD_SCALE = 0.3
 
 export default function ExplorerController({ biome, inputRef, activeRef, teleportRef, onNear, reducedMotion }) {
-  const colliders = useMemo(() => collidersFor(biome), [biome])
+  // the physics is handed only the colliders round Bulbuli (biomes/colliderIndex.js)
+  const colliders = useMemo(() => createColliderIndex(collidersFor(biome)), [biome])
   const discTops = useMemo(() => Object.fromEntries(biome.discs.map((d) => [d.id, d.top])), [biome])
   // framing comes from the map (cameraRig.js): the defaults unless the destination sets its own
   const rig = useMemo(() => cameraRigFor(biome), [biome])
@@ -54,7 +56,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
     const manualTurn = Math.sign(controls.yaw - yaw.current) // the player's own Q / E this frame
     yaw.current = controls.yaw
     lastJumps.current = controls.lastJumps
-    const events = stepPlayer(p, controls.step, dt, colliders)
+    const events = stepPlayer(p, controls.step, dt, colliders.near(p.pos[0], p.pos[2]))
     rescueFromWater(p, biome, events)
     stayOnDunes(p, biome)
     if (events.jumped) sfx.jump()

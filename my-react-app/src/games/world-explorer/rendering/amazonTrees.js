@@ -56,6 +56,29 @@ function bark(builder, random, detail, path, radii, options, kind = 'limb') {
   return tube(builder, path, radii, { segments: kind === 'trunk' ? detail.trunk : detail.limb, base: options.base, tip: options.tip, cap: options.cap })
 }
 
+/** While a tree is built for amazonBoughs(), its main branches are noted here (model space). */
+let boughLog = null
+const BOUGHS = new Map()
+/**
+ * The main branches of an Amazon tree model as { kind, path: [[x, y, z]…], radii }, exactly as
+ * createAmazonTree draws them at every level of detail (the levels share one random stream).
+ * The thin crown tiers and the leaves are not branches. Used by biomes/boughs.js.
+ */
+export function amazonBoughs(seed, layer) {
+  const key = `${seed}:${layer}`
+  if (BOUGHS.has(key)) return BOUGHS.get(key)
+  boughLog = []
+  let boughs
+  try {
+    createAmazonTree(seed, layer, 'far').dispose()
+    boughs = Object.freeze(boughLog)
+  } finally {
+    boughLog = null
+  }
+  BOUGHS.set(key, boughs)
+  return boughs
+}
+
 export function createAmazonTree(seed = 1, layer = 'emergent', lod = 'near') {
   const random = mulberry32(seed)
   const builder = createBuilder()
@@ -118,6 +141,7 @@ export function createAmazonTree(seed = 1, layer = 'emergent', lod = 'near') {
       end,
       4,
     )
+    boughLog?.push({ kind: 'limb', path: branch.map((point) => [point.x, point.y, point.z]), radii: branch.map((_, i) => (isEmergent ? 0.13 : 0.095) * (1 - 0.65 * i / 4)) })
     bark(builder, random, detail, branch, branch.map((_, i) => (isEmergent ? 0.13 : 0.095) * (1 - 0.65 * i / 4)), {
       segments: 5, base: BARK, tip: BARK_LIGHT, random, noise: 0.08,
     })

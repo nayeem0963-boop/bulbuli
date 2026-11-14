@@ -36,7 +36,7 @@ function approach(biome, colliders, tree, angle, { fps = 60, fly = null, offset 
       const x = sx + (tree.x - sx) * t
       const z = sz + (tree.z - sz) * t
       if (Math.abs(landAt(colliders, x, z) - tree.y) > 0.3) return null
-      if (colliders.some((c) => c !== tree.collider && c.kind === 'prop' && !c.supportOnly && c.bottom < tree.y + 1.1 && Math.hypot(c.x - x, c.z - z) < (c.supportRadius ?? c.r) + BODY + 0.15)) return null
+      if (colliders.some((c) => c !== tree.collider && c.kind === 'prop' && !c.supportOnly && !c.bough && c.bottom < tree.y + 1.1 && Math.hypot(c.x - x, c.z - z) < (c.supportRadius ?? c.r) + BODY + 0.15)) return null
     }
   }
   const y0 = fly === null ? ground + 0.03 : tree.y + fly

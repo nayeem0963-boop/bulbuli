@@ -43,9 +43,18 @@ for (const biome of Object.values(BIOMES)) {
 
   test(`${biome.id}: nothing solid stands on a station or the spawn point`, () => {
     const blockers = collidersFor(biome).filter((c) => !c.walkable)
-    const points = [...biome.stations, { n: 'spawn', x: biome.spawn.position[0], z: biome.spawn.position[2] }]
+    const tops = Object.fromEntries(biome.discs.map((d) => [d.id, d.top]))
+    const points = [
+      ...biome.stations.map((s) => ({ ...s, y: tops[s.disc] })),
+      { n: 'spawn', x: biome.spawn.position[0], y: biome.spawn.position[1], z: biome.spawn.position[2] },
+    ]
     for (const p of points) {
-      for (const c of blockers) assert.ok(Math.hypot(p.x - c.x, p.z - c.z) > c.r + 1.0, `${c.id} blocks ${p.n}`)
+      for (const c of blockers) {
+        // a branch high overhead is not standing on the station: only what reaches down to
+        // Bulbuli's height there counts (its body is 1.05 m tall; 2 m allows a jump)
+        if (c.bough && c.bottom > p.y + 2) continue
+        assert.ok(Math.hypot(p.x - c.x, p.z - c.z) > c.r + 1.0, `${c.id} blocks ${p.n}`)
+      }
     }
   })
 }

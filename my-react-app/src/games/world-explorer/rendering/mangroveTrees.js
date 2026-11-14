@@ -150,6 +150,13 @@ function crownMass(builder, center, radius, scale, { detail = 0, phase = 0, ligh
 
 /** Clusters of the tree being built, so gaps between them can be bridged (see bridgeCrown). */
 let crownLog = null
+/**
+ * While a tree is built for mangroveBoughs(), every trunk, stem and limb tube is noted here
+ * (path and radii, in the model's own space). Roots and leaves are not. Recording never touches
+ * the random stream, so the geometry is exactly what it is without it.
+ */
+let boughLog = null
+const noteBough = (kind, path, radii) => boughLog?.push({ kind, path: path.map((point) => [point.x, point.y, point.z]), radii: [...radii] })
 
 /**
  * Joins neighbouring leaf clusters that sit apart with a lower, darker mass between them, so a
@@ -239,6 +246,7 @@ function makeTrunk(rng, { height, steps, r0, rTop, lean, leanAngle, wobble, flar
 }
 
 function drawBark(builder, rng, path, radii, colors, L, segments, twist = 0.16) {
+  noteBough('trunk', path, radii)
   tube(builder, path, radii, { segments, base: colors.base, tip: colors.tip, random: rng, noise: L.noise, mottle: 0.2, lichen: colors.lichen, twist })
 }
 
@@ -346,6 +354,7 @@ function limb(builder, rng, L, colors, from, { azimuth, elevation, length, radiu
   const c2 = from.clone().addScaledVector(dir, length * 0.72).add(v(0, length * rise * 0.55, 0)).add(jitter())
   const steps = Math.max(2, Math.round(L.steps * 0.6))
   const path = cubic(from, c1, c2, end, steps)
+  noteBough('limb', path, path.map((_, k) => radius * (1 - 0.58 * k / steps)))
   tube(builder, path, path.map((_, k) => radius * (1 - 0.58 * k / steps)), { segments: segments ?? L.small, base: colors.base.clone().lerp(colors.tip, 0.4), tip: colors.tip, random: rng, noise: L.noise * 0.7, mottle: 0.16 })
   return { path, end, at: (f) => path[Math.round(f * steps)], azimuth }
 }
@@ -588,6 +597,7 @@ function gewa(b, rng, L, form) {
     const out = v(Math.cos(az), 0, Math.sin(az))
     const end = fork.clone().addScaledVector(out, Math.sin(lean) * len).add(v(0, Math.cos(lean) * len, 0))
     const path = cubic(fork, fork.clone().addScaledVector(out, 0.45 * Math.sin(lean) * len).add(v(0, 0.3 * len, 0)), end.clone().add(v(rng() - 0.5, -0.35 * len, rng() - 0.5).multiplyScalar(0.6)), end, L.steps - 1)
+    noteBough('stem', path, path.map((_, k) => 0.12 * (1 - 0.6 * k / (path.length - 1))))
     tube(b, path, path.map((_, k) => 0.12 * (1 - 0.6 * k / (path.length - 1))), { segments: L.small + 1, base: colors.base, tip: colors.tip, random: rng, noise: L.noise, mottle: 0.2, lichen: colors.lichen, twist: 0.2 })
     shaded(end.clone().add(v(0, 0.2, 0)), 1.02 + rng() * 0.18, leafSpec)
     for (const at of [0.5 + rng() * 0.1, 0.72 + rng() * 0.12]) {
@@ -641,6 +651,7 @@ function garjan(b, rng, L, form) {
   const H = 3.9 + rng() * 0.7
   // the trunk stands on its roots: it ends just above the mud, where the root cage takes over
   const trunk = makeTrunk(rng, { height: H, steps: L.steps, r0: 0.15, rTop: 0.08, lean: 0.2 + rng() * 0.25, leanAngle: rng() * TAU, wobble: 0.12, flare: 0.15, startY: 0.45 })
+  noteBough('trunk', trunk.path, trunk.radii)
   tube(b, [trunk.path[0].clone().add(v(0, -0.18, 0)), ...trunk.path], [0.06, ...trunk.radii], { segments: L.seg, base: colors.base, tip: colors.tip, random: rng, noise: L.noise, mottle: 0.2, lichen: colors.lichen, twist: 0.16 })
 
   const lower = Math.round((7 + rng() * 3) * rootiness * L.roots)
@@ -730,6 +741,33 @@ export function buildMangrove(species, form = 0, lod = 'near') {
     crownLog = null
   }
   return smoothShaded(builder.build())
+}
+
+const BOUGHS = new Map()
+/**
+ * The woody skeleton of a grown (near) mangrove model: its trunk, stems and limbs as
+ * { kind, path: [[x, y, z]…], radii } in model space, exactly as buildMangrove draws them.
+ * Used to place branch colliders on the branches that are drawn (biomes/boughs.js).
+ */
+export function mangroveBoughs(species, form = 0) {
+  const key = `${species}:${form}`
+  if (BOUGHS.has(key)) return BOUGHS.get(key)
+  const family = FAMILIES[species]
+  if (!family) throw new Error(`Unknown mangrove family: ${species}`)
+  const seed = 7349 * (MANGROVE_SPECIES.indexOf(species) + 1) + 977 * (form + 1) + 1
+  const outerCrown = crownLog
+  boughLog = []
+  crownLog = []
+  let boughs
+  try {
+    family(createBuilder(), mulberry32(seed), LOD.near, form)
+    boughs = Object.freeze(boughLog)
+  } finally {
+    boughLog = null
+    crownLog = outerCrown
+  }
+  BOUGHS.set(key, boughs)
+  return boughs
 }
 
 /** Bridge masses per level of detail (kept within the triangle budgets in rendering.test.js). */

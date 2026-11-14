@@ -11,8 +11,11 @@
 import { mulberry32 } from '../../../core/rng.js'
 import { hasExpandedTerrainFootprint, terrainFootprintRadius, terrainHeightAt, terrainSeed } from '../rendering/terrain.js'
 import { scatterAmazon } from '../rendering/amazonScatter.js'
-import { amazonTreeHeight } from '../rendering/amazonTrees.js'
+import { amazonBoughs, amazonTreeHeight } from '../rendering/amazonTrees.js'
+import { MANGROVE_FORMS, mangroveBoughs } from '../rendering/mangroveTrees.js'
 import { scatterBiomeAssets } from '../rendering/scattering.js'
+import { amazonPlacement, boughColliders, sundarbansPlacement } from './boughs.js'
+import { createColliderIndex } from './colliderIndex.js'
 import { ROCK_STEP, duneHeightAt, duneReach, rockTopAt } from './sandShapes.js'
 
 /** The acacia trunk that BiomeScatter.jsx draws, per unit of the tree's scale (radius at its base). */
@@ -22,6 +25,8 @@ export const SAPLING_STEM = Object.freeze({ sundari: 0.25, gewa: 0.2, keora: 0.1
 
 /** Bulbuli's body radius in physics.js (PHYS.radius), for colliders sized to a drawn outline. */
 const PLAYER_RADIUS = 0.35
+/** And its height (PHYS.height). */
+const PLAYER_HEIGHT = 1.05
 
 /** How far (metres) inside a disc's drawn edge the walkable edge sits, so feet never hang over air. */
 export const WALK_INSET = 0.3
@@ -217,6 +222,9 @@ export function collidersFor(biome) {
         bottom: tree.y - 0.2,
         walkable: false,
       })
+      // the thick wood above the trunk collider: the leaning upper trunk, stems and main limbs
+      const forms = MANGROVE_FORMS.near[tree.variant] ?? 1
+      out.push(...boughColliders(`mangrove-bough-${i}`, mangroveBoughs(tree.variant, (tree.form ?? 0) % forms), sundarbansPlacement(tree), { above: tree.y + height }))
       out.push({
         id: `mangrove-branch-${i}`,
         kind: 'prop',
@@ -256,6 +264,8 @@ export function collidersFor(biome) {
           bottom: item.y - 0.1,
           walkable: false,
         })
+        // its main branches (the thin crown tiers and the leaves stay soft)
+        out.push(...boughColliders(`amazon-${layer}-bough-${index}`, amazonBoughs(seed, layer), amazonPlacement(item)))
         out.push({
           id: `amazon-${layer}-branch-${index}`,
           kind: 'prop',
@@ -307,7 +317,36 @@ export function collidersFor(biome) {
   })
   // dunes come first: where a dune stands, its surface (never lower than the sand under it) is the
   // ground, so the land beneath never competes with it
-  return [...dunes, ...out]
+  return [...dunes, ...clearOfPerches(out)]
+}
+
+/**
+ * Leaves out the branch pieces that pass through the space where Bulbuli stands on a perch:
+ * a tree's perch disc, a log, a roof, a stump (anything it can stand on that is not the ground).
+ * There a branch would shove the standing bird about, and at the rim of a perch the physics
+ * cannot settle between "landed" and "pushed off" and holds the bird still in the air. Those
+ * places keep the perch they always had; the branch is solid everywhere else.
+ */
+/** Horizontal distance from (x, z) to the edge of what a collider carries (0 or less: over it). */
+function gapTo(collider, x, z) {
+  if (collider.shape === 'aabb') return Math.hypot(Math.max(collider.minX - x, 0, x - collider.maxX), Math.max(collider.minZ - z, 0, z - collider.maxZ))
+  return Math.hypot(x - collider.x, z - collider.z) - (collider.supportRadius ?? collider.r)
+}
+
+function clearOfPerches(colliders) {
+  const perches = colliders.filter((c) => c.walkable && c.kind === 'prop' && !c.bough)
+  if (!colliders.some((c) => c.bough) || !perches.length) return colliders
+  const index = createColliderIndex(perches, { margin: 1 })
+  return colliders.filter((c) => {
+    if (!c.bough) return true
+    return !index.near(c.x, c.z).some((perch) => {
+      const high = perch.top
+      const low = perch.heightAt ? Math.min(high, perch.heightAt(perch.x, perch.z)) : high
+      // from a step below the perch (the bird steps up half a metre) to the top of its head on it
+      return c.bottom < high + PLAYER_HEIGHT + 0.05 && c.top > low - 0.55
+        && gapTo(perch, c.x, c.z) < c.r + PLAYER_RADIUS + 0.05
+    })
+  })
 }
 
 /**
