@@ -4,10 +4,11 @@
  * same animal in the same place.
  *
  * An animal with room (`animal.roam`, metres, chosen in biomes/amazon.js so that the whole walk
- * stays inside the clearing kept for it) walks a slow circle of that radius round its resting
- * place, in bursts: it walks a few seconds, stands a few more (and then sniffs and looks about, as
- * rendering/amazonFaunaMotion.js has it), and walks on. Legs swing in a diagonal gait whose pace
- * follows the ground speed, so the feet do not slide.
+ * stays inside the clearing kept for it) walks in bursts: a few seconds on the move, a few more
+ * standing (and then it sniffs and looks about, as rendering/amazonFaunaMotion.js has it), and on
+ * again. Its route (`animal.route`) is a slow circle of that radius round its resting place, or
+ * `'line'`: straight back and forth along a line through it, turning round on the spot at each
+ * end. Legs swing in a diagonal gait whose pace follows the ground speed, so the feet do not slide.
  */
 const TAU = Math.PI * 2
 
@@ -38,6 +39,10 @@ export function walkState(animal, t) {
   const kind = WALKERS[animal.type]
   const W = animal.roam
   if (!kind || !(W >= MIN_ROAM)) return null
+  return animal.route === 'line' ? lineWalk(animal, kind, W, t) : circleWalk(animal, kind, W, t)
+}
+
+function circleWalk(animal, kind, W, t) {
   const seed = animal.seed
   const walking = 6 + (seed % 4)
   const resting = 3 + (seed % 3)
@@ -58,6 +63,35 @@ export function walkState(animal, t) {
     moving,
     amp: ramp,
     wt,
+  }
+}
+
+/** Back and forth along a straight line through the resting place, W each way; turns round at the ends. */
+function lineWalk(animal, kind, W, t) {
+  const seed = animal.seed
+  const bearing = seed * 0.9
+  const pass = (2 * W) / kind.speed // seconds for one end to the other
+  const resting = 4 + (seed % 3) // standing at an end: long enough to turn round
+  const half = pass + resting
+  const clock = t + ((seed * 2.3) % (2 * half))
+  const passes = Math.floor(clock / half)
+  const into = clock - passes * half
+  const back = passes % 2 === 1
+  const moving = into < pass
+  const along = Math.min(into, pass) / pass // 0..1 along this pass
+  const s = (back ? 1 - along : along) * 2 * W - W // metres from the middle, towards the far end
+  const heading = (reversed) => { const d = reversed ? -1 : 1; return Math.atan2(d * Math.cos(bearing), d * Math.sin(bearing)) }
+  const here = heading(back)
+  // standing at the end, it turns to face the way back (the last 1.6 s, easing in and out)
+  const turn = moving ? 0 : smooth((into - pass - 0.6) / 1.6)
+  const swing = seed % 2 ? Math.PI : -Math.PI
+  return {
+    x: animal.x + s * Math.cos(bearing),
+    z: animal.z + s * Math.sin(bearing),
+    yaw: here + swing * turn,
+    moving,
+    amp: moving ? Math.min(smooth(into / 0.7), smooth((pass - into) / 0.7)) : 0,
+    wt: Math.floor(passes) * pass + Math.min(into, pass),
   }
 }
 

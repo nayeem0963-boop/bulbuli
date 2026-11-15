@@ -140,6 +140,8 @@ const fauna = [
  */
 /** The ones that walk (by seed): every animal on the floor that has legs to walk on. */
 const WALKS = new Set(fauna.filter((a) => WALKERS[a.type] && a.y === 0).map((a) => a.seed))
+/** Of those, the ones that patrol a straight line back and forth rather than circling. */
+const STRAIGHT = new Set([22, 23, 24, 25, 26, 42, 44, 46, 47, 65])
 const FLIGHT = { morpho: 0.45 }
 const reachOf = (a) => (a.solid?.r ?? 0.1) + (FLIGHT[a.type] ?? 0)
 const segmentGap = (p, [a, b]) => {
@@ -162,7 +164,7 @@ export const withRoam = (list) => list.map((a) => {
   room = Math.min(room, Math.hypot(a.x - SPAWN.x, a.z - SPAWN.z) - r - 5 - 0.1, 12 - Math.hypot(a.x - floor.x, a.z - floor.z) - r)
   for (const other of list) if (other !== a && other.y === 0) room = Math.min(room, (Math.hypot(a.x - other.x, a.z - other.z) - r - reachOf(other)) / 2 - 0.05)
   const roam = Math.floor(room * 20) / 20
-  return roam >= MIN_ROAM ? { ...a, roam } : a
+  return roam >= MIN_ROAM ? { ...a, roam, ...(STRAIGHT.has(a.seed) ? { route: 'line' } : {}) } : a
 })
 
 export const AMAZON_MAP = Object.freeze({

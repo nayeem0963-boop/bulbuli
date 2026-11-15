@@ -150,6 +150,7 @@ test('amazon fauna: walkers stay inside their walk, keep their pace, pause, and 
   assert.ok(walkers.length >= 24, `${walkers.length} animals walk`)
   assert.deepEqual([...new Set(walkers.map((a) => a.type))].every((t) => WALKERS[t]), true)
   for (const animal of fauna) assert.equal(Boolean(animal.roam), animal.roam >= MIN_ROAM && Boolean(WALKERS[animal.type]) && animal.y === 0)
+  assert.ok(walkers.filter((a) => a.route === 'line').length >= 8 && walkers.filter((a) => a.route !== 'line').length >= 8, 'some walk straight, some in circles')
   for (const animal of walkers) {
     const kind = WALKERS[animal.type]
     let walked = 0
@@ -158,7 +159,13 @@ test('amazon fauna: walkers stay inside their walk, keep their pace, pause, and 
     for (let t = 0.1; t < 120; t += 0.1) {
       const now = walkState(animal, t)
       assert.ok([now.x, now.z, now.yaw, now.amp, now.wt].every(Number.isFinite))
-      assert.ok(Math.abs(Math.hypot(now.x - animal.x, now.z - animal.z) - animal.roam) < 1e-9, `${animal.type} stays on its walk`)
+      const away = Math.hypot(now.x - animal.x, now.z - animal.z)
+      if (animal.route === 'line') {
+        // a straight line through the resting place: every point is on it, never further than `roam`
+        const bearing = animal.seed * 0.9
+        const off = Math.abs((now.x - animal.x) * Math.sin(bearing) - (now.z - animal.z) * Math.cos(bearing))
+        assert.ok(off < 1e-9 && away <= animal.roam + 1e-9, `${animal.type} strays from its line`)
+      } else assert.ok(Math.abs(away - animal.roam) < 1e-9, `${animal.type} stays on its walk`)
       const step = Math.hypot(now.x - previous.x, now.z - previous.z)
       if (now.moving && previous.moving) {
         walked += 1
@@ -171,6 +178,18 @@ test('amazon fauna: walkers stay inside their walk, keep their pace, pause, and 
       previous = now
     }
     assert.ok(walked > 200 && stood > 100, `${animal.type} both walks and stands`)
+    if (animal.route === 'line') {
+      // at the end of a pass it turns right round on the spot: its heading changes by half a turn while it stands still
+      let low = Infinity
+      let high = -Infinity
+      let at = null
+      for (let t = 0; t < 200; t += 0.05) {
+        const s = walkState(animal, t)
+        if (!s.moving) { at ??= s; if (Math.hypot(s.x - at.x, s.z - at.z) < 1e-9) { low = Math.min(low, s.yaw); high = Math.max(high, s.yaw) } else { at = s } }
+        else at = null
+      }
+      assert.ok(high - low > Math.PI * 0.9, `${animal.type} turns round at the end of its line`)
+    }
     // legs: diagonal pairs swing together, within their swing; still when it stands
     const legs = [{ front: true, side: -1, length: 0.3 }, { front: true, side: 1, length: 0.3 }, { front: false, side: -1, length: 0.3 }, { front: false, side: 1, length: 0.3 }]
     let moving = null
