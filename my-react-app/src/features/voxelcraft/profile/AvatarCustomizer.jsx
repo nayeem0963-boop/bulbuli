@@ -1,9 +1,10 @@
 import { Award, Check, Gem, LoaderCircle, Lock, Medal, Paintbrush, ShoppingBag } from 'lucide-react'
 import { Suspense, lazy, useEffect, useId, useMemo, useState } from 'react'
 import { playSfx } from '../audio/sfx.js'
-import { useGameActions } from '../state/GameStateProvider.jsx'
+import { useGameActions } from '../state/gameStateContext.js'
 import { COSMETICS, PALETTES, SLOTS, effectiveLook, isHex, isUnlocked, unlockLabel } from './cosmetics.js'
 import { CARD, CARD_PAD, GemBadge, H2, StatusTag } from './ui.jsx'
+import { useDraftState } from '../../../shared/hooks/useDraftState.js'
 
 // three/R3F only load when the profile is opened.
 const AvatarPreview = lazy(() => import('./AvatarPreview.jsx'))
@@ -153,8 +154,7 @@ function ItemCard({ item, state, equipped, color, onEquip, onBuy }) {
 
 function ColorPicker({ slot, color, disabled, onPick }) {
   const id = useId()
-  const [draft, setDraft] = useState(color)
-  useEffect(() => setDraft(color), [color])
+  const [draft, setDraft] = useDraftState(color)
   return (
     <fieldset disabled={disabled} className="disabled:opacity-40">
       <legend className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">

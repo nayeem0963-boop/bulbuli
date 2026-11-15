@@ -1,7 +1,7 @@
 import { Box, ChevronLeft } from 'lucide-react'
 import { useMemo } from 'react'
 import { effectiveLook } from '../../profile/cosmetics.js'
-import { useGameActions, useGameState } from '../../state/GameStateProvider.jsx'
+import { useGameActions, useGameState } from '../../state/gameStateContext.js'
 import GemCounter from './GemCounter.jsx'
 import NavTabs from './NavTabs.jsx'
 import XpMeter from './XpMeter.jsx'

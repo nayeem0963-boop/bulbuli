@@ -21,7 +21,8 @@ import { formatDigits } from '../utils/mathHeroText.js'
 import FeedbackModal from '../feedback/FeedbackModal.jsx'
 import GameLoadingSpinner from '../components/game/GameLoadingSpinner.jsx'
 import useGameSession from '../session/useGameSession.js'
-import { GameErrorBoundary, getLazyGame, prefetchGame } from './gameLoader.jsx'
+import { GameErrorBoundary, LazyGame } from './gameLoader.jsx'
+import { prefetchGame } from './lazyGames.js'
 import { useMuted } from './preferences.js'
 import { useFullscreen } from '../shared/hooks/useFullscreen.js'
 
@@ -38,7 +39,6 @@ export default function GameModal({ game, playerId, language, text, onClose }) {
   // the session (and its clock) starts when the game does, not on the launch card
   const session = useGameSession(game, { active: phase === 'playing', surface: 'launcher', language })
   const { requestExit } = session
-  const GameComponent = getLazyGame(game)
   const { Art } = game
   const title = game.title[language]
 
@@ -162,7 +162,7 @@ export default function GameModal({ game, playerId, language, text, onClose }) {
           <div className="game-modal-body" tabIndex={-1}>
             <GameErrorBoundary key={game.id} text={text}>
               <Suspense fallback={<GameLoadingSpinner label={text.loadingGame} />}>
-                <GameComponent
+                <LazyGame
                   key={playerId}
                   playerId={playerId}
                   language={language}

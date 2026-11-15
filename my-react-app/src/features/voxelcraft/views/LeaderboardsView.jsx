@@ -1,5 +1,5 @@
 import { Crown, Gem, ThumbsUp } from 'lucide-react'
-import { useGameState } from '../state/GameStateProvider.jsx'
+import { useGameState } from '../state/gameStateContext.js'
 
 const fmt = new Intl.NumberFormat('en-US')
 const PODIUM = ['text-amber-300', 'text-slate-300', 'text-orange-400']

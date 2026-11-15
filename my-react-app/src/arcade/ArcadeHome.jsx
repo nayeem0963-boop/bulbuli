@@ -1,76 +1,34 @@
 import { lazy, Suspense, useCallback, useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import mascot from '../assets/mascot.webp'
-import {
-  CATEGORY_FILTERS, GAMES, gamePath, gamesInCategory, gamesInZone, getGame, ZONE_ICONS,
-} from '../games/registry.js'
+import { getGame, ZONE_ICONS } from '../games/registry.js'
 import { useGameProgress } from '../hooks/useGameProgress.js'
 import { useAuth } from '../auth/AuthContext.jsx'
-import FavoriteButton from '../favorites/FavoriteButton.jsx'
 import SaveProgressBanner from '../auth/SaveProgressBanner.jsx'
 import InstallPwaBanner from '../pwa/InstallPwaBanner.jsx'
 import BuddyInviteCard from '../buddies/BuddyInviteCard.jsx'
 import { requestedHomeMode, searchWithoutMode } from '../games/categories.js'
 import { formatDigits } from '../utils/mathHeroText.js'
+import {
+  CATALOG_FILTERS, CATEGORY_LABELS, entriesFor, getCatalogEntry, hasModePicker,
+} from '../catalog/learningCatalog.js'
+import CatalogTile from '../catalog/CatalogTile.jsx'
 import ArcadeHeader from './ArcadeHeader.jsx'
 import CategoryPills from './CategoryPills.jsx'
-import QuizTile, { showQuizTile } from './QuizTile.jsx'
-import StudioTile from './StudioTile.jsx'
 import { homeModePreference, useHomeMode, useLanguage } from './preferences.js'
-import { homeCounts, modeWithFilter, QUIZ_ZONE } from './homeCatalog.js'
+import { homeCounts, modeWithFilter } from './homeCatalog.js'
 import { ARCADE_TEXT } from './text.js'
-import { launchedGameFromSearch, launchPath, playPath, useGameCategory } from './zone.js'
+import {
+  launchedGameFromSearch, learnEntryFromSearch, legacyModeFromSearch, playPath, searchWithoutLegacyCategory,
+  useGameCategory,
+} from './zone.js'
 import './arcade.css'
 
 // The game launcher (and the game inside it) load only when a launcher tile is opened.
 const GameModal = lazy(() => import('./GameModal.jsx'))
 
-// The 3D Game Studio is a creative tool: its card sits in Build & Create (see StudioTile.jsx),
-// under All Games and the Arcade (12+) pill.
-const STUDIO_ZONE = 'build-create'
-const STUDIO_FILTERS = ['all', 'arcade']
-const showStudioTile = (filter) => STUDIO_FILTERS.includes(filter)
-
-function GameTile({ game, language, text, category, search, index }) {
-  const { Art } = game
-  const title = game.title[language]
-  // launcher games open in a dialog over the grid as it is now filtered (see GameModal.jsx);
-  // the rest open their own page
-  const modal = game.launch === 'modal'
-  const to = modal ? launchPath(category, game.id, search) : gamePath(game)
-  return (
-    <li
-      className={`game-tile is-${game.color}${game.series ? ' is-series' : ''}`}
-      // a stable name per game lets a view transition glide each card to its new place
-      // when the filter changes; --i staggers the fallback entrance animation
-      style={{ viewTransitionName: `game-${game.id}`, '--i': index }}
-    >
-      <Link
-        className="game-tile-link"
-        to={to}
-        state={modal ? { fromTile: true } : undefined}
-        aria-label={text.playGame(title)}
-        aria-haspopup={modal ? 'dialog' : undefined}
-      >
-        <div className="game-tile-art">
-          <Art />
-          {game.isNew && <span className="game-tile-badge">{text.newBadge}</span>}
-        </div>
-        <div className="game-tile-body">
-          <h3>{title}</h3>
-          <p>{game.tagline[language]}</p>
-          <p className="game-tile-meta">
-            <span>{game.skill[language]}</span>
-            <span>{text.ages(formatDigits(game.ages, language))}</span>
-          </p>
-        </div>
-        <span className="game-tile-play" aria-hidden="true">{text.play}</span>
-      </Link>
-      {/* beside the link, not inside it: a button can't live in a link, and tapping it must not open the game */}
-      <FavoriteButton gameId={game.id} gameTitle={title} language={language} className="is-on-tile" />
-    </li>
-  )
-}
+// The mode picker for a catalogue card with several modes ('?learn=<entry>', src/catalog/ModePicker.jsx).
+const ModePicker = lazy(() => import('../catalog/ModePicker.jsx'))
 
 /** The launcher dialog for '?play=<id>', when that game opens in one. */
 function Launcher({ language, text, playerId, category }) {
@@ -90,6 +48,23 @@ function Launcher({ language, text, playerId, category }) {
   )
 }
 
+/** The mode picker for '?learn=<entry>', when that catalogue card has several modes. */
+function LearnDialog({ language, text, category }) {
+  const { search, state } = useLocation()
+  const navigate = useNavigate()
+  const entry = getCatalogEntry(learnEntryFromSearch(search))
+  const close = useCallback(() => {
+    if (state?.fromTile) navigate(-1)
+    else navigate(playPath(category, search), { replace: true })
+  }, [navigate, state, category, search])
+  if (!entry || !hasModePicker(entry)) return null
+  return (
+    <Suspense fallback={null}>
+      <ModePicker entry={entry} language={language} text={text} onClose={close} />
+    </Suspense>
+  )
+}
+
 /** The "More games are hatching" card: shown once, at the end of the last zone on the page. */
 function HatchingTile({ text }) {
   return (
@@ -103,12 +78,12 @@ function HatchingTile({ text }) {
 
 /**
  * One age zone (Play & Learn or Build & Create): its heading, age label, a short description
- * and its own game grid. Which games sit here comes from each game's `zone` in registry.js.
+ * and its own grid of learning-catalogue cards (src/catalog/learningCatalog.js).
  */
-function GameZone({ zone, games, withQuiz, withStudio, last, language, text, filter, search }) {
+function GameZone({ zone, entries, last, language, text, filter, search }) {
   const copy = text.zones[zone]
   const headingId = `zone-${zone}-title`
-  const count = formatDigits(games.length + (withQuiz ? 1 : 0), language)
+  const count = formatDigits(entries.length, language)
   return (
     <section className={`game-zone is-${zone}`} aria-labelledby={headingId} data-zone={zone}>
       <header className="game-zone-head">
@@ -120,18 +95,14 @@ function GameZone({ zone, games, withQuiz, withStudio, last, language, text, fil
         </div>
         <p className="game-zone-tags">
           <span className="game-zone-ages">{copy.ages}</span>
-          <span className="game-zone-count">{text.gameCount(count)}</span>
+          <span className="game-zone-count">{text.entryCount(count)}</span>
         </p>
       </header>
       {/* re-keyed per filter so browsers without view transitions still get the staggered entrance */}
       <ul key={filter} className="game-grid" data-filter={filter}>
-        {/* a creative tool, not a game, so first in Build & Create and not in the "N games" count */}
-        {withStudio && <StudioTile text={text} index={0} />}
-        {games.map((game, index) => (
-          <GameTile key={game.id} game={game} language={language} text={text} category={filter} search={search} index={index + (withStudio ? 1 : 0)} />
+        {entries.map((entry, index) => (
+          <CatalogTile key={entry.id} entry={entry} language={language} text={text} category={filter} search={search} index={index} />
         ))}
-        {/* the standalone HTML course page (not a registry game, so it opens as its own page) */}
-        {withQuiz && <QuizTile language={language} text={text} index={games.length + (withStudio ? 1 : 0)} />}
         {last && <HatchingTile text={text} />}
       </ul>
     </section>
@@ -151,7 +122,7 @@ function goToGames(event) {
 /**
  * The Play page: the audience pills, then one zone, the mode picked with the header's
  * Play & Learn | Build & Create slider (the other zone isn't rendered at all), then the
- * Bulbuli Buddies invite card. The pills filter that zone and show only the audiences it has.
+ * Bulbuli Buddies invite card. The pills filter that zone and show only the categories it has.
  */
 function PlayZone({ language, text, playerId, category, mode }) {
   const { gamification } = useGameProgress(playerId)
@@ -159,22 +130,15 @@ function PlayZone({ language, text, playerId, category, mode }) {
   const { search } = useLocation()
   // Signed in: the account's XP (every device). Guest: the XP kept on this device.
   const xp = formatDigits(profile?.xp ?? gamification.totalXp, language)
-  const filter = CATEGORY_FILTERS.includes(category) ? category : 'all'
+  const filter = CATALOG_FILTERS.includes(category) ? category : 'all'
   const counts = homeCounts(mode)
-  // pills for the audiences this mode has (All Games always)
-  const pills = CATEGORY_FILTERS.filter((id) => id === 'all' || (counts[id] ?? 0) > 0)
-  const games = gamesInCategory(GAMES, filter)
-  const quizShown = showQuizTile(filter)
-  const filterName = text.filters[filter]
+  // pills for the learning categories this mode has (All always)
+  const pills = CATALOG_FILTERS.filter((id) => id === 'all' || (counts[id] ?? 0) > 0)
+  const filterName = (CATEGORY_LABELS[language] ?? CATEGORY_LABELS.en)[filter]
   const count = formatDigits(counts[filter] ?? 0, language)
   const zones = [mode]
-    .map((zone) => ({
-      zone,
-      games: gamesInZone(games, zone),
-      withQuiz: quizShown && QUIZ_ZONE === zone,
-      withStudio: showStudioTile(filter) && STUDIO_ZONE === zone,
-    }))
-    .filter(({ games: zoneGames, withQuiz, withStudio }) => zoneGames.length > 0 || withQuiz || withStudio)
+    .map((zone) => ({ zone, entries: entriesFor(zone, filter) }))
+    .filter(({ entries }) => entries.length > 0)
 
   return (
     <>
@@ -201,13 +165,11 @@ function PlayZone({ language, text, playerId, category, mode }) {
         <CategoryPills category={filter} counts={counts} filters={pills} text={text} language={language} />
         {/* announces the new count when a pill is picked */}
         <p className="visually-hidden" role="status" aria-live="polite">{text.showingGames(count, filterName)}</p>
-        {zones.map(({ zone, games: zoneGames, withQuiz, withStudio }, index) => (
+        {zones.map(({ zone, entries }, index) => (
           <GameZone
             key={zone}
             zone={zone}
-            games={zoneGames}
-            withQuiz={withQuiz}
-            withStudio={withStudio}
+            entries={entries}
             last={index === zones.length - 1}
             language={language}
             text={text}
@@ -230,17 +192,28 @@ function PlayZone({ language, text, playerId, category, mode }) {
 }
 
 /**
- * The home page: the games. The audience pills above the grid pick a filter (in the address,
- * ?category=young|logic|arcade, see zone.js); a launcher game opens in a dialog over the grid.
+ * The home page: the learning catalogue. The category pills above the grid pick a filter (in the
+ * address, ?category=math|shapes|language|coding|create, see zone.js); a card with several modes opens
+ * the mode picker (?learn=<entry>) and a launcher game opens in a dialog (?play=<id>) over the grid.
  */
 export default function ArcadeHome({ playerId, theme, onToggleTheme }) {
   const [language] = useLanguage()
   const text = ARCADE_TEXT[language]
   const [category] = useGameCategory()
   const [mode] = useHomeMode()
-  const { search } = useLocation()
+  const { search, state } = useLocation()
   const navigate = useNavigate()
-  const gameOpen = Boolean(launchedGameFromSearch(search))
+  const gameOpen = Boolean(launchedGameFromSearch(search) || learnEntryFromSearch(search))
+
+  // Old audience-pill links (before the learning catalogue): /?category=young|logic|arcade open All
+  // in the mode those games now live in, then only the old ?category= is dropped from the address
+  // (anything else stays, e.g. ?play=neon-velocity keeps its launcher open, and campaign tags).
+  useEffect(() => {
+    const legacy = legacyModeFromSearch(search)
+    if (!legacy) return
+    homeModePreference.set(legacy)
+    navigate({ search: searchWithoutLegacyCategory(search) }, { replace: true, state })
+  }, [search, state, navigate])
 
   // A shared link to a filter only the other mode has (e.g. /?category=arcade while in Play & Learn)
   // opens that mode. Only when the filter changes: switching modes resets the filter itself.
@@ -270,6 +243,7 @@ export default function ArcadeHome({ playerId, theme, onToggleTheme }) {
 
       {/* Outside <main>: its entrance animation uses a transform, which would trap a fixed dialog inside it. */}
       <Launcher language={language} text={text} playerId={playerId} category={category} />
+      <LearnDialog language={language} text={text} category={category} />
 
       <footer className="arcade-footer">
         <p>{text.footer}</p>

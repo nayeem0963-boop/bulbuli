@@ -20,16 +20,9 @@ const QUIZ = {
   ages: HTML_COURSE.ages,
 }
 
-/** The audience pills the quiz tile shows under ('all' = All Games). */
-const QUIZ_FILTERS = ['all', 'logic']
-export const showQuizTile = (filter) => QUIZ_FILTERS.includes(filter)
-
-/** Adds the quiz tile to the pill counts from categoryCounts(), so each pill matches the cards shown. */
-export const withQuizTile = (counts) =>
-  Object.fromEntries(Object.entries(counts).map(([filter, n]) => [filter, n + (showQuizTile(filter) ? 1 : 0)]))
 
 /** Tile art: a quiz card with a code question, four answers (one ticked) and a timer. Plain SVG. */
-function QuizArt() {
+export function QuizArt() {
   const answers = [
     { y: 52, letter: 'A', fill: '#ffffff' },
     { y: 66, letter: 'B', fill: '#7cc957' },

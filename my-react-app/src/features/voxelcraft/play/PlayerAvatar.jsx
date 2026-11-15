@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useLayoutEffect, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { DEFAULT_LOOK } from '../profile/cosmetics.js'
 import { PHYSICS } from './physics.js'
@@ -68,15 +68,18 @@ export default function PlayerAvatar({ ref, bodyRef, look = DEFAULT_LOOK }) {
   useLayoutEffect(() => paintSkin(parts.bodyMat, skin), [parts, skin])
   useLayoutEffect(() => paintShirt(parts.shirtMat, shirt), [parts, shirt])
 
-  // Animated finishes: one uniform update per frame, only when equipped.
+  // Animated finishes: one uniform update per frame, only when equipped. The live materials are
+  // reached through the meshes (refs), so render-time `parts` stays immutable.
+  const bodyMesh = useRef(null)
+  const shirtMesh = useRef(null)
   const animated = skin.item === 'skin_lava' || shirt.item === 'shirt_holo'
   useFrame(({ clock }) => {
     if (!animated) return
     const t = clock.elapsedTime
-    if (skin.item === 'skin_lava') parts.bodyMat.emissiveIntensity = 0.55 + Math.sin(t * 3) * 0.25
-    if (shirt.item === 'shirt_holo') {
-      parts.shirtMat.color.setHSL((t * 0.15) % 1, 0.8, 0.55)
-      parts.shirtMat.emissive.setHSL((t * 0.15 + 0.1) % 1, 0.9, 0.45)
+    if (skin.item === 'skin_lava' && bodyMesh.current) bodyMesh.current.material.emissiveIntensity = 0.55 + Math.sin(t * 3) * 0.25
+    if (shirt.item === 'shirt_holo' && shirtMesh.current) {
+      shirtMesh.current.material.color.setHSL((t * 0.15) % 1, 0.8, 0.55)
+      shirtMesh.current.material.emissive.setHSL((t * 0.15 + 0.1) % 1, 0.9, 0.45)
     }
   })
 
@@ -84,8 +87,8 @@ export default function PlayerAvatar({ ref, bodyRef, look = DEFAULT_LOOK }) {
     <group ref={ref}>
       {/* squash/stretch pivots at the feet so the avatar stays planted */}
       <group ref={bodyRef}>
-        <mesh geometry={parts.body} material={parts.bodyMat} position-y={height / 2} castShadow raycast={noRaycast} />
-        <mesh geometry={parts.shirt} material={parts.shirtMat} position-y={height * 0.47} raycast={noRaycast} />
+        <mesh ref={bodyMesh} geometry={parts.body} material={parts.bodyMat} position-y={height / 2} castShadow raycast={noRaycast} />
+        <mesh ref={shirtMesh} geometry={parts.shirt} material={parts.shirtMat} position-y={height * 0.47} raycast={noRaycast} />
         <mesh geometry={parts.visor} material={parts.visorMat} position={[0, height - 0.38, radius - 0.03]} raycast={noRaycast} />
         <mesh geometry={parts.antenna} material={parts.bodyMat} position-y={height + 0.08} raycast={noRaycast} />
         <mesh geometry={parts.tip} material={parts.tipMat} position-y={height + 0.2} raycast={noRaycast} />

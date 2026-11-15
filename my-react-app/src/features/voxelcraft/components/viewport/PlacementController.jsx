@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { BLOCK_TYPES } from '../../level/blockTypes.js'
-import { useEditorActions, useEditorTool, useLevel } from '../../level/LevelEditorProvider.jsx'
+import { useEditorActions, useEditorTool, useLevel } from '../../level/levelEditorContext.js'
 import { axisNormal, resolveTarget } from '../../level/placement.js'
 import BlockLayer from './blocks/BlockLayer.jsx'
 import CheckerFloor from './CheckerFloor.jsx'

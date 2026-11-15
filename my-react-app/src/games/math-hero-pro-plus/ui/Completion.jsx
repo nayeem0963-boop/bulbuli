@@ -3,7 +3,7 @@ import { useCountUp } from '../../../shared/hooks/useCountUp.js'
 import { LEVELS, RESULT_HEADLINES } from '../engine.js'
 import { Confetti, StarRow } from './Celebrate.jsx'
 import { CARD, GHOST_BUTTON, GOLD_BUTTON, lvlStyle } from './theme.js'
-import { unitOf, withUnit } from './QuestionCard.jsx'
+import { unitOf, withUnit } from './units.js'
 
 function Tile({ label, value, tone = 'text-mf-text', className = '' }) {
   return (

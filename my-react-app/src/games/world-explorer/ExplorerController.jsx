@@ -1,0 +1,137 @@
+/**
+ * Moves Bulbuli around an expedition map with the Skyward Explorer movement rules
+ * (skyward-explorer/physics.js and input.js), follows it with the camera,
+ * and reports which station Bulbuli is standing next to.
+ *
+ *   inputRef    ref to the shared input object (keyboard + on-screen buttons), read each frame
+ *   activeRef   false while a station panel or dialog is open: Bulbuli stands still
+ *   teleportRef parent sets { x, y, z } to move Bulbuli (station list "Travel here")
+ *   onNear(n)   called when the nearest station within reach changes (n or null)
+ */
+import { Suspense, useMemo, useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import { Vector3 } from 'three'
+import { createPlayer, stepPlayer } from '../skyward-explorer/physics.js'
+import { sfx } from '../skyward-explorer/sfx.js'
+import BulbuliAvatar from '../skyward-explorer/BulbuliAvatar.jsx'
+import AmazonBirdAvatar from './AmazonBirdAvatar.jsx'
+import { collidersFor } from './biomes/index.js'
+import { createColliderIndex } from './biomes/colliderIndex.js'
+import { createRecovery, markSafe, updateRecovery } from './recovery.js'
+import { nearestStation } from './proximity.js'
+import { readExplorerControls, rescueFromWater, stayOnDunes } from './drive.js'
+import { advanceCamera, cameraPose, cameraRigFor, createCameraState } from './cameraRig.js'
+import PlayerGlow from './PlayerGlow.jsx'
+
+const BIRD_SCALE = 0.3
+const NO_EVENTS = Object.freeze({ jumped: false, landed: false, glideStart: false, fell: false, impact: 0 })
+
+export default function ExplorerController({ biome, inputRef, activeRef, teleportRef, onNear, onSafety, reducedMotion }) {
+  // the physics is handed only the colliders round Bulbuli (biomes/colliderIndex.js)
+  const colliders = useMemo(() => createColliderIndex(collidersFor(biome)), [biome])
+  const discTops = useMemo(() => Object.fromEntries(biome.discs.map((d) => [d.id, d.top])), [biome])
+  // framing comes from the map (cameraRig.js): the defaults unless the destination sets its own
+  const rig = useMemo(() => cameraRigFor(biome), [biome])
+  // one player per mounted map (remounted per expedition); BulbuliAvatar reads player.current
+  const player = useRef(createPlayer(biome.spawn))
+  const avatar = useRef()
+  const yaw = useRef(biome.spawn.facing + Math.PI)
+  const near = useRef(null)
+  // safe recovery (recovery.js): the last safe spot, the carry back, and what the HUD was last told
+  const recovery = useRef(createRecovery(biome))
+  const carrying = useRef(false)
+  const safety = useRef(null)
+  const lastJumps = useRef(null) // jump-press count already handled (set on the first frame)
+  const camTarget = useMemo(() => new Vector3(), [])
+  const camState = useRef(createCameraState()) // only used on maps with volumes to avoid
+  const { camera } = useThree()
+
+  useFrame((state, dtRaw) => {
+    if (!(dtRaw > 0)) return // a frame with no time in it (or a clock that stepped back): nothing to do
+    const dt = Math.min(dtRaw, 1 / 30)
+    const p = player.current
+    if (teleportRef.current) {
+      const t = teleportRef.current
+      teleportRef.current = null
+      p.pos = [t.x, t.y, t.z]
+      p.vel = [0, 0, 0]
+      p.grounded = false
+      p.groundId = null
+      p.checkpoint = [t.x, t.y, t.z]
+      markSafe(recovery.current, [t.x, t.y, t.z])
+      carrying.current = false
+    }
+    const controls = readExplorerControls(inputRef.current, { active: activeRef.current, yaw: yaw.current, lastJumps: lastJumps.current, dt })
+    const manualTurn = Math.sign(controls.yaw - yaw.current) // the player's own Q / E this frame
+    yaw.current = controls.yaw
+    lastJumps.current = controls.lastJumps
+    // while Bulbuli is being carried back to a safe spot the physics rests (recovery.js moves it)
+    const nearby = colliders.near(p.pos[0], p.pos[2])
+    const events = carrying.current ? NO_EVENTS : stepPlayer(p, controls.step, dt, nearby)
+    if (!carrying.current) {
+      rescueFromWater(p, biome, events)
+      stayOnDunes(p, biome)
+    }
+    const safe = updateRecovery(recovery.current, p, biome, dt, { colliders: nearby, events, flying: controls.step.flightHeld, reducedMotion })
+    carrying.current = safe.carrying
+    const told = safe.carrying ? 'returning' : safe.note ? `returned:${safe.note.reason}` : safe.warning ? 'warning' : null
+    if (told !== safety.current) {
+      safety.current = told
+      onSafety?.(told)
+    }
+    if (events.jumped) sfx.jump()
+    if (events.landed) sfx.land(events.impact)
+    if (events.fell) sfx.fall()
+
+    if (avatar.current) {
+      avatar.current.position.set(p.pos[0], p.pos[1], p.pos[2])
+      avatar.current.rotation.y = p.facing
+    }
+    if (rig.fov && state.camera.fov !== rig.fov) {
+      state.camera.fov = rig.fov
+      state.camera.updateProjectionMatrix()
+    }
+    if (rig.avoid.length) {
+      // a map with volumes to avoid (the Sundarbans village): the camera turns round them and
+      // stays at its normal distance and angle (cameraRig.js). Away from them this is the same
+      // eased follow as below.
+      const view = advanceCamera(camState.current, p.pos, yaw.current, rig, dt, {
+        manual: manualTurn,
+        snap: reducedMotion,
+        current: [camera.position.x, camera.position.y, camera.position.z],
+      })
+      yaw.current = view.yaw
+      camera.position.set(view.position[0], view.position[1], view.position[2])
+      camera.lookAt(view.lookAt[0], view.lookAt[1], view.lookAt[2])
+    } else {
+      // camera: behind and above Bulbuli, eased (snapped when reduced motion is on)
+      const pose = cameraPose(p.pos, yaw.current, rig)
+      camTarget.set(pose.position[0], pose.position[1], pose.position[2])
+      if (reducedMotion) camera.position.copy(camTarget)
+      else camera.position.lerp(camTarget, 1 - Math.exp(-dt * 6))
+      camera.lookAt(pose.lookAt[0], pose.lookAt[1], pose.lookAt[2])
+    }
+
+    const n = nearestStation(biome.stations, p.pos[0], p.pos[2], p.pos[1], discTops)
+    if (n !== near.current) {
+      near.current = n
+      onNear(n)
+    }
+  })
+
+  // The Amazon Rainforest has its own bird (a loaded, animated model); every other biome keeps
+  // Bulbuli. Both read the same player object, so movement and the camera are identical.
+  return (
+    <group ref={avatar}>
+      {/* night-time readability on maps that ask for it (playerGlow.js): no light, one small disc */}
+      {biome.playerGlow ? <PlayerGlow settings={biome.playerGlow} motion={player} /> : null}
+      {biome.id === 'amazon' ? (
+        <Suspense fallback={null}>
+          <AmazonBirdAvatar motion={player} />
+        </Suspense>
+      ) : (
+        <BulbuliAvatar motion={player} scale={BIRD_SCALE} />
+      )}
+    </group>
+  )
+}

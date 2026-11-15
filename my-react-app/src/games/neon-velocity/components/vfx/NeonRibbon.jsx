@@ -60,6 +60,8 @@ const fragmentShader = /* glsl */ `
 
 const SAMPLE_DT = 1 / 60
 const TELEPORT = 8
+// scratch vectors for the per-frame ribbon build (useFrame runs synchronously, so sharing is safe)
+const scratch = { tan: new Vector3(), toCam: new Vector3(), side: new Vector3() }
 
 export function NeonRibbon({
   getAnchor,
@@ -76,7 +78,7 @@ export function NeonRibbon({
   const points = useRef(Array.from({ length: segments }, () => new Vector3()))
   const acc = useRef(0)
   const primed = useRef(false)
-  const scratch = useMemo(() => ({ tan: new Vector3(), toCam: new Vector3(), side: new Vector3() }), [])
+  const mesh = useRef(null)
 
   const geometry = useMemo(() => {
     const g = new BufferGeometry()
@@ -126,11 +128,14 @@ export function NeonRibbon({
   useEffect(() => () => geometry.dispose(), [geometry])
   useEffect(() => () => material.dispose(), [material])
 
+  // per-frame writes go through the live mesh (ref), never the render-time geometry / material
   useFrame(({ camera }, delta) => {
+    const m = mesh.current
+    if (!m) return
     const pts = points.current
     const visible = getAnchor(head.current)
     const opacity = visible ? getOpacity() : 0
-    material.uniforms.uOpacity.value = opacity
+    m.material.uniforms.uOpacity.value = opacity
 
     // (Re)prime the history after a teleport (restart) or while hidden
     if (!visible || !primed.current || head.current.distanceTo(pts[0]) > TELEPORT) {
@@ -147,7 +152,8 @@ export function NeonRibbon({
     pts[0].copy(head.current)
     if (opacity <= 0.001) return
 
-    const arr = geometry.attributes.position.array
+    const position = m.geometry.attributes.position
+    const arr = position.array
     const { tan, toCam, side } = scratch
     for (let i = 0; i < pts.length; i++) {
       const prev = pts[Math.max(0, i - 1)]
@@ -162,8 +168,8 @@ export function NeonRibbon({
       arr[o] = pts[i].x - side.x; arr[o + 1] = pts[i].y - side.y; arr[o + 2] = pts[i].z - side.z
       arr[o + 3] = pts[i].x + side.x; arr[o + 4] = pts[i].y + side.y; arr[o + 5] = pts[i].z + side.z
     }
-    geometry.attributes.position.needsUpdate = true
+    position.needsUpdate = true
   })
 
-  return <mesh geometry={geometry} material={material} frustumCulled={false} />
+  return <mesh ref={mesh} geometry={geometry} material={material} frustumCulled={false} />
 }

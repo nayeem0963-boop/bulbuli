@@ -9,20 +9,49 @@
  */
 import { memo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { MathUtils, MeshStandardMaterial } from 'three'
+import { Color, Float32BufferAttribute, MathUtils, MeshPhysicalMaterial, SphereGeometry } from 'three'
 
-const mat = (color, extra = {}) => new MeshStandardMaterial({ color, flatShading: true, roughness: 0.75, ...extra })
+const mat = (color, extra = {}) => new MeshPhysicalMaterial({
+  color,
+  flatShading: false,
+  roughness: 0.75,
+  metalness: 0.05,
+  sheen: 0.3,
+  sheenColor: '#4a3e2e',
+  ...extra,
+})
 const M = {
   brown: mat('#7a5a40'),
   darkBrown: mat('#5c4230'),
   black: mat('#23201f'),
   white: mat('#f4efe6'),
-  red: mat('#e5322d', { emissive: '#5a0d0b', emissiveIntensity: 0.3 }),
+  red: mat('#ff2e2e', { emissive: '#5a0d0b', emissiveIntensity: 0.12 }),
   beak: mat('#3b302b'),
   feet: mat('#c98c5a'),
-  eye: mat('#0d0b0a', { roughness: 0.2 }),
-  shine: new MeshStandardMaterial({ color: '#ffffff', emissive: '#ffffff', emissiveIntensity: 0.8 }),
+  eye: new MeshPhysicalMaterial({ color: '#0d0b0a', roughness: 0.1, metalness: 0.8, clearcoat: 1 }),
+  shine: new MeshPhysicalMaterial({ color: '#ffffff', emissive: '#ffffff', emissiveIntensity: 0.8, roughness: 0.1 }),
 }
+
+const gradientPatchGeometry = new SphereGeometry(1, 24, 16)
+const gradientColors = new Float32Array(gradientPatchGeometry.attributes.position.count * 3)
+const redCenter = new Color('#ff2e2e')
+const redEdge = new Color('#b52325')
+for (let i = 0; i < gradientPatchGeometry.attributes.position.count; i += 1) {
+  const z = gradientPatchGeometry.attributes.position.getZ(i)
+  const edge = MathUtils.smoothstep(Math.acos(MathUtils.clamp(z, -1, 1)), 0.18, 1.05)
+  const color = redCenter.clone().lerp(redEdge, edge)
+  gradientColors.set([color.r, color.g, color.b], i * 3)
+}
+gradientPatchGeometry.setAttribute('color', new Float32BufferAttribute(gradientColors, 3))
+const gradientPatchMaterial = new MeshPhysicalMaterial({
+  color: '#ffffff',
+  vertexColors: true,
+  flatShading: false,
+  roughness: 0.72,
+  metalness: 0.02,
+  sheen: 0.2,
+  sheenColor: '#4a3e2e',
+})
 
 // Only the big shapes cast shadows: each caster is drawn again in the shadow pass.
 function Part({ geo = 'ico', material, shadow = false, ...props }) {
@@ -30,11 +59,16 @@ function Part({ geo = 'ico', material, shadow = false, ...props }) {
     <mesh material={material} castShadow={shadow} {...props}>
       {geo === 'ico' && <icosahedronGeometry args={[1, 0]} />}
       {geo === 'ico1' && <icosahedronGeometry args={[1, 1]} />}
-      {geo === 'cone' && <coneGeometry args={[1, 1, 5]} />}
+      {geo === 'sphere' && <sphereGeometry args={[1, 24, 16]} />}
+      {geo === 'cone' && <coneGeometry args={[1, 1, 12]} />}
       {geo === 'box' && <boxGeometry args={[1, 1, 1]} />}
       {geo === 'cyl' && <cylinderGeometry args={[1, 1, 1, 5]} />}
     </mesh>
   )
+}
+
+function GradientPatch(props) {
+  return <mesh geometry={gradientPatchGeometry} material={gradientPatchMaterial} castShadow {...props} />
 }
 
 function Wing({ side, wingRef }) {
@@ -47,12 +81,24 @@ function Wing({ side, wingRef }) {
   )
 }
 
-function BulbuliAvatar({ motion }) {
+function BulbuliAvatar({ motion, scale = 1 }) {
   const body = useRef()
+  const chest = useRef()
   const head = useRef()
+  const tail = useRef()
   const leftWing = useRef()
   const rightWing = useRef()
-  const anim = useRef({ landedAt: -10, wasGrounded: true, wing: -1.3, squash: 0 })
+  const anim = useRef({
+    landedAt: -10,
+    wasGrounded: true,
+    wing: -1.3,
+    headYaw: 0,
+    headTilt: 0,
+    nextTwitch: 0,
+    returnHead: 0,
+    nextTailFlick: 0,
+    tailPulse: 0,
+  })
 
   useFrame(({ clock }, delta) => {
     const p = motion.current
@@ -74,6 +120,11 @@ function BulbuliAvatar({ motion }) {
     body.current.scale.set(1 + squash * 0.6, 1 - squash, 1 + squash * 0.6)
     const lean = p.gliding ? 0.25 : p.grounded ? run * 0.18 : MathUtils.clamp(-p.vel[1] * 0.03, -0.2, 0.25)
     body.current.rotation.x = MathUtils.damp(body.current.rotation.x, lean, 10, dt)
+    if (chest.current) {
+      const breath = Math.sin(t * 2.5) * 0.02
+      chest.current.scale.y = 1 + breath
+      chest.current.rotation.x = breath * 0.35
+    }
 
     // wings: folded on the ground, flapping going up, spread flat to glide
     let target
@@ -82,46 +133,80 @@ function BulbuliAvatar({ motion }) {
     else if (!p.grounded) target = -0.5
     else target = -1.3
     a.wing = MathUtils.damp(a.wing, target, p.gliding ? 8 : 18, dt)
-    if (rightWing.current) rightWing.current.rotation.z = a.wing
-    if (leftWing.current) leftWing.current.rotation.z = -a.wing
+    for (const [wing, side] of [[rightWing.current, 1], [leftWing.current, -1]]) {
+      if (!wing) continue
+      wing.rotation.z = side * a.wing
+      wing.position.x = side * (p.grounded ? 0.25 : 0.3)
+      wing.position.y = 0.62 + (p.grounded ? Math.sin(t * 3.1 + side) * 0.008 : 0)
+      wing.scale.x = p.grounded ? 0.82 : 1
+    }
 
-    // head: a little look-around when idle
+    // Head glances are sparse and brief rather than continuously swaying.
     if (head.current) {
+      if (t >= a.nextTwitch) {
+        a.headYaw = (Math.random() * 2 - 1) * (25 * Math.PI / 180)
+        a.headTilt = (Math.random() * 2 - 1) * 0.08
+        a.returnHead = t + 0.18
+        a.nextTwitch = t + 2 + Math.random() * 2
+      }
+      if (t >= a.returnHead) {
+        a.headYaw = 0
+        a.headTilt = 0
+        a.returnHead = Infinity
+      }
       const idle = p.grounded && speed < 0.3
-      head.current.rotation.y = MathUtils.damp(head.current.rotation.y, idle ? Math.sin(t * 0.8) * 0.35 : 0, 4, dt)
+      const glanceYaw = idle ? a.headYaw : 0
+      const glanceTilt = idle ? a.headTilt : 0
+      head.current.rotation.y = MathUtils.damp(head.current.rotation.y, glanceYaw, 16, dt)
+      head.current.rotation.z = MathUtils.damp(head.current.rotation.z, glanceTilt, 14, dt)
+    }
+
+    if (t >= a.nextTailFlick) {
+      a.tailPulse = 1
+      a.nextTailFlick = t + 2.5 + Math.random() * 2.5
+    }
+    a.tailPulse = MathUtils.damp(a.tailPulse, 0, 9, dt)
+    if (tail.current) {
+      tail.current.rotation.x = Math.sin(t * 36) * 0.22 * a.tailPulse
     }
   })
 
   return (
-    <group ref={body}>
-      {/* body, belly, tail */}
-      <Part material={M.brown} shadow position={[0, 0.52, 0]} scale={[0.36, 0.38, 0.48]} />
-      <Part material={M.white} position={[0, 0.44, 0.14]} scale={[0.29, 0.3, 0.34]} />
-      <Part geo="box" material={M.darkBrown} shadow position={[0, 0.5, -0.52]} rotation-x={-0.45} scale={[0.22, 0.05, 0.42]} />
-      <Part material={M.red} position={[0, 0.34, -0.3]} scale={[0.13, 0.08, 0.13]} />
+    <group scale={scale}>
+      <group ref={body}>
+        {/* body, belly, tail */}
+        <group ref={chest} position={[0, 0.5, 0]}>
+          <Part geo="sphere" material={M.brown} shadow position={[0, 0.02, 0]} scale={[0.36, 0.38, 0.48]} />
+          <Part geo="sphere" material={M.white} position={[0, -0.06, 0.14]} scale={[0.29, 0.3, 0.34]} />
+        </group>
+        <group ref={tail} position={[0, 0.5, -0.52]}>
+          <Part geo="box" material={M.darkBrown} shadow rotation-x={-0.45} scale={[0.22, 0.05, 0.42]} />
+          <GradientPatch position={[0, -0.16, 0.22]} scale={[0.13, 0.08, 0.13]} rotation-y={Math.PI} />
+        </group>
 
-      {/* head */}
-      <group ref={head} position={[0, 0.86, 0.2]}>
-        <Part geo="ico1" material={M.black} shadow scale={0.25} />
-        <Part geo="cone" material={M.black} shadow position={[0, 0.3, 0.02]} rotation-x={0.35} scale={[0.1, 0.36, 0.1]} />
-        <Part geo="cone" material={M.beak} position={[0, -0.03, 0.29]} rotation-x={Math.PI / 2} scale={[0.055, 0.16, 0.055]} />
+        {/* head */}
+        <group ref={head} position={[0, 0.86, 0.2]}>
+          <Part geo="sphere" material={M.black} shadow scale={0.25} />
+          <Part geo="cone" material={M.black} shadow position={[0, 0.3, 0.02]} rotation-x={0.35} scale={[0.1, 0.36, 0.1]} />
+          <Part geo="cone" material={M.beak} position={[0, -0.03, 0.29]} rotation-x={Math.PI / 2} scale={[0.055, 0.16, 0.055]} />
+          {[-1, 1].map((side) => (
+            <group key={side}>
+              <Part geo="sphere" material={M.white} position={[side * 0.17, -0.1, 0.1]} scale={[0.07, 0.08, 0.09]} />
+              <GradientPatch position={[side * 0.2, 0.02, 0.04]} scale={0.055} />
+              <Part material={M.eye} position={[side * 0.13, 0.05, 0.19]} scale={0.045} />
+              <Part material={M.shine} position={[side * 0.14, 0.07, 0.225]} scale={0.014} />
+            </group>
+          ))}
+        </group>
+
+        <Wing side={1} wingRef={rightWing} />
+        <Wing side={-1} wingRef={leftWing} />
+
+        {/* feet */}
         {[-1, 1].map((side) => (
-          <group key={side}>
-            <Part material={M.white} position={[side * 0.17, -0.1, 0.1]} scale={[0.07, 0.08, 0.09]} />
-            <Part material={M.red} position={[side * 0.2, 0.02, 0.04]} scale={0.055} />
-            <Part material={M.eye} position={[side * 0.13, 0.05, 0.19]} scale={0.045} />
-            <Part material={M.shine} position={[side * 0.14, 0.07, 0.225]} scale={0.014} />
-          </group>
+          <Part key={side} geo="cyl" material={M.feet} position={[side * 0.12, 0.08, 0.04]} scale={[0.035, 0.16, 0.035]} />
         ))}
       </group>
-
-      <Wing side={1} wingRef={rightWing} />
-      <Wing side={-1} wingRef={leftWing} />
-
-      {/* feet */}
-      {[-1, 1].map((side) => (
-        <Part key={side} geo="cyl" material={M.feet} position={[side * 0.12, 0.08, 0.04]} scale={[0.035, 0.16, 0.035]} />
-      ))}
     </group>
   )
 }

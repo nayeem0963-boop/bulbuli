@@ -1,11 +1,11 @@
 import { CircleAlert, FlaskConical, Gem, Hammer, Send, Sparkles, Trophy, Zap } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
 import { playSfx } from '../audio/sfx.js'
-import { useLevel } from '../level/LevelEditorProvider.jsx'
+import { useLevel } from '../level/levelEditorContext.js'
 import { validateLevel } from '../level/levelSchema.js'
 import { communityIdFor } from '../state/gameReducer.js'
 import { DEV_TOOLS } from '../dev/devMode.js'
-import { useGameActions, useGameState } from '../state/GameStateProvider.jsx'
+import { useGameActions, useGameState } from '../state/gameStateContext.js'
 import { countdownParts } from './gallery.js'
 
 const pad = (n) => String(n).padStart(2, '0')

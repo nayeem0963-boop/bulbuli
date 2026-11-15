@@ -12,7 +12,7 @@ export const THUMB_HEIGHT = 360 // 4:3, the gallery card's preview shape
  * Objects tagged `userData.noSnapshot` (the placement cursor) are hidden for that one frame.
  * The image is a centred 4:3 crop of the view, the same box the framing guide shows.
  */
-export function captureView(gl, scene, camera, { width = THUMB_WIDTH, height = THUMB_HEIGHT, quality = 0.85 } = {}) {
+function captureView(gl, scene, camera, { width = THUMB_WIDTH, height = THUMB_HEIGHT, quality = 0.85 } = {}) {
   const hidden = []
   scene.traverse((o) => {
     if (o.userData.noSnapshot && o.visible) {

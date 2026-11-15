@@ -1,11 +1,11 @@
-import { Suspense, useEffect, useMemo } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getGame } from '../games/registry.js'
 import FeedbackModal from '../feedback/FeedbackModal.jsx'
 import useGameSession from '../session/useGameSession.js'
 import GameLoadingSpinner from '../components/game/GameLoadingSpinner.jsx'
 import ArcadeHeader from './ArcadeHeader.jsx'
-import { GameErrorBoundary, getLazyGame } from './gameLoader.jsx'
+import { GameErrorBoundary, LazyGame } from './gameLoader.jsx'
 import { GameFullscreenFrame } from './GameFullscreen.jsx'
 import { exitFullscreen } from '../shared/lib/fullscreen.js'
 import { useLanguage } from './preferences.js'
@@ -20,7 +20,6 @@ export default function GamePage({ playerId, theme, onToggleTheme, gameId: fixed
   const game = getGame(gameId)
   const [language] = useLanguage()
   const text = ARCADE_TEXT[language]
-  const GameComponent = useMemo(() => (game ? getLazyGame(game) : null), [game])
   const navigate = useNavigate()
   // analytics (started / completed / exited) and when to ask "How was it?"
   const session = useGameSession(game, { surface: 'page', language })
@@ -58,7 +57,7 @@ export default function GamePage({ playerId, theme, onToggleTheme, gameId: fixed
             <GameErrorBoundary key={game.id} text={text}>
               <Suspense fallback={<GameLoadingSpinner label={text.loadingGame} />}>
                 {/* Remount when the player changes, so a game never mixes two players' saves. */}
-                <GameComponent
+                <LazyGame
                   key={playerId}
                   playerId={playerId}
                   language={language}

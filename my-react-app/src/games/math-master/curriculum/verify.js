@@ -87,7 +87,6 @@ export function compile(expression, vars = []) {
     }
     previous = token
   }
-  // eslint-disable-next-line no-new-func
   return new Function(...vars, `return (${js})`)
 }
 

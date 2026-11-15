@@ -84,7 +84,7 @@ function LevelCard({ entry, live, isOwn, isContest, onVote, onPlay, now, highlig
         {!live && <StaticPreview entry={entry} />}
         {live && (
           <Suspense fallback={<StaticPreview entry={entry} />}>
-            <LevelPreview3D blocks={entry.level.blocks} spin={spin} className="absolute inset-0" />
+            <LevelPreview3D blocks={entry.level.blocks} spinRef={spin} className="absolute inset-0" />
             <CornerMasks />
           </Suspense>
         )}

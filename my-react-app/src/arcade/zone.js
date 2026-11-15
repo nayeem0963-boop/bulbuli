@@ -1,20 +1,21 @@
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { CATEGORY_FILTERS, DEFAULT_FILTER } from '../games/categories.js'
+import { CATALOG_ALL, CATALOG_FILTERS, LEGACY_CATEGORY_MODES } from '../catalog/learningCatalog.js'
 
-// Addresses on the Play home page. The audience pills above the grid pick a filter
-// (see src/games/categories.js), and the launcher dialog opens a game, both in the address:
-//   /                                   All Games
-//   /?category=young                    Young Learners      (ages 3–8)
-//   /?category=logic                    Logic & Typing      (ages 6–12)
-//   /?category=arcade                   Arcade (ages 12+)
-//   /?category=arcade&play=neon-velocity  that game open in the launcher over its filtered grid
+// Addresses on the Play home page. The learning-category pills above the grid pick a filter
+// (see src/catalog/learningCatalog.js), and dialogs open over the grid, all in the address:
+//   /                                   All
+//   /?category=math                     Maths & Numbers (also shapes | language | coding | create)
+//   /?category=math&learn=math-hero     that card's mode picker open over its filtered grid
+//   /?category=math&play=sky-typewriter that game open in the launcher over its filtered grid
 // so the Back button steps between them, and campaign links can land on any of them.
 // Other query parameters (utm_source, utm_campaign, …) are kept when switching pills.
-// Old links still work: ?category=educational|adventure and ?zone=learn land on All Games.
+// Old links still work: the pre-Phase-1 audience pills (?category=young|logic|arcade) land on
+// All in the matching mode (legacyModeFromSearch), and ?category=educational|adventure and
+// ?zone=learn land on All.
 
-export const PLAY_CATEGORIES = CATEGORY_FILTERS
-export const DEFAULT_CATEGORY = DEFAULT_FILTER
+export const PLAY_CATEGORIES = CATALOG_FILTERS
+export const DEFAULT_CATEGORY = CATALOG_ALL
 
 /** The filter named in a query string ('?category=arcade'); anything else (or nothing) is All Games. */
 export function categoryFromSearch(search) {
@@ -29,7 +30,7 @@ export function categoryFromSearch(search) {
  */
 export function playPath(category, search = '') {
   const params = new URLSearchParams(search)
-  for (const key of ['category', 'play', 'zone', 'track']) params.delete(key)
+  for (const key of ['category', 'play', 'learn', 'zone', 'track']) params.delete(key)
   const rest = params.toString()
   const own = category && category !== DEFAULT_CATEGORY ? `category=${encodeURIComponent(category)}` : ''
   const query = [own, rest].filter(Boolean).join('&')
@@ -40,6 +41,36 @@ export function playPath(category, search = '') {
 export function launchPath(category, gameId, search = '') {
   const base = playPath(category, search)
   return `${base}${base.includes('?') ? '&' : '?'}play=${encodeURIComponent(gameId)}`
+}
+
+/** A card's mode picker over a filtered grid: '?category=math&learn=math-hero'. */
+export function learnPath(category, entryId, search = '') {
+  const base = playPath(category, search)
+  return `${base}${base.includes('?') ? '&' : '?'}learn=${encodeURIComponent(entryId)}`
+}
+
+/** The catalogue entry id in '?learn=…', or null. Only meaningful on the home page. */
+export function learnEntryFromSearch(search) {
+  const id = new URLSearchParams(search).get('learn')
+  return id && /^[a-z0-9-]+$/.test(id) ? id : null
+}
+
+/**
+ * The home mode an old audience-pill link meant ('?category=arcade' → 'build-create'), or null.
+ * Those pills no longer exist; such a link shows All in that mode.
+ */
+export function legacyModeFromSearch(search) {
+  const category = new URLSearchParams(search).get('category')?.toLowerCase()
+  return LEGACY_CATEGORY_MODES[category] ?? null
+}
+
+/** The address search without an old audience-pill ?category= (everything else is kept). */
+export function searchWithoutLegacyCategory(search) {
+  if (!legacyModeFromSearch(search)) return search ?? ''
+  const params = new URLSearchParams(search)
+  params.delete('category')
+  const rest = params.toString()
+  return rest ? `?${rest}` : ''
 }
 
 /** The game id in '?play=…', or null. Only meaningful on the home page. */

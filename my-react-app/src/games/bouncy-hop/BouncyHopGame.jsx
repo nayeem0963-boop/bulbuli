@@ -16,6 +16,7 @@
  *     A round is saved once, when it ends; practice gives no XP.
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
@@ -24,7 +25,7 @@ import { GameFullscreenButton } from '../../arcade/GameFullscreen.jsx'
 import { useReducedMotion } from '../../shared/hooks/useReducedMotion.js'
 import ShareGameButton from '../../buddies/ShareGameButton.jsx'
 import { shareUrl } from '../../buddies/shareLinks.js'
-import { MODE_IDS, MODES, createRun, multiplier, summary, targetFor, xpForRun } from './engine.js'
+import { MODES, createRun, modeInTrack, modesForTrack, multiplier, summary, targetFor, xpForRun } from './engine.js'
 import { music, say, sfx } from './audio.js'
 import { BOUNCY_HOP_TEXT } from './text.js'
 import BouncyHopArt from './Art.jsx'
@@ -99,6 +100,12 @@ export default function BouncyHopGame({ playerId, language }) {
   useEffect(() => { recordRef.current = record }, [record])
 
   const [settings, setSettings] = useState(readSettings)
+  // ?track=count | letters (from the Adventure Run card's Multiplication Hop / Letter Hop modes): only
+  // that track's targets are offered. The saved choice is left alone until the player picks one.
+  const { search } = useLocation()
+  const track = useMemo(() => new URLSearchParams(search).get('track'), [search])
+  const shownModes = useMemo(() => modesForTrack(track), [track])
+  const selectedMode = useMemo(() => modeInTrack(settings.mode, track), [settings.mode, track])
   const [phase, setPhase] = useState('start') // 'start' | 'playing' | 'over'
   const [practice, setPractice] = useState(false)
   const [roundMode, setRoundMode] = useState('by2')
@@ -182,7 +189,7 @@ export default function BouncyHopGame({ playerId, language }) {
     clearTimeout(toastTimer.current)
     setToast(null)
     setPopup(null)
-    const mode = modeOverride ?? settings.mode
+    const mode = modeOverride ?? selectedMode
     run.current = createRun({ seed: Date.now() >>> 0, mode, alphabet: language === 'bn' ? 'bn' : 'en', practice: asPractice })
     held.current = { left: false, right: false, btnLeft: false, btnRight: false }
     saved.current = false
@@ -196,7 +203,7 @@ export default function BouncyHopGame({ playerId, language }) {
     setPhase('playing')
     say(text.modes[mode]?.say, language)
     requestAnimationFrame(() => stage.current?.focus({ preventScroll: true }))
-  }, [settings.mode, language, text])
+  }, [selectedMode, language, text])
 
   const finish = useCallback(() => {
     const res = saveRun()
@@ -384,13 +391,13 @@ export default function BouncyHopGame({ playerId, language }) {
             <section className="bh-modes" aria-labelledby="bh-modes-title">
               <h2 id="bh-modes-title">{text.chooseTarget}</h2>
               <div className="bh-mode-list" role="radiogroup" aria-labelledby="bh-modes-title">
-                {MODE_IDS.map((mode) => (
+                {shownModes.map((mode) => (
                   <button
                     key={mode}
                     type="button"
                     role="radio"
-                    aria-checked={settings.mode === mode}
-                    className={`bh-mode${settings.mode === mode ? ' is-on' : ''}`}
+                    aria-checked={selectedMode === mode}
+                    className={`bh-mode${selectedMode === mode ? ' is-on' : ''}`}
                     onClick={() => { sfx.tap(); saveSettings({ ...settings, mode }) }}
                   >
                     <span className="bh-mode-icon" aria-hidden="true">{MODE_ICONS[mode]}</span>

@@ -9,6 +9,7 @@
  * (useScoreSync → profiles.total_score), batched so it's one request per few taps.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLatest } from '../../shared/hooks/useLatest.js'
 import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
 import { isMuted, playSound } from '../../utils/sound.js'
@@ -68,8 +69,7 @@ export default function ShapeHunt({ playerId, language }) {
   const [focusedId, setFocusedId] = useState(null)
 
   const rng = useRef(createRng())
-  const gameRef = useRef(game)
-  gameRef.current = game
+  const gameRef = useLatest(game)
   const advanceTimer = useRef(null)
   useEffect(() => () => clearTimeout(advanceTimer.current), [])
   // Warm the 3D chunk while the level picker is up, so Start is (almost) instant.
@@ -87,18 +87,23 @@ export default function ShapeHunt({ playerId, language }) {
   // Announce each new round's shape.
   const target = game && !game.finished ? game.round.target : null
   const roundNumber = game?.roundNumber
+  const announcement = target ? text.find(shapeName(target)) : null
+  // show the new round's prompt during render; speaking it is the side effect
+  const [announced, setAnnounced] = useState(null)
+  const announceKey = target ? `${roundNumber}|${announcement}` : null
+  if (announceKey !== announced) {
+    setAnnounced(announceKey)
+    if (announcement) setMessage(announcement)
+  }
   useEffect(() => {
-    if (!target) return
-    const words = text.find(shapeName(target))
-    setMessage(words)
-    speak(words, language)
-  }, [target, roundNumber, text, shapeName, language])
+    if (announcement) speak(announcement, language)
+  }, [announcement, roundNumber, language])
 
   const repeatPrompt = useCallback(() => {
     const current = gameRef.current
     if (!current || current.finished) return
     speak(text.find(shapeName(current.round.target)), language)
-  }, [text, shapeName, language])
+  }, [text, shapeName, language, gameRef])
 
   const finish = useCallback((finished) => {
     const stars = starsFor(finished.mistakes, finished.rounds)
@@ -143,7 +148,7 @@ export default function ShapeHunt({ playerId, language }) {
       setGame(advanced)
       if (advanced.finished) finish(advanced)
     }, CORRECT_DELAY)
-  }, [addPoints, finish, language, shapeName, text])
+  }, [addPoints, finish, language, shapeName, text, gameRef])
 
   /* ---------- Level picker ---------- */
   if (!game) {

@@ -5,7 +5,7 @@ import { formatCount } from '../community/gallery.js'
 import { APPEAL_PRESETS, contestStandings, hoursLeft } from '../community/simulation.js'
 import { MedalChip } from '../profile/StatsOverview.jsx'
 import { CARD, CARD_PAD, GemBadge, H2, INSET, StatusTag } from '../profile/ui.jsx'
-import { useGameActions } from '../state/GameStateProvider.jsx'
+import { useGameActions } from '../state/gameStateContext.js'
 
 const PLACE = { 1: 'Gold', 2: 'Silver', 3: 'Bronze' }
 

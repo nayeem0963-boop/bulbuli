@@ -62,6 +62,26 @@ export const MODES = {
 }
 export const MODE_IDS = Object.keys(MODES)
 
+/**
+ * Learning tracks: the home page's Bulbuli Adventure Run 3D card opens this game with ?track=count
+ * (Multiplication Hop: counting in 2s, 3s, 5s, 10s) or ?track=letters (Letter Hop: vowels), and the
+ * start screen then offers only that track's targets. No track (or an unknown one) = every target,
+ * exactly as before. Rules, scores and saved records are the same in every track.
+ */
+export const TRACKS = {
+  count: MODE_IDS.filter((id) => MODES[id].kind === 'count'),
+  letters: MODE_IDS.filter((id) => MODES[id].kind === 'letters'),
+}
+
+/** The targets to offer for a track (all of them without one). */
+export const modesForTrack = (track) => (Object.hasOwn(TRACKS, track ?? '') ? TRACKS[track] : MODE_IDS)
+
+/** The selected target, kept inside the track: a saved choice from another track falls back to the track's first. */
+export const modeInTrack = (mode, track) => {
+  const shown = modesForTrack(track)
+  return shown.includes(mode) ? mode : shown[0]
+}
+
 export const ALPHABETS = {
   en: {
     vowels: ['A', 'E', 'I', 'O', 'U'],

@@ -6,7 +6,7 @@ import Hotbar from '../components/studio/Hotbar.jsx'
 import LevelPanel from '../components/studio/LevelPanel.jsx'
 import PublishModal from '../components/studio/PublishModal.jsx'
 import useEditorShortcuts from '../components/studio/useEditorShortcuts.js'
-import { useEditorActions } from '../level/LevelEditorProvider.jsx'
+import { useEditorActions } from '../level/levelEditorContext.js'
 import { createPlayStore } from '../play/playStore.js'
 
 // three + R3F + drei are the heaviest part of the app: load them only when the Studio opens.

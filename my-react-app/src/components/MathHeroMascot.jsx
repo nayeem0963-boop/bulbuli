@@ -108,10 +108,15 @@ function MathHeroMascot({ src, question, gameOver, muted, language = 'en' }) {
     nextLine.current = 0
   }, [question?.left, question?.operator, question?.right])
 
-  // Switching language closes the bubble, so an old-language line never lingers.
+  // Switching language closes the bubble, so an old-language line never lingers: the bubble state
+  // is cleared during render; the timer, line order and audio (side effects) in the effect.
+  const [lineLanguage, setLineLanguage] = useState(language)
+  if (lineLanguage !== language) {
+    setLineLanguage(language)
+    setLine(null)
+  }
   useEffect(() => {
     window.clearTimeout(hideTimer.current)
-    setLine(null)
     nextLine.current = 0
     stopTalking(audioRef)
   }, [language])

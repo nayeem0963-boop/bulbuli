@@ -11,7 +11,7 @@ import { preloadVoxelCraftStudio } from '../features/voxelcraft/lazy.js'
  */
 
 /** Tile art: a few stacked voxel blocks and a placement cursor. Plain SVG, nothing to download. */
-function StudioArt() {
+export function StudioArt() {
   const block = (x, y, top, side, front) => (
     <g key={`${x}-${y}`} transform={`translate(${x} ${y})`}>
       <path d="M0 8 L14 0 L28 8 L14 16 Z" fill={top} stroke="#1b2a49" strokeWidth="2" strokeLinejoin="round" />

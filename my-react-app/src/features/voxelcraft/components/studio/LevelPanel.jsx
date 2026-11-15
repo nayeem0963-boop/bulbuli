@@ -2,10 +2,10 @@ import { CircleAlert, CircleCheck, ClipboardCopy, FilePlus, Gem, Play, Rocket, Z
 import { useEffect, useMemo, useState } from 'react'
 import { REWARDS } from '../../data/mockData.js'
 import { BLOCK_TYPE_LIST } from '../../level/blockTypes.js'
-import { useEditorActions, useLevel } from '../../level/LevelEditorProvider.jsx'
+import { useEditorActions, useLevel } from '../../level/levelEditorContext.js'
 import { countByType } from '../../level/levelOps.js'
 import { MAX_BLOCKS, TITLE_MAX, validateLevel } from '../../level/levelSchema.js'
-import { useGameState } from '../../state/GameStateProvider.jsx'
+import { useGameState } from '../../state/gameStateContext.js'
 
 const DOT = {
   PLATFORM: 'bg-slate-400',

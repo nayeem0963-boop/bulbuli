@@ -1,0 +1,171 @@
+/* The mode picker (ModePicker.jsx): the launcher dialog's frame (.game-modal in arcade.css),
+   with an intro row and a list of mode cards. Coming-soon modes are greyed out and can't be opened. */
+
+.game-modal.mode-picker { width: min(100%, 52rem); }
+
+.mode-picker-scroll {
+  overflow: auto;
+  padding: 1.25rem 1.4rem 1.5rem;
+}
+
+.mode-picker-intro {
+  display: grid;
+  grid-template-columns: minmax(7rem, 11rem) 1fr;
+  gap: 1.1rem;
+  align-items: center;
+}
+.mode-picker-art {
+  position: relative;
+  display: grid;
+  aspect-ratio: 5 / 4;
+  place-items: center;
+  overflow: hidden;
+  border: var(--toy-border);
+  border-radius: 1.1rem;
+  background: var(--tile-bg);
+}
+.mode-picker-art > .art {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250px;
+  height: 176px;
+  transform: translate(-50%, -50%) scale(0.6);
+}
+.mode-picker-intro p { margin: 0 0 0.6rem; }
+.mode-picker-learn { font-size: 0.98rem; line-height: 1.4; }
+
+.mode-picker-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+  margin: 1.1rem 0 0.75rem;
+  font-size: 1.35rem;
+}
+.mode-picker-count { color: var(--text-muted); font-family: var(--font-body, inherit); font-size: 0.9rem; font-weight: 700; }
+
+.mode-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mode-card {
+  --tile-bg: var(--sky-soft);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: var(--toy-border);
+  border-radius: 1.2rem;
+  background: var(--surface);
+  box-shadow: 0 5px 0 var(--ink);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.mode-card.is-sun { --tile-bg: var(--sun); }
+.mode-card.is-sky { --tile-bg: #8fd0f7; }
+.mode-card.is-leaf { --tile-bg: #8fdcb2; }
+.mode-card.is-berry { --tile-bg: #ff9aa3; }
+.mode-card.is-grape { --tile-bg: #c9a8f5; }
+.mode-card:has(.mode-card-link:hover) { transform: translateY(-3px); box-shadow: 0 8px 0 var(--ink); }
+.mode-card:has(.mode-card-link:active) { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+
+.mode-card-link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  border-radius: calc(1.2rem - 3px);
+  color: var(--text);
+  text-decoration: none;
+}
+.mode-card-link:hover { color: var(--text); }
+.mode-card-link:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+.mode-card-art {
+  position: relative;
+  height: 6.5rem;
+  overflow: hidden;
+  border-bottom: var(--toy-border);
+  border-radius: calc(1.2rem - 3px) calc(1.2rem - 3px) 0 0;
+  background: var(--tile-bg);
+}
+/* each game's tile art, drawn at its card size and scaled down whole */
+.mode-card-art > .art {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250px;
+  height: 176px;
+  transform: translate(-50%, -50%) scale(0.55);
+}
+
+.mode-card-body { flex: 1; padding: 0.7rem 0.9rem 0.2rem; }
+.mode-card h3 { margin: 0 0 0.25rem; font-size: 1.25rem; line-height: 1.1; }
+.mode-card-learn { margin: 0 0 0.5rem; font-size: 0.95rem; line-height: 1.35; }
+.mode-card-meta { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0; }
+.mode-card-meta span {
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  background: color-mix(in srgb, var(--tile-bg) 45%, var(--surface));
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.mode-card-action {
+  align-self: flex-start;
+  margin: 0.6rem 0.9rem 0.9rem;
+  border: var(--toy-border);
+  border-radius: 999px;
+  padding: 0.25rem 1.1rem;
+  color: #fff;
+  background: var(--berry);
+  box-shadow: var(--toy-lift-press);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.mode-card-action::after { content: ' ▶'; font-size: 0.85em; }
+.app-shell[data-theme='dark'] .mode-card-action { color: #1a0509; }
+
+/* coming soon: clearly not playable */
+.mode-card.is-soon {
+  border-style: dashed;
+  background: var(--surface-muted);
+  box-shadow: none;
+  color: var(--text-muted);
+}
+.mode-card.is-soon .mode-card-art {
+  display: grid;
+  place-items: center;
+  border-bottom-style: dashed;
+  background: repeating-linear-gradient(-45deg, var(--surface-muted) 0 10px, color-mix(in srgb, var(--text-muted) 14%, var(--surface-muted)) 10px 20px);
+}
+.mode-card-lock { font-size: 2rem; filter: grayscale(1); opacity: 0.75; }
+.mode-card.is-soon h3 { color: var(--text-muted); }
+.arcade .mode-card-action.is-soon,
+.mode-card-action.is-soon {
+  border-style: dashed;
+  color: var(--text-muted);
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.95rem;
+  cursor: not-allowed;
+  opacity: 1;
+}
+.mode-card-action.is-soon::after { content: none; }
+
+@media (max-width: 560px) {
+  .mode-picker-scroll { padding: 1rem; }
+  .mode-picker-intro { grid-template-columns: 1fr; }
+  .mode-picker-art { display: none; }
+  .mode-list { gap: 0.7rem; }
+  .mode-card-art { height: 5rem; }
+  .mode-card-art > .art { transform: translate(-50%, -50%) scale(0.42); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-card { transition: none; }
+}

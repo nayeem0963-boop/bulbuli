@@ -24,6 +24,7 @@ import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import HUD from './HUD.jsx'
 import { useInputState, useKeyboardInput } from './input.js'
+import { useLatest } from '../../shared/hooks/useLatest.js'
 import { generateWorld } from './layout.js'
 import { sfx } from './sfx.js'
 import { SKYWARD_TEXT } from './text.js'
@@ -73,12 +74,11 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
   const live = useRef(newLive())
   const ended = useRef(false)
   const scoreRef = useRef(0)
-  const input = useInputState()
+  const inputRef = useInputState()
 
   // game keys count only while actually playing
-  const inputActive = useRef(false)
-  inputActive.current = gameStatus === 'playing' && !paused
-  useKeyboardInput(input, inputActive)
+  const inputActive = useLatest(gameStatus === 'playing' && !paused)
+  useKeyboardInput(inputRef, inputActive)
 
   useEffect(() => { SkywardExplorerCanvas.preload().catch(() => {}) }, [])
   // launched straight into play: the click on the launcher is the start
@@ -88,6 +88,7 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
   const resetRun = useCallback((nextSeed) => {
     live.current = newLive()
     ended.current = false
+    const input = inputRef.current
     input.held.clear()
     input.touchX = 0
     input.touchY = 0
@@ -99,7 +100,7 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
     setResult(null)
     setPaused(false)
     setHud({ timeLeft: ROUND_SECONDS, stamina: 1, gliding: false })
-  }, [input])
+  }, [inputRef])
 
   const start = useCallback(() => {
     releaseFocus()
@@ -185,7 +186,7 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
     }
   }, [gameStatus])
 
-  useEffect(() => { if (paused) input.held.clear() }, [paused, input])
+  useEffect(() => { if (paused) inputRef.current.held.clear() }, [paused, inputRef])
 
   return (
     <div className={`skx${embedded ? ' is-fill' : ''}`}>
@@ -206,8 +207,8 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
               seed={seed}
               status={gameStatus}
               paused={paused}
-              input={input}
-              live={live.current}
+              inputRef={inputRef}
+              liveRef={live}
               onCollect={handleCollect}
               onTimeUp={handleTimeUp}
             />
@@ -225,7 +226,7 @@ export default function SkywardExplorer({ playerId, language = 'en', embedded = 
           stamina={hud.stamina}
           gliding={hud.gliding}
           result={result}
-          input={input}
+          inputRef={inputRef}
           onStart={start}
           onPause={() => setPaused(true)}
           onResume={() => { releaseFocus(); setPaused(false) }}

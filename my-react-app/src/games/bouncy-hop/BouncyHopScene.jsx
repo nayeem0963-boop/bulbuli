@@ -185,13 +185,18 @@ function makeCloudParts(rng) {
   return parts
 }
 
+/** Park–Miller LCG: the same deterministic sequence the clouds and sparkles always used. */
+function lcg(seed) {
+  let s = seed
+  return () => { s = (s * 16807) % 2147483647; return s / 2147483647 }
+}
+
 function Clouds({ reducedMotion }) {
-  const { camera } = useThree()
   const geo = useMemo(() => new IcosahedronGeometry(1, 1), [])
   const mat = useMemo(() => new MeshStandardMaterial({ color: '#ffffff', emissive: '#f4f0ff', emissiveIntensity: 0.35, roughness: 1, flatShading: true, transparent: true, opacity: 0.95 }), [])
+  // the layout is fixed after render; the drifting positions live in a ref owned by useFrame
   const clouds = useMemo(() => {
-    let seed = 7
-    const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+    const rng = lcg(7)
     return Array.from({ length: CLOUDS }, (_, i) => {
       const below = i % 3 === 0
       const side = i % 2 === 0 ? -1 : 1
@@ -206,15 +211,18 @@ function Clouds({ reducedMotion }) {
     })
   }, [])
   const refs = useRef([])
-  useFrame((_, delta) => {
+  const drift = useRef(null)
+  useFrame(({ camera }, delta) => {
     const camZ = camera.position.z
+    if (!drift.current || drift.current.length !== clouds.length) drift.current = clouds.map((c) => ({ x: c.x, z: c.z }))
     clouds.forEach((c, i) => {
       const g = refs.current[i]
       if (!g) return
-      if (!reducedMotion) c.x += c.drift * delta
-      if (c.z > camZ + 12) c.z -= CLOUD_SPAN
-      if (c.z < camZ - CLOUD_SPAN + 12) c.z += CLOUD_SPAN
-      g.position.set(c.x, c.y, c.z)
+      const d = drift.current[i]
+      if (!reducedMotion) d.x += c.drift * delta
+      if (d.z > camZ + 12) d.z -= CLOUD_SPAN
+      if (d.z < camZ - CLOUD_SPAN + 12) d.z += CLOUD_SPAN
+      g.position.set(d.x, c.y, d.z)
     })
   })
   return clouds.map((c, i) => (
@@ -229,19 +237,16 @@ function Clouds({ reducedMotion }) {
 /* ------------------------------------------------------------------ star sparkles */
 
 function Sparkles() {
-  const { camera } = useThree()
-  const { geometry, material, data } = useMemo(() => {
+  const points = useRef(null)
+  const { geometry, material } = useMemo(() => {
     const pos = new Float32Array(SPARKLES * 3)
     const phase = new Float32Array(SPARKLES)
     const size = new Float32Array(SPARKLES)
-    const data = []
-    let seed = 99
-    const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+    const rand = lcg(99)
     for (let i = 0; i < SPARKLES; i += 1) {
       const x = (rand() - 0.5) * 60
       const y = -12 + rand() * 26
       const z = -rand() * 120 + 10
-      data.push([x, y, z])
       pos.set([x, y, z], i * 3)
       phase[i] = rand() * Math.PI * 2
       size[i] = 0.5 + rand() * 1.1
@@ -277,21 +282,25 @@ function Sparkles() {
           gl_FragColor = vec4(vec3(1.0, 0.97, 0.85) * a, a);
         }`,
     })
-    return { geometry, material, data }
+    return { geometry, material }
   }, [])
+  useEffect(() => () => { geometry.dispose(); material.dispose() }, [geometry, material])
+  // per-frame updates go through the live object (ref), never the render-time values
   useFrame((state) => {
-    material.uniforms.time.value = state.clock.elapsedTime
-    material.uniforms.scale.value = state.size.height * 0.45
-    const camZ = camera.position.z
-    const pos = geometry.attributes.position
+    const p = points.current
+    if (!p) return
+    p.material.uniforms.time.value = state.clock.elapsedTime
+    p.material.uniforms.scale.value = state.size.height * 0.45
+    const camZ = state.camera.position.z
+    const pos = p.geometry.attributes.position
     let changed = false
     for (let i = 0; i < SPARKLES; i += 1) {
-      const d = data[i]
-      if (d[2] > camZ + 8) { d[2] -= 120; changed = true; pos.setZ(i, d[2]) }
+      const z = pos.getZ(i)
+      if (z > camZ + 8) { pos.setZ(i, z - 120); changed = true }
     }
     if (changed) pos.needsUpdate = true
   })
-  return <points geometry={geometry} material={material} frustumCulled={false} />
+  return <points ref={points} geometry={geometry} material={material} frustumCulled={false} />
 }
 
 /* ------------------------------------------------------------------ tiles */
@@ -306,8 +315,6 @@ function useTileAssets() {
       glow: new MeshBasicMaterial({ map: glowTex, color: NEON[0], transparent: true, opacity: 0.6, blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
       label: new MeshBasicMaterial({ transparent: true, depthWrite: false, toneMapped: false }),
       ring: new MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
-      key: '', // which tile is drawn in this slot (row:index), to know when to repaint
-      text: '',
     }))
     return {
       body,
@@ -325,12 +332,19 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
   const labels = useRef([])
   const glows = useRef([])
   const rings = useRef([])
+  const outlines = useRef([])
+  // per-slot repaint bookkeeping: which tile (row:index) and label text each slot shows
+  const painted = useRef(null)
   const formatRef = useRef(formatLabel)
-  useEffect(() => { formatRef.current = formatLabel; for (const s of assets.slots) s.text = '' }, [formatLabel, assets])
+  useEffect(() => {
+    formatRef.current = formatLabel
+    if (painted.current) for (const p of painted.current) p.text = ''
+  }, [formatLabel])
 
   useFrame(() => {
     const run = runRef.current
     if (!run) return
+    if (!painted.current) painted.current = Array.from({ length: POOL }, () => ({ key: '', text: '' }))
     const t = run.t
     const now = performance.now() / 1000
     let used = 0
@@ -347,9 +361,17 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
       if (leftAge > 1.6) continue
       for (let i = 0; i < row.tiles.length && used < POOL; i += 1) {
         const tile = row.tiles[i]
-        const slot = assets.slots[used]
         const g = groups.current[used]
         if (!g) { used += 1; continue }
+        // the slot's live materials, reached through its meshes (render-time assets stay immutable)
+        const paint = painted.current[used]
+        const slot = {
+          body: bodies.current[used].material,
+          outline: outlines.current[used].material,
+          glow: glows.current[used].material,
+          label: labels.current[used].material,
+          ring: rings.current[used]?.material,
+        }
         g.visible = true
         const key = `${k}:${i}`
         // the tiles not chosen sink and fade once the row is cleared
@@ -372,9 +394,9 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
         body.position.y = -TILE_H / 2 - spring * 0.06
 
         // colours: pastel body + neon edge; green / red once landed on; a pulse to hint the answer
-        if (slot.key !== key) {
-          slot.key = key
-          slot.text = ''
+        if (paint.key !== key) {
+          paint.key = key
+          paint.text = ''
           slot.body.color.set(tile.pad ? PAD_BODY : BODY[tile.color])
         }
         const neon = tile.pad ? PAD_NEON : NEON[tile.color]
@@ -414,8 +436,8 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
 
         // the label
         const text = formatRef.current ? formatRef.current(tile.label) : tile.label
-        if (slot.text !== text) {
-          slot.text = text
+        if (paint.text !== text) {
+          paint.text = text
           slot.label.map = labelTexture(text)
           slot.label.needsUpdate = true
         }
@@ -433,7 +455,7 @@ function Tiles({ runRef, assets, formatLabel, reducedMotion }) {
   return assets.slots.map((slot, i) => (
     <group key={i} ref={(el) => { groups.current[i] = el }} visible={false}>
       <mesh ref={(el) => { bodies.current[i] = el }} geometry={assets.body} material={slot.body}>
-        <mesh geometry={assets.body} material={slot.outline} scale={[1.06, 1.14, 1.06]} />
+        <mesh ref={(el) => { outlines.current[i] = el }} geometry={assets.body} material={slot.outline} scale={[1.06, 1.14, 1.06]} />
       </mesh>
       <mesh ref={(el) => { labels.current[i] = el }} geometry={assets.label} material={slot.label} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2} />
       <mesh ref={(el) => { rings.current[i] = el }} geometry={assets.ring} material={slot.ring} rotation={[-Math.PI / 2, 0, 0]} renderOrder={3} visible={false} />
@@ -580,12 +602,12 @@ function LandingShadow({ runRef, reducedMotion }) {
     blob.current.visible = airborne && Boolean(over)
     blob.current.position.set(run.x, y, row.z)
     blob.current.scale.set(size * 1.4, size * 1.4, 1)
-    mats.blob.opacity = 0.35 + p * 0.55
+    blob.current.material.opacity = 0.35 + p * 0.55
     ring.current.position.set(run.x, y + 0.005, row.z)
     const pulse = reducedMotion ? 1 : 1 + Math.sin(state.clock.elapsedTime * 10) * (over ? 0.06 : 0.12)
     ring.current.scale.set(pulse * (1.2 - p * 0.3), pulse * (1.2 - p * 0.3), 1)
-    mats.ring.color.set(!over ? '#ff4d6a' : over.correct && row.hint ? '#25e07a' : '#ffffff')
-    mats.ring.opacity = airborne ? 0.45 + p * 0.5 : 0.3
+    ring.current.material.color.set(!over ? '#ff4d6a' : over.correct && row.hint ? '#25e07a' : '#ffffff')
+    ring.current.material.opacity = airborne ? 0.45 + p * 0.5 : 0.3
   })
   return (
     <>
@@ -605,7 +627,9 @@ const BURST_COLORS = {
 
 function Particles({ apiRef, reducedMotion }) {
   const mesh = useRef(null)
-  const parts = useMemo(() => Array.from({ length: PARTICLES }, () => ({ life: 0, max: 1, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, s: 1, spin: 0 })), [])
+  // the particle pool is simulation state: a ref (lazy init is the one allowed ref write in render)
+  const pool = useRef(null)
+  if (pool.current === null) pool.current = Array.from({ length: PARTICLES }, () => ({ life: 0, max: 1, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, s: 1, spin: 0 }))
   const geo = useMemo(() => new OctahedronGeometry(0.1, 0), [])
   const mat = useMemo(() => new MeshBasicMaterial({ toneMapped: false }), [])
   const cursor = useRef(0)
@@ -613,6 +637,7 @@ function Particles({ apiRef, reducedMotion }) {
     apiRef.current = (x, y, z, kind = 'good', count = 22, speed = 4) => {
       const colors = BURST_COLORS[kind] ?? BURST_COLORS.good
       const n = reducedMotion ? Math.ceil(count / 3) : count
+      const parts = pool.current
       for (let i = 0; i < n; i += 1) {
         const p = parts[cursor.current]
         const idx = cursor.current
@@ -630,11 +655,12 @@ function Particles({ apiRef, reducedMotion }) {
       if (mesh.current?.instanceColor) mesh.current.instanceColor.needsUpdate = true
     }
     return () => { apiRef.current = null }
-  }, [apiRef, parts, reducedMotion])
+  }, [apiRef, reducedMotion])
   useFrame((_, delta) => {
     const m = mesh.current
     if (!m) return
     const dt = Math.min(delta, 0.05)
+    const parts = pool.current
     for (let i = 0; i < PARTICLES; i += 1) {
       const p = parts[i]
       if (p.life >= p.max) { dummy.scale.setScalar(0); dummy.position.set(0, -999, 0) } else {
@@ -702,10 +728,10 @@ function Trail({ runRef, ballRef, reducedMotion }) {
 /* ------------------------------------------------------------------ camera + engine step */
 
 function Rig({ runRef, running, paused, onEvents, reducedMotion, burstRef, ballRef }) {
-  const { camera, size } = useThree()
   const cam = useRef({ x: 0, y: 0, z: 0, ready: false })
   const shake = useRef({ amp: 0 })
-  useFrame((_, delta) => {
+  // the camera comes from the frame state: it is three.js-owned, not a render-time hook value
+  useFrame(({ camera, size }, delta) => {
     const run = runRef.current
     if (!run) return
     if (running && !paused) stepRun(run, delta)

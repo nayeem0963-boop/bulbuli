@@ -71,13 +71,21 @@ const TILT = {
   torus: [0.9, 0, 0],
 }
 
+/** A stable 0..2π phase from a slot position, so neighbouring shapes bob out of step (pure, unlike Math.random). */
+function phaseFor(position) {
+  const [x = 0, y = 0, z = 0] = position ?? []
+  const n = Math.sin(x * 12.9898 + y * 4.1414 + z * 78.233) * 43758.5453
+  return (n - Math.floor(n)) * Math.PI * 2
+}
+
 const ShapeItem = memo(function ShapeItem({
   option, position, scale, status, focused, badge, label, reducedMotion, onPick,
 }) {
   const group = useRef()
   const spinner = useRef()
   const material = useRef()
-  const motion = useRef({ shake: 0, jump: 0, jumpVel: 0, phase: Math.random() * Math.PI * 2 })
+  const motion = useRef(null)
+  if (motion.current === null) motion.current = { shake: 0, jump: 0, jumpVel: 0, phase: phaseFor(position) }
   const [hovered, setHovered] = useState(false)
   useCursor(hovered && status === 'idle')
 

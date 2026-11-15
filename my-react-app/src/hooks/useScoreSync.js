@@ -18,7 +18,7 @@
  * Guests (playerId 'guest', or no signed-in user) play with a local score
  * only — nothing is sent to Supabase.
  */
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient.js' // the app's single shared client
 
 const DEBOUNCE_MS = 800
@@ -52,6 +52,16 @@ export function useScoreSync({ userId, useRpc = true }) {
   const [score, setScore] = useState(0)
   const [status, setStatus] = useState(online ? 'loading' : 'guest')
 
+  // Reset the visible score/status when the player (or save mode) changes. Done during render
+  // ("adjusting state when a prop changes"), so there is no extra effect pass with stale values.
+  const ownerKey = `${userId}|${useRpc}`
+  const [owner, setOwner] = useState(ownerKey)
+  if (owner !== ownerKey) {
+    setOwner(ownerKey)
+    setScore(0)
+    setStatus(online ? 'loading' : 'guest')
+  }
+
   const pending = useRef(0)        // points not yet saved
   const confirmed = useRef(0)      // last total the server agreed on
   const loaded = useRef(false)     // true once the starting score is known
@@ -61,7 +71,7 @@ export function useScoreSync({ userId, useRpc = true }) {
   const maxWaitTimer = useRef(null)
   const retryTimer = useRef(null)
   const retryDelay = useRef(RETRY_BASE_MS)
-  const flushRef = useRef(null)    // lets timers call the latest flush
+  const flushRef = useRef(null)    // lets timers call the latest flush (set after commit, below)
 
   const clearTimers = () => {
     clearTimeout(debounceTimer.current)
@@ -87,15 +97,11 @@ export function useScoreSync({ userId, useRpc = true }) {
     confirmed.current = 0
     loaded.current = false
     rpcMode.current = useRpc
-    setScore(0)
+    // (score / status were reset during render, see `owner` above)
 
-    if (!online) {
-      setStatus('guest')
-      return
-    }
+    if (!online) return
 
     let cancelled = false
-    setStatus('loading')
 
     supabase
       .from(TABLE)
@@ -199,7 +205,9 @@ export function useScoreSync({ userId, useRpc = true }) {
     }
   }, [online, userId, schedule])
 
-  flushRef.current = flush
+  useLayoutEffect(() => {
+    flushRef.current = flush
+  }, [flush])
 
   /* ---------- Public: called on every tap ---------- */
   const addPoints = useCallback(
