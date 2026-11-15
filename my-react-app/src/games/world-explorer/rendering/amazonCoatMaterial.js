@@ -32,7 +32,7 @@ vec2 jaguarCoat(vec3 p) {
   float legs = 1.0 - smoothstep(0.30, 0.46, p.y);
   float head = smoothstep(0.74, 0.86, p.z);
   float small = max(legs, head);
-  float scale = mix(14.0, 22.0, small);
+  float scale = mix(18.0, 28.0, small);
   vec3 q = p * scale;
   q += 0.4 * vec3(cNoise(q * 1.4), cNoise(q * 1.4 + 9.0), cNoise(q * 1.4 + 19.0));
   vec2 c = jaguarCells(q);
@@ -45,13 +45,13 @@ vec2 jaguarCoat(vec3 p) {
   float inner = isRosette * (1.0 - smoothstep(0.12, 0.22, d)) * (1.0 - dot_);
   // a second layer of small spots fills the gaps between the rosettes
   vec2 c2 = jaguarCells(p * scale * 2.3 + vec3(5.0, 11.0, 3.0));
-  float fill = (1.0 - smoothstep(0.1, 0.17, c2.x)) * step(0.4, c2.y) * (1.0 - mask) * (1.0 - 0.6 * small);
+  float fill = (1.0 - smoothstep(0.12, 0.2, c2.x)) * step(0.32, c2.y) * (1.0 - mask) * (1.0 - 0.6 * small);
   return vec2(max(mask, fill), inner);
 }
 `
 
 export function createCoatMaterial() {
-  const material = new MeshPhysicalMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.5, side: DoubleSide, emissive: '#4a4030', emissiveIntensity: 0.28 })
+  const material = new MeshPhysicalMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.5, side: DoubleSide, emissive: '#3a3226', emissiveIntensity: 0.16 })
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace('void main() {', 'varying vec3 vCoat;\nvoid main() {')
@@ -67,9 +67,9 @@ export function createCoatMaterial() {
           float grain = 0.93 + 0.14 * cNoise(vCoat * 260.0);
           vec3 black = vec3(0.03, 0.02, 0.014);
           diffuseColor.rgb *= grain * (1.0 - 0.16 * coat.y * (1.0 - tail));
-          diffuseColor.rgb = mix(diffuseColor.rgb, black, 0.95 * dark);
+          diffuseColor.rgb = mix(diffuseColor.rgb, black, 0.98 * dark);
         }`)
   }
-  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v5'
+  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v6'
   return material
 }
