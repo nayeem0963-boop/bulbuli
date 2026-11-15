@@ -15,15 +15,17 @@ const triangles = (geometry) => (geometry.index ? geometry.index.count : geometr
 const apart = (a, b) => Math.hypot(a.x - b.x, a.z - b.z)
 
 test('amazon fauna: nineteen kinds, as many animals as the forest has room for; only the Amazon has any', () => {
-  assert.deepEqual(Object.keys(AMAZON_FAUNA_BUILDERS).sort(), Object.keys(AMAZON_FAUNA).sort())
+  // every kind is built in code, except the jaguar, which is a model file
+  assert.deepEqual([...Object.keys(AMAZON_FAUNA_BUILDERS), 'jaguar'].sort(), Object.keys(AMAZON_FAUNA).sort())
   assert.equal(new Set(fauna.map((a) => a.type)).size, 19, 'every kind appears')
   for (const type of Object.keys(AMAZON_FAUNA)) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
   assert.ok(fauna.length >= 51)
   for (const id of ['sundarbans', 'sahara']) assert.equal(BIOMES[id].fauna, undefined)
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'))
-  // built in code: no model or image is fetched
+  // built in code: no model or image is fetched, except the one jaguar file, loaded only by AmazonJaguar.jsx
   for (const file of ['./AmazonFauna.jsx', './amazonFauna.js']) assert.ok(!/useLoader|useGLTF|GLTFLoader|https?:\/\//.test(readFileSync(new URL(file, import.meta.url), 'utf8').replace(/^\/\*\*[\s\S]*?\*\//, '')))
+  assert.ok(/useLoader\(GLTFLoader, jaguarUrl\)/.test(readFileSync(new URL('./AmazonJaguar.jsx', import.meta.url), 'utf8')))
 })
 
 test('amazon fauna: each model stands on the ground, within the size its collider says, and is always the same', () => {
@@ -103,4 +105,44 @@ test('amazon fauna: finely modelled statues: smooth, a budget of triangles, and 
   // they stand still: nothing moves them
   for (const file of ['./AmazonFauna.jsx', './amazonFauna.js']) assert.ok(!/useFrame|requestAnimationFrame|elapsedTime/.test(readFileSync(new URL(file, import.meta.url), 'utf8')))
   assert.ok(fauna.every((animal) => animal.roam === undefined && animal.route === undefined))
+})
+
+/** The parts of a .glb the tests need: its JSON chunk and its size. */
+function readGlb() {
+  const file = new URL('../assets/jaguar.glb', import.meta.url)
+  const data = readFileSync(file)
+  assert.equal(data.toString('ascii', 0, 4), 'glTF')
+  const jsonLength = data.readUInt32LE(12)
+  return { json: JSON.parse(data.toString('utf8', 20, 20 + jsonLength)), bytes: data.length }
+}
+
+test('amazon jaguar: a credited, light, static model that is the size its collider says', () => {
+  const { json, bytes } = readGlb()
+  // credited (CC BY 4.0 asks for the author, the licence and a note of the changes)
+  assert.match(json.asset.extras.license, /CC-BY-4\.0/)
+  assert.match(json.asset.extras.author, /Ear\.Rodriguez/)
+  const note = readFileSync(new URL('../assets/jaguar.LICENSE.md', import.meta.url), 'utf8')
+  for (const needle of ['Ear.Rodriguez', 'CC BY 4.0', 'Changes made', 'sketchfab.com/3d-models/jaguar-91c61c329d2a4668816f81f08dfcd492']) assert.ok(note.includes(needle), `the licence note names ${needle}`)
+  // light and static: no skeleton, no animation, one coat texture, under 1.2 MB
+  assert.ok(bytes < 1.2 * 1024 * 1024, `${bytes} bytes`)
+  assert.ok(!json.skins && !json.animations, 'static: no skeleton, no animation')
+  assert.equal(json.images.length, 1)
+  assert.equal(json.meshes.length, 2, 'the body and the eyes')
+  let triangles = 0
+  const box = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] }
+  for (const mesh of json.meshes) for (const primitive of mesh.primitives) {
+    triangles += json.accessors[primitive.indices].count / 3
+    const position = json.accessors[primitive.attributes.POSITION]
+    for (let a = 0; a < 3; a += 1) { box.min[a] = Math.min(box.min[a], position.min[a]); box.max[a] = Math.max(box.max[a], position.max[a]) }
+    assert.ok(!primitive.attributes.JOINTS_0 && !primitive.attributes.WEIGHTS_0)
+  }
+  assert.ok(triangles < 23000, `${triangles} triangles`)
+  // standing on the ground, centred, within the collider's size
+  const spec = AMAZON_FAUNA.jaguar
+  assert.ok(Math.abs(box.min[1]) < 0.01, `feet at y = ${box.min[1]}`)
+  assert.ok(box.max[1] <= spec.top + 0.05 && box.max[1] >= spec.top - 0.1, `${box.max[1]} m tall, collider ${spec.top} m`)
+  const length = box.max[2] - box.min[2]
+  assert.ok(Math.abs(length - spec.length) < 0.2, `${length.toFixed(2)} m long, spec ${spec.length} m`)
+  assert.ok(Math.abs(box.min[0] + box.max[0]) < 0.05 && Math.abs(box.min[2] + box.max[2]) < 0.05, 'centred on its place')
+  assert.ok(Math.hypot(box.max[0], box.max[2]) <= spec.radius + 0.9 * (spec.length / 2) + 0.2 + 0.3, 'within reach of its place')
 })

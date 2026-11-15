@@ -25,7 +25,7 @@ The banner on every page says so: **REVIEW BUILD — EDUCATIONAL CONTENT PENDING
   review markers (`createReviewAdapter`, `phase2a-review`, `PENDING APPROVAL`, …).
 - **R1–R5** (`src/learning/tests/review-build.test.js`):
   - R1: the review build contains exactly the page, its bundles, the Draco decoder and the five
-    public assets it uses (the Amazon bird is built in code: no model file); not the main site's service worker, manifest, sitemap or offline page.
+    public assets it uses, plus one model file, the Amazon jaguar ("jaguar" by Ear.Rodriguez, CC BY 4.0, credited on the review page; the Amazon bird and the other animals are built in code); not the main site's service worker, manifest, sitemap or offline page.
   - R2: no Supabase URL/key (values read from `.env` are checked), no `award_xp`, XP-queue or
     progress keys, no live or preview adapter; banner present; noindex everywhere.
   - R3: the review entry's import graph reaches no Supabase, XP, progress, auth, badge,

@@ -90,6 +90,10 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
             <h2>XP a live game would send</h2>
             <p className="pv-note">Recorded here only. Nothing is sent anywhere. {mode === 'review' ? 'Review' : 'Preview'} total: {snapshot.learningXp ?? 0} XP (not real XP)</p>
             <ol data-testid="pv-awards">{awards.map((a) => <li key={a.roundKey}>{a.gameId}: +{a.amount} XP</li>)}</ol>
+            <h2>Credits</h2>
+            <p className="pv-note" data-testid="pv-credits">
+              Amazon Rainforest jaguar: <a href="https://sketchfab.com/3d-models/jaguar-91c61c329d2a4668816f81f08dfcd492" target="_blank" rel="noreferrer">&ldquo;jaguar&rdquo;</a> by <a href="https://sketchfab.com/Ear.Rodriguez" target="_blank" rel="noreferrer">Ear.Rodriguez</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: the rest pose baked into a static model, tongue, teeth and animation removed, texture reduced, scaled and re-centred.
+            </p>
           </div>
         </details>
         <button type="button" onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}>{language === 'en' ? 'বাংলা' : 'English'}</button>

@@ -12,7 +12,8 @@ test('rainforest bird: built in code, no model file and no third-party licence l
   const avatar = readFileSync(new URL('../AmazonBirdAvatar.jsx', import.meta.url), 'utf8')
   assert.ok(!/useGLTF|GLTFLoader|\.glb|AnimationMixer|CC BY/.test(avatar.replace(/^\/\*\*[\s\S]*?\*\//, '')), 'the avatar loads nothing')
   const preview = readFileSync(new URL('../../../../dev-preview/phase-2a/PreviewApp.jsx', import.meta.url), 'utf8')
-  assert.ok(!/Bird Orange|CC BY-NC|sketchfab/i.test(preview), 'no credit for a model that is not used')
+  // (the review page does credit the Amazon jaguar, a CC BY 4.0 model that is used: see amazonFauna.test.js)
+  assert.ok(!/Bird Orange|CC BY-NC/i.test(preview), 'no credit for a model that is not used')
 })
 
 test('rainforest bird: Bulbuli\'s size, feet on the ground, facing +z, in four movable parts', () => {
