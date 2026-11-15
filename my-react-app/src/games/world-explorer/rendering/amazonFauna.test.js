@@ -150,7 +150,7 @@ test('amazon fauna: walkers stay inside their walk, keep their pace, pause, and 
   assert.ok(walkers.length >= 24, `${walkers.length} animals walk`)
   assert.deepEqual([...new Set(walkers.map((a) => a.type))].every((t) => WALKERS[t]), true)
   for (const animal of fauna) assert.equal(Boolean(animal.roam), animal.roam >= MIN_ROAM && Boolean(WALKERS[animal.type]) && animal.y === 0)
-  assert.ok(walkers.filter((a) => a.route === 'line').length >= 8 && walkers.filter((a) => a.route !== 'line').length >= 8, 'some walk straight, some in circles')
+  assert.ok(walkers.filter((a) => a.route === 'line').length >= 20 && walkers.filter((a) => a.route !== 'line').length >= 3, 'some walk straight, some in circles')
   for (const animal of walkers) {
     const kind = WALKERS[animal.type]
     let walked = 0

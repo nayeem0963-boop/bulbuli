@@ -140,8 +140,8 @@ const fauna = [
  */
 /** The ones that walk (by seed): every animal on the floor that has legs to walk on. */
 const WALKS = new Set(fauna.filter((a) => WALKERS[a.type] && a.y === 0).map((a) => a.seed))
-/** Of those, the ones that patrol a straight line back and forth rather than circling. */
-const STRAIGHT = new Set([22, 23, 24, 25, 26, 42, 44, 46, 47, 65])
+/** Of those, the ones that patrol a straight line back and forth rather than circling (the three tortoises still go round). */
+const STRAIGHT = new Set([21, 22, 23, 24, 25, 26, 27, 28, 29, 40, 41, 42, 43, 44, 45, 46, 47, 62, 63, 64, 65])
 const FLIGHT = { morpho: 0.45 }
 const reachOf = (a) => (a.solid?.r ?? 0.1) + (FLIGHT[a.type] ?? 0)
 const segmentGap = (p, [a, b]) => {
