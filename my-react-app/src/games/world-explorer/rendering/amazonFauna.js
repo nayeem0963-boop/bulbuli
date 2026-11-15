@@ -65,7 +65,7 @@ const C = {
   harpy: { grey: linear('#6a707a'), dark: linear('#262a30'), white: linear('#eeeae0'), beak: linear('#2a2a2c'), leg: linear('#d8c24a'), claw: linear('#1a1a1c') },
   eye: linear('#100c0a'),
   iris: linear('#9a8434'),
-  nose: linear('#5a3a38'),
+  nose: linear('#7d4c46'),
   shine: linear('#ffffff'),
 }
 
