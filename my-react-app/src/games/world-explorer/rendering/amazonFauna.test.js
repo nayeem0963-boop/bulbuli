@@ -87,3 +87,30 @@ test('amazon fauna: every animal stands on its ground, clear of the stations, th
   // perched animals keep off the way in: the stair lands on the near side of the platform
   for (const animal of fauna.filter((a) => a.y > 0)) assert.ok(animal.solid && animal.y >= 3.4)
 })
+
+test('amazon fauna: every kind moves, within bounds that keep it on its spot, and never below the ground', async () => {
+  const { poseAt, MOVING_KINDS } = await import('./amazonFaunaMotion.js')
+  assert.deepEqual([...MOVING_KINDS].sort(), Object.keys(AMAZON_FAUNA).sort())
+  for (const [type, spec] of Object.entries(AMAZON_FAUNA)) {
+    const seen = { y: 0, yaw: 0, pitch: 0, sy: 0, sx: 0 }
+    const first = poseAt(type, 0, 1)
+    let changed = false
+    for (let t = 0; t < 60; t += 0.05) {
+      const pose = poseAt(type, t, 1)
+      assert.ok(Object.values(pose).every(Number.isFinite), `${type} is finite`)
+      assert.ok(pose.y >= 0, `${type} never sinks into the ground`)
+      assert.ok(Math.abs(pose.sx - 1) <= 0.8 && pose.sy > 0.7 && pose.sy < 1.5 && pose.sz > 0.5, `${type} stays its shape`)
+      // a nose-down sniff must not push the front through the ground: its length times the angle stays small
+      assert.ok(pose.pitch * spec.length / 2 <= 0.18 + 1e-9, `${type} nods ${pose.pitch.toFixed(2)} rad`)
+      // it stays within reach of the clearing kept round it (flying butterflies a little further)
+      assert.ok(Math.hypot(pose.x, pose.z) <= (type === 'morpho' ? 0.45 : 0.1), `${type} strays`)
+      seen.y = Math.max(seen.y, pose.y); seen.yaw = Math.max(seen.yaw, Math.abs(pose.yaw)); seen.pitch = Math.max(seen.pitch, Math.abs(pose.pitch)); seen.sy = Math.max(seen.sy, Math.abs(pose.sy - 1))
+      if (JSON.stringify(pose) !== JSON.stringify(first)) changed = true
+    }
+    assert.ok(changed, `${type} moves`)
+    assert.ok(seen.y + seen.yaw + seen.pitch + seen.sy > 0.01, `${type} moves visibly`)
+    // deterministic, and animals of a kind are out of step with each other
+    assert.deepEqual(poseAt(type, 3.3, 2), poseAt(type, 3.3, 2))
+  }
+  assert.notDeepEqual(poseAt('capybara', 5, 0), poseAt('capybara', 5, 2))
+})
