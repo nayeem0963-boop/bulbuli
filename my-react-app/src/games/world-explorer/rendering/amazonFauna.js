@@ -130,6 +130,11 @@ function kit(seed) {
     }
     tube(out, [hip, knee, foot], widths, { segments: 9, base, tip, random, mottle: 0.04, cap: false })
     mass(v(foot.x, Math.max(foot.y, padSize * 0.5), foot.z + padSize * 0.5), padSize, [1, 0.55, 1.3], pad, pad, { detail: 1, lumpy: 0 })
+    // the muscle of the upper leg, a rounder knee, and toes on the front of the paw
+    const upper = knee.clone().sub(hip)
+    mass(hip.clone().addScaledVector(upper, 0.3), widths[0] * 1.12, [0.95, 1.5, 1.0], base.clone().lerp(tip, 0.2), base.clone().lerp(tip, 0.2).multiplyScalar(0.85), { detail: 2, lumpy: 0.02 })
+    mass(knee, widths[1] * 1.15, [1, 1, 1], base.clone().lerp(tip, 0.5), tip, { detail: 1, lumpy: 0 })
+    for (const k of [-1, 0, 1]) mass(v(foot.x + k * padSize * 0.55, Math.max(foot.y, padSize * 0.4) * 0.55, foot.z + padSize * 1.15 - Math.abs(k) * padSize * 0.15), padSize * 0.3, [1, 0.8, 1.2], pad, pad.clone().multiplyScalar(0.8), { detail: 0, lumpy: 0 })
     out = b
   }
   /** Where a toe or claw of the leg just made goes. */
@@ -198,14 +203,24 @@ export function createJaguarGeometry(seed = 2) {
     eye(s * 0.09, 0.6, 0.99, 0.017)
   }
   tube(b, cubic(v(0, 0.6, -0.7), v(0, 0.5, -1.0), v(0, 0.2, -1.1), v(0, 0.5, -1.3), 8), [0.06, 0.055, 0.05, 0.048, 0.045, 0.042, 0.04, 0.036, 0.034], { segments: 9, base: gold, tip: dark })
-  // rosettes: dark rings on the flank and back, dark dots on the legs and head
-  for (let i = 0; i < 34; i += 1) {
-    const z = -0.7 + random() * 1.25
-    const s = random() < 0.5 ? -1 : 1
-    const around = (random() - 0.2) * 1.25
-    const x = Math.sin(around) * 0.2 * s
-    const y = 0.58 + Math.cos(around) * 0.2
-    mass(v(s * Math.abs(x) * 0.93, y - 0.01, z), 0.02 + random() * 0.012, [1, 1, 0.35], dark, dark, { detail: 0, lumpy: 0 })
+  // rosettes: rings of dark spots on the flank and back, as a jaguar has (a dark spot in the middle of some)
+  for (let i = 0; i < 20; i += 1) {
+    const z = -0.68 + random() * 1.2
+    const side = random() < 0.5 ? -1 : 1
+    const around = (random() - 0.15) * 1.25
+    const cx = side * Math.sin(around) * 0.186 * 1.02
+    const cy = 0.58 + Math.cos(around) * 0.186 - 0.005
+    // along the body's skin: forwards (z), and round it (the cross-section's tangent)
+    const tx = side * Math.cos(around) * 0.186
+    const ty = -Math.sin(around) * 0.186
+    const tl = Math.hypot(tx, ty) || 1
+    const radius = 0.03 + random() * 0.012
+    for (let k = 0; k < 5; k += 1) {
+      const a = (k / 5) * Math.PI * 2 + random() * 0.4
+      const round = Math.cos(a) * radius
+      mass(v(cx + (tx / tl) * round, cy + (ty / tl) * round, z + Math.sin(a) * radius * 1.15), 0.012, [1, 1, 0.5], dark, dark, { detail: 0, lumpy: 0 })
+    }
+    if (i % 3 === 0) mass(v(cx, cy, z), 0.008, [1, 1, 0.5], dark, dark, { detail: 0, lumpy: 0 })
   }
   return model(b)
 }
@@ -237,7 +252,7 @@ export function createTapirGeometry(seed = 3) {
 }
 
 export function createAnteaterGeometry(seed = 4) {
-  const { b, mass, eye, leg, limb } = kit(seed)
+  const { b, mass, eye, leg, limb, random } = kit(seed)
   const { grey, dark, pale, claw } = C.ant
   // a long tube of a snout, a black diagonal stripe over the shoulder, a huge bushy tail
   mass(v(0, 0.55, 0.0), 0.3, [0.62, 0.72, 1.45], grey, grey.clone().multiplyScalar(0.7), { lumpy: 0.04 })
@@ -258,11 +273,8 @@ export function createAnteaterGeometry(seed = 4) {
     const t = i / 5
     mass(v(0.0, 0.7 - t * 0.12, 0.18 - t * 0.24), 0.1, [1.25, 0.6, 0.55], dark, dark, { detail: 1, lumpy: 0.02 })
   }
-  // bushy tail
-  for (let i = 0; i < 7; i += 1) {
-    const t = i / 6
-    mass(v(0, 0.52 - t * 0.2 + Math.sin(t * 2.4) * 0.02, -0.5 - t * 0.78), 0.13 - t * 0.04, [0.8, 1.45 - t * 0.2, 1.15], grey, dark, { detail: 1, lumpy: 0.07 })
-  }
+  // bushy tail: a smooth sweep, widest a third of the way along, drooping to a dark tip
+  tube(b, cubic(v(0, 0.52, -0.45), v(0, 0.5, -0.75), v(0, 0.36, -1.05), v(0, 0.28, -1.3), 8), [0.07, 0.11, 0.14, 0.15, 0.145, 0.125, 0.095, 0.06, 0.02], { segments: 10, base: grey, tip: dark, random, mottle: 0.1 })
   return model(b)
 }
 

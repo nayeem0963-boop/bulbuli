@@ -4,20 +4,37 @@
  * files. They stand still.
  */
 import { useEffect, useMemo, useRef } from 'react'
+import { DoubleSide } from 'three'
 import { useFrame } from '@react-three/fiber'
-import { AMAZON_FAUNA_BUILDERS, createAnimalParts } from './amazonFauna.js'
+import { AMAZON_FAUNA, AMAZON_FAUNA_BUILDERS, createAnimalParts } from './amazonFauna.js'
+import { contactShadowTexture, createFurMaterial } from './amazonFurMaterial.js'
 import { poseAt } from './amazonFaunaMotion.js'
 import { gait, walkState } from './amazonFaunaWalk.js'
 
 /** People who ask their device for less motion get still animals. */
 const calm = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/** Opaque, matte, vertex-coloured, lit from both sides (wings, tails and leaves are single sheets). */
+// one fur material and one shadow texture for every animal, made the first time they are needed
+let furMaterial = null
+let shadowTexture = null
+const fur = () => (furMaterial ??= createFurMaterial())
+const shadow = () => (shadowTexture ??= contactShadowTexture())
+
+/** Opaque, vertex-coloured, with the fur look of amazonFurMaterial.js; lit from both sides (wings, tails and leaves are single sheets). */
 function Statue({ geometry }) {
+  return <mesh geometry={geometry} material={fur()} castShadow receiveShadow />
+}
+
+/** A soft shadow on the ground under an animal, as long as the animal is (its model faces +z). */
+function GroundShadow({ type }) {
+  if (type === 'morpho') return null // it is in the air: its place on the ground is not where it is
+  const { length } = AMAZON_FAUNA[type]
+  const long = Math.max(0.18, length) * 1.25
+  const wide = Math.max(0.14, Math.min(length * 0.62, 0.9))
   return (
-    <mesh geometry={geometry} castShadow receiveShadow>
-      {/* a little self-light, so the animals do not sink into the dim forest */}
-      <meshStandardMaterial vertexColors roughness={0.82} metalness={0} side={2} emissive="#3a3226" emissiveIntensity={0.4} />
+    <mesh position={[0, 0.018, 0]} rotation-x={-Math.PI / 2} scale={[wide * 1.15, long, 1]} renderOrder={1}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial map={shadow()} transparent depthWrite={false} side={DoubleSide} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
     </mesh>
   )
 }
@@ -36,6 +53,7 @@ function Animal({ animal, index, geometry, still }) {
   })
   return (
     <group position={[animal.x, animal.y ?? 0, animal.z]} rotation-y={animal.rot ?? 0}>
+      <GroundShadow type={animal.type} />
       <group ref={body}><Statue geometry={geometry} /></group>
     </group>
   )
@@ -75,6 +93,7 @@ function Walker({ animal, index, parts, still }) {
   const start = still ? null : walkState(animal, 0)
   return (
     <group ref={root} position={start ? [start.x, animal.y ?? 0, start.z] : [animal.x, animal.y ?? 0, animal.z]} rotation-y={start ? start.yaw : animal.rot ?? 0}>
+      <GroundShadow type={animal.type} />
       <group ref={body}>
         <Statue geometry={parts.body} />
         {parts.legs.map((leg, i) => (
