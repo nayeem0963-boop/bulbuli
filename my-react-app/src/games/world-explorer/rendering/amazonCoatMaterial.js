@@ -30,7 +30,7 @@ vec2 jaguarCells(vec3 q) {
   return vec2(sqrt(d1), id);
 }
 // strokes of fur: stretched along the body, a fine layer over a finer one
-float coatGrain(vec3 p) { return 0.6 * cNoise(p * vec3(210.0, 210.0, 120.0)) + 0.4 * cNoise(p * vec3(470.0, 470.0, 260.0)); }
+float coatGrain(vec3 p) { return 0.6 * cNoise(p * vec3(340.0, 340.0, 200.0)) + 0.4 * cNoise(p * vec3(760.0, 760.0, 420.0)); }
 // 0 = tawny, 1 = black; and (through 'inner') how deep inside a rosette we are
 vec2 jaguarCoat(vec3 p) {
   float legs = 1.0 - smoothstep(0.30, 0.46, p.y);
@@ -50,7 +50,9 @@ vec2 jaguarCoat(vec3 p) {
   // a second layer of small spots fills the gaps between the rosettes
   vec2 c2 = jaguarCells(p * scale * 2.3 + vec3(5.0, 11.0, 3.0));
   float fill = (1.0 - smoothstep(0.14, 0.22, c2.x)) * step(0.3, c2.y) * (1.0 - mask) * (1.0 - 0.6 * small);
-  return vec2(max(mask, fill), inner);
+  // the ears are plain fur: no spots on them
+  float ear = smoothstep(0.075, 0.09, abs(p.x)) * smoothstep(0.66, 0.69, p.y) * (1.0 - smoothstep(0.76, 0.8, p.z));
+  return vec2(max(mask, fill) * (1.0 - ear), inner * (1.0 - ear));
 }
 `
 
@@ -74,7 +76,7 @@ export function createCoatMaterial() {
           vec3 r2 = cross(normal, sx);
           float det = dot(sx, r1);
           vec3 grad = sign(det) * ((hx - h0) * r1 + (hy - h0) * r2);
-          normal = normalize(abs(det) * normal - 0.0045 * grad);
+          normal = normalize(abs(det) * normal - 0.0022 * grad);
         }`)
       .replace('#include <opaque_fragment>', `
         // a soft warm halo along the silhouette, where light comes through the hairs
@@ -96,6 +98,6 @@ export function createCoatMaterial() {
           diffuseColor.rgb = mix(diffuseColor.rgb, black, 0.98 * dark);
         }`)
   }
-  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v12'
+  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v14'
   return material
 }

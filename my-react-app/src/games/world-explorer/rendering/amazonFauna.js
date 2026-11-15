@@ -12,7 +12,7 @@
  *
  * Pure geometry, deterministic (seeded): rendering/AmazonFaunaView.jsx draws it.
  */
-import { Euler, IcosahedronGeometry, Quaternion, Vector3 } from 'three'
+import { Color, Euler, IcosahedronGeometry, Matrix4, Quaternion, Vector3 } from 'three'
 import { mulberry32 } from '../../../core/rng.js'
 import { bezier, blob, createBuilder, cubic, leaf, linear, tube, v } from './mangroveGeometry.js'
 import { finish } from './saharaLandmarks.js'
@@ -167,6 +167,28 @@ function solid(builder, centre, radii, tilt, light, dark, detail = 2) {
     points.push({ position: local.applyQuaternion(turn).add(centre), colour: dark.clone().lerp(light, shade * shade) })
   }
   for (let i = 0; i + 2 < points.length; i += 3) builder.triangle(points[i].position, points[i + 1].position, points[i + 2].position, points[i].colour, points[i + 1].colour, points[i + 2].colour)
+}
+
+/**
+ * Builds a part (a function that draws into a builder, at the origin, standing up along +y) and
+ * puts it into `target` turned by `tilt` (radians about x, y, z) and moved to `at`: for an ear, or
+ * any part that leans.
+ */
+function placed(target, draw, at, tilt) {
+  const part = createBuilder()
+  draw(part)
+  const geometry = part.build()
+  const matrix = new Matrix4().compose(at, new Quaternion().setFromEuler(new Euler(tilt[0], tilt[1], tilt[2], 'XYZ')), new Vector3(1, 1, 1))
+  const position = geometry.getAttribute('position')
+  const colour = geometry.getAttribute('color')
+  const corner = (i) => ({ position: new Vector3(position.getX(i), position.getY(i), position.getZ(i)).applyMatrix4(matrix), colour: new Color(colour.getX(i), colour.getY(i), colour.getZ(i)) })
+  for (let i = 0; i + 2 < position.count; i += 3) {
+    const a = corner(i)
+    const c = corner(i + 1)
+    const d = corner(i + 2)
+    target.triangle(a.position, c.position, d.position, a.colour, c.colour, d.colour)
+  }
+  geometry.dispose()
 }
 
 /* ------------------------------------------------------------------ lofted bodies */
@@ -406,28 +428,38 @@ export function createJaguarGeometry(seed = 2) {
     solid(b, v(e.x + side * 0.003, e.y, e.z + 0.012), [0.0185, 0.0185, 0.007], [0, 0, 0], C.eye, C.eye, 1)
     mass(v(e.x + side * 0.009, e.y + 0.007, e.z + 0.0175), 0.0036, [1, 1, 1], C.shine, C.shine, { detail: 0, lumpy: 0 })
     const brow = at(1.0, 76, side, 1.0)
-    solid(b, v(brow.x, brow.y + 0.004, brow.z), [0.044, 0.012, 0.02], [0.1, 0, -side * 0.28], gold.clone().multiplyScalar(0.95), gold.clone().multiplyScalar(0.7), 1)
+    solid(b, v(brow.x, brow.y + 0.004, brow.z), [0.05, 0.015, 0.022], [0.1, 0, -side * 0.28], gold.clone().multiplyScalar(0.95), gold.clone().multiplyScalar(0.7), 1)
     const inner = at(1.035, 56, side, 0.975)
     solid(b, v(inner.x * 0.85, inner.y - 0.004, inner.z), [0.022, 0.015, 0.005], [0, 0, 0], belly.clone().lerp(gold, 0.35), belly.clone().lerp(gold, 0.35).multiplyScalar(0.9), 1)
     const under = at(1.03, 42, side, 0.98)
     solid(b, v(under.x, under.y, under.z), [0.03, 0.012, 0.005], [0, 0, 0], belly.clone().lerp(gold, 0.35), belly.clone().lerp(gold, 0.35).multiplyScalar(0.9), 1)
     tube(b, [at(1.04, 52, side, 1.011), at(1.07, 34, side, 1.011), at(1.1, 14, side, 1.011)], [0.0038, 0.0045, 0.0035], { segments: 5, base: dark, tip: dark })
-    // the ear: rounded, wide-set, leaning out, a dark back with a pale patch, pale inner fur
-    const ear = at(0.82, 58, side, 1.0)
-    const lean = side * 0.42
-    solid(b, v(ear.x, ear.y + 0.022, ear.z - 0.008), [0.05, 0.056, 0.014], [-0.25, 0, -lean], gold.clone().lerp(dark, 0.78), dark, 2)
-    solid(b, v(ear.x + side * 0.001, ear.y + 0.024, ear.z - 0.02), [0.031, 0.035, 0.006], [-0.25, 0, -lean], belly, belly, 1)
-    solid(b, v(ear.x - side * 0.002, ear.y + 0.022, ear.z + 0.006), [0.045, 0.051, 0.011], [-0.25, 0, -lean], belly.clone().lerp(gold, 0.55), gold.clone().lerp(dark, 0.2), 1)
+    // the ear: a thin, rounded-triangular shell leaning out at the top corner of the head: a dark back with
+    // a white patch, and a pale inner (dark at its base) inside a dark rim
+    const ear = at(0.8, 58, side, 1.0)
+    const rimColour = gold.clone().lerp(dark, 0.7)
+    placed(b, (part) => {
+      // back: the outline widens from the base, then narrows to a rounded top (height, depth, half width, half thickness)
+      uprightLoft(part, [[0, 0, 0.05, 0.016], [0.02, 0, 0.058, 0.016], [0.05, 0.001, 0.056, 0.014], [0.078, 0.002, 0.041, 0.012], [0.098, 0.003, 0.022, 0.01], [0.108, 0.003, 0.006, 0.006]], { back: rimColour, belly: rimColour, segments: 12, steps: 2, paint: (h, u, c) => { if (u < -0.4 && h > 0.025 && h < 0.07) c.lerp(belly, 0.75) } })
+      // inner: pale, dark at the base, set a little forward
+      uprightLoft(part, [[0.004, 0.012, 0.04, 0.007], [0.03, 0.013, 0.047, 0.007], [0.058, 0.014, 0.036, 0.006], [0.082, 0.014, 0.019, 0.005], [0.094, 0.014, 0.005, 0.004]], { back: belly.clone().lerp(gold, 0.45), belly: belly.clone().lerp(gold, 0.45), segments: 12, steps: 2, paint: (h, u, c) => { c.lerp(dark, 0.7 * smoothstep(0.03, 0.004, h)) } })
+      for (let k = -2; k <= 2; k += 1) tube(part, [v(k * 0.009, 0.006, 0.02), v(k * 0.011 + 0.004, 0.026, 0.022), v(k * 0.012 + 0.006, 0.046, 0.02)], [0.0016, 0.0014, 0.0006], { segments: 4, base: dark, tip: gold.clone().lerp(dark, 0.4) })
+    }, v(ear.x, ear.y - 0.012, ear.z - 0.004), [-0.3, 0, -side * 0.5])
     // lips, mouth and whisker pad
-    tube(b, [at(1.12, -5, side, 1.012), at(1.095, -18, side, 1.012), at(1.05, -24, side, 1.012), at(0.99, -16, side, 1.012)], [0.0042, 0.0042, 0.0042, 0.0034], { segments: 5, base: dark, tip: dark })
+    // the upper lip: an arch from the philtrum, down and out, then the line of the mouth back to the cheek
+    tube(b, [at(1.13, -84, side, 1.018), at(1.126, -72, side, 1.014), at(1.117, -62, side, 1.012), at(1.103, -53, side, 1.012), at(1.085, -46, side, 1.012)], [0.0034, 0.0036, 0.0035, 0.0032, 0.0028], { segments: 5, base: dark, tip: dark })
+    // the lower lip: a finer dark line below it, so the mouth reads as closed
+    tube(b, [at(1.108, -80, side, 1.012), at(1.094, -68, side, 1.012), at(1.074, -58, side, 1.012)], [0.0026, 0.0025, 0.002], { segments: 4, base: dark.clone().lerp(gold, 0.2), tip: dark.clone().lerp(gold, 0.3) })
     solid(b, v(side * 0.044, 0.505, 1.045), [0.043, 0.033, 0.038], [0, 0, side * 0.2], belly, belly.clone().multiplyScalar(0.85), 1)
     for (let r = 0; r < 4; r += 1) for (let d = 0; d < 4; d += 1) mass(v(side * (0.028 + d * 0.016), 0.522 - r * 0.012, 1.09 - d * 0.02 - r * 0.012), 0.0058, [1, 1, 0.6], dark, dark, { detail: 0, lumpy: 0 })
     mass(v(side * 0.009, 0.531, 1.15), 0.0055, [1, 1, 0.8], C.eye, C.eye, { detail: 0, lumpy: 0 })
     for (let k = 0; k < 5; k += 1) tube(b, [v(side * 0.05, 0.505 - k * 0.005, 1.04), v(side * (0.11 + k * 0.01), 0.505 + (k - 2) * 0.02, 1.0 - k * 0.01), v(side * (0.17 + k * 0.012), 0.5 + (k - 2) * 0.03, 0.96 - k * 0.02)], [0.0013, 0.0011, 0.0006], { segments: 4, base: belly, tip: belly })
   }
-  // the nose: a small, shield-shaped pad with a philtrum line down to the lips, and a pale chin
-  solid(b, v(0, 0.534, 1.138), [0.027, 0.019, 0.016], [-0.3, 0, 0], nosePink, nosePink.clone().multiplyScalar(0.55), 1)
-  tube(b, [v(0, 0.526, 1.152), v(0, 0.505, 1.146), v(0, 0.49, 1.13)], [0.003, 0.0028, 0.0028], { segments: 5, base: dark, tip: dark })
+  // the nose: a small, shield-shaped pink-brown pad in a dark outline, two dark nostrils, a philtrum line
+  solid(b, v(0, 0.534, 1.136), [0.033, 0.024, 0.014], [-0.3, 0, 0], dark.clone().lerp(nosePink, 0.3), dark, 1)
+  solid(b, v(0, 0.536, 1.141), [0.027, 0.019, 0.015], [-0.3, 0, 0], nosePink.clone().multiplyScalar(1.15), nosePink.clone().multiplyScalar(0.6), 1)
+  for (const side of mirror) solid(b, v(side * 0.0125, 0.532, 1.153), [0.0065, 0.0042, 0.004], [0, 0, side * 0.5], dark, dark, 0)
+  tube(b, [v(0, 0.524, 1.15), v(0, 0.505, 1.145), v(0, 0.493, 1.13)], [0.0028, 0.0026, 0.0026], { segments: 5, base: dark, tip: dark })
   solid(b, v(0, 0.472, 1.04), [0.04, 0.025, 0.045], [0, 0, 0], belly, belly.clone().multiplyScalar(0.85), 1)
   // a jaguar is compact: shorter along the body than the sections above, a short muzzle
   const geometry = model(b)

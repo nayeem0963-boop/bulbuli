@@ -33,7 +33,7 @@ test('amazon fauna: each model stands on the ground, within the size its collide
     const points = vertices(geometry)
     assert.ok(points.every((p) => p.every(Number.isFinite)), `${type} is finite`)
     assert.ok(geometry.attributes.color && geometry.attributes.normal, `${type} has colours and normals`)
-    assert.ok(triangles(geometry) < 10000, `${type} has ${triangles(geometry)} triangles`)
+    assert.ok(triangles(geometry) < 12000, `${type} has ${triangles(geometry)} triangles`)
     const ys = points.map((p) => p[1])
     assert.ok(Math.min(...ys) >= -0.02 && Math.min(...ys) < 0.06, `${type} stands on the ground (lowest ${Math.min(...ys).toFixed(3)})`)
     assert.ok(Math.max(...ys) <= spec.top + 0.12 && Math.max(...ys) >= spec.top - 0.3, `${type} is ${Math.max(...ys).toFixed(2)} m tall, collider ${spec.top} m`)
@@ -94,7 +94,7 @@ test('amazon fauna: finely modelled statues: smooth, a budget of triangles, and 
     const geometry = build(3)
     const count = triangles(geometry)
     assert.ok(count >= 400 || type === 'morpho', `${type} has only ${count} triangles`)
-    assert.ok(count <= 10000, `${type} has ${count} triangles`)
+    assert.ok(count <= 12000, `${type} has ${count} triangles`)
     total += count * fauna.filter((a) => a.type === type).length
     // smooth: the surface is welded, so neighbouring faces share their corners
     assert.ok(geometry.index, `${type} is one welded surface`)
