@@ -4,7 +4,6 @@
  */
 import { disc, linksFrom, scatter } from './common.js'
 import { AMAZON_FAUNA } from '../rendering/amazonFauna.js'
-import { MIN_ROAM, WALKERS } from '../rendering/amazonFaunaWalk.js'
 
 const TRUNK = { x: 0, z: 12 }
 const STAIR_R = 3.2
@@ -131,46 +130,10 @@ const fauna = [
   perch('harpyEagle', s2, lastAng - 2.4, 2.4, 0.4, 71),
 ]
 
-/**
- * How far each walking animal may wander (a circle of `roam` metres round where it is placed):
- * as far as its kind goes, and no further than leaves it room to spare from the stations, the
- * paths, the start, the giant tree, the edge of the floor and every other animal (which gets half
- * of the gap each, and the butterflies their flight). The trees keep out of the whole walk
- * (rendering/amazonScatter.js). Where there is no room it stands.
- */
-/** The ones that walk (by seed): every animal on the floor that has legs to walk on. */
-const WALKS = new Set(fauna.filter((a) => WALKERS[a.type] && a.y === 0).map((a) => a.seed))
-/** Of those, the ones that patrol a straight line back and forth rather than circling (the three tortoises still go round). */
-const STRAIGHT = new Set([21, 22, 23, 24, 25, 26, 27, 28, 29, 40, 41, 42, 43, 44, 45, 46, 47, 62, 63, 64, 65])
-const FLIGHT = { morpho: 0.45 }
-const reachOf = (a) => (a.solid?.r ?? 0.1) + (FLIGHT[a.type] ?? 0)
-const segmentGap = (p, [a, b]) => {
-  const dx = b.x - a.x
-  const dz = b.z - a.z
-  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz || 1)))
-  return Math.hypot(p.x - a.x - dx * t, p.z - a.z - dz * t)
-}
-const floor = discs.find((d) => d.id === 'floor')
-const SPAWN = { x: spawn.position[0], z: spawn.position[2] }
-/** `list` with each walking animal's `roam` worked out against all the others (exported for the tests). */
-export const withRoam = (list) => list.map((a) => {
-  const kind = WALKERS[a.type]
-  if (!kind || a.y !== 0 || !WALKS.has(a.seed)) return a
-  const r = reachOf(a)
-  let room = kind.roam
-  for (const st of stations) room = Math.min(room, Math.hypot(a.x - st.x, a.z - st.z) - r - 1.2 - 0.1)
-  for (const link of links) room = Math.min(room, segmentGap(a, link) - r - 0.8 - 0.1)
-  for (const prop of props) if (prop.block) room = Math.min(room, Math.hypot(a.x - prop.x, a.z - prop.z) - prop.block - r - 0.4)
-  room = Math.min(room, Math.hypot(a.x - SPAWN.x, a.z - SPAWN.z) - r - 5 - 0.1, 12 - Math.hypot(a.x - floor.x, a.z - floor.z) - r)
-  for (const other of list) if (other !== a && other.y === 0) room = Math.min(room, (Math.hypot(a.x - other.x, a.z - other.z) - r - reachOf(other)) / 2 - 0.05)
-  const roam = Math.floor(room * 20) / 20
-  return roam >= MIN_ROAM ? { ...a, roam, ...(STRAIGHT.has(a.seed) ? { route: 'line' } : {}) } : a
-})
-
 export const AMAZON_MAP = Object.freeze({
   id: 'amazon',
   sky: { top: '#8fd3c7', bottom: '#e7f6e4', fog: '#b9dcc4', dark: { top: '#0f2a26', bottom: '#1f3d2b', fog: '#16302a' } },
   water: null,
   looks: { floor: '#5b4a33', branch: '#7a5634', canopy: '#3f8a3a', cleared: '#9b7f57' },
-  discs, links, stations, spawn, props, fauna: withRoam(fauna),
+  discs, links, stations, spawn, props, fauna,
 })
