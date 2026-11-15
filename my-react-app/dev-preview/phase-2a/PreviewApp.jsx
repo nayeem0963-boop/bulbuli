@@ -90,10 +90,6 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
             <h2>XP a live game would send</h2>
             <p className="pv-note">Recorded here only. Nothing is sent anywhere. {mode === 'review' ? 'Review' : 'Preview'} total: {snapshot.learningXp ?? 0} XP (not real XP)</p>
             <ol data-testid="pv-awards">{awards.map((a) => <li key={a.roundKey}>{a.gameId}: +{a.amount} XP</li>)}</ol>
-            <h2>Credits</h2>
-            <p className="pv-note" data-testid="pv-credits">
-              Amazon Rainforest bird: <a href="https://sketchfab.com/3d-models/bird-orange-0d31748606c2499fb652c0c1052b7cfa" target="_blank" rel="noreferrer">&ldquo;Bird Orange&rdquo;</a> by Wen Yeh, licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noreferrer">CC BY-NC-SA 4.0</a> (non-commercial; shown with code-drawn wings and its own lighting).
-            </p>
           </div>
         </details>
         <button type="button" onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}>{language === 'en' ? 'বাংলা' : 'English'}</button>
