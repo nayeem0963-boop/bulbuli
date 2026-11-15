@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { BIOMES, collidersFor } from '../biomes/index.js'
 import { scatterAmazon } from './amazonScatter.js'
-import { AMAZON_FAUNA, AMAZON_FAUNA_BUILDERS } from './amazonFauna.js'
+import { AMAZON_FAUNA, AMAZON_FAUNA_BUILDERS, AMAZON_FAUNA_MODELS } from './amazonFauna.js'
 
 const biome = BIOMES.amazon
 const fauna = biome.fauna
@@ -14,18 +14,18 @@ const vertices = (geometry) => {
 const triangles = (geometry) => (geometry.index ? geometry.index.count : geometry.attributes.position.count) / 3
 const apart = (a, b) => Math.hypot(a.x - b.x, a.z - b.z)
 
-test('amazon fauna: nineteen kinds, as many animals as the forest has room for; only the Amazon has any', () => {
-  // every kind is built in code, except the jaguar, which is a model file
-  assert.deepEqual([...Object.keys(AMAZON_FAUNA_BUILDERS), 'jaguar'].sort(), Object.keys(AMAZON_FAUNA).sort())
-  assert.equal(new Set(fauna.map((a) => a.type)).size, 19, 'every kind appears')
+test('amazon fauna: twenty kinds, as many animals as the forest has room for; only the Amazon has any', () => {
+  // every kind is built in code, except the jaguar and the ocelot, which are model files
+  assert.deepEqual([...Object.keys(AMAZON_FAUNA_BUILDERS), ...AMAZON_FAUNA_MODELS].sort(), Object.keys(AMAZON_FAUNA).sort())
+  assert.equal(new Set(fauna.map((a) => a.type)).size, 20, 'every kind appears')
   for (const type of Object.keys(AMAZON_FAUNA)) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
-  assert.ok(fauna.length >= 51)
+  assert.ok(fauna.length >= 53)
   for (const id of ['sundarbans', 'sahara']) assert.equal(BIOMES[id].fauna, undefined)
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'))
-  // built in code: no model or image is fetched, except the one jaguar file, loaded only by AmazonJaguar.jsx
+  // built in code: no model or image is fetched, except the two model files, loaded only by AmazonModel.jsx
   for (const file of ['./AmazonFauna.jsx', './amazonFauna.js']) assert.ok(!/useLoader|useGLTF|GLTFLoader|https?:\/\//.test(readFileSync(new URL(file, import.meta.url), 'utf8').replace(/^\/\*\*[\s\S]*?\*\//, '')))
-  assert.ok(/useLoader\(GLTFLoader, jaguarUrl\)/.test(readFileSync(new URL('./AmazonJaguar.jsx', import.meta.url), 'utf8')))
+  assert.ok(/useLoader\(GLTFLoader, url\)/.test(readFileSync(new URL('./AmazonModel.jsx', import.meta.url), 'utf8')))
 })
 
 test('amazon fauna: each model stands on the ground, within the size its collider says, and is always the same', () => {
@@ -108,41 +108,53 @@ test('amazon fauna: finely modelled statues: smooth, a budget of triangles, and 
 })
 
 /** The parts of a .glb the tests need: its JSON chunk and its size. */
-function readGlb() {
-  const file = new URL('../assets/jaguar.glb', import.meta.url)
-  const data = readFileSync(file)
+function readGlb(name) {
+  const data = readFileSync(new URL(`../assets/${name}.glb`, import.meta.url))
   assert.equal(data.toString('ascii', 0, 4), 'glTF')
   const jsonLength = data.readUInt32LE(12)
   return { json: JSON.parse(data.toString('utf8', 20, 20 + jsonLength)), bytes: data.length }
 }
 
-test('amazon jaguar: a credited, light, static model that is the size its collider says', () => {
-  const { json, bytes } = readGlb()
-  // credited (CC BY 4.0 asks for the author, the licence and a note of the changes)
-  assert.match(json.asset.extras.license, /CC-BY-4\.0/)
-  assert.match(json.asset.extras.author, /Ear\.Rodriguez/)
-  const note = readFileSync(new URL('../assets/jaguar.LICENSE.md', import.meta.url), 'utf8')
-  for (const needle of ['Ear.Rodriguez', 'CC BY 4.0', 'Changes made', 'sketchfab.com/3d-models/jaguar-91c61c329d2a4668816f81f08dfcd492']) assert.ok(note.includes(needle), `the licence note names ${needle}`)
-  // light and static: no skeleton, no animation, one coat texture, under 1.2 MB
-  assert.ok(bytes < 1.2 * 1024 * 1024, `${bytes} bytes`)
-  assert.ok(!json.skins && !json.animations, 'static: no skeleton, no animation')
-  assert.equal(json.images.length, 1)
-  assert.equal(json.meshes.length, 2, 'the body and the eyes')
-  let triangles = 0
-  const box = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] }
-  for (const mesh of json.meshes) for (const primitive of mesh.primitives) {
-    triangles += json.accessors[primitive.indices].count / 3
-    const position = json.accessors[primitive.attributes.POSITION]
-    for (let a = 0; a < 3; a += 1) { box.min[a] = Math.min(box.min[a], position.min[a]); box.max[a] = Math.max(box.max[a], position.max[a]) }
-    assert.ok(!primitive.attributes.JOINTS_0 && !primitive.attributes.WEIGHTS_0)
+// what each model file must say and be: its credit, its parts and its size
+const MODEL_FILES = {
+  jaguar: { author: /Ear\.Rodriguez/, source: 'sketchfab.com/3d-models/jaguar-91c61c329d2a4668816f81f08dfcd492', meshes: 2, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 },
+  ocelot: { author: /photon \(that one larry\)/, source: 'sketchfab.com/3d-models/cat-74321b8d6b6b4c168db849ee6c8b3d6a', meshes: 3, images: 3, maxBytes: 400 * 1024, maxTriangles: 4000 },
+}
+
+test('amazon models: credited, light, static, and the size their colliders say', () => {
+  assert.deepEqual(Object.keys(MODEL_FILES).sort(), [...AMAZON_FAUNA_MODELS].sort())
+  for (const [name, want] of Object.entries(MODEL_FILES)) {
+    const { json, bytes } = readGlb(name)
+    // credited (CC BY 4.0 asks for the author, the licence and a note of the changes)
+    assert.match(json.asset.extras.license, /CC-BY-4\.0/, name)
+    assert.match(json.asset.extras.author, want.author, name)
+    const note = readFileSync(new URL(`../assets/${name}.LICENSE.md`, import.meta.url), 'utf8')
+    for (const needle of [want.source, 'CC BY 4.0', 'Changes made']) assert.ok(note.includes(needle), `${name}: the licence note names ${needle}`)
+    const preview = readFileSync(new URL('../../../../dev-preview/phase-2a/PreviewApp.jsx', import.meta.url), 'utf8')
+    assert.ok(preview.includes(want.source) && preview.includes('CC BY 4.0'), `${name} is credited on the review page`)
+    // light and static: no skeleton, no animation
+    assert.ok(bytes < want.maxBytes, `${name}: ${bytes} bytes`)
+    assert.ok(!json.skins && !json.animations, `${name}: static: no skeleton, no animation`)
+    assert.equal(json.images.length, want.images, name)
+    assert.equal(json.meshes.length, want.meshes, name)
+    let triangles = 0
+    const box = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] }
+    for (const mesh of json.meshes) for (const primitive of mesh.primitives) {
+      triangles += json.accessors[primitive.indices].count / 3
+      const position = json.accessors[primitive.attributes.POSITION]
+      for (let a = 0; a < 3; a += 1) { box.min[a] = Math.min(box.min[a], position.min[a]); box.max[a] = Math.max(box.max[a], position.max[a]) }
+      assert.ok(!primitive.attributes.JOINTS_0 && !primitive.attributes.WEIGHTS_0, name)
+    }
+    assert.ok(triangles < want.maxTriangles, `${name}: ${triangles} triangles`)
+    // standing on the ground, centred, within the collider's size
+    const spec = AMAZON_FAUNA[name]
+    assert.ok(Math.abs(box.min[1]) < 0.01, `${name}: feet at y = ${box.min[1]}`)
+    assert.ok(box.max[1] <= spec.top + 0.05 && box.max[1] >= spec.top - 0.1, `${name}: ${box.max[1]} m tall, collider ${spec.top} m`)
+    assert.ok(Math.abs(box.max[2] - box.min[2] - spec.length) < 0.2, `${name}: ${(box.max[2] - box.min[2]).toFixed(2)} m long, spec ${spec.length} m`)
+    assert.ok(Math.abs(box.min[0] + box.max[0]) < 0.05 && Math.abs(box.min[2] + box.max[2]) < 0.05, `${name}: centred on its place`)
+    assert.ok(Math.hypot(box.max[0], box.max[2]) <= spec.radius + 0.9 * (spec.length / 2) + 0.2 + 0.3, `${name}: within reach of its place`)
   }
-  assert.ok(triangles < 23000, `${triangles} triangles`)
-  // standing on the ground, centred, within the collider's size
-  const spec = AMAZON_FAUNA.jaguar
-  assert.ok(Math.abs(box.min[1]) < 0.01, `feet at y = ${box.min[1]}`)
-  assert.ok(box.max[1] <= spec.top + 0.05 && box.max[1] >= spec.top - 0.1, `${box.max[1]} m tall, collider ${spec.top} m`)
-  const length = box.max[2] - box.min[2]
-  assert.ok(Math.abs(length - spec.length) < 0.2, `${length.toFixed(2)} m long, spec ${spec.length} m`)
-  assert.ok(Math.abs(box.min[0] + box.max[0]) < 0.05 && Math.abs(box.min[2] + box.max[2]) < 0.05, 'centred on its place')
-  assert.ok(Math.hypot(box.max[0], box.max[2]) <= spec.radius + 0.9 * (spec.length / 2) + 0.2 + 0.3, 'within reach of its place')
+  // the ocelot's coat is the shader's: it keeps the model's eyes and nose where the file puts them
+  const coat = readFileSync(new URL('./amazonOcelotCoat.js', import.meta.url), 'utf8')
+  assert.ok(coat.includes('OCELOT_EYES') && coat.includes('OCELOT_NOSE'))
 })

@@ -449,6 +449,6 @@ test('sahara pass: the Amazon and the Sundarbans have exactly the colliders they
   // Sundarbans and thick branches to both forests)
   const sign = (id) => createHash('sha256').update(JSON.stringify(collidersFor(BIOMES[id]).filter((c) => !c.id.startsWith('sapling-trunk-') && !c.bough).map((c) => [c.id, c.kind, +(c.x ?? 0).toFixed(4), +(c.z ?? 0).toFixed(4), +(c.r ?? 0).toFixed(4), +(c.top ?? 0).toFixed(4), +(c.bottom ?? 0).toFixed(4), Boolean(c.walkable)]))).digest('hex').slice(0, 16)
   // (the Amazon's: since re-signed for its animals, and the clearings the forest keeps round them)
-  assert.equal(sign('amazon'), '83a49ed59e8afcb0')
+  assert.equal(sign('amazon'), 'b65e3b474d2b7650')
   assert.equal(sign('sundarbans'), '5f8f0487cc358af1')
 })

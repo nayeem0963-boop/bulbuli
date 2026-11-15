@@ -3,8 +3,8 @@
  * nothing to download or license): capybara, tapir, giant anteater, coati, black caiman,
  * green anaconda, red-footed tortoise, poison dart frog, blue morpho butterfly, capuchin monkey,
  * three-toed sloth, scarlet macaw, toco toucan, agouti, giant armadillo, goliath tarantula,
- * red howler monkey and harpy eagle. The jaguar is the exception: a model file (AmazonJaguar.jsx,
- * CC BY 4.0, credited).
+ * red howler monkey and harpy eagle. The jaguar and the ocelot are the exceptions: model files
+ * (AmazonModel.jsx, CC BY 4.0, credited).
  *
  * They are statues: smooth, finely modelled, each caught in a pose. Every model faces +z with its
  * feet (or belly) on y = 0 and is built in metres at life size. Where each one stands, and how solid it is,
@@ -21,10 +21,14 @@ import { finish } from './saharaLandmarks.js'
  * `radius`/`top`: the cylinder the map makes solid (centred on the model's origin).
  * `ground`: stands on the forest floor; `perch`: sits on a branch or platform.
  */
+/** The kinds that are model files, not built here. */
+export const AMAZON_FAUNA_MODELS = Object.freeze(['jaguar', 'ocelot'])
+
 export const AMAZON_FAUNA = Object.freeze({
   capybara: { radius: 0.5, top: 0.55, length: 1.1, perch: false },
-  // the jaguar is the model file (rendering/AmazonJaguar.jsx); its size is checked against the file in the tests
+  // the jaguar and the ocelot are model files (rendering/AmazonModel.jsx); their sizes are checked against the files in the tests
   jaguar: { radius: 0.65, top: 0.82, length: 1.5, perch: false },
+  ocelot: { radius: 0.42, top: 0.55, length: 0.95, perch: false },
   tapir: { radius: 0.62, top: 1.0, length: 1.9, perch: false },
   anteater: { radius: 0.6, top: 0.78, length: 2.1, perch: false },
   coati: { radius: 0.38, top: 0.6, length: 1.0, perch: false },

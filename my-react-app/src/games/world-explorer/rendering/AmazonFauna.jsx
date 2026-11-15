@@ -1,14 +1,14 @@
 /**
  * Draws the Amazon's animals (biomes/amazon.js `fauna`): smooth, finely modelled statues with a
  * satin finish (rendering/amazonFauna.js: one vertex-coloured mesh per kind, shared by every animal
- * of that kind, built in code), and the jaguar, which is a model file (AmazonJaguar.jsx). They stand
+ * of that kind, built in code), and the jaguar and the ocelot, which are model files (AmazonModel.jsx). They stand
  * still.
  */
 import { Suspense, useEffect, useMemo } from 'react'
 import { DoubleSide, MeshPhysicalMaterial } from 'three'
-import { AMAZON_FAUNA, AMAZON_FAUNA_BUILDERS } from './amazonFauna.js'
+import { AMAZON_FAUNA, AMAZON_FAUNA_BUILDERS, AMAZON_FAUNA_MODELS } from './amazonFauna.js'
 import { contactShadowTexture } from './amazonGroundShadow.js'
-import AmazonJaguar from './AmazonJaguar.jsx'
+import AmazonModel from './AmazonModel.jsx'
 
 // one material and one shadow texture for every animal, made the first time they are needed
 let material = null
@@ -42,8 +42,8 @@ export default function AmazonFauna({ fauna }) {
   return fauna.map((animal, index) => (
     <group key={index} position={[animal.x, animal.y ?? 0, animal.z]} rotation-y={animal.rot ?? 0}>
       <GroundShadow type={animal.type} />
-      {animal.type === 'jaguar'
-        ? <Suspense fallback={null}><AmazonJaguar /></Suspense>
+      {AMAZON_FAUNA_MODELS.includes(animal.type)
+        ? <Suspense fallback={null}><AmazonModel kind={animal.type} /></Suspense>
         : <mesh geometry={geometries[animal.type]} material={statueMaterial()} castShadow receiveShadow />}
     </group>
   ))

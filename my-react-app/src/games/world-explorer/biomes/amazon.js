@@ -108,6 +108,9 @@ const fauna = [
   animal('morpho', 8.6, -4.6, 2.6, 55),
   animal('morpho', -2.4, 6.2, 5.0, 56),
   animal('morpho', 3.2, 7.0, 0.3, 57),
+  // two ocelots, a small wild cat of the rainforest (a model file: rendering/AmazonModel.jsx)
+  animal('ocelot', -4.5, 4.5, 0.9, 72),
+  animal('ocelot', 6.5, 2.5, -2.3, 73),
   // a few more kinds
   animal('agouti', 2.9, 3.7, 0.6, 62),
   animal('agouti', -9.5, 2.1, 2.8, 63),

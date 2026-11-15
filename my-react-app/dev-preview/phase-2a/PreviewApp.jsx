@@ -94,6 +94,9 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
             <p className="pv-note" data-testid="pv-credits">
               Amazon Rainforest jaguar: <a href="https://sketchfab.com/3d-models/jaguar-91c61c329d2a4668816f81f08dfcd492" target="_blank" rel="noreferrer">&ldquo;jaguar&rdquo;</a> by <a href="https://sketchfab.com/Ear.Rodriguez" target="_blank" rel="noreferrer">Ear.Rodriguez</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: the rest pose baked into a static model, tongue, teeth and animation removed, texture reduced, scaled and re-centred.
             </p>
+            <p className="pv-note" data-testid="pv-credits-ocelot">
+              Amazon Rainforest ocelot: <a href="https://sketchfab.com/3d-models/cat-74321b8d6b6b4c168db849ee6c8b3d6a" target="_blank" rel="noreferrer">&ldquo;Cat&rdquo;</a> by <a href="https://sketchfab.com/Professor_E12" target="_blank" rel="noreferrer">photon (that one larry)</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: a house cat re-skinned as an ocelot (a tawny, spotted coat in place of the calico one; an approximation, not an exact ocelot), the rest pose baked into a static model, textures converted, scaled and re-centred.
+            </p>
           </div>
         </details>
         <button type="button" onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}>{language === 'en' ? 'বাংলা' : 'English'}</button>
