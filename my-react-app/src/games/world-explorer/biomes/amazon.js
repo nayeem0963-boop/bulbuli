@@ -75,33 +75,33 @@ const perch = (type, centre, angle, radius, turn, seed) => {
 }
 const fauna = [
   // a capybara family by the spawn side of the clearing
-  animal('capybara', -5.5, -3.7, 0.7, 21),
-  animal('capybara', 0.3, -2.7, 0.2, 22),
-  animal('capybara', -7.2, 6.6, 1.2, 23),
-  animal('jaguar', 9.4, 3.0, -2.2, 24),
-  animal('tapir', -9.0, -3.6, 0.9, 25),
-  animal('anteater', 5.8, 1.3, -0.6, 26),
-  animal('coati', -2.9, 9.6, 2.6, 27),
-  animal('coati', -2.3, 5.2, 3.4, 28),
-  animal('caiman', 11.5, -0.8, 1.9, 29),
+  animal('capybara', -6.1, -4.5, 0.7, 21),
+  animal('capybara', -0.5, -2.3, 0.2, 22),
+  animal('capybara', -6.9, 8.3, 1.2, 23),
+  animal('jaguar', 9.4, 2.7, -2.2, 24),
+  animal('tapir', -10.3, -1.0, 0.9, 25),
+  animal('anteater', 4.4, 1.0, -0.6, 26),
+  animal('coati', -2.0, 9.2, 2.6, 27),
+  animal('coati', -4.4, 7.9, 3.4, 28),
+  animal('caiman', 10.2, -0.9, 1.9, 29),
   animal('anaconda', -12.2, 2.6, 0.3, 30),
-  animal('tortoise', 8.3, -7.2, 2.2, 31),
+  animal('tortoise', 6.6, -4.2, 2.2, 31),
   animal('frog', -5.3, 1.5, 0.8, 32),
   animal('morpho', 4.8, -5.6, 0.4, 33),
   animal('morpho', -8.8, 5.4, 2.0, 34),
   animal('morpho', 1.6, 6.2, 4.0, 35),
   // more of each, spread over the rest of the clearing
-  animal('capybara', 5.9, 8.7, -1.0, 40),
-  animal('capybara', 5.6, 4.6, -0.4, 41),
-  animal('jaguar', 4.2, -3.7, 0.8, 42),
-  animal('tapir', -10.0, -0.1, 2.4, 43),
-  animal('anteater', -3.2, 3.6, 1.1, 44),
-  animal('coati', 8.3, -0.5, 1.6, 45),
-  animal('coati', -1.3, -1.8, 2.3, 46),
-  animal('caiman', -9.6, -9.0, 0.6, 47),
+  animal('capybara', 5.5, 9.0, -1.0, 40),
+  animal('capybara', 5.5, 4.7, -0.4, 41),
+  animal('jaguar', 3.1, -3.4, 0.8, 42),
+  animal('tapir', -6.8, -1.0, 2.4, 43),
+  animal('anteater', -2.4, 3.1, 1.1, 44),
+  animal('coati', 7.2, 0.2, 1.6, 45),
+  animal('coati', -3.1, -1.0, 2.3, 46),
+  animal('caiman', -9.4, -4.5, 0.6, 47),
   animal('anaconda', 3.2, -12.2, 2.0, 48),
-  animal('tortoise', -5.9, 9.3, 0.9, 49),
-  animal('tortoise', -6.4, 0.9, 3.9, 50),
+  animal('tortoise', -4.2, 10.3, 0.9, 49),
+  animal('tortoise', -3.0, -3.4, 3.9, 50),
   animal('frog', -6.4, 1.8, 2.2, 51),
   animal('frog', -4.1, 1.0, 5.0, 52),
   animal('frog', 5.4, -3.2, 1.4, 53),
@@ -110,10 +110,10 @@ const fauna = [
   animal('morpho', -2.4, 6.2, 5.0, 56),
   animal('morpho', 3.2, 7.0, 0.3, 57),
   // a few more kinds
-  animal('agouti', 2.4, 2.5, 0.6, 62),
-  animal('agouti', -9.4, 4.5, 2.8, 63),
-  animal('armadillo', -6.4, -8.0, 1.3, 64),
-  animal('armadillo', 8.4, 6.7, -2.0, 65),
+  animal('agouti', 2.9, 3.7, 0.6, 62),
+  animal('agouti', -9.5, 2.1, 2.8, 63),
+  animal('armadillo', -7.3, -7.7, 1.3, 64),
+  animal('armadillo', 8.0, 6.5, -2.0, 65),
   animal('tarantula', -3.0, -7.2, 0.5, 66),
   animal('tarantula', 6.6, -9.4, 3.1, 67),
   // perched up in the trees
@@ -138,8 +138,8 @@ const fauna = [
  * of the gap each, and the butterflies their flight). The trees keep out of the whole walk
  * (rendering/amazonScatter.js). Where there is no room it stands.
  */
-/** The ones that walk (by seed): a herd on every side of the clearing, not every animal in it. */
-const WALKS = new Set([21, 40, 41, 24, 25, 26, 27, 45, 62, 64, 31])
+/** The ones that walk (by seed): every animal on the floor that has legs to walk on. */
+const WALKS = new Set(fauna.filter((a) => WALKERS[a.type] && a.y === 0).map((a) => a.seed))
 const FLIGHT = { morpho: 0.45 }
 const reachOf = (a) => (a.solid?.r ?? 0.1) + (FLIGHT[a.type] ?? 0)
 const segmentGap = (p, [a, b]) => {

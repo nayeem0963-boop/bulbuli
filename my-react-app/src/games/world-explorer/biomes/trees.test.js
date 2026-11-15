@@ -205,7 +205,7 @@ test('sundarbans trees: every mangrove trunk and every young tree on the islands
   }
 })
 
-test('amazon trees: all 899 forest trees and the giant tree have a solid trunk no slimmer than the one drawn', () => {
+test('amazon trees: all 896 forest trees and the giant tree have a solid trunk no slimmer than the one drawn', () => {
   const biome = BIOMES.amazon
   const colliders = collidersFor(biome)
   const drawn = { emergent: 0.28, canopy: 0.2, subcanopy: 0.16 } // amazonTrees.js trunkRadius
@@ -219,11 +219,11 @@ test('amazon trees: all 899 forest trees and the giant tree have a solid trunk n
     assert.ok(collider.top - item.y > 3, 'the whole trunk, not just its foot')
     trees.push({ id: `${item.kind} at (${item.x.toFixed(1)}, ${item.z.toFixed(1)})`, x: item.x, z: item.z, y: item.y, radius: collider.r, reach: collider.rootRadius + BODY + 0.2, height: collider.top - item.y, collider })
   })
-  assert.equal(trees.length, 899)
+  assert.equal(trees.length, 896)
   const tree = readFileSync(new URL('../rendering/amazonTrees.js', import.meta.url), 'utf8')
   assert.ok(tree.includes('const trunkRadius = isEmergent ? 0.28 : isSubcanopy ? 0.16 : 0.2'))
-  // walk and fly at a spread of them (every 12th: the map has 1,800 colliders and each run steps through them)
-  const r = audit(biome, colliders, trees.filter((_, i) => i % 12 === 0), { fpsList: [60], sides: 4, flyAt: 1.5 })
+  // walk and fly at a spread of them (every 8th: the map has 1,800 colliders and each run steps through them)
+  const r = audit(biome, colliders, trees.filter((_, i) => i % 8 === 0), { fpsList: [60], sides: 4, flyAt: 1.5 })
   assert.ok(r.walks >= 50, `${r.walks} walks`)
   assert.deepEqual(r.through, [], sample(r.through))
   assert.deepEqual(r.flewThrough, [], sample(r.flewThrough))

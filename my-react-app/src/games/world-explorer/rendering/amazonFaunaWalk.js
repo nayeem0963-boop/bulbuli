@@ -13,14 +13,15 @@ const TAU = Math.PI * 2
 
 /** speed: m/s along the path; swing: how far a leg swings from the hip, radians; roam: the largest walk. */
 export const WALKERS = Object.freeze({
-  capybara: { speed: 0.35, swing: 0.5, roam: 1.0 },
-  jaguar: { speed: 0.55, swing: 0.45, roam: 1.3 },
-  tapir: { speed: 0.4, swing: 0.4, roam: 1.1 },
-  anteater: { speed: 0.35, swing: 0.4, roam: 1.0 },
-  coati: { speed: 0.5, swing: 0.55, roam: 0.9 },
-  agouti: { speed: 0.6, swing: 0.6, roam: 0.9 },
-  armadillo: { speed: 0.3, swing: 0.45, roam: 0.9 },
-  tortoise: { speed: 0.1, swing: 0.5, roam: 0.6 },
+  capybara: { speed: 0.35, swing: 0.5, roam: 0.9 },
+  jaguar: { speed: 0.55, swing: 0.45, roam: 1.1 },
+  tapir: { speed: 0.4, swing: 0.4, roam: 1.0 },
+  anteater: { speed: 0.35, swing: 0.4, roam: 0.9 },
+  coati: { speed: 0.5, swing: 0.55, roam: 0.8 },
+  agouti: { speed: 0.6, swing: 0.6, roam: 0.8 },
+  armadillo: { speed: 0.3, swing: 0.45, roam: 0.8 },
+  tortoise: { speed: 0.1, swing: 0.5, roam: 0.5 },
+  caiman: { speed: 0.15, swing: 0.35, roam: 0.8 },
 })
 
 /** A walk shorter than this is not worth it: the animal stays where it stands. */

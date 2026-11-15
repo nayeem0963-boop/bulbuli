@@ -309,7 +309,7 @@ test('recovery: a bird held motionless in mid-air is carried to safety; hovering
   // (the pieces the branch pass left out are the ones across perch rims: look there)
   const kept = new Set(amazon.colliders.filter((c) => c.bough).map((c) => `${c.x.toFixed(3)},${c.z.toFixed(3)},${c.top.toFixed(3)}`))
   const leftOut = every.filter((c) => !kept.has(`${c.x.toFixed(3)},${c.z.toFixed(3)},${c.top.toFixed(3)}`))
-  for (let n = 0, tried = 0; n < leftOut.length && hangs < 2 && tried < 400; n += 41) {
+  for (let n = 0, tried = 0; n < leftOut.length && hangs < 2 && tried < 400; n += 13) {
     const piece = leftOut[n]
     tried += 1
     const start = [piece.x + 0.5, piece.bottom - 0.6, piece.z + 0.2]

@@ -147,7 +147,7 @@ test('amazon fauna: a walker is the whole model in parts: a body and four legs, 
 test('amazon fauna: walkers stay inside their walk, keep their pace, pause, and face the way they go', async () => {
   const { walkState, gait, WALKERS, MIN_ROAM } = await import('./amazonFaunaWalk.js')
   const walkers = fauna.filter((a) => a.roam)
-  assert.ok(walkers.length >= 9, `${walkers.length} animals walk`)
+  assert.ok(walkers.length >= 24, `${walkers.length} animals walk`)
   assert.deepEqual([...new Set(walkers.map((a) => a.type))].every((t) => WALKERS[t]), true)
   for (const animal of fauna) assert.equal(Boolean(animal.roam), animal.roam >= MIN_ROAM && Boolean(WALKERS[animal.type]) && animal.y === 0)
   for (const animal of walkers) {
