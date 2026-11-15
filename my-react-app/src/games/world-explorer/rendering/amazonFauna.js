@@ -2,7 +2,8 @@
  * Rainforest animals for the Amazon map, as asset-free, vertex-coloured meshes (no model files,
  * nothing to download or license): capybara, jaguar, tapir, giant anteater, coati, black caiman,
  * green anaconda, red-footed tortoise, poison dart frog, blue morpho butterfly, capuchin monkey,
- * three-toed sloth, scarlet macaw and toco toucan.
+ * three-toed sloth, scarlet macaw, toco toucan, agouti, giant armadillo, goliath tarantula,
+ * red howler monkey and harpy eagle.
  *
  * They are statues: no animation, each caught in a pose. Every model faces +z with its feet (or
  * belly) on y = 0 and is built in metres at life size. Where each one stands, and how solid it is,
@@ -34,6 +35,11 @@ export const AMAZON_FAUNA = Object.freeze({
   sloth: { radius: 0.3, top: 0.62, length: 0.7, perch: true },
   macaw: { radius: 0.2, top: 0.82, length: 0.85, perch: true },
   toucan: { radius: 0.2, top: 0.6, length: 0.62, perch: true },
+  agouti: { radius: 0.3, top: 0.42, length: 0.55, perch: false },
+  armadillo: { radius: 0.5, top: 0.5, length: 1.3, perch: false },
+  tarantula: { radius: 0.12, top: 0.09, length: 0.2, perch: false },
+  howler: { radius: 0.3, top: 0.72, length: 0.8, perch: true },
+  harpyEagle: { radius: 0.3, top: 1.0, length: 0.9, perch: true },
 })
 
 const C = {
@@ -51,6 +57,11 @@ const C = {
   sloth: { fur: linear('#9b8d6f'), dark: linear('#5a4d3a'), face: linear('#d8cdb0'), mask: linear('#3a2e22'), claw: linear('#e8e0cf') },
   macaw: { red: linear('#d9261c'), yellow: linear('#f2c21f'), blue: linear('#1f5fc4'), white: linear('#f2eee4'), beak: linear('#efe6d2'), beakDark: linear('#241c18'), leg: linear('#4a4440') },
   toucan: { black: linear('#14120f'), white: linear('#f4efe2'), bill: linear('#f08a1c'), billTip: linear('#1a1410'), blue: linear('#4aa3d6'), red: linear('#d6321e') },
+  agouti: { orange: linear('#b8742a'), dark: linear('#5a3a1c'), pale: linear('#e8d3a0') },
+  arma: { shell: linear('#4a3a30'), band: linear('#7a6252'), skin: linear('#b09a88'), claw: linear('#efe6d2') },
+  tarantula: { brown: linear('#4a3322'), dark: linear('#241810'), hair: linear('#8a5a30') },
+  howler: { black: linear('#1c1410'), red: linear('#8a3a1a'), face: linear('#2a1d16') },
+  harpy: { grey: linear('#6a707a'), dark: linear('#262a30'), white: linear('#eeeae0'), beak: linear('#2a2a2c'), leg: linear('#d8c24a'), claw: linear('#1a1a1c') },
   eye: linear('#100c0a'),
   shine: linear('#ffffff'),
 }
@@ -431,6 +442,116 @@ export function createToucanGeometry(seed = 14) {
   return finish(b)
 }
 
+/* ------------------------------------------------------------------ more ground animals */
+
+export function createAgoutiGeometry(seed = 15) {
+  const { b, mass, eye, leg } = kit(seed)
+  const { orange, dark, pale } = C.agouti
+  // a rabbit-sized rodent: high rump, slim legs, a small head with round ears
+  mass(v(0, 0.26, -0.04), 0.17, [0.62, 0.8, 1.35], orange, dark, { lumpy: 0.03 })
+  mass(v(0, 0.3, -0.18), 0.15, [0.7, 0.85, 0.95], orange, dark, { detail: 1 })
+  mass(v(0, 0.19, 0.06), 0.13, [0.6, 0.6, 1.2], pale, pale.clone().multiplyScalar(0.7), { detail: 1 })
+  for (const s of mirror) {
+    leg(v(s * 0.07, 0.22, 0.14), v(s * 0.075, 0.12, 0.16), v(s * 0.075, 0.015, 0.2), [0.035, 0.026, 0.022], dark, dark, dark, 0.03)
+    leg(v(s * 0.08, 0.26, -0.22), v(s * 0.1, 0.13, -0.26), v(s * 0.09, 0.015, -0.2), [0.05, 0.03, 0.022], orange, dark, dark, 0.035)
+  }
+  mass(v(0, 0.3, 0.26), 0.085, [0.85, 0.9, 1.15], orange, dark, { detail: 2 })
+  mass(v(0, 0.265, 0.35), 0.045, [0.9, 0.8, 1], pale, orange, { detail: 1, lumpy: 0 })
+  mass(v(0, 0.28, 0.395), 0.014, [1, 0.8, 0.8], C.eye, C.eye, { detail: 0, lumpy: 0 })
+  for (const s of mirror) {
+    mass(v(s * 0.05, 0.38, 0.22), 0.03, [0.45, 1, 0.8], orange, dark, { detail: 1, lumpy: 0 })
+    eye(s * 0.052, 0.32, 0.3, 0.012)
+  }
+  return finish(b)
+}
+
+
+
+export function createArmadilloGeometry(seed = 16) {
+  const { b, mass, eye, leg, random } = kit(seed)
+  const { shell, band, skin, claw } = C.arma
+  // a giant armadillo: a long domed back of overlapping bands, big front claws, a thick tapering tail
+  for (let i = 0; i < 9; i += 1) {
+    const t = i / 8
+    const z = 0.34 - t * 0.74
+    const r = 0.27 - Math.abs(t - 0.45) * 0.1
+    mass(v(0, 0.28 + (r - 0.2) * 0.6, z), r, [0.9, 0.85, 0.36], i % 2 ? band : shell, shell.clone().multiplyScalar(0.7), { detail: 1, lumpy: 0.012 })
+  }
+  for (const s of mirror) {
+    leg(v(s * 0.2, 0.2, 0.26), v(s * 0.22, 0.1, 0.3), v(s * 0.22, 0.015, 0.36), [0.075, 0.055, 0.045], skin, skin, skin, 0.05)
+    for (const k of [-1, 0, 1]) tube(b, [v(s * 0.22 + k * 0.03, 0.03, 0.4), v(s * 0.22 + k * 0.04, 0.012, 0.5)], [0.016, 0.004], { segments: 4, base: claw })
+    leg(v(s * 0.2, 0.2, -0.26), v(s * 0.22, 0.1, -0.28), v(s * 0.22, 0.015, -0.3), [0.07, 0.05, 0.04], skin, skin, skin, 0.05)
+  }
+  mass(v(0, 0.2, 0.52), 0.1, [0.75, 0.75, 1.3], skin, skin.clone().multiplyScalar(0.8), { detail: 2 })
+  tube(b, [v(0, 0.19, 0.6), v(0, 0.16, 0.7), v(0, 0.13, 0.76)], [0.045, 0.032, 0.014], { segments: 6, base: skin, tip: skin.clone().multiplyScalar(0.7) })
+  for (const s of mirror) {
+    eye(s * 0.06, 0.24, 0.5, 0.01)
+    mass(v(s * 0.07, 0.3, 0.44), 0.03, [0.6, 1, 0.8], shell, skin, { detail: 0, lumpy: 0 })
+  }
+  tube(b, bezier(v(0, 0.24, -0.38), v(0, 0.2, -0.7), v(0, 0.05, -0.92), 5), [0.1, 0.085, 0.07, 0.055, 0.04, 0.025], { segments: 7, base: shell, tip: skin, random, mottle: 0.08 })
+  return finish(b)
+}
+
+export function createTarantulaGeometry(seed = 17) {
+  const { b, mass, eye } = kit(seed)
+  const { brown, dark, hair } = C.tarantula
+  // a goliath birdeater: fat body, eight long bent legs, hairy
+  mass(v(0, 0.045, -0.035), 0.04, [1, 0.75, 1.3], brown, dark, { detail: 1, lumpy: 0.04 })
+  mass(v(0, 0.045, 0.03), 0.03, [1, 0.7, 1], hair, brown, { detail: 1, lumpy: 0.03 })
+  for (const s of mirror) {
+    eye(s * 0.01, 0.065, 0.055, 0.004)
+    for (let k = 0; k < 4; k += 1) {
+      const z = 0.045 - k * 0.028
+      const reach = 0.095 + (k === 0 || k === 3 ? 0.02 : 0)
+      const fwd = (1.5 - k) * 0.035
+      tube(b, [v(s * 0.02, 0.05, z), v(s * reach * 0.65, 0.085, z + fwd * 0.5), v(s * reach, 0.015, z + fwd)], [0.008, 0.0065, 0.004], { segments: 4, base: brown, tip: dark })
+    }
+  }
+  return finish(b)
+}
+
+/* ------------------------------------------------------------------ more perching animals */
+
+export function createHowlerGeometry(seed = 18) {
+  const { b, mass, eye, random } = kit(seed)
+  const { black, red, face } = C.howler
+  // a red howler monkey sitting hunched, rust-red fur, a bearded black face, a long tail hanging
+  mass(v(0, 0.3, 0), 0.2, [0.85, 1.1, 0.9], red, red.clone().multiplyScalar(0.6), { detail: 2, lumpy: 0.05 })
+  mass(v(0, 0.1, -0.03), 0.17, [1.0, 0.6, 1.1], red, red.clone().multiplyScalar(0.6), { detail: 1 })
+  for (const s of mirror) {
+    tube(b, [v(s * 0.13, 0.42, 0.04), v(s * 0.2, 0.28, 0.1), v(s * 0.15, 0.1, 0.18)], [0.05, 0.04, 0.032], { segments: 6, base: red, tip: black, random, mottle: 0.06 })
+    tube(b, [v(s * 0.1, 0.12, 0.0), v(s * 0.17, 0.07, 0.12), v(s * 0.14, 0.015, 0.2)], [0.055, 0.045, 0.035], { segments: 6, base: red, tip: black, random })
+  }
+  mass(v(0, 0.58, 0.07), 0.1, [0.95, 1.05, 1.0], red, red.clone().multiplyScalar(0.7), { detail: 2, lumpy: 0.03 })
+  mass(v(0, 0.55, 0.14), 0.075, [0.9, 1.0, 0.85], face, face, { detail: 2, lumpy: 0.01 })
+  mass(v(0, 0.49, 0.1), 0.06, [1, 1.3, 0.8], black, black, { detail: 1, lumpy: 0.03 })
+  for (const s of mirror) eye(s * 0.04, 0.58, 0.19, 0.012)
+  tube(b, cubic(v(0, 0.12, -0.18), v(0, 0.1, -0.45), v(0.05, 0.02, -0.4), v(0.12, 0.06, -0.34), 7), [0.05, 0.047, 0.044, 0.04, 0.036, 0.032, 0.028, 0.022], { segments: 6, base: red, tip: black })
+  return finish(b)
+}
+
+export function createHarpyEagleGeometry(seed = 19) {
+  const { b, mass, eye } = kit(seed)
+  const { grey, dark, white, beak, leg, claw } = C.harpy
+  // a harpy eagle: upright, slate back, white front, a split crest, huge yellow legs and black talons
+  mass(v(0, 0.55, 0), 0.21, [0.75, 1.45, 0.85], grey, grey.clone().multiplyScalar(0.7), { detail: 2, lumpy: 0.02 })
+  mass(v(0, 0.52, 0.06), 0.17, [0.8, 1.3, 0.7], white, white.clone().multiplyScalar(0.8), { detail: 1, lumpy: 0 })
+  mass(v(0, 0.66, 0.1), 0.13, [1.3, 0.3, 0.45], dark, dark, { detail: 1, lumpy: 0 })
+  for (const s of mirror) {
+    leaf(b, v(s * 0.15, 0.75, -0.03), v(s * 0.1, -1, -0.45), 0.5, 0.13, grey, dark, { droop: 0.02, fold: 0.1, curl: 0.05, roll: s * 0.1 })
+    tube(b, [v(s * 0.07, 0.3, 0.02), v(s * 0.075, 0.15, 0.04), v(s * 0.08, 0.03, 0.06)], [0.032, 0.026, 0.024], { segments: 6, base: leg, tip: leg })
+    for (const dx of [-0.03, 0, 0.03]) tube(b, [v(s * 0.08, 0.03, 0.06), v(s * 0.08 + dx, 0.012, 0.13)], [0.018, 0.007], { segments: 4, base: claw, tip: claw })
+  }
+  tube(b, [v(0, 0.28, -0.07), v(0, 0.12, -0.17), v(0, 0.06, -0.3)], [0.07, 0.065, 0.055], { segments: 6, base: dark, tip: grey })
+  tube(b, [v(0, 0.78, 0.04), v(0, 0.9, 0.08)], [0.08, 0.075], { segments: 7, base: grey, tip: grey })
+  mass(v(0, 0.92, 0.1), 0.095, [1.0, 1.0, 1.0], grey, grey.clone().multiplyScalar(0.8), { detail: 2, lumpy: 0.01 })
+  mass(v(0, 0.88, 0.14), 0.07, [1, 0.9, 0.8], white.clone().lerp(grey, 0.35), grey, { detail: 1, lumpy: 0 })
+  for (const k of [-1, 0, 1]) leaf(b, v(0, 0.98, 0.03), v(k * 0.4, 0.5, -1), 0.14, 0.03, dark, grey, { droop: 0.05, fold: 0.1, curl: 0.05 })
+  tube(b, bezier(v(0, 0.91, 0.18), v(0, 0.95, 0.26), v(0, 0.84, 0.29), 5), [0.04, 0.038, 0.032, 0.024, 0.014, 0.005], { segments: 6, base: beak, tip: beak })
+  for (const s of mirror) eye(s * 0.06, 0.93, 0.15, 0.013)
+  return finish(b)
+}
+
 export const AMAZON_FAUNA_BUILDERS = Object.freeze({
   capybara: createCapybaraGeometry,
   jaguar: createJaguarGeometry,
@@ -446,4 +567,9 @@ export const AMAZON_FAUNA_BUILDERS = Object.freeze({
   sloth: createSlothGeometry,
   macaw: createMacawGeometry,
   toucan: createToucanGeometry,
+  agouti: createAgoutiGeometry,
+  armadillo: createArmadilloGeometry,
+  tarantula: createTarantulaGeometry,
+  howler: createHowlerGeometry,
+  harpyEagle: createHarpyEagleGeometry,
 })

@@ -61,7 +61,7 @@ const props = [
  * the tree scatter keeps a clearing round every ground animal (rendering/amazonScatter.js).
  * `solid` is its collider (a cylinder); the frog and the butterfly are too small to bump into.
  */
-const TINY = new Set(['frog', 'morpho'])
+const TINY = new Set(['frog', 'morpho', 'tarantula'])
 const animal = (type, x, z, rot, seed, y = 0) => ({
   type, x, y, z, rot, seed,
   ...(TINY.has(type) ? {} : { solid: { r: AMAZON_FAUNA[type].radius, top: AMAZON_FAUNA[type].top } }),
@@ -108,6 +108,13 @@ const fauna = [
   animal('morpho', 8.6, -4.6, 2.6, 55),
   animal('morpho', -2.4, 6.2, 5.0, 56),
   animal('morpho', 3.2, 7.0, 0.3, 57),
+  // a few more kinds
+  animal('agouti', 3.0, 1.5, 0.6, 62),
+  animal('agouti', -2.0, 3.5, 2.8, 63),
+  animal('armadillo', -11.5, -2.2, 1.3, 64),
+  animal('armadillo', 10.0, 7.5, -2.0, 65),
+  animal('tarantula', -3.0, -7.2, 0.5, 66),
+  animal('tarantula', 6.6, -9.4, 3.1, 67),
   // perched up in the trees
   perch('capuchin', s2, lastAng - 1.55, 2.2, 0.5, 36),
   perch('macaw', s2, lastAng + 1.55, 2.3, -0.5, 37),
@@ -117,6 +124,10 @@ const fauna = [
   perch('macaw', s4, thirdAng, 2.0, -0.2, 59),
   perch('capuchin', s4, thirdAng + 0.85, 2.1, 0.2, 60),
   perch('sloth', s2, lastAng + 0.8, 2.4, -0.3, 61),
+  perch('howler', s2, lastAng - 0.8, 2.4, 0.2, 68),
+  perch('harpyEagle', s4, thirdAng - 0.85, 2.0, 0.1, 69),
+  perch('howler', s4, thirdAng + 2.4, 1.9, -0.2, 70),
+  perch('harpyEagle', s2, lastAng - 2.4, 2.4, 0.4, 71),
 ]
 
 export const AMAZON_MAP = Object.freeze({

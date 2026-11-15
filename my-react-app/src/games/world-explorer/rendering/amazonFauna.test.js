@@ -14,11 +14,11 @@ const vertices = (geometry) => {
 const triangles = (geometry) => (geometry.index ? geometry.index.count : geometry.attributes.position.count) / 3
 const apart = (a, b) => Math.hypot(a.x - b.x, a.z - b.z)
 
-test('amazon fauna: fourteen kinds, as many animals as the forest has room for; only the Amazon has any', () => {
+test('amazon fauna: nineteen kinds, as many animals as the forest has room for; only the Amazon has any', () => {
   assert.deepEqual(Object.keys(AMAZON_FAUNA_BUILDERS).sort(), Object.keys(AMAZON_FAUNA).sort())
-  assert.equal(new Set(fauna.map((a) => a.type)).size, 14, 'every kind appears')
+  assert.equal(new Set(fauna.map((a) => a.type)).size, 19, 'every kind appears')
   for (const type of Object.keys(AMAZON_FAUNA)) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
-  assert.ok(fauna.length >= 38)
+  assert.ok(fauna.length >= 51)
   for (const id of ['sundarbans', 'sahara']) assert.equal(BIOMES[id].fauna, undefined)
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'))
