@@ -128,12 +128,13 @@ function kit(seed) {
       lastLeg = out
       context.legs.push({ builder: out, hip: hip.clone() })
     }
-    tube(out, [hip, knee, foot], widths, { segments: 9, base, tip, random, mottle: 0.04, cap: false })
+    // a limb that tapers like a real one: stout at the hip, narrowest above the knee, a swell of
+    // calf below it, slim at the ankle, then the foot
+    const upper = hip.clone().lerp(knee, 0.5)
+    const lower = knee.clone().lerp(foot, 0.5)
+    tube(out, [hip, upper, knee, lower, foot], [widths[0] * 1.22, widths[0] * 0.92, widths[1] * 1.0, widths[1] * 0.82, widths[2] * 0.95], { segments: 9, base, tip, random, mottle: 0.04, cap: false })
     mass(v(foot.x, Math.max(foot.y, padSize * 0.5), foot.z + padSize * 0.5), padSize, [1, 0.55, 1.3], pad, pad, { detail: 1, lumpy: 0 })
-    // the muscle of the upper leg, a rounder knee, and toes on the front of the paw
-    const upper = knee.clone().sub(hip)
-    mass(hip.clone().addScaledVector(upper, 0.3), widths[0] * 1.12, [0.95, 1.5, 1.0], base.clone().lerp(tip, 0.2), base.clone().lerp(tip, 0.2).multiplyScalar(0.85), { detail: 2, lumpy: 0.02 })
-    mass(knee, widths[1] * 1.15, [1, 1, 1], base.clone().lerp(tip, 0.5), tip, { detail: 1, lumpy: 0 })
+    // toes on the front of the paw
     for (const k of [-1, 0, 1]) mass(v(foot.x + k * padSize * 0.55, Math.max(foot.y, padSize * 0.4) * 0.55, foot.z + padSize * 1.15 - Math.abs(k) * padSize * 0.15), padSize * 0.3, [1, 0.8, 1.2], pad, pad.clone().multiplyScalar(0.8), { detail: 0, lumpy: 0 })
     out = b
   }
@@ -188,8 +189,8 @@ export function createJaguarGeometry(seed = 2) {
   const { gold, dark, belly } = C.jag
   // a muscular cat standing, head low and level, long tail curving up at the tip
   mass(v(0, 0.58, -0.05), 0.3, [0.62, 0.62, 1.7], gold, gold.clone().lerp(belly, 0.5), { lumpy: 0.02 })
-  mass(v(0, 0.62, 0.34), 0.25, [0.78, 0.85, 0.95], gold, gold.clone().multiplyScalar(0.85), { detail: 1 })
-  mass(v(0, 0.58, -0.45), 0.24, [0.8, 0.85, 0.95], gold, gold.clone().multiplyScalar(0.85), { detail: 1 })
+  mass(v(0, 0.61, 0.33), 0.23, [0.74, 0.82, 0.95], gold, gold.clone().lerp(belly, 0.5), { detail: 2 })
+  mass(v(0, 0.58, -0.45), 0.23, [0.76, 0.82, 0.95], gold, gold.clone().lerp(belly, 0.5), { detail: 2 })
   for (const s of mirror) {
     leg(v(s * 0.15, 0.5, 0.36), v(s * 0.16, 0.26, 0.38), v(s * 0.16, 0.03, 0.4), [0.095, 0.07, 0.06], gold, gold.clone().lerp(belly, 0.3), dark.clone().lerp(gold, 0.4), 0.06)
     leg(v(s * 0.16, 0.52, -0.46), v(s * 0.2, 0.28, -0.52), v(s * 0.17, 0.03, -0.44), [0.1, 0.07, 0.06], gold, gold.clone().lerp(belly, 0.3), dark.clone().lerp(gold, 0.4), 0.06)
@@ -204,7 +205,7 @@ export function createJaguarGeometry(seed = 2) {
   }
   tube(b, cubic(v(0, 0.6, -0.7), v(0, 0.5, -1.0), v(0, 0.2, -1.1), v(0, 0.5, -1.3), 8), [0.06, 0.055, 0.05, 0.048, 0.045, 0.042, 0.04, 0.036, 0.034], { segments: 9, base: gold, tip: dark })
   // rosettes: rings of dark spots on the flank and back, as a jaguar has (a dark spot in the middle of some)
-  for (let i = 0; i < 20; i += 1) {
+  for (let i = 0; i < 24; i += 1) {
     const z = -0.68 + random() * 1.2
     const side = random() < 0.5 ? -1 : 1
     const around = (random() - 0.15) * 1.25
@@ -214,11 +215,11 @@ export function createJaguarGeometry(seed = 2) {
     const tx = side * Math.cos(around) * 0.186
     const ty = -Math.sin(around) * 0.186
     const tl = Math.hypot(tx, ty) || 1
-    const radius = 0.03 + random() * 0.012
+    const radius = 0.04 + random() * 0.014
     for (let k = 0; k < 5; k += 1) {
       const a = (k / 5) * Math.PI * 2 + random() * 0.4
       const round = Math.cos(a) * radius
-      mass(v(cx + (tx / tl) * round, cy + (ty / tl) * round, z + Math.sin(a) * radius * 1.15), 0.012, [1, 1, 0.5], dark, dark, { detail: 0, lumpy: 0 })
+      mass(v(cx + (tx / tl) * round, cy + (ty / tl) * round, z + Math.sin(a) * radius * 1.15), 0.017, [1, 1, 0.5], dark, dark, { detail: 0, lumpy: 0 })
     }
     if (i % 3 === 0) mass(v(cx, cy, z), 0.008, [1, 1, 0.5], dark, dark, { detail: 0, lumpy: 0 })
   }
@@ -365,22 +366,32 @@ export function createAnacondaGeometry(seed = 7) {
 }
 
 export function createTortoiseGeometry(seed = 8) {
-  const { b, mass, eye, leg, random } = kit(seed)
+  const { b, mass, eye, leg, random, limb } = kit(seed)
   const { shell, plate, skin, red } = C.tort
-  // domed shell of plates over a head with red scales and four sturdy legs
-  mass(v(0, 0.17, 0), 0.2, [0.95, 0.8, 1.2], plate, shell, { detail: 2, lumpy: 0.02 })
-  for (let i = 0; i < 12; i += 1) {
-    const a = (i / 12) * Math.PI * 2
-    mass(v(Math.cos(a) * 0.1, 0.2 + Math.sin(i * 1.7) * 0.01, Math.sin(a) * 0.14), 0.05, [1, 0.35, 1], shell, shell.clone().multiplyScalar(0.6), { detail: 0, lumpy: 0 })
+  // a high domed shell of plates (scutes) with dark seams between them, a head with red scales
+  // and four stout, scaly legs with red scales down the front
+  mass(v(0, 0.17, 0), 0.2, [0.95, 0.8, 1.2], shell.clone().lerp(plate, 0.4), shell.clone().multiplyScalar(0.55), { detail: 3, lumpy: 0.008 })
+  const rx = 0.19
+  const ry = 0.16
+  const rz = 0.24
+  const scute = (x, z, size, tilt = 1) => {
+    const lift = Math.sqrt(Math.max(0.02, 1 - (x / rx) ** 2 - (z / rz) ** 2))
+    const tone = plate.clone().multiplyScalar(0.85 + random() * 0.3)
+    mass(v(x, 0.17 + ry * lift + 0.003, z), size, [1, 0.3 * tilt, 1.12], tone, shell.clone().multiplyScalar(0.7), { detail: 1, lumpy: 0.01 })
   }
+  scute(0, 0, 0.062)
+  for (let k = 0; k < 5; k += 1) { const a = (k / 5) * Math.PI * 2 + 0.3; scute(Math.cos(a) * 0.095, Math.sin(a) * 0.12, 0.054) }
+  for (let k = 0; k < 9; k += 1) { const a = (k / 9) * Math.PI * 2; scute(Math.cos(a) * 0.15, Math.sin(a) * 0.19, 0.044, 0.9) }
   for (const s of mirror) {
-    leg(v(s * 0.16, 0.12, 0.14), v(s * 0.19, 0.07, 0.16), v(s * 0.19, 0.012, 0.18), [0.045, 0.04, 0.035], skin, red, skin, 0.035)
-    leg(v(s * 0.16, 0.12, -0.14), v(s * 0.19, 0.07, -0.16), v(s * 0.19, 0.012, -0.14), [0.045, 0.04, 0.035], skin, red, skin, 0.035)
+    for (const z of [0.14, -0.14]) {
+      leg(v(s * 0.16, 0.12, z), v(s * 0.19, 0.07, z + 0.02), v(s * 0.19, 0.012, z + (z > 0 ? 0.04 : 0)), [0.05, 0.042, 0.038], skin, skin.clone().multiplyScalar(0.8), skin, 0.037)
+      // scales: red on the foreleg's outer face
+      if (z > 0) for (const [y, dz] of [[0.095, 0.02], [0.065, 0.03], [0.04, 0.038]]) blob(limb(), v(s * 0.215, y, z + dz), 0.016, [0.5, 0.9, 1], { detail: 0, random, light: red, dark: red.clone().multiplyScalar(0.7), lumpy: 0 })
+    }
   }
   tube(b, [v(0, 0.12, 0.2), v(0, 0.14, 0.3), v(0, 0.15, 0.36)], [0.05, 0.04, 0.035], { segments: 9, base: skin, tip: skin, random })
-  mass(v(0, 0.15, 0.38), 0.045, [0.9, 0.85, 1.15], red, skin, { detail: 1, lumpy: 0 })
+  mass(v(0, 0.15, 0.38), 0.045, [0.9, 0.85, 1.15], red, skin, { detail: 2, lumpy: 0 })
   for (const s of mirror) eye(s * 0.028, 0.17, 0.4, 0.008)
-  void b
   return model(b)
 }
 

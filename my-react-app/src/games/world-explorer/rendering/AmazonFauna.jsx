@@ -16,13 +16,17 @@ const calm = () => typeof window !== 'undefined' && typeof window.matchMedia ===
 
 // one fur material and one shadow texture for every animal, made the first time they are needed
 let furMaterial = null
+let skinMaterial = null
 let shadowTexture = null
-const fur = () => (furMaterial ??= createFurMaterial())
+const fur = () => (furMaterial ??= createFurMaterial('fur'))
+const scaly = () => (skinMaterial ??= createFurMaterial('skin'))
+/** Bare, scaly skin rather than fur or feathers. */
+const SKIN_KINDS = new Set(['caiman', 'anaconda', 'tortoise', 'frog', 'armadillo'])
 const shadow = () => (shadowTexture ??= contactShadowTexture())
 
 /** Opaque, vertex-coloured, with the fur look of amazonFurMaterial.js; lit from both sides (wings, tails and leaves are single sheets). */
-function Statue({ geometry }) {
-  return <mesh geometry={geometry} material={fur()} castShadow receiveShadow />
+function Statue({ geometry, type }) {
+  return <mesh geometry={geometry} material={SKIN_KINDS.has(type) ? scaly() : fur()} castShadow receiveShadow />
 }
 
 /** A soft shadow on the ground under an animal, as long as the animal is (its model faces +z). */
@@ -54,7 +58,7 @@ function Animal({ animal, index, geometry, still }) {
   return (
     <group position={[animal.x, animal.y ?? 0, animal.z]} rotation-y={animal.rot ?? 0}>
       <GroundShadow type={animal.type} />
-      <group ref={body}><Statue geometry={geometry} /></group>
+      <group ref={body}><Statue geometry={geometry} type={animal.type} /></group>
     </group>
   )
 }
@@ -95,10 +99,10 @@ function Walker({ animal, index, parts, still }) {
     <group ref={root} position={start ? [start.x, animal.y ?? 0, start.z] : [animal.x, animal.y ?? 0, animal.z]} rotation-y={start ? start.yaw : animal.rot ?? 0}>
       <GroundShadow type={animal.type} />
       <group ref={body}>
-        <Statue geometry={parts.body} />
+        <Statue geometry={parts.body} type={animal.type} />
         {parts.legs.map((leg, i) => (
           <group key={i} position={leg.pivot} ref={(node) => { legs.current[i] = node }}>
-            <Statue geometry={leg.geometry} />
+            <Statue geometry={leg.geometry} type={animal.type} />
           </group>
         ))}
       </group>

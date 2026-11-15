@@ -17,21 +17,38 @@ float furNoise(vec3 x) {
   return mix(mix(mix(furHash(i), furHash(i + vec3(1, 0, 0)), f.x), mix(furHash(i + vec3(0, 1, 0)), furHash(i + vec3(1, 1, 0)), f.x), f.y),
              mix(mix(furHash(i + vec3(0, 0, 1)), furHash(i + vec3(1, 0, 1)), f.x), mix(furHash(i + vec3(0, 1, 1)), furHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
 }
-// strokes of fur: stretched along the body, a fine layer over a coarser one
-float furStrokes(vec3 p) { return 0.65 * furNoise(p * vec3(90.0, 90.0, 28.0)) + 0.35 * furNoise(p * vec3(210.0, 210.0, 70.0)); }
+#ifdef WX_SKIN
+// scales: a field of cells (Voronoi): raised in the middle, dark in the seams between them
+vec2 skinCells(vec3 p) {
+  vec3 i = floor(p); vec3 f = fract(p); float d1 = 8.0; float d2 = 8.0;
+  for (int z = -1; z <= 1; z++) for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+    vec3 g = vec3(float(x), float(y), float(z));
+    vec3 o = vec3(furHash(i + g), furHash(i + g + 17.3), furHash(i + g + 41.7));
+    vec3 r = g + o - f; float d = dot(r, r);
+    if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+  }
+  return vec2(sqrt(d1), sqrt(d2));
+}
+float furStrokes(vec3 p) { vec2 c = skinCells(p * 95.0); return (1.0 - smoothstep(0.05, 0.6, c.x)) * smoothstep(0.0, 0.2, c.y - c.x); }
+#else
+// strokes of fur: a fine layer over a coarser one, only a little stretched along the body
+float furStrokes(vec3 p) { return 0.6 * furNoise(p * vec3(150.0, 150.0, 110.0)) + 0.4 * furNoise(p * vec3(340.0, 340.0, 250.0)); }
+#endif
 `
 
-export function createFurMaterial() {
+/** `kind`: 'fur' (mammals, birds) or 'skin' (reptiles, the tortoise, the frog: a field of scales). */
+export function createFurMaterial(kind = 'fur') {
+  const skin = kind === 'skin'
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0, side: 2, emissive: '#3a3226', emissiveIntensity: 0.4 })
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace('void main() {', 'varying vec3 vFurPos;\nvoid main() {')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vFurPos = position;')
     shader.fragmentShader = shader.fragmentShader
-      .replace('void main() {', `${NOISE}\nvoid main() {`)
+      .replace('void main() {', `${skin ? '#define WX_SKIN\n' : ''}${NOISE}\nvoid main() {`)
       .replace('#include <color_fragment>', `#include <color_fragment>
         float furTone = furStrokes(vFurPos);
-        diffuseColor.rgb *= 0.9 + 0.2 * furTone;`)
+        diffuseColor.rgb *= ${skin ? '0.84 + 0.24 * furTone' : '0.93 + 0.14 * furTone'};`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         {
           // a bump from the strokes: the surface tilts a little towards where the fur is higher
@@ -44,15 +61,15 @@ export function createFurMaterial() {
           vec3 r2 = cross(normal, sx);
           float det = dot(sx, r1);
           vec3 grad = sign(det) * ((hx - h0) * r1 + (hy - h0) * r2);
-          normal = normalize(abs(det) * normal - 0.017 * grad);
+          normal = normalize(abs(det) * normal - ${skin ? '0.02' : '0.009'} * grad);
         }`)
       .replace('#include <opaque_fragment>', `
         // a rim of light along the silhouette, as hair gives
         float furRim = pow(1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0), 3.0);
-        outgoingLight += furRim * 0.16 * diffuseColor.rgb;
+        outgoingLight += furRim * ${skin ? '0.08' : '0.16'} * diffuseColor.rgb;
         #include <opaque_fragment>`)
   }
-  material.customProgramCacheKey = () => 'wx-amazon-fur-v2'
+  material.customProgramCacheKey = () => `wx-amazon-${kind}-v4`
   return material
 }
 
