@@ -30,14 +30,14 @@ vec2 jaguarCells(vec3 q) {
 // 0 = tawny, 1 = black; and (through 'inner') how deep inside a rosette we are
 vec2 jaguarCoat(vec3 p) {
   float legs = 1.0 - smoothstep(0.30, 0.46, p.y);
-  float head = smoothstep(0.84, 0.98, p.z);
+  float head = smoothstep(0.74, 0.86, p.z);
   float small = max(legs, head);
-  float scale = mix(14.0, 24.0, small);
+  float scale = mix(14.0, 22.0, small);
   vec3 q = p * scale;
   q += 0.4 * vec3(cNoise(q * 1.4), cNoise(q * 1.4 + 9.0), cNoise(q * 1.4 + 19.0));
   vec2 c = jaguarCells(q);
   float d = c.x; float id = c.y;
-  float rosette = smoothstep(0.2, 0.28, d) * (1.0 - smoothstep(0.4, 0.52, d));
+  float rosette = smoothstep(0.22, 0.28, d) * (1.0 - smoothstep(0.36, 0.45, d));
   float dot_ = 1.0 - smoothstep(0.05, 0.11, d);
   float solid = 1.0 - smoothstep(0.17, 0.3, d);
   float isRosette = step(0.22, id) * (1.0 - small);
@@ -45,7 +45,7 @@ vec2 jaguarCoat(vec3 p) {
   float inner = isRosette * (1.0 - smoothstep(0.12, 0.22, d)) * (1.0 - dot_);
   // a second layer of small spots fills the gaps between the rosettes
   vec2 c2 = jaguarCells(p * scale * 2.3 + vec3(5.0, 11.0, 3.0));
-  float fill = (1.0 - smoothstep(0.09, 0.16, c2.x)) * step(0.45, c2.y) * (1.0 - mask) * (1.0 - 0.6 * small);
+  float fill = (1.0 - smoothstep(0.1, 0.17, c2.x)) * step(0.4, c2.y) * (1.0 - mask) * (1.0 - 0.6 * small);
   return vec2(max(mask, fill), inner);
 }
 `
@@ -61,16 +61,15 @@ export function createCoatMaterial() {
       .replace('#include <color_fragment>', `#include <color_fragment>
         {
           vec2 coat = jaguarCoat(vCoat);
-          // the tail: black rings, and a black tip
-          float tail = smoothstep(-0.66, -0.7, vCoat.z);
-          float ring = max(step(0.0, sin(vCoat.z * 36.0)), smoothstep(-1.22, -1.28, vCoat.z));
-          float dark = mix(coat.x, ring, tail);
+          // the tail carries its own painted rings: no rosettes there
+          float tail = smoothstep(-0.6, -0.65, vCoat.z);
+          float dark = coat.x * (1.0 - tail);
           float grain = 0.93 + 0.14 * cNoise(vCoat * 260.0);
           vec3 black = vec3(0.03, 0.02, 0.014);
           diffuseColor.rgb *= grain * (1.0 - 0.16 * coat.y * (1.0 - tail));
           diffuseColor.rgb = mix(diffuseColor.rgb, black, 0.95 * dark);
         }`)
   }
-  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v2'
+  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v5'
   return material
 }

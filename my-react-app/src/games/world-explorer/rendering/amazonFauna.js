@@ -44,7 +44,7 @@ export const AMAZON_FAUNA = Object.freeze({
 
 const C = {
   fur: { capy: linear('#8a6a45'), capyDark: linear('#5e4630'), capyBelly: linear('#b89a6e') },
-  jag: { gold: linear('#d79a3a'), dark: linear('#2a1a0e'), belly: linear('#f1e2c0') },
+  jag: { gold: linear('#c68a3c'), dark: linear('#1a0f08'), belly: linear('#f0e4c8') },
   tapir: { grey: linear('#4a4640'), pale: linear('#d9d3c4'), dark: linear('#2c2a27') },
   ant: { grey: linear('#7d756a'), dark: linear('#1f1a17'), pale: linear('#d8d2c2'), claw: linear('#e8e0cf') },
   coati: { rust: linear('#9a5a2c'), dark: linear('#3a2616'), pale: linear('#efe3c8') },
@@ -63,7 +63,7 @@ const C = {
   howler: { black: linear('#1c1410'), red: linear('#8a3a1a'), face: linear('#2a1d16') },
   harpy: { grey: linear('#6a707a'), dark: linear('#262a30'), white: linear('#eeeae0'), beak: linear('#2a2a2c'), leg: linear('#d8c24a'), claw: linear('#1a1a1c') },
   eye: linear('#100c0a'),
-  iris: linear('#b58a2a'),
+  iris: linear('#9a8434'),
   nose: linear('#5a3a38'),
   shine: linear('#ffffff'),
 }
@@ -155,8 +155,10 @@ function model(b) {
  * A body modelled as ONE smooth surface, not a heap of blobs: a sweep along the spine whose
  * cross-section is an ellipse that changes from station to station, so the haunch, waist, chest,
  * neck, skull and muzzle flow into one another with no step or crease. A station is
- * [z, y, halfWidth, halfHeight]: where along the body (+z is forward), how high its middle is, and
- * the size of its ellipse. A spline runs through the stations.
+ * [z, y, halfWidth, halfHeightAbove, sidewaysOffset, halfHeightBelow]: where along the body (+z is
+ * forward), how high its middle is, the size of its ellipse (the underside may be deeper or
+ * shallower than the top: a deep chest, a tucked waist), and how far it sits to one side (for a
+ * limb). A spline runs through the stations.
  */
 const spline = (a, b, c, d, t) => 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (-a + 3 * b - 3 * c + d) * t * t * t)
 function stationAt(stations, f) {
@@ -164,7 +166,7 @@ function stationAt(stations, f) {
   const i = Math.max(0, Math.min(last - 1, Math.floor(f)))
   const u = f - i
   const at = (k) => stations[Math.max(0, Math.min(last, k))]
-  return [0, 1, 2, 3, 4].map((c) => spline(at(i - 1)[c] ?? 0, at(i)[c] ?? 0, at(i + 1)[c] ?? 0, at(i + 2)[c] ?? 0, u))
+  return [0, 1, 2, 3, 4, 5].map((c) => spline(at(i - 1)[c] ?? 0, at(i)[c] ?? 0, at(i + 1)[c] ?? 0, at(i + 2)[c] ?? 0, u))
 }
 
 /** The body's middle height and half sizes at z (for putting spots and ridges on its skin). */
@@ -175,7 +177,19 @@ export function sectionAt(stations, z) {
     const section = stationAt(stations, f)
     if (Math.abs(section[0] - z) < Math.abs(best[0] - z)) best = section
   }
-  return { y: best[1], rx: best[2], ry: best[3] }
+  return { y: best[1], rx: best[2], ry: best[3], down: best[5] > 0 ? best[5] : best[3] }
+}
+
+/**
+ * A point on the skin of a loft(): at z along the body, at angle `phi` round the section (0 =
+ * out to the side, 90 degrees = straight up), pushed out by `push` (1 = on the skin). For placing
+ * eyes, markings and whiskers exactly on the surface.
+ */
+export function skinPoint(stations, z, phi, push = 1) {
+  const { y, rx, ry, down } = sectionAt(stations, z)
+  const a = (phi * Math.PI) / 180
+  const sin = Math.sin(a)
+  return v(Math.cos(a) * rx * push, y + sin * (sin < 0 ? down : ry) * push, z)
 }
 
 const smoothstep = (lo, hi, x) => { const t = Math.max(0, Math.min(1, (x - lo) / (hi - lo))); return t * t * (3 - 2 * t) }
@@ -184,13 +198,14 @@ const smoothstep = (lo, hi, x) => { const t = Math.max(0, Math.min(1, (x - lo) /
  * `back` / `belly`: the colours of the top and underside, blended round the body; `paint(z, u, c)`
  * may change the colour `c` at a point (z along the body, u from -1 underneath to 1 on top).
  */
-function loft(builder, stations, { back, belly, paint = null, segments = 20, steps = 3 }) {
+function loft(builder, stations, { back, belly, paint = null, segments = 20, steps = 3, blend = [-0.55, 0.35] }) {
   const rings = (stations.length - 1) * steps + 1
   const grid = []
   for (let r = 0; r < rings; r += 1) {
-    const [z, y, rx0, ry0] = stationAt(stations, r / steps)
+    const [z, y, rx0, ry0, dx, down0] = stationAt(stations, r / steps)
     const rx = Math.max(0.004, rx0)
     const ry = Math.max(0.004, ry0)
+    const down = down0 > 0.004 ? down0 : ry
     const ahead = stationAt(stations, Math.min(stations.length - 1, (r + 1) / steps))
     const behind = stationAt(stations, Math.max(0, (r - 1) / steps))
     const ty = ahead[1] - behind[1]
@@ -203,11 +218,12 @@ function loft(builder, stations, { back, belly, paint = null, segments = 20, ste
     for (let k = 0; k < segments; k += 1) {
       const a = (k / segments) * Math.PI * 2
       const u = Math.sin(a)
-      const colour = belly.clone().lerp(back, smoothstep(-0.55, 0.35, u))
-      if (paint) paint(z, u, colour)
-      ring.push({ position: v(Math.cos(a) * rx, y + upY * u * ry, z + upZ * u * ry), colour })
+      const colour = belly.clone().lerp(back, smoothstep(blend[0], blend[1], u))
+      if (paint) paint(z, u, colour, Math.cos(a), y)
+      const h = u * (u < 0 ? down : ry)
+      ring.push({ position: v(dx + Math.cos(a) * rx, y + upY * h, z + upZ * h), colour })
     }
-    grid.push({ ring, centre: v(0, y, z), colour: belly.clone().lerp(back, 0.5) })
+    grid.push({ ring, centre: v(dx, y, z), colour: belly.clone().lerp(back, 0.5) })
   }
   for (let r = 1; r < rings; r += 1) {
     for (let k = 0; k < segments; k += 1) {
@@ -297,30 +313,84 @@ export function createCapybaraGeometry(seed = 1) {
 }
 
 export function createJaguarGeometry(seed = 2) {
-  const { b, mass, eye, leg } = kit(seed)
+  const { b, mass, eye } = kit(seed)
   const { gold, dark, belly } = C.jag
-  // a muscular cat: deep chest, a tucked waist, powerful shoulders and haunches, a thick neck, a broad
-  // skull and a pale muzzle, all one surface. The rosettes and the tail's rings are the coat shader's
-  // (rendering/amazonCoatMaterial.js), worked out from where on the body they fall.
-  const S = [[-0.7, 0.56, 0.03, 0.03], [-0.62, 0.58, 0.12, 0.13], [-0.45, 0.59, 0.172, 0.2], [-0.25, 0.58, 0.15, 0.175], [-0.05, 0.575, 0.135, 0.165],
-    [0.15, 0.585, 0.15, 0.2], [0.3, 0.6, 0.185, 0.23], [0.46, 0.62, 0.175, 0.215], [0.6, 0.635, 0.15, 0.175], [0.74, 0.625, 0.145, 0.16],
-    [0.85, 0.595, 0.152, 0.148], [0.94, 0.565, 0.135, 0.128], [1.0, 0.54, 0.1, 0.092], [1.05, 0.525, 0.072, 0.066], [1.085, 0.518, 0.03, 0.03]]
-  loft(b, S, { back: gold, belly: belly.clone().lerp(gold, 0.1), paint: (z, u, c) => { if (z > 0.95) c.lerp(belly, 0.55 * smoothstep(0.95, 1.07, z)); if (u < -0.6 && z > 0.5) c.lerp(belly, 0.5) } })
-  for (const s of mirror) {
-    leg(v(s * 0.125, 0.52, 0.36), v(s * 0.15, 0.27, 0.39), v(s * 0.155, 0.04, 0.4), [0.115, 0.082, 0.078], gold, gold.clone().lerp(belly, 0.2), gold.clone().lerp(dark, 0.3), 0.1)
-    leg(v(s * 0.13, 0.54, -0.46), v(s * 0.19, 0.3, -0.53), v(s * 0.165, 0.04, -0.44), [0.125, 0.085, 0.078], gold, gold.clone().lerp(belly, 0.2), gold.clone().lerp(dark, 0.3), 0.1)
-    // round ears with a pale spot behind, bright amber eyes, whisker pads and a defined mouth
-    mass(v(s * 0.105, 0.715, 0.8), 0.06, [0.85, 1, 0.55], gold, dark, { detail: 1, lumpy: 0 })
-    mass(v(s * 0.108, 0.72, 0.772), 0.033, [0.8, 1, 0.4], belly, belly, { detail: 1, lumpy: 0 })
-    eye(s * 0.139, 0.598, 0.9, 0.021)
-    mass(v(s * 0.05, 0.5, 1.0), 0.04, [1, 0.85, 1.05], belly, belly.clone().multiplyScalar(0.85), { detail: 1, lumpy: 0 })
-    tube(b, [v(s * 0.014, 0.508, 1.1), v(s * 0.026, 0.488, 1.085), v(s * 0.058, 0.482, 1.02), v(s * 0.085, 0.5, 0.94)], [0.006, 0.0055, 0.0055, 0.0045], { segments: 5, base: dark, tip: dark })
-    for (let k = 0; k < 4; k += 1) tube(b, [v(s * 0.055, 0.505 - k * 0.006, 1.03), v(s * (0.15 + k * 0.012), 0.505 + (k - 1.5) * 0.026, 0.98 - k * 0.012), v(s * (0.25 + k * 0.014), 0.5 + (k - 1.5) * 0.04, 0.91 - k * 0.025)], [0.0016, 0.0014, 0.0008], { segments: 4, base: belly, tip: belly })
+  const topTawny = gold.clone().multiplyScalar(0.82)
+  // A powerful cat standing: level back, deep chest, tucked waist, heavy haunches, a thick neck and a
+  // broad skull with a short, wide muzzle; all one smooth surface. Station: [z, y, half width, half
+  // height above, sideways offset, half height below].
+  const S = [
+    [-0.7, 0.55, 0.03, 0.03], [-0.63, 0.565, 0.115, 0.11, 0, 0.115], [-0.5, 0.58, 0.17, 0.15, 0, 0.17], [-0.3, 0.575, 0.16, 0.14, 0, 0.15],
+    [-0.1, 0.57, 0.14, 0.135, 0, 0.12], [0.1, 0.565, 0.15, 0.14, 0, 0.17], [0.28, 0.575, 0.18, 0.155, 0, 0.21], [0.45, 0.59, 0.175, 0.16, 0, 0.2],
+    [0.6, 0.615, 0.15, 0.15, 0, 0.15], [0.72, 0.62, 0.14, 0.14, 0, 0.13], [0.83, 0.6, 0.15, 0.145, 0, 0.135], [0.92, 0.58, 0.152, 0.135, 0, 0.125],
+    [0.99, 0.56, 0.135, 0.11, 0, 0.1], [1.05, 0.545, 0.098, 0.088, 0, 0.078], [1.1, 0.535, 0.07, 0.065, 0, 0.055], [1.135, 0.53, 0.035, 0.035], [1.15, 0.53, 0.012, 0.012],
+  ]
+  loft(b, S, {
+    back: gold,
+    belly: belly,
+    blend: [-0.82, -0.42],
+    paint: (z, u, c) => {
+      if (u > 0.5) c.lerp(topTawny, 0.5 * smoothstep(0.5, 1, u))
+      // white throat and chest
+      if (z > 0.4 && z < 0.85 && u < -0.1) c.lerp(belly, 0.85 * smoothstep(-0.1, -0.5, u))
+      // the face: white cheeks, chin and muzzle, a tawny forehead and nose bridge
+      if (z > 0.86) c.lerp(belly, 0.95 * smoothstep(0.2, -0.45, u) * smoothstep(0.86, 0.93, z))
+      if (z > 1.03) c.lerp(belly, 0.55 * smoothstep(1.03, 1.09, z))
+    },
+  })
+
+  // legs: sculpted from sections along a path (shoulder, elbow, forearm, wrist, paw), the hind legs
+  // with the angle of the hock; paler towards the paw
+  const limb = (side, points) => {
+    const stations = points.map(([x, y, z, rx, rd]) => [z, y, rx, rd, side * x])
+    loft(b, stations, {
+      back: gold,
+      belly: gold.clone().lerp(belly, 0.35),
+      segments: 14,
+      steps: 2,
+      paint: (z, u, c, sd, y) => { c.lerp(belly, 0.92 * smoothstep(0.21, 0.07, y)) },
+    })
+    const paw = points[points.length - 1]
+    mass(v(side * paw[0], 0.045, paw[2] + 0.04), 0.058, [1.05, 0.78, 1.55], belly, belly.clone().multiplyScalar(0.8), { detail: 2, lumpy: 0 })
+    for (const k of [-1.5, -0.5, 0.5, 1.5]) mass(v(side * paw[0] + k * 0.03, 0.026, paw[2] + 0.09 - Math.abs(k) * 0.012), 0.027, [1, 0.8, 1.2], belly, belly.clone().multiplyScalar(0.85), { detail: 1, lumpy: 0 })
   }
-  mass(v(0, 0.472, 1.0), 0.046, [0.9, 0.7, 1.1], belly, belly.clone().multiplyScalar(0.85), { detail: 1, lumpy: 0 })
-  mass(v(0, 0.522, 1.095), 0.033, [1.2, 0.85, 0.9], C.nose, C.nose, { detail: 1, lumpy: 0 })
-  tube(b, cubic(v(0, 0.6, -0.66), v(0, 0.5, -1.0), v(0, 0.2, -1.1), v(0, 0.5, -1.3), 8), [0.065, 0.06, 0.055, 0.052, 0.049, 0.046, 0.044, 0.04, 0.038], { segments: 9, base: gold, tip: gold })
-  return model(b)
+  for (const side of mirror) {
+    // x, y, z, half width, half depth
+    limb(side, [[0.05, 0.66, 0.37, 0.09, 0.12], [0.11, 0.55, 0.37, 0.115, 0.135], [0.165, 0.42, 0.36, 0.1, 0.115], [0.172, 0.24, 0.385, 0.073, 0.088], [0.172, 0.11, 0.405, 0.056, 0.066], [0.172, 0.07, 0.415, 0.068, 0.088], [0.172, 0.05, 0.42, 0.072, 0.095]])
+    limb(side, [[0.05, 0.67, -0.46, 0.09, 0.14], [0.11, 0.57, -0.45, 0.125, 0.16], [0.17, 0.5, -0.42, 0.12, 0.145], [0.175, 0.37, -0.36, 0.092, 0.105], [0.175, 0.24, -0.46, 0.068, 0.085], [0.175, 0.17, -0.53, 0.056, 0.068], [0.175, 0.095, -0.5, 0.05, 0.056], [0.175, 0.07, -0.47, 0.062, 0.08], [0.175, 0.05, -0.466, 0.068, 0.092]])
+  }
+
+  // the tail: a thick, smooth sweep with black rings and a black tip
+  const tailPath = cubic(v(0, 0.6, -0.66), v(0, 0.5, -1.0), v(0, 0.2, -1.1), v(0, 0.5, -1.3), 12)
+  const tailStations = tailPath.map((p, i) => { const r = 0.056 - (i / 12) * 0.012; return [p.z, p.y, r, r] })
+  tailStations.push([-1.31, 0.52, 0.012, 0.012])
+  loft(b, tailStations, { back: gold, belly: gold, segments: 12, steps: 3, paint: (z, u, c) => { if (Math.sin(z * 42) > 0.15 || z < -1.24) c.lerp(dark, 0.96) } })
+
+  // the face, set on the skin of the head: eyes, tear-lines, mouth, nose, whiskers, ears
+  const at = (z, phi, side, push = 1) => { const p = skinPoint(S, z, phi, push); p.x *= side; return p }
+  for (const side of mirror) {
+    // eyes: forward-looking, set in the face, an amber iris in a dark rim
+    const eyePoint = at(0.965, 54, side, 0.99)
+    mass(v(eyePoint.x * 0.99, eyePoint.y, eyePoint.z - 0.004), 0.03, [1.1, 0.85, 0.9], dark, dark, { detail: 1, lumpy: 0 })
+    eye(eyePoint.x, eyePoint.y, eyePoint.z + 0.004, 0.028)
+    tube(b, [at(0.975, 44, side, 1.012), at(1.0, 30, side, 1.012), at(1.045, 12, side, 1.012)], [0.0045, 0.005, 0.004], { segments: 5, base: dark, tip: dark })
+    tube(b, [at(1.13, -6, side, 1.012), at(1.1, -20, side, 1.012), at(1.04, -25, side, 1.012), at(0.985, -17, side, 1.012)], [0.006, 0.0058, 0.0055, 0.0045], { segments: 5, base: dark, tip: dark })
+    const ear = at(0.82, 62, side, 1.0)
+    mass(v(ear.x, ear.y + 0.02, ear.z - 0.012), 0.053, [1.0, 0.95, 0.3], gold.clone().lerp(dark, 0.55), dark, { detail: 1, lumpy: 0 })
+    mass(v(ear.x * 1.04, ear.y + 0.025, ear.z - 0.03), 0.024, [0.8, 0.85, 0.25], belly, belly, { detail: 1, lumpy: 0 })
+    mass(v(ear.x * 0.97, ear.y + 0.018, ear.z + 0.008), 0.038, [0.85, 0.9, 0.25], belly.clone().lerp(gold, 0.45), gold, { detail: 1, lumpy: 0 })
+    mass(v(side * 0.047, 0.498, 1.06), 0.04, [1, 0.85, 1.05], belly, belly.clone().multiplyScalar(0.85), { detail: 1, lumpy: 0 })
+    mass(v(side * 0.013, 0.531, 1.16), 0.0075, [1, 1, 0.8], C.eye, C.eye, { detail: 0, lumpy: 0 })
+    for (let k = 0; k < 5; k += 1) tube(b, [v(side * 0.05, 0.505 - k * 0.005, 1.04), v(side * (0.11 + k * 0.01), 0.505 + (k - 2) * 0.02, 1.0 - k * 0.01), v(side * (0.17 + k * 0.012), 0.5 + (k - 2) * 0.03, 0.96 - k * 0.02)], [0.0015, 0.0013, 0.0007], { segments: 4, base: belly, tip: belly })
+  }
+  mass(v(0, 0.475, 1.03), 0.042, [0.9, 0.7, 1.1], belly, belly.clone().multiplyScalar(0.85), { detail: 1, lumpy: 0 })
+  mass(v(0, 0.54, 1.145), 0.034, [1.25, 0.85, 0.9], C.nose, C.nose.clone().multiplyScalar(0.7), { detail: 1, lumpy: 0 })
+  // a jaguar is compact: shorter along the body than the sections above, a short muzzle
+  const geometry = model(b)
+  geometry.scale(1, 1, 0.88)
+  geometry.computeBoundingBox()
+  geometry.computeBoundingSphere()
+  return geometry
 }
 
 export function createTapirGeometry(seed = 3) {
