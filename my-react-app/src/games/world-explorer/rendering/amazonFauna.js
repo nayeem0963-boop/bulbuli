@@ -45,7 +45,7 @@ export const AMAZON_FAUNA = Object.freeze({
 
 const C = {
   fur: { capy: linear('#8a6a45'), capyDark: linear('#5e4630'), capyBelly: linear('#b89a6e') },
-  jag: { gold: linear('#b87a30'), dark: linear('#140b06'), belly: linear('#e9d9b8') },
+  jag: { gold: linear('#a97530'), dark: linear('#140b06'), belly: linear('#e9d9b8') },
   tapir: { grey: linear('#4a4640'), pale: linear('#d9d3c4'), dark: linear('#2c2a27') },
   ant: { grey: linear('#7d756a'), dark: linear('#1f1a17'), pale: linear('#d8d2c2'), claw: linear('#e8e0cf') },
   coati: { rust: linear('#9a5a2c'), dark: linear('#3a2616'), pale: linear('#efe3c8') },
@@ -335,7 +335,7 @@ export function createCapybaraGeometry(seed = 1) {
 export function createJaguarGeometry(seed = 2) {
   const { b, mass } = kit(seed)
   const { gold, dark, belly } = C.jag
-  const topTawny = gold.clone().multiplyScalar(0.82)
+  const topTawny = gold.clone().multiplyScalar(0.7)
   // A powerful cat standing: level back, deep chest, tucked waist, heavy haunches, a thick neck and a
   // broad skull with a short, wide muzzle; all one smooth surface. Station: [z, y, half width, half
   // height above, sideways offset, half height below].
@@ -354,7 +354,9 @@ export function createJaguarGeometry(seed = 2) {
     belly: belly,
     blend: [-0.82, -0.42],
     paint: (z, u, c) => {
-      if (u > 0.5) c.lerp(topTawny, 0.5 * smoothstep(0.5, 1, u))
+      if (u > 0.4) c.lerp(topTawny, 0.7 * smoothstep(0.4, 1, u))
+      // pale cheek fur behind the muzzle
+      if (z > 0.84 && z < 1.0 && u < 0.2 && u > -0.7) c.lerp(belly, 0.5 * smoothstep(0.84, 0.9, z) * smoothstep(1.0, 0.95, z))
       // white throat and chest
       if (z > 0.4 && z < 0.85 && u < -0.1) c.lerp(belly, 0.85 * smoothstep(-0.1, -0.5, u))
       // the face: white cheeks, chin and muzzle, a tawny forehead and nose bridge
@@ -399,7 +401,7 @@ export function createJaguarGeometry(seed = 2) {
     // dark tear-line down the side of the nose
     const e = at(0.975, 38, side, 0.985)
     const slant = side * 0.22
-    solid(b, v(e.x, e.y, e.z - 0.004), [0.05, 0.03, 0.015], [0, 0, -slant], dark, dark, 1)
+    solid(b, v(e.x, e.y, e.z - 0.004), [0.043, 0.026, 0.0145], [0, 0, -slant], dark.clone().lerp(gold, 0.15), dark, 1)
     solid(b, v(e.x, e.y, e.z + 0.003), [0.039, 0.024, 0.0135], [0, 0, -slant], C.iris.clone().lerp(gold, 0.15), C.iris.clone().multiplyScalar(0.6), 1)
     solid(b, v(e.x + side * 0.003, e.y, e.z + 0.012), [0.0155, 0.0155, 0.007], [0, 0, 0], C.eye, C.eye, 1)
     mass(v(e.x + side * 0.009, e.y + 0.007, e.z + 0.0175), 0.0036, [1, 1, 1], C.shine, C.shine, { detail: 0, lumpy: 0 })
@@ -407,7 +409,7 @@ export function createJaguarGeometry(seed = 2) {
     solid(b, v(brow.x, brow.y + 0.004, brow.z), [0.044, 0.012, 0.02], [0.1, 0, -side * 0.28], gold.clone().multiplyScalar(0.95), gold.clone().multiplyScalar(0.7), 1)
     const inner = at(1.0, 30, side, 0.995)
     solid(b, v(inner.x * 0.9, inner.y - 0.006, inner.z), [0.017, 0.012, 0.014], [0, 0, 0], belly, belly.clone().multiplyScalar(0.8), 1)
-    tube(b, [at(1.0, 28, side, 1.011), at(1.04, 17, side, 1.011), at(1.08, 5, side, 1.011)], [0.0055, 0.0065, 0.005], { segments: 5, base: dark, tip: dark })
+    tube(b, [at(1.0, 28, side, 1.011), at(1.04, 17, side, 1.011), at(1.08, 5, side, 1.011)], [0.0038, 0.0045, 0.0035], { segments: 5, base: dark, tip: dark })
     // the ear: rounded, wide-set, leaning out, a dark back with a pale patch, pale inner fur
     const ear = at(0.82, 58, side, 1.0)
     const lean = side * 0.42
@@ -415,7 +417,7 @@ export function createJaguarGeometry(seed = 2) {
     solid(b, v(ear.x + side * 0.001, ear.y + 0.024, ear.z - 0.02), [0.026, 0.029, 0.006], [-0.25, 0, -lean], belly, belly, 1)
     solid(b, v(ear.x - side * 0.002, ear.y + 0.022, ear.z + 0.006), [0.037, 0.042, 0.01], [-0.25, 0, -lean], belly.clone().lerp(gold, 0.55), gold.clone().lerp(dark, 0.2), 1)
     // lips, mouth and whisker pad
-    tube(b, [at(1.12, -5, side, 1.012), at(1.095, -18, side, 1.012), at(1.05, -24, side, 1.012), at(0.99, -16, side, 1.012)], [0.0055, 0.0055, 0.0055, 0.0045], { segments: 5, base: dark, tip: dark })
+    tube(b, [at(1.12, -5, side, 1.012), at(1.095, -18, side, 1.012), at(1.05, -24, side, 1.012), at(0.99, -16, side, 1.012)], [0.0042, 0.0042, 0.0042, 0.0034], { segments: 5, base: dark, tip: dark })
     solid(b, v(side * 0.044, 0.505, 1.045), [0.043, 0.033, 0.038], [0, 0, side * 0.2], belly, belly.clone().multiplyScalar(0.85), 1)
     for (let r = 0; r < 3; r += 1) for (let d = 0; d < 3; d += 1) mass(v(side * (0.03 + d * 0.016), 0.52 - r * 0.012, 1.085 - d * 0.02 - r * 0.012), 0.0042, [1, 1, 0.6], dark, dark, { detail: 0, lumpy: 0 })
     mass(v(side * 0.009, 0.531, 1.15), 0.0055, [1, 1, 0.8], C.eye, C.eye, { detail: 0, lumpy: 0 })

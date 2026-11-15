@@ -32,7 +32,7 @@ vec2 jaguarCoat(vec3 p) {
   float legs = 1.0 - smoothstep(0.30, 0.46, p.y);
   float head = smoothstep(0.74, 0.86, p.z);
   float small = max(legs, head);
-  float scale = mix(18.0, 28.0, small);
+  float scale = mix(20.0, 30.0, small);
   vec3 q = p * scale;
   q += 0.4 * vec3(cNoise(q * 1.4), cNoise(q * 1.4 + 9.0), cNoise(q * 1.4 + 19.0));
   vec2 c = jaguarCells(q);
@@ -70,6 +70,6 @@ export function createCoatMaterial() {
           diffuseColor.rgb = mix(diffuseColor.rgb, black, 0.98 * dark);
         }`)
   }
-  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v6'
+  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v7'
   return material
 }
