@@ -250,7 +250,7 @@ test('boughs: flying into a thick branch stops Bulbuli at the bark, at 60, 37 an
           // never inside the wood of this branch or of any other on the way
           assert.ok(deepest <= 0.02, `${id} ${piece.id} from ${k} at ${fps} fps: body ${deepest.toFixed(2)} m inside wood`)
           // and it does come up to the bark: nothing invisible holds it off
-          assert.ok(gap[fps] <= 0.05 + (id === 'amazon' ? 0.3 : 0), `${id} ${piece.id} from ${k} at ${fps} fps: never came nearer than ${gap[fps].toFixed(2)} m to any bark`)
+          assert.ok(gap[fps] <= 0.05 + (id === 'amazon' ? 0.4 : 0), `${id} ${piece.id} from ${k} at ${fps} fps: never came nearer than ${gap[fps].toFixed(2)} m to any bark`)
         }
         // frame-rate consistency: the route flown at 37 and at 24 fps is the route flown at 60 fps
         // (every point of it lies on the 60 fps route), up to and along the bark

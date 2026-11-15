@@ -100,33 +100,36 @@ export function scatterAmazon(biome) {
     ...biome.stations.map((station) => ({ ...station, radius: 3.5 })),
     { x: biome.spawn.position[0], z: biome.spawn.position[2], radius: 4.2 },
     { x: 0, z: 12, radius: 5.2 },
-    // a clearing round every animal standing on the forest floor (biomes/amazon.js `fauna`)
-    ...(biome.fauna ?? []).filter((animal) => animal.y === 0).map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.3) + 1.5 })),
   ]
+  // Animals stand in clearings (biomes/amazon.js `fauna`): trees keep well off them, the small
+  // plants only off the animal itself, so the undergrowth stays as thick as it was.
+  const standing = (biome.fauna ?? []).filter((animal) => animal.y === 0)
+  const treeClearings = standing.map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.1) + 1.4 }))
+  const plantClearings = standing.map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.1) + 0.5 }))
   const placements = []
   const forestDisc = { ...floor, r: floor.r * 2.35 }
   const interiorDisc = { ...floor, r: floor.r * 1.08 }
   const emergent = distribute({
-    random, disc: interiorDisc, reserved, links: biome.links, count: 96, spacing: 4.0, kind: 'emergent', scale: [0.86, 1.16],
+    random, disc: interiorDisc, reserved: [...reserved, ...treeClearings], links: biome.links, count: 96, spacing: 4.0, kind: 'emergent', scale: [0.86, 1.16],
   })
   const outerEmergent = distribute({
-    random, disc: forestDisc, reserved: [...reserved, ...emergent.map((tree) => ({ ...tree, radius: 2.0 }))],
+    random, disc: forestDisc, reserved: [...reserved, ...treeClearings, ...emergent.map((tree) => ({ ...tree, radius: 2.0 }))],
     links: biome.links, count: 200, spacing: 2.6, kind: 'emergent', scale: [0.82, 1.12],
   })
   emergent.push(...outerEmergent)
   placements.push(...emergent)
-  const canopyReserved = [...reserved, ...emergent.map((tree) => ({ ...tree, radius: 1.25 }))]
+  const canopyReserved = [...reserved, ...treeClearings, ...emergent.map((tree) => ({ ...tree, radius: 1.25 }))]
   const canopy = distribute({
     random, disc: forestDisc, reserved: canopyReserved, links: biome.links, count: 320, spacing: 1.35, kind: 'canopy', scale: [0.8, 1.18],
   })
   placements.push(...canopy)
-  const subcanopyReserved = [...reserved, ...emergent.map((tree) => ({ ...tree, radius: 1.8 }))]
+  const subcanopyReserved = [...reserved, ...treeClearings, ...treeClearings, ...emergent.map((tree) => ({ ...tree, radius: 1.8 }))]
   placements.push(...distribute({
     random, disc: forestDisc, reserved: subcanopyReserved, links: biome.links, count: 360, spacing: 1.5,
     kind: 'subcanopy', scale: [0.76, 1.12],
   }))
 
-  const understoryReserved = [...reserved, ...emergent.map((tree) => ({ ...tree, radius: 1.15 }))]
+  const understoryReserved = [...reserved, ...plantClearings, ...emergent.map((tree) => ({ ...tree, radius: 1.15 }))]
   placements.push(...distribute({
     random, disc: interiorDisc, reserved: understoryReserved, links: biome.links, count: 260, spacing: 0.62, kind: 'understory', scale: [0.75, 1.3],
   }))
@@ -157,7 +160,7 @@ export function scatterAmazon(biome) {
   })
 
   const logs = distribute({
-    random, disc: interiorDisc, reserved, links: biome.links, count: 14, spacing: 2.1, kind: 'log', scale: [0.8, 1.25],
+    random, disc: interiorDisc, reserved: [...reserved, ...treeClearings], links: biome.links, count: 14, spacing: 2.1, kind: 'log', scale: [0.8, 1.25],
   })
   logs.forEach((log) => { log.rot = random() * Math.PI * 2 })
   placements.push(...logs)
