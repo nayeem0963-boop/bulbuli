@@ -10,6 +10,7 @@ import {
   crackPattern, createCamelGeometry, createDatePalmGeometry, createDryRiverGeometry, createDryRiverPebblesGeometry,
   createOasisPlantsGeometry, createOasisShoreGeometry, createOasisWaterGeometry, createWellGeometry,
 } from './saharaLandmarks.js'
+import { createFortGeometry, createPackCamelGeometry, createStallGeometry, createTraderGeometry } from './saharaCaravan.js'
 
 /** Builds each geometry once per mount and frees it on unmount. */
 function useGeometries(build, deps) {
@@ -100,4 +101,26 @@ export function DryRiverBed({ rot = 0 }) {
       <Solid geometry={pebbles} roughness={0.8} />
     </group>
   )
+}
+
+const DECOR_GEOMETRY = {
+  packCamel: (piece) => createPackCamelGeometry(piece.seed),
+  trader: (piece) => createTraderGeometry(piece.seed, { staff: Boolean(piece.staff) }),
+  stall: (piece) => createStallGeometry(piece.seed),
+  fort: () => createFortGeometry(),
+}
+
+function DecorPiece({ piece }) {
+  const [geometry] = useGeometries(() => [DECOR_GEOMETRY[piece.type](piece)], [piece])
+  // the fort is far out in the haze: it takes no part in the shadow map
+  return <Solid geometry={geometry} roughness={0.92} shadow={piece.type !== 'fort'} />
+}
+
+/** Life round the oasis (biomes/sahara.js `decor`): the caravan, the stalls, more palms, the fort. */
+export function SaharaDecor({ decor }) {
+  return decor.map((piece, index) => (
+    <group key={index} position={[piece.x, piece.y ?? 0, piece.z]} rotation-y={piece.rot ?? 0}>
+      {piece.type === 'datePalm' ? <DatePalm scale={piece.scale} seed={piece.seed} /> : <DecorPiece piece={piece} />}
+    </group>
+  ))
 }

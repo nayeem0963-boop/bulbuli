@@ -14,7 +14,7 @@ import BiomeAtmosphere from './rendering/BiomeAtmosphere.jsx'
 import BiomeScatter from './rendering/BiomeScatter.jsx'
 import SundarbansScenery from './rendering/SundarbansScenery.jsx'
 import { SURFACE_PROFILES, createBiomeSurfaceTextures } from './rendering/biomeMaterials.js'
-import { DatePalm, DryRiverBed, OasisPool, RestingCamel, Well } from './rendering/SaharaLandmarks.jsx'
+import { DatePalm, DryRiverBed, OasisPool, RestingCamel, SaharaDecor, Well } from './rendering/SaharaLandmarks.jsx'
 import { createTerrainGeometry } from './rendering/terrain.js'
 import { createSurroundGeometry, distantDunes } from './rendering/saharaSurround.js'
 import { createGiantTreeGeometry } from './rendering/giantTree.js'
@@ -492,6 +492,7 @@ function ExpeditionCanvas({ biome, dark, inputRef, activeRef, teleportRef, onNea
             </>
           )}
         {biome.props.map((p, i) => (biome.id === 'sundarbans' && SUNDARBANS_INSTANCED_PROPS.has(p.type) ? null : <PropView key={i} prop={p} />))}
+        {biome.decor ? <SaharaDecor decor={biome.decor} /> : null}
         {biome.stations.map((s) => (
           <StationMarker
             key={s.n}
