@@ -24,9 +24,8 @@ The banner on every page says so: **REVIEW BUILD — EDUCATIONAL CONTENT PENDING
   `docs/qa/dist-baseline.txt` (content hashes masked) and no built file contains preview or
   review markers (`createReviewAdapter`, `phase2a-review`, `PENDING APPROVAL`, …).
 - **R1–R5** (`src/learning/tests/review-build.test.js`):
-  - R1: the review build contains exactly the page, its bundles, the Draco decoder, the five
-    public assets it uses and the Amazon bird model (`bird_orange.glb`, CC BY-NC-SA 4.0: see
-    `src/games/world-explorer/assets/bird_orange.LICENSE.md`); not the main site's service worker, manifest, sitemap or offline page.
+  - R1: the review build contains exactly the page, its bundles, the Draco decoder and the five
+    public assets it uses (the Amazon bird is built in code: no model file); not the main site's service worker, manifest, sitemap or offline page.
   - R2: no Supabase URL/key (values read from `.env` are checked), no `award_xp`, XP-queue or
     progress keys, no live or preview adapter; banner present; noindex everywhere.
   - R3: the review entry's import graph reaches no Supabase, XP, progress, auth, badge,
