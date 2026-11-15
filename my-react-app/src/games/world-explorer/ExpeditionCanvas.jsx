@@ -10,6 +10,7 @@ import ExplorerController from './ExplorerController.jsx'
 import { LABEL, stationLabelPlacement } from './stationLabel.js'
 import AmazonAtmosphere from './rendering/AmazonAtmosphere.jsx'
 import AmazonScenery from './rendering/AmazonScenery.jsx'
+import AmazonFauna from './rendering/AmazonFauna.jsx'
 import BiomeAtmosphere from './rendering/BiomeAtmosphere.jsx'
 import BiomeScatter from './rendering/BiomeScatter.jsx'
 import SundarbansScenery from './rendering/SundarbansScenery.jsx'
@@ -493,6 +494,7 @@ function ExpeditionCanvas({ biome, dark, inputRef, activeRef, teleportRef, onNea
           )}
         {biome.props.map((p, i) => (biome.id === 'sundarbans' && SUNDARBANS_INSTANCED_PROPS.has(p.type) ? null : <PropView key={i} prop={p} />))}
         {biome.decor ? <SaharaDecor decor={biome.decor} /> : null}
+        {biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}
         {biome.stations.map((s) => (
           <StationMarker
             key={s.n}

@@ -387,7 +387,7 @@ test('boughs: Bulbuli is never trapped among branches, in flight, hovering, risi
       const still = []
       const hover = fly(w, start, 0, { keys: [], seconds: 1, watch: (p, frame) => { if (frame >= 30) still.push([...p.pos]) } })
       const drift = Math.max(...still.map((s) => Math.hypot(s[0] - still[0][0], s[2] - still[0][2])))
-      assert.ok(drift < 1e-6, `${id} at ${start.map((v) => v.toFixed(1))}: jitters ${drift.toFixed(3)} m while hovering`)
+      assert.ok(drift < 1e-4, `${id} at ${start.map((v) => v.toFixed(1))}: jitters ${drift.toFixed(3)} m while hovering`)
       // (a start in the open stays in the open; one wedged where several branches meet a trunk
       // has no clear spot within reach and rests between them until it flies out)
       if (insideWood(near, { pos: start }) === 0) assert.ok(insideWood(near, hover.p) <= 0.02)

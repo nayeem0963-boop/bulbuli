@@ -3,6 +3,7 @@
  * canopy platform, an understory platform off the stair, and a logged patch beside the forest.
  */
 import { disc, linksFrom, scatter } from './common.js'
+import { AMAZON_FAUNA } from '../rendering/amazonFauna.js'
 
 const TRUNK = { x: 0, z: 12 }
 const STAIR_R = 3.2
@@ -53,10 +54,52 @@ const props = [
   { type: 'mist', x: 0, y: 9, z: 12 },
 ]
 
+/**
+ * Rainforest animals standing about as statues (rendering/amazonFauna.js): ground animals in
+ * clearings on the forest floor, and a sloth, toucan, macaw and capuchin perched on the branch and
+ * canopy platforms. Each stands on bare ground, clear of the stations, the paths and the trees:
+ * the tree scatter keeps a clearing round every ground animal (rendering/amazonScatter.js).
+ * `solid` is its collider (a cylinder); the frog and the butterfly are too small to bump into.
+ */
+const TINY = new Set(['frog', 'morpho'])
+const animal = (type, x, z, rot, seed, y = 0) => ({
+  type, x, y, z, rot, seed,
+  ...(TINY.has(type) ? {} : { solid: { r: AMAZON_FAUNA[type].radius, top: AMAZON_FAUNA[type].top } }),
+})
+const around = (centre, angle, radius) => ({ x: centre.x + Math.cos(angle) * radius, z: centre.z + Math.sin(angle) * radius })
+/** On a platform's edge at `angle`, turned to look in across it (`turn` swings it off the middle). */
+const perch = (type, centre, angle, radius, turn, seed) => {
+  const at = around(centre, angle, radius)
+  return animal(type, at.x, at.z, Math.PI * 1.5 - angle + turn, seed, centre.top)
+}
+const fauna = [
+  // a capybara family by the spawn side of the clearing
+  animal('capybara', -3.2, -3.4, 0.7, 21),
+  animal('capybara', -1.9, -4.6, 0.2, 22),
+  animal('capybara', -4.4, -4.9, 1.2, 23),
+  animal('jaguar', 9.2, 4.6, -2.2, 24),
+  animal('tapir', -10.2, -5.2, 0.9, 25),
+  animal('anteater', 4.6, 3.2, -0.6, 26),
+  animal('coati', -4.6, 8.2, 2.6, 27),
+  animal('coati', -3.2, 9.0, 3.4, 28),
+  animal('caiman', 11.5, -0.8, 1.9, 29),
+  animal('anaconda', -12.2, 2.6, 0.3, 30),
+  animal('tortoise', 3.4, -4.0, 2.2, 31),
+  animal('frog', -5.3, 1.5, 0.8, 32),
+  animal('morpho', 4.8, -5.6, 0.4, 33),
+  animal('morpho', -8.8, 5.4, 2.0, 34),
+  animal('morpho', 1.6, 6.2, 4.0, 35),
+  // perched up in the trees
+  perch('capuchin', s2, lastAng - 1.55, 2.2, 0.5, 36),
+  perch('macaw', s2, lastAng + 1.55, 2.3, -0.5, 37),
+  perch('sloth', s4, thirdAng + 1.7, 1.9, 0.4, 38),
+  perch('toucan', s4, thirdAng - 1.7, 1.9, -0.6, 39),
+]
+
 export const AMAZON_MAP = Object.freeze({
   id: 'amazon',
   sky: { top: '#8fd3c7', bottom: '#e7f6e4', fog: '#b9dcc4', dark: { top: '#0f2a26', bottom: '#1f3d2b', fog: '#16302a' } },
   water: null,
   looks: { floor: '#5b4a33', branch: '#7a5634', canopy: '#3f8a3a', cleared: '#9b7f57' },
-  discs, links, stations, spawn, props,
+  discs, links, stations, spawn, props, fauna,
 })

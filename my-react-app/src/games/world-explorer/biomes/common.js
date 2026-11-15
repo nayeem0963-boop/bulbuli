@@ -183,6 +183,21 @@ export function collidersFor(biome) {
       } : undefined,
     })
   })
+  // Fauna (the Amazon's statues of animals): each solid animal is one cylinder, from its feet up
+  ;(biome.fauna ?? []).forEach((animal, i) => {
+    if (!animal.solid) return
+    out.push({
+      id: `fauna-${i}`,
+      kind: 'prop',
+      x: animal.x,
+      z: animal.z,
+      r: animal.solid.r,
+      supportRadius: animal.solid.r,
+      top: animal.y + animal.solid.top,
+      bottom: animal.y - 0.05,
+      walkable: false,
+    })
+  })
   const scatteredAssets = scatterBiomeAssets(biome)
   scatteredAssets.forEach((asset, i) => {
     if (asset.kind !== 'rock') return

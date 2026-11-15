@@ -100,6 +100,8 @@ export function scatterAmazon(biome) {
     ...biome.stations.map((station) => ({ ...station, radius: 3.5 })),
     { x: biome.spawn.position[0], z: biome.spawn.position[2], radius: 4.2 },
     { x: 0, z: 12, radius: 5.2 },
+    // a clearing round every animal standing on the forest floor (biomes/amazon.js `fauna`)
+    ...(biome.fauna ?? []).filter((animal) => animal.y === 0).map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.3) + 1.5 })),
   ]
   const placements = []
   const forestDisc = { ...floor, r: floor.r * 2.35 }
