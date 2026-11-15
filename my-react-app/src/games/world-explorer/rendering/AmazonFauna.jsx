@@ -1,18 +1,19 @@
 /**
- * Draws the Amazon's animals (biomes/amazon.js `fauna`, rendering/amazonFauna.js): low-poly,
- * flat-shaded statues, one vertex-coloured mesh per kind shared by every animal of that kind. No
- * model files, no image files. They stand still.
+ * Draws the Amazon's animals (biomes/amazon.js `fauna`, rendering/amazonFauna.js): smooth,
+ * finely modelled statues with a satin finish, one vertex-coloured mesh per kind shared by every
+ * animal of that kind. No model files, no image files. They stand still.
  */
 import { useEffect, useMemo } from 'react'
-import { DoubleSide, MeshStandardMaterial } from 'three'
+import { DoubleSide, MeshPhysicalMaterial } from 'three'
 import { AMAZON_FAUNA, AMAZON_FAUNA_BUILDERS } from './amazonFauna.js'
 import { contactShadowTexture } from './amazonGroundShadow.js'
 
 // one material and one shadow texture for every animal, made the first time they are needed
 let material = null
 let shadowTexture = null
-// matte and faceted; a little self-light so the animals do not sink into the dim forest
-const statueMaterial = () => (material ??= new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0, side: DoubleSide, emissive: '#3a3226', emissiveIntensity: 0.35 }))
+// a satin finish, like a painted and varnished sculpture; a good deal of self-light, so the animals
+// keep their colour in the dim forest instead of sinking into it
+const statueMaterial = () => (material ??= new MeshPhysicalMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.5, side: DoubleSide, emissive: '#4a4030', emissiveIntensity: 0.5 }))
 const shadow = () => (shadowTexture ??= contactShadowTexture())
 
 /** A soft shadow on the ground under an animal, as long as the animal is (its model faces +z). */

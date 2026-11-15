@@ -88,25 +88,19 @@ test('amazon fauna: every animal stands on its ground, clear of the stations, th
   for (const animal of fauna.filter((a) => a.y > 0)) assert.ok(animal.solid && animal.y >= 3.4)
 })
 
-test('amazon fauna: low-poly and faceted: few triangles, each face its own flat colour, and no moving parts', () => {
+test('amazon fauna: finely modelled statues: smooth, a budget of triangles, and nothing moves', () => {
   let total = 0
   for (const [type, build] of Object.entries(AMAZON_FAUNA_BUILDERS)) {
     const geometry = build(3)
-    assert.equal(geometry.index, null, `${type} keeps a triangle of its own for every face`)
     const count = triangles(geometry)
-    assert.ok(count <= 2600, `${type} has ${count} triangles`)
+    assert.ok(count >= 400 || type === 'morpho', `${type} has only ${count} triangles`)
+    assert.ok(count <= 9000, `${type} has ${count} triangles`)
     total += count * fauna.filter((a) => a.type === type).length
-    // flat colour: the three corners of a face share one colour
-    const colour = geometry.attributes.color
-    for (let i = 0; i + 2 < colour.count; i += 3) {
-      assert.ok(Math.abs(colour.getX(i) - colour.getX(i + 2)) < 1e-6 && Math.abs(colour.getY(i) - colour.getY(i + 1)) < 1e-6, `${type} face ${i / 3} is one colour`)
-    }
-    // flat normals: every corner of a face points the same way
-    const normal = geometry.attributes.normal
-    for (let i = 0; i + 2 < normal.count; i += 3) assert.ok(Math.abs(normal.getX(i) - normal.getX(i + 2)) < 1e-4 && Math.abs(normal.getZ(i) - normal.getZ(i + 1)) < 1e-4, `${type} face ${i / 3} is flat`)
+    // smooth: the surface is welded, so neighbouring faces share their corners
+    assert.ok(geometry.index, `${type} is one welded surface`)
   }
-  assert.ok(total < 40000, `${total} triangles for every animal`)
-  // they stand still: nothing moves them, nothing carries their colliders
+  assert.ok(total < 200000, `${total} triangles for every animal`)
+  // they stand still: nothing moves them
   for (const file of ['./AmazonFauna.jsx', './amazonFauna.js']) assert.ok(!/useFrame|requestAnimationFrame|elapsedTime/.test(readFileSync(new URL(file, import.meta.url), 'utf8')))
   assert.ok(fauna.every((animal) => animal.roam === undefined && animal.route === undefined))
 })
