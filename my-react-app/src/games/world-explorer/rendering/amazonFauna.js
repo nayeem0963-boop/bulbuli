@@ -131,7 +131,7 @@ function kit(seed) {
       [along(hip, knee, 0.5), widths[0] * 1.12, widths[0] * 1.45],
       [hip, widths[0] * 1.15, widths[0] * 1.5],
       // the top of the leg tapers away inside the body, so no cap shows on its flank
-      [hip.clone().add(v(-Math.sign(hip.x) * hip.x * 0.0 - hip.x * 0.45, hip.y * 0.2, 0)), widths[0] * 0.8, widths[0] * 1.15],
+      [hip.clone().add(v(-hip.x * 0.45, hip.y * 0.2, 0)), widths[0] * 0.8, widths[0] * 1.15],
     ]
     const stations = sections.map(([p, rx, rd]) => [p.y, p.z, rx, rd, p.x])
     const reach = Math.max(1e-3, hip.y - foot.y)
