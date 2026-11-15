@@ -196,6 +196,8 @@ export function collidersFor(biome) {
       top: animal.y + animal.solid.top,
       bottom: animal.y - 0.05,
       walkable: false,
+      // a walking animal: ExplorerController moves it (rendering/amazonFaunaWalk.js) within `roam`
+      ...(animal.roam ? { roam: animal.roam, walker: animal } : {}),
     })
   })
   const scatteredAssets = scatterBiomeAssets(biome)

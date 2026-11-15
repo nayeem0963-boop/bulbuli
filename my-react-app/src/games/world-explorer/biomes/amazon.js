@@ -4,6 +4,7 @@
  */
 import { disc, linksFrom, scatter } from './common.js'
 import { AMAZON_FAUNA } from '../rendering/amazonFauna.js'
+import { MIN_ROAM, WALKERS } from '../rendering/amazonFaunaWalk.js'
 
 const TRUNK = { x: 0, z: 12 }
 const STAIR_R = 3.2
@@ -74,33 +75,33 @@ const perch = (type, centre, angle, radius, turn, seed) => {
 }
 const fauna = [
   // a capybara family by the spawn side of the clearing
-  animal('capybara', -3.2, -3.4, 0.7, 21),
-  animal('capybara', -1.9, -4.6, 0.2, 22),
-  animal('capybara', -4.4, -4.9, 1.2, 23),
-  animal('jaguar', 9.2, 4.6, -2.2, 24),
-  animal('tapir', -10.2, -5.2, 0.9, 25),
-  animal('anteater', 4.6, 3.2, -0.6, 26),
-  animal('coati', -4.6, 8.2, 2.6, 27),
-  animal('coati', -3.2, 9.0, 3.4, 28),
+  animal('capybara', -5.5, -3.7, 0.7, 21),
+  animal('capybara', 0.3, -2.7, 0.2, 22),
+  animal('capybara', -7.2, 6.6, 1.2, 23),
+  animal('jaguar', 9.4, 3.0, -2.2, 24),
+  animal('tapir', -9.0, -3.6, 0.9, 25),
+  animal('anteater', 5.8, 1.3, -0.6, 26),
+  animal('coati', -2.9, 9.6, 2.6, 27),
+  animal('coati', -2.3, 5.2, 3.4, 28),
   animal('caiman', 11.5, -0.8, 1.9, 29),
   animal('anaconda', -12.2, 2.6, 0.3, 30),
-  animal('tortoise', 3.4, -4.0, 2.2, 31),
+  animal('tortoise', 8.3, -7.2, 2.2, 31),
   animal('frog', -5.3, 1.5, 0.8, 32),
   animal('morpho', 4.8, -5.6, 0.4, 33),
   animal('morpho', -8.8, 5.4, 2.0, 34),
   animal('morpho', 1.6, 6.2, 4.0, 35),
   // more of each, spread over the rest of the clearing
-  animal('capybara', 6.2, 8.2, -1.0, 40),
-  animal('capybara', 7.5, 9.3, -0.4, 41),
-  animal('jaguar', -8.6, 9.6, 0.8, 42),
-  animal('tapir', -6.2, -10.2, 2.4, 43),
-  animal('anteater', -1.2, -12.2, 1.1, 44),
-  animal('coati', 7.0, 0.6, 1.6, 45),
-  animal('coati', 8.1, 1.7, 2.3, 46),
+  animal('capybara', 5.9, 8.7, -1.0, 40),
+  animal('capybara', 5.6, 4.6, -0.4, 41),
+  animal('jaguar', 4.2, -3.7, 0.8, 42),
+  animal('tapir', -10.0, -0.1, 2.4, 43),
+  animal('anteater', -3.2, 3.6, 1.1, 44),
+  animal('coati', 8.3, -0.5, 1.6, 45),
+  animal('coati', -1.3, -1.8, 2.3, 46),
   animal('caiman', -9.6, -9.0, 0.6, 47),
   animal('anaconda', 3.2, -12.2, 2.0, 48),
-  animal('tortoise', -8.2, -1.6, 0.9, 49),
-  animal('tortoise', 1.6, -6.6, 3.9, 50),
+  animal('tortoise', -5.9, 9.3, 0.9, 49),
+  animal('tortoise', -6.4, 0.9, 3.9, 50),
   animal('frog', -6.4, 1.8, 2.2, 51),
   animal('frog', -4.1, 1.0, 5.0, 52),
   animal('frog', 5.4, -3.2, 1.4, 53),
@@ -109,10 +110,10 @@ const fauna = [
   animal('morpho', -2.4, 6.2, 5.0, 56),
   animal('morpho', 3.2, 7.0, 0.3, 57),
   // a few more kinds
-  animal('agouti', 3.0, 1.5, 0.6, 62),
-  animal('agouti', -2.0, 3.5, 2.8, 63),
-  animal('armadillo', -11.5, -2.2, 1.3, 64),
-  animal('armadillo', 10.0, 7.5, -2.0, 65),
+  animal('agouti', 2.4, 2.5, 0.6, 62),
+  animal('agouti', -9.4, 4.5, 2.8, 63),
+  animal('armadillo', -6.4, -8.0, 1.3, 64),
+  animal('armadillo', 8.4, 6.7, -2.0, 65),
   animal('tarantula', -3.0, -7.2, 0.5, 66),
   animal('tarantula', 6.6, -9.4, 3.1, 67),
   // perched up in the trees
@@ -130,10 +131,44 @@ const fauna = [
   perch('harpyEagle', s2, lastAng - 2.4, 2.4, 0.4, 71),
 ]
 
+/**
+ * How far each walking animal may wander (a circle of `roam` metres round where it is placed):
+ * as far as its kind goes, and no further than leaves it room to spare from the stations, the
+ * paths, the start, the giant tree, the edge of the floor and every other animal (which gets half
+ * of the gap each, and the butterflies their flight). The trees keep out of the whole walk
+ * (rendering/amazonScatter.js). Where there is no room it stands.
+ */
+/** The ones that walk (by seed): a herd on every side of the clearing, not every animal in it. */
+const WALKS = new Set([21, 40, 41, 24, 25, 26, 27, 45, 62, 64, 31])
+const FLIGHT = { morpho: 0.45 }
+const reachOf = (a) => (a.solid?.r ?? 0.1) + (FLIGHT[a.type] ?? 0)
+const segmentGap = (p, [a, b]) => {
+  const dx = b.x - a.x
+  const dz = b.z - a.z
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz || 1)))
+  return Math.hypot(p.x - a.x - dx * t, p.z - a.z - dz * t)
+}
+const floor = discs.find((d) => d.id === 'floor')
+const SPAWN = { x: spawn.position[0], z: spawn.position[2] }
+/** `list` with each walking animal's `roam` worked out against all the others (exported for the tests). */
+export const withRoam = (list) => list.map((a) => {
+  const kind = WALKERS[a.type]
+  if (!kind || a.y !== 0 || !WALKS.has(a.seed)) return a
+  const r = reachOf(a)
+  let room = kind.roam
+  for (const st of stations) room = Math.min(room, Math.hypot(a.x - st.x, a.z - st.z) - r - 1.2 - 0.1)
+  for (const link of links) room = Math.min(room, segmentGap(a, link) - r - 0.8 - 0.1)
+  for (const prop of props) if (prop.block) room = Math.min(room, Math.hypot(a.x - prop.x, a.z - prop.z) - prop.block - r - 0.4)
+  room = Math.min(room, Math.hypot(a.x - SPAWN.x, a.z - SPAWN.z) - r - 5 - 0.1, 12 - Math.hypot(a.x - floor.x, a.z - floor.z) - r)
+  for (const other of list) if (other !== a && other.y === 0) room = Math.min(room, (Math.hypot(a.x - other.x, a.z - other.z) - r - reachOf(other)) / 2 - 0.05)
+  const roam = Math.floor(room * 20) / 20
+  return roam >= MIN_ROAM ? { ...a, roam } : a
+})
+
 export const AMAZON_MAP = Object.freeze({
   id: 'amazon',
   sky: { top: '#8fd3c7', bottom: '#e7f6e4', fog: '#b9dcc4', dark: { top: '#0f2a26', bottom: '#1f3d2b', fog: '#16302a' } },
   water: null,
   looks: { floor: '#5b4a33', branch: '#7a5634', canopy: '#3f8a3a', cleared: '#9b7f57' },
-  discs, links, stations, spawn, props, fauna,
+  discs, links, stations, spawn, props, fauna: withRoam(fauna),
 })

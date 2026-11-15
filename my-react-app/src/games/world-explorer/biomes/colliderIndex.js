@@ -19,7 +19,8 @@ const EMPTY = Object.freeze([])
 
 function extentOf(c) {
   if (c.shape === 'aabb') return { x: (c.minX + c.maxX) / 2, z: (c.minZ + c.maxZ) / 2, hx: (c.maxX - c.minX) / 2, hz: (c.maxZ - c.minZ) / 2 }
-  const r = Math.max(c.r ?? 0, c.collisionRadius ?? 0, c.rootRadius ?? 0, c.supportRadius ?? 0)
+  // a collider that walks (an animal) is filed under the whole of its walk
+  const r = Math.max(c.r ?? 0, c.collisionRadius ?? 0, c.rootRadius ?? 0, c.supportRadius ?? 0) + (c.roam ?? 0)
   return { x: c.x, z: c.z, hx: r, hz: r }
 }
 

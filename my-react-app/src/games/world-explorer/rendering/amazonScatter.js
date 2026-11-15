@@ -104,7 +104,8 @@ export function scatterAmazon(biome) {
   // Animals stand in clearings (biomes/amazon.js `fauna`): trees keep well off them, the small
   // plants only off the animal itself, so the undergrowth stays as thick as it was.
   const standing = (biome.fauna ?? []).filter((animal) => animal.y === 0)
-  const treeClearings = standing.map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.1) + 1.4 }))
+  // (a walking animal's clearing takes in its whole walk)
+  const treeClearings = standing.map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.1) + (animal.roam ? 1.15 + animal.roam : 1.4) }))
   const plantClearings = standing.map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.1) + 0.5 }))
   const placements = []
   const forestDisc = { ...floor, r: floor.r * 2.35 }

@@ -114,3 +114,118 @@ test('amazon fauna: every kind moves, within bounds that keep it on its spot, an
   }
   assert.notDeepEqual(poseAt('capybara', 5, 0), poseAt('capybara', 5, 2))
 })
+
+test('amazon fauna: a walker is the whole model in parts: a body and four legs, hinged at the hips', async () => {
+  const { createAnimalParts } = await import('./amazonFauna.js')
+  const { WALKERS } = await import('./amazonFaunaWalk.js')
+  for (const type of Object.keys(WALKERS)) {
+    const whole = AMAZON_FAUNA_BUILDERS[type](7)
+    const parts = createAnimalParts(type, 7)
+    assert.equal(parts.legs.length, 4, `${type} has four legs`)
+    assert.deepEqual(parts.legs.map((l) => `${l.front ? 'f' : 'h'}${l.side}`).sort(), ['f-1', 'f1', 'h-1', 'h1'])
+    // the parts add up to the model that is drawn when it stands still (same triangles, same size)
+    const count = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3
+    assert.equal(count(parts.body) + parts.legs.reduce((n, l) => n + count(l.geometry), 0), count(whole), `${type}: no triangle lost or doubled`)
+    const all = [...vertices(parts.body), ...parts.legs.flatMap((l) => vertices(l.geometry).map(([x, y, z]) => [x + l.pivot[0], y + l.pivot[1], z + l.pivot[2]]))]
+    const box = (points, axis) => [Math.min(...points.map((p) => p[axis])), Math.max(...points.map((p) => p[axis]))]
+    const target = vertices(whole)
+    for (const axis of [0, 1, 2]) {
+      const [a0, a1] = box(all, axis)
+      const [b0, b1] = box(target, axis)
+      assert.ok(Math.abs(a0 - b0) < 1e-3 && Math.abs(a1 - b1) < 1e-3, `${type}: put together, the parts are the model`)
+    }
+    // a leg hangs from its hip: its feet are below the pivot, near the ground
+    for (const leg of parts.legs) {
+      assert.ok(leg.pivot[1] > 0.05 && Math.min(...vertices(leg.geometry).map((p) => p[1])) < -leg.pivot[1] + 0.06, `${type}: leg reaches the ground`)
+      assert.ok(Math.abs(leg.length - leg.pivot[1]) < 1e-9)
+    }
+    assert.deepEqual(vertices(createAnimalParts(type, 7).body), vertices(parts.body), 'always the same')
+  }
+  assert.equal(createAnimalParts('macaw', 1), null, 'a bird has no legs to swing')
+})
+
+test('amazon fauna: walkers stay inside their walk, keep their pace, pause, and face the way they go', async () => {
+  const { walkState, gait, WALKERS, MIN_ROAM } = await import('./amazonFaunaWalk.js')
+  const walkers = fauna.filter((a) => a.roam)
+  assert.ok(walkers.length >= 9, `${walkers.length} animals walk`)
+  assert.deepEqual([...new Set(walkers.map((a) => a.type))].every((t) => WALKERS[t]), true)
+  for (const animal of fauna) assert.equal(Boolean(animal.roam), animal.roam >= MIN_ROAM && Boolean(WALKERS[animal.type]) && animal.y === 0)
+  for (const animal of walkers) {
+    const kind = WALKERS[animal.type]
+    let walked = 0
+    let stood = 0
+    let previous = walkState(animal, 0)
+    for (let t = 0.1; t < 120; t += 0.1) {
+      const now = walkState(animal, t)
+      assert.ok([now.x, now.z, now.yaw, now.amp, now.wt].every(Number.isFinite))
+      assert.ok(Math.abs(Math.hypot(now.x - animal.x, now.z - animal.z) - animal.roam) < 1e-9, `${animal.type} stays on its walk`)
+      const step = Math.hypot(now.x - previous.x, now.z - previous.z)
+      if (now.moving && previous.moving) {
+        walked += 1
+        assert.ok(Math.abs(step / 0.1 - kind.speed) < 0.02 * kind.speed + 0.01, `${animal.type} walks at ${(step / 0.1).toFixed(2)} m/s, not ${kind.speed}`)
+        // faces along its path
+        const heading = Math.atan2(now.x - previous.x, now.z - previous.z)
+        const off = Math.abs(((heading - now.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI)
+        assert.ok(off < 0.15, `${animal.type} walks sideways (${off.toFixed(2)} rad off)`)
+      } else if (!now.moving && !previous.moving) { stood += 1; assert.ok(step < 1e-9, `${animal.type} slides while standing`) }
+      previous = now
+    }
+    assert.ok(walked > 200 && stood > 100, `${animal.type} both walks and stands`)
+    // legs: diagonal pairs swing together, within their swing; still when it stands
+    const legs = [{ front: true, side: -1, length: 0.3 }, { front: true, side: 1, length: 0.3 }, { front: false, side: -1, length: 0.3 }, { front: false, side: 1, length: 0.3 }]
+    let moving = null
+    for (let t = 0; t < 40 && !moving; t += 0.1) { const s = walkState(animal, t); if (s.amp > 0.99) moving = s }
+    const [fl, fr, hl, hr] = legs.map((l) => gait(animal, l, moving).swing)
+    assert.ok(Math.abs(fl - hr) < 1e-9 && Math.abs(fr - hl) < 1e-9 && Math.abs(fl + fr) < 1e-9, `${animal.type}: diagonal gait`)
+    for (let t = 0; t < 60; t += 0.1) for (const l of legs) assert.ok(Math.abs(gait(animal, l, walkState(animal, t)).swing) <= kind.swing + 1e-9)
+    const standing = (() => { for (let t = 0; t < 40; t += 0.1) { const s = walkState(animal, t); if (!s.moving) return s } })()
+    assert.ok(gait(animal, legs[0], standing).swing === 0)
+  }
+})
+
+test('amazon fauna: however long the game runs, a walking animal clears the trees, stations, paths, the start and every other animal', () => {
+  const trees = scatterAmazon(biome).filter((item) => ['emergent', 'canopy', 'subcanopy'].includes(item.kind))
+  const floor = biome.discs.find((d) => d.id === 'floor')
+  const reach = (a) => (a.solid?.r ?? 0.1) + (a.type === 'morpho' ? 0.45 : 0)
+  const walkers = fauna.filter((a) => a.roam)
+  for (const animal of walkers) {
+    const r = animal.solid.r
+    const name = `${animal.type} at (${animal.x}, ${animal.z}) walking ${animal.roam} m`
+    for (const tree of trees) assert.ok(apart(animal, tree) >= r + animal.roam + 0.9 * tree.scale, `${name} walks into a ${tree.kind}`)
+    for (const station of biome.stations) assert.ok(apart(animal, station) - r - animal.roam >= 1.2, `${name} walks onto station ${station.n}`)
+    assert.ok(apart(animal, { x: biome.spawn.position[0], z: biome.spawn.position[2] }) - r - animal.roam >= 5, `${name} walks into the start`)
+    assert.ok(apart(animal, floor) + r + animal.roam <= 12.1, `${name} walks out towards the edge`)
+    for (const prop of biome.props) if (prop.block) assert.ok(apart(animal, prop) > prop.block + r + animal.roam, `${name} walks into the ${prop.type}`)
+    for (const [from, to] of biome.links) {
+      const dx = to.x - from.x
+      const dz = to.z - from.z
+      const t = Math.max(0, Math.min(1, ((animal.x - from.x) * dx + (animal.z - from.z) * dz) / (dx * dx + dz * dz || 1)))
+      assert.ok(Math.hypot(animal.x - from.x - dx * t, animal.z - from.z - dz * t) > r + animal.roam + 0.8, `${name} walks onto a path`)
+    }
+    for (const other of fauna) if (other !== animal && other.y === 0) assert.ok(apart(animal, other) >= r + animal.roam + reach(other) + (other.roam ?? 0), `${name} meets a ${other.type}`)
+  }
+})
+
+test('amazon fauna: a walking animal\'s solid body goes where it is drawn, and the collider grid still finds it', async () => {
+  const { walkState, moveFauna } = await import('./amazonFaunaWalk.js')
+  const { createColliderIndex } = await import('../biomes/colliderIndex.js')
+  const index = createColliderIndex(collidersFor(biome))
+  const walkers = index.all.filter((c) => c.walker)
+  assert.equal(walkers.length, fauna.filter((a) => a.roam).length)
+  for (const t of [0, 7.3, 31, 99.9, 400]) {
+    moveFauna(walkers, t)
+    for (const c of walkers) {
+      const state = walkState(c.walker, t)
+      assert.ok(c.x === state.x && c.z === state.z)
+      // the grid cell that holds the animal, and the ones round it a step away, list it
+      assert.ok(index.near(c.x, c.z).includes(c), 'found where it stands')
+      assert.ok(index.near(c.x + c.r, c.z).includes(c) && index.near(c.x - c.r, c.z - c.r).includes(c))
+    }
+  }
+  // nothing but animals moved: a static animal and every tree stay put
+  assert.ok(index.all.filter((c) => c.id.startsWith('fauna-') && !c.walker).every((c) => { const a = fauna[Number(c.id.slice(6))]; return c.x === a.x && c.z === a.z }))
+  const controller = readFileSync(new URL('../ExplorerController.jsx', import.meta.url), 'utf8')
+  assert.ok(controller.includes('moveFauna(walkers, state.clock.elapsedTime)'))
+  const view = readFileSync(new URL('./AmazonFauna.jsx', import.meta.url), 'utf8')
+  assert.ok(view.includes('walkState(animal, t)') && view.includes('clock.elapsedTime'), 'the view uses the same clock and the same walk')
+})

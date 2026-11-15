@@ -83,9 +83,10 @@ function noise3(x, y, z) {
  * body length), and a soft shade towards the ground, as under a belly. Applied to the vertex
  * colours of a finished model; shape and size are untouched.
  */
-function polish(geometry, { patch = 1, shade = 0.22 } = {}) {
+function polish(geometry, { patch = 1, shade = 0.22, frame = null } = {}) {
   geometry.computeBoundingBox()
-  const { min, max } = geometry.boundingBox
+  // a model built in parts is coloured against the whole model's frame, so the parts match at the joins
+  const { min, max } = frame ?? geometry.boundingBox
   const span = Math.max(1e-3, max.y - min.y)
   const scale = patch * 5 / Math.max(0.12, Math.max(span, max.z - min.z, max.x - min.x))
   const position = geometry.attributes.position
@@ -103,21 +104,55 @@ function polish(geometry, { patch = 1, shade = 0.22 } = {}) {
   return geometry
 }
 
+/** What the model being built is asked to do (see createAnimalParts): set for the length of one build. */
+let request = null
+let context = null
+
 function kit(seed) {
   const random = mulberry32(seed)
   const b = createBuilder()
+  context = { split: request, legs: [] }
+  // where masses and tubes go: the body, or (when building in parts) the leg being made
+  let out = b
+  let lastLeg = b
   // big masses get one more level of subdivision, so bodies read round rather than faceted
-  const mass = (center, radius, scale, light, dark, { detail = 2, lumpy = 0.03 } = {}) => blob(b, center, radius, scale, { detail: detail >= 2 && radius >= 0.1 ? detail + 1 : detail, random, light, dark, lumpy })
+  const mass = (center, radius, scale, light, dark, { detail = 2, lumpy = 0.03 } = {}) => blob(out, center, radius, scale, { detail: detail >= 2 && radius >= 0.1 ? detail + 1 : detail, random, light, dark, lumpy })
   const eye = (x, y, z, size = 0.016) => {
     mass(v(x, y, z), size, [1, 1, 0.8], C.eye, C.eye, { detail: 1, lumpy: 0 })
     mass(v(x + Math.sign(x) * size * 0.35, y + size * 0.4, z + size * 0.4), size * 0.28, [1, 1, 1], C.shine, C.shine, { detail: 0, lumpy: 0 })
   }
-  /** A leg from the body down to a foot with a padded sole. */
+  /** A leg from the body down to a foot with a padded sole (its own part when building in parts). */
   const leg = (hip, knee, foot, widths, base, tip, pad = tip.clone().multiplyScalar(0.7), padSize = 0.05) => {
-    tube(b, [hip, knee, foot], widths, { segments: 9, base, tip, random, mottle: 0.04, cap: false })
+    if (context.split) {
+      out = createBuilder()
+      lastLeg = out
+      context.legs.push({ builder: out, hip: hip.clone() })
+    }
+    tube(out, [hip, knee, foot], widths, { segments: 9, base, tip, random, mottle: 0.04, cap: false })
     mass(v(foot.x, Math.max(foot.y, padSize * 0.5), foot.z + padSize * 0.5), padSize, [1, 0.55, 1.3], pad, pad, { detail: 1, lumpy: 0 })
+    out = b
   }
-  return { random, b, mass, eye, leg }
+  /** Where a toe or claw of the leg just made goes. */
+  const limb = () => lastLeg
+  return { random, b, mass, eye, leg, limb }
+}
+
+/** The finished model: all in one mesh, or (when building in parts) the body, its legs kept aside. */
+function model(b) {
+  if (!context.split) return polish(finish(b))
+  const { frame } = context.split
+  const body = polish(finish(b), { frame })
+  context.split.result = {
+    body,
+    legs: context.legs.map(({ builder, hip }) => {
+      const geometry = polish(finish(builder), { frame })
+      geometry.translate(-hip.x, -hip.y, -hip.z)
+      geometry.computeBoundingSphere()
+      geometry.computeBoundingBox()
+      return { geometry, pivot: [hip.x, hip.y, hip.z], side: Math.sign(hip.x) || 1, front: hip.z > 0, length: hip.y }
+    }),
+  }
+  return body
 }
 
 /* ------------------------------------------------------------------ ground mammals */
@@ -140,7 +175,7 @@ export function createCapybaraGeometry(seed = 1) {
     mass(v(s * 0.04, 0.46, 0.76), 0.012, [1, 1, 1], C.eye, C.eye, { detail: 0, lumpy: 0 })
   }
   void random
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createJaguarGeometry(seed = 2) {
@@ -172,7 +207,7 @@ export function createJaguarGeometry(seed = 2) {
     const y = 0.58 + Math.cos(around) * 0.2
     mass(v(s * Math.abs(x) * 0.93, y - 0.01, z), 0.02 + random() * 0.012, [1, 1, 0.35], dark, dark, { detail: 0, lumpy: 0 })
   }
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createTapirGeometry(seed = 3) {
@@ -198,11 +233,11 @@ export function createTapirGeometry(seed = 3) {
   mass(v(0, 0.7, -0.85), 0.04, [1, 1.4, 1], dark, dark, { detail: 0, lumpy: 0 })
   // the pale band round the back half of a young tapir: here, a pale patch
   mass(v(0, 0.64, -0.45), 0.3, [0.74, 0.7, 0.8], pale, pale.clone().multiplyScalar(0.7), { detail: 1, lumpy: 0.02 })
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createAnteaterGeometry(seed = 4) {
-  const { b, mass, eye, leg } = kit(seed)
+  const { b, mass, eye, leg, limb } = kit(seed)
   const { grey, dark, pale, claw } = C.ant
   // a long tube of a snout, a black diagonal stripe over the shoulder, a huge bushy tail
   mass(v(0, 0.55, 0.0), 0.3, [0.62, 0.72, 1.45], grey, grey.clone().multiplyScalar(0.7), { lumpy: 0.04 })
@@ -210,7 +245,7 @@ export function createAnteaterGeometry(seed = 4) {
   for (const s of mirror) {
     leg(v(s * 0.13, 0.4, 0.42), v(s * 0.14, 0.2, 0.44), v(s * 0.14, 0.03, 0.5), [0.08, 0.06, 0.05], dark, pale, pale, 0.06)
     leg(v(s * 0.14, 0.4, -0.4), v(s * 0.15, 0.2, -0.44), v(s * 0.15, 0.03, -0.42), [0.08, 0.06, 0.05], dark, pale, pale, 0.06)
-    for (const k of [-1, 0, 1]) tube(b, [v(s * 0.14 + k * 0.016, 0.05, 0.52), v(s * 0.14 + k * 0.02, 0.012, 0.6)], [0.011, 0.003], { segments: 4, base: claw })
+    for (const k of [-1, 0, 1]) tube(limb(), [v(s * 0.14 + k * 0.016, 0.05, 0.52), v(s * 0.14 + k * 0.02, 0.012, 0.6)], [0.011, 0.003], { segments: 4, base: claw })
   }
   tube(b, bezier(v(0, 0.58, 0.55), v(0, 0.56, 0.86), v(0, 0.38, 1.16), 6), [0.13, 0.1, 0.085, 0.07, 0.06, 0.05, 0.04], { segments: 9, base: grey, tip: dark })
   mass(v(0, 0.52, 0.55), 0.13, [0.9, 0.95, 1.1], grey, dark, { detail: 1, lumpy: 0.02 })
@@ -228,7 +263,7 @@ export function createAnteaterGeometry(seed = 4) {
     const t = i / 6
     mass(v(0, 0.52 - t * 0.2 + Math.sin(t * 2.4) * 0.02, -0.5 - t * 0.78), 0.13 - t * 0.04, [0.8, 1.45 - t * 0.2, 1.15], grey, dark, { detail: 1, lumpy: 0.07 })
   }
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createCoatiGeometry(seed = 5) {
@@ -253,7 +288,7 @@ export function createCoatiGeometry(seed = 5) {
     const colour = i % 2 ? dark : pale.clone().lerp(rust, 0.5)
     mass(p, 0.05 - t * 0.012, [1, 0.95, 1], colour, colour.clone().multiplyScalar(0.7), { detail: 1, lumpy: 0.01 })
   }
-  return polish(finish(b))
+  return model(b)
 }
 
 /* ------------------------------------------------------------------ reptiles and amphibians */
@@ -282,7 +317,7 @@ export function createCaimanGeometry(seed = 6) {
     const y = 0.17 + 0.05 + Math.sin(t * Math.PI) * 0.03 - t * 0.08
     tube(b, [v(0, y - 0.03, z), v(0, y + 0.035, z - 0.01)], [0.035, 0.004], { segments: 4, base: mid, tip: dark })
   }
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createAnacondaGeometry(seed = 7) {
@@ -314,7 +349,7 @@ export function createAnacondaGeometry(seed = 7) {
   for (const s of mirror) eye(s * 0.05, 0.43, 0.32, 0.013)
   // the start of the snake peeks from under the coil as the tail tip
   tube(b, [path[0], v(0.58, 0.06, 0.1), v(0.7, 0.04, 0.28)], [0.095, 0.05, 0.012], { segments: 9, base: green, tip: dark })
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createTortoiseGeometry(seed = 8) {
@@ -334,7 +369,7 @@ export function createTortoiseGeometry(seed = 8) {
   mass(v(0, 0.15, 0.38), 0.045, [0.9, 0.85, 1.15], red, skin, { detail: 1, lumpy: 0 })
   for (const s of mirror) eye(s * 0.028, 0.17, 0.4, 0.008)
   void b
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createFrogGeometry(seed = 9) {
@@ -351,7 +386,7 @@ export function createFrogGeometry(seed = 9) {
     mass(v(s * 0.04, 0.014, -0.03), 0.022, [0.5, 0.5, 1.3], blue, black, { detail: 1, lumpy: 0 })
     mass(v(s * 0.03, 0.01, 0.07), 0.012, [1, 0.5, 1.4], black, black, { detail: 0, lumpy: 0 })
   }
-  return polish(finish(b))
+  return model(b)
 }
 
 /* ------------------------------------------------------------------ insects */
@@ -375,7 +410,7 @@ export function createMorphoGeometry(seed = 10) {
   }
   tube(b, [v(0.004, 0.05, 0.03), v(0.02, 0.07, 0.08)], [0.0012, 0.0008], { segments: 3, base: body })
   tube(b, [v(-0.004, 0.05, 0.03), v(-0.02, 0.07, 0.08)], [0.0012, 0.0008], { segments: 3, base: body })
-  return polish(finish(b))
+  return model(b)
 }
 
 /* ------------------------------------------------------------------ perching animals */
@@ -400,7 +435,7 @@ export function createCapuchinGeometry(seed = 11) {
     mass(v(s * 0.09, 0.47, 0.04), 0.025, [0.6, 1, 0.8], cream, cap, { detail: 0, lumpy: 0 })
   }
   tube(b, cubic(v(0, 0.12, -0.14), v(0, 0.06, -0.4), v(0.18, 0.03, -0.46), v(0.22, 0.16, -0.36), 8), [0.036, 0.034, 0.03, 0.028, 0.026, 0.024, 0.022, 0.018, 0.012], { segments: 9, base: brown, tip: cap })
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createSlothGeometry(seed = 12) {
@@ -425,7 +460,7 @@ export function createSlothGeometry(seed = 12) {
     eye(s * 0.042, 0.5, 0.3, 0.008)
   }
   mass(v(0, 0.455, 0.32), 0.022, [1, 0.8, 0.8], mask, mask, { detail: 1, lumpy: 0 })
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createMacawGeometry(seed = 13) {
@@ -449,7 +484,7 @@ export function createMacawGeometry(seed = 13) {
   tube(b, [v(0, 0.64, 0.17), v(0, 0.62, 0.22), v(0, 0.6, 0.235)], [0.032, 0.026, 0.01], { segments: 5, base: beakDark, tip: beakDark })
   for (const s of mirror) eye(s * 0.055, 0.7, 0.12, 0.013)
   void random
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createToucanGeometry(seed = 14) {
@@ -475,7 +510,7 @@ export function createToucanGeometry(seed = 14) {
   }
   tube(b, bezier(v(0, 0.55, 0.15), v(0, 0.6, 0.28), v(0, 0.5, 0.4), 6), [0.052, 0.05, 0.04, 0.032, 0.024, 0.016, 0.006], { segments: 9, base: bill, tip: billTip })
   void random
-  return polish(finish(b))
+  return model(b)
 }
 
 /* ------------------------------------------------------------------ more ground animals */
@@ -498,13 +533,13 @@ export function createAgoutiGeometry(seed = 15) {
     mass(v(s * 0.05, 0.38, 0.22), 0.03, [0.45, 1, 0.8], orange, dark, { detail: 1, lumpy: 0 })
     eye(s * 0.052, 0.32, 0.3, 0.012)
   }
-  return polish(finish(b))
+  return model(b)
 }
 
 
 
 export function createArmadilloGeometry(seed = 16) {
-  const { b, mass, eye, leg, random } = kit(seed)
+  const { b, mass, eye, leg, random, limb } = kit(seed)
   const { shell, band, skin, claw } = C.arma
   // a giant armadillo: a long domed back of overlapping bands, big front claws, a thick tapering tail
   for (let i = 0; i < 9; i += 1) {
@@ -515,7 +550,7 @@ export function createArmadilloGeometry(seed = 16) {
   }
   for (const s of mirror) {
     leg(v(s * 0.2, 0.2, 0.26), v(s * 0.22, 0.1, 0.3), v(s * 0.22, 0.015, 0.36), [0.075, 0.055, 0.045], skin, skin, skin, 0.05)
-    for (const k of [-1, 0, 1]) tube(b, [v(s * 0.22 + k * 0.03, 0.03, 0.4), v(s * 0.22 + k * 0.04, 0.012, 0.5)], [0.016, 0.004], { segments: 4, base: claw })
+    for (const k of [-1, 0, 1]) tube(limb(), [v(s * 0.22 + k * 0.03, 0.03, 0.4), v(s * 0.22 + k * 0.04, 0.012, 0.5)], [0.016, 0.004], { segments: 4, base: claw })
     leg(v(s * 0.2, 0.2, -0.26), v(s * 0.22, 0.1, -0.28), v(s * 0.22, 0.015, -0.3), [0.07, 0.05, 0.04], skin, skin, skin, 0.05)
   }
   mass(v(0, 0.2, 0.52), 0.1, [0.75, 0.75, 1.3], skin, skin.clone().multiplyScalar(0.8), { detail: 2 })
@@ -525,7 +560,7 @@ export function createArmadilloGeometry(seed = 16) {
     mass(v(s * 0.07, 0.3, 0.44), 0.03, [0.6, 1, 0.8], shell, skin, { detail: 0, lumpy: 0 })
   }
   tube(b, bezier(v(0, 0.24, -0.38), v(0, 0.2, -0.7), v(0, 0.05, -0.92), 5), [0.1, 0.085, 0.07, 0.055, 0.04, 0.025], { segments: 9, base: shell, tip: skin, random, mottle: 0.08 })
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createTarantulaGeometry(seed = 17) {
@@ -543,7 +578,7 @@ export function createTarantulaGeometry(seed = 17) {
       tube(b, [v(s * 0.02, 0.05, z), v(s * reach * 0.65, 0.085, z + fwd * 0.5), v(s * reach, 0.015, z + fwd)], [0.008, 0.0065, 0.004], { segments: 4, base: brown, tip: dark })
     }
   }
-  return polish(finish(b))
+  return model(b)
 }
 
 /* ------------------------------------------------------------------ more perching animals */
@@ -563,7 +598,7 @@ export function createHowlerGeometry(seed = 18) {
   mass(v(0, 0.49, 0.1), 0.06, [1, 1.3, 0.8], black, black, { detail: 1, lumpy: 0.03 })
   for (const s of mirror) eye(s * 0.04, 0.58, 0.19, 0.012)
   tube(b, cubic(v(0, 0.12, -0.18), v(0, 0.1, -0.45), v(0.05, 0.02, -0.4), v(0.12, 0.06, -0.34), 7), [0.05, 0.047, 0.044, 0.04, 0.036, 0.032, 0.028, 0.022], { segments: 9, base: red, tip: black })
-  return polish(finish(b))
+  return model(b)
 }
 
 export function createHarpyEagleGeometry(seed = 19) {
@@ -585,7 +620,7 @@ export function createHarpyEagleGeometry(seed = 19) {
   for (const k of [-1, 0, 1]) leaf(b, v(0, 0.98, 0.03), v(k * 0.4, 0.5, -1), 0.14, 0.03, dark, grey, { droop: 0.05, fold: 0.1, curl: 0.05 })
   tube(b, bezier(v(0, 0.91, 0.18), v(0, 0.95, 0.26), v(0, 0.84, 0.29), 5), [0.04, 0.038, 0.032, 0.024, 0.014, 0.005], { segments: 9, base: beak, tip: beak })
   for (const s of mirror) eye(s * 0.06, 0.93, 0.15, 0.013)
-  return polish(finish(b))
+  return model(b)
 }
 
 export const AMAZON_FAUNA_BUILDERS = Object.freeze({
@@ -609,3 +644,20 @@ export const AMAZON_FAUNA_BUILDERS = Object.freeze({
   howler: createHowlerGeometry,
   harpyEagle: createHarpyEagleGeometry,
 })
+
+/**
+ * A walking animal in parts: `body` (everything but the legs) and `legs`, each leg a mesh built
+ * round its own hip (`pivot`, in the body's coordinates) so it can swing from there. `front`: a
+ * foreleg; `side`: -1 left, 1 right. Put together at their pivots, the parts are the model that
+ * AMAZON_FAUNA_BUILDERS makes. null for an animal built without legs.
+ */
+export function createAnimalParts(type, seed) {
+  const whole = AMAZON_FAUNA_BUILDERS[type](seed)
+  whole.computeBoundingBox()
+  const frame = { min: whole.boundingBox.min.clone(), max: whole.boundingBox.max.clone() }
+  whole.dispose()
+  const asked = { frame, result: null }
+  request = asked
+  try { AMAZON_FAUNA_BUILDERS[type](seed) } finally { request = null }
+  return asked.result && asked.result.legs.length ? asked.result : null
+}

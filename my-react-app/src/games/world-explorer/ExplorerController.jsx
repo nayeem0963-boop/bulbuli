@@ -22,6 +22,7 @@ import { nearestStation } from './proximity.js'
 import { readExplorerControls, rescueFromWater, stayOnDunes } from './drive.js'
 import { advanceCamera, cameraPose, cameraRigFor, createCameraState } from './cameraRig.js'
 import PlayerGlow from './PlayerGlow.jsx'
+import { moveFauna } from './rendering/amazonFaunaWalk.js'
 
 const BIRD_SCALE = 0.3
 const NO_EVENTS = Object.freeze({ jumped: false, landed: false, glideStart: false, fell: false, impact: 0 })
@@ -29,6 +30,8 @@ const NO_EVENTS = Object.freeze({ jumped: false, landed: false, glideStart: fals
 export default function ExplorerController({ biome, inputRef, activeRef, teleportRef, onNear, onSafety, reducedMotion }) {
   // the physics is handed only the colliders round Bulbuli (biomes/colliderIndex.js)
   const colliders = useMemo(() => createColliderIndex(collidersFor(biome)), [biome])
+  // the animals that walk: their solid bodies are moved to where they are drawn, each frame
+  const walkers = useMemo(() => colliders.all.filter((c) => c.walker), [colliders])
   const discTops = useMemo(() => Object.fromEntries(biome.discs.map((d) => [d.id, d.top])), [biome])
   // framing comes from the map (cameraRig.js): the defaults unless the destination sets its own
   const rig = useMemo(() => cameraRigFor(biome), [biome])
@@ -66,6 +69,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
     yaw.current = controls.yaw
     lastJumps.current = controls.lastJumps
     // while Bulbuli is being carried back to a safe spot the physics rests (recovery.js moves it)
+    if (walkers.length) moveFauna(walkers, state.clock.elapsedTime)
     const nearby = colliders.near(p.pos[0], p.pos[2])
     const events = carrying.current ? NO_EVENTS : stepPlayer(p, controls.step, dt, nearby)
     if (!carrying.current) {
