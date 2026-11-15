@@ -14,6 +14,7 @@ import BiomeAtmosphere from './rendering/BiomeAtmosphere.jsx'
 import BiomeScatter from './rendering/BiomeScatter.jsx'
 import SundarbansScenery from './rendering/SundarbansScenery.jsx'
 import { SURFACE_PROFILES, createBiomeSurfaceTextures } from './rendering/biomeMaterials.js'
+import { DatePalm, DryRiverBed, OasisPool, RestingCamel, Well } from './rendering/SaharaLandmarks.jsx'
 import { createTerrainGeometry } from './rendering/terrain.js'
 import { createSurroundGeometry, distantDunes } from './rendering/saharaSurround.js'
 import { createGiantTreeGeometry } from './rendering/giantTree.js'
@@ -200,48 +201,6 @@ function Dune({ scale = 1 }) {
   )
 }
 
-function Palm({ scale = 1 }) {
-  return (
-    <group scale={scale}>
-      <mesh position={[0.2, 2, 0]} rotation-z={-0.1}>
-        <cylinderGeometry args={[0.14, 0.2, 4, 12]} />
-        <meshStandardMaterial color="#8b6b44" roughness={0.9} />
-      </mesh>
-      {[0, 1, 2, 3, 4, 5].map((i) => (
-        <mesh key={i} position={[0.4 + Math.cos(i * 1.05) * 0.8, 3.9, Math.sin(i * 1.05) * 0.8]} rotation={[Math.sin(i * 1.05) * 0.9, i * 1.05, -Math.cos(i * 1.05) * 0.9]}>
-          <boxGeometry args={[0.25, 0.05, 1.6]} />
-          <meshStandardMaterial color="#4f9a3e" roughness={0.88} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
-function Camel({ rot = 0 }) {
-  const fur = '#c99a5b'
-  return (
-    <group rotation-y={rot}>
-      <mesh position={[0, 1.3, 0]} scale={[0.6, 0.55, 1.3]}><icosahedronGeometry args={[1, 0]} /><meshStandardMaterial color={fur} flatShading /></mesh>
-      <mesh position={[0, 1.95, -0.1]} scale={[0.45, 0.45, 0.55]}><icosahedronGeometry args={[1, 0]} /><meshStandardMaterial color={fur} flatShading /></mesh>
-      <mesh position={[0, 2.0, 1.2]} rotation-x={-0.6}><cylinderGeometry args={[0.13, 0.17, 1.2, 5]} /><meshStandardMaterial color={fur} flatShading /></mesh>
-      <mesh position={[0, 2.5, 1.65]} scale={[0.22, 0.2, 0.4]}><icosahedronGeometry args={[1, 0]} /><meshStandardMaterial color={fur} flatShading /></mesh>
-      {[[-0.3, -0.7], [0.3, -0.7], [-0.3, 0.7], [0.3, 0.7]].map(([x, z]) => (
-        <mesh key={`${x}${z}`} position={[x, 0.5, z]}><cylinderGeometry args={[0.08, 0.1, 1, 4]} /><meshStandardMaterial color={fur} flatShading /></mesh>
-      ))}
-    </group>
-  )
-}
-
-function Well() {
-  return (
-    <group>
-      <mesh position={[0, 0.4, 0]}><cylinderGeometry args={[0.8, 0.9, 0.8, 8, 1, true]} /><meshStandardMaterial color="#b49470" flatShading side={2} /></mesh>
-      <mesh position={[0, 0.35, 0]} rotation-x={-Math.PI / 2}><circleGeometry args={[0.7, 8]} /><meshStandardMaterial color="#2c5c7a" /></mesh>
-      <mesh position={[0, 1.5, 0]}><boxGeometry args={[1.8, 0.1, 0.1]} /><meshStandardMaterial color="#7b5a3a" /></mesh>
-    </group>
-  )
-}
-
 function Board({ color = '#f4efe6', w = 1.4, h = 0.9 }) {
   return (
     <group>
@@ -287,8 +246,9 @@ function PropView({ prop }) {
     case 'stump': body = <Stump scale={scale} />; break
     case 'rock': body = <Rock scale={scale} rot={rot} />; break
     case 'dune': body = <Dune scale={scale} />; break
-    case 'palm': body = <Palm scale={scale} />; break
-    case 'camel': body = <Camel rot={rot} />; break
+    // the Sahara's landmarks have their own models (rendering/SaharaLandmarks.jsx)
+    case 'palm': body = <DatePalm scale={scale} seed={Math.round(prop.x * 31 + prop.z * 17) + 900} />; break
+    case 'camel': body = <RestingCamel rot={rot} />; break
     case 'well': body = <Well />; break
     case 'channels': body = <TidalChannelModel />; break
     case 'pawPrints': body = (
@@ -298,8 +258,8 @@ function PropView({ prop }) {
     ); break
     case 'leafLitter': body = <Flat color="#8a5a2b" w={2.2} d={2.2} />; break
     case 'quadrat': body = <Flat color="#f4efe6" w={1.6} d={1.6} opacity={0.45} />; break
-    case 'pool': body = <Flat color="#3b86a8" w={3} d={2} />; break
-    case 'dryRiver': body = <group rotation-y={rot}><Flat color="#8d7150" w={1.6} d={9} /></group>; break
+    case 'pool': body = <OasisPool />; break
+    case 'dryRiver': body = <DryRiverBed rot={rot} />; break
     case 'saltMeter': case 'lightMeter': case 'surveyMap': case 'timeline': body = <Board color={type === 'surveyMap' ? '#ffe4a3' : '#f4efe6'} />; break
     case 'leafBag': body = <mesh position={[0, 0.5, 0]} userData={{ isCollider: true, collisionKind: 'box' }}><boxGeometry args={[0.35, 0.5, 0.2]} /><meshStandardMaterial color="#dff3ff" transparent opacity={0.6} /></mesh>; break
     case 'waveTank': body = <WaveTank />; break

@@ -135,7 +135,7 @@ test('sahara trees: the palms and the station poles stop Bulbuli at their surfac
   const colliders = collidersFor(biome)
   const palms = biome.props.map((p, i) => ({ p, i })).filter(({ p }) => p.type === 'palm').map(({ p, i }) => {
     const collider = colliders.find((c) => c.id === `prop-${i}`)
-    // drawn trunk: 0.2 m at the base, leaning to 0.4 m off-centre at its top (ExpeditionCanvas.jsx Palm)
+    // drawn trunk: 0.2 m at the base, leaning to 0.4 m off-centre at its top (rendering/saharaLandmarks.js DATE_PALM)
     return { id: `palm at (${p.x}, ${p.z})`, x: p.x, z: p.z, y: p.y, radius: 0.2 * p.scale, reach: collider.r + BODY, height: 4 * p.scale, collider }
   })
   assert.equal(palms.length, 3)
