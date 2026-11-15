@@ -216,6 +216,51 @@ function loft(builder, stations, { back, belly, paint = null, segments = 20, ste
   }
 }
 
+/**
+ * The same smooth body for an animal that sits or stands upright (a monkey, a bird): the spine
+ * runs up. A station is [height, depth, halfWidth, halfDepth]: how high, how far forward (+z) the
+ * middle of its ellipse is, and its size. `paint(h, u, c, side)`: u runs from -1 at the front to 1
+ * at the back; side from -1 (left) to 1 (right), so wings and flanks can be coloured.
+ */
+function uprightLoft(builder, stations, { back, belly, paint = null, segments = 20, steps = 3 }) {
+  const rings = (stations.length - 1) * steps + 1
+  const grid = []
+  for (let r = 0; r < rings; r += 1) {
+    const [h, depth, rx0, rd0] = stationAt(stations, r / steps)
+    const rx = Math.max(0.004, rx0)
+    const rd = Math.max(0.004, rd0)
+    const ring = []
+    for (let k = 0; k < segments; k += 1) {
+      const a = (k / segments) * Math.PI * 2
+      const u = -Math.sin(a)
+      const colour = belly.clone().lerp(back, smoothstep(-0.55, 0.35, u))
+      if (paint) paint(h, u, colour, Math.cos(a))
+      ring.push({ position: v(Math.cos(a) * rx, h, depth + Math.sin(a) * rd), colour })
+    }
+    grid.push({ ring, centre: v(0, h, depth), colour: belly.clone().lerp(back, 0.5) })
+  }
+  for (let r = 1; r < rings; r += 1) {
+    for (let k = 0; k < segments; k += 1) {
+      const n = (k + 1) % segments
+      const a = grid[r - 1].ring[k]
+      const c = grid[r - 1].ring[n]
+      const d = grid[r].ring[n]
+      const e = grid[r].ring[k]
+      builder.triangle(a.position, c.position, d.position, a.colour, c.colour, d.colour)
+      builder.triangle(a.position, d.position, e.position, a.colour, d.colour, e.colour)
+    }
+  }
+  for (const [index, flip] of [[0, false], [rings - 1, true]]) {
+    const { ring, centre, colour } = grid[index]
+    for (let k = 0; k < segments; k += 1) {
+      const a = ring[k]
+      const c = ring[(k + 1) % segments]
+      if (flip) builder.triangle(a.position, centre, c.position, a.colour, colour, c.colour)
+      else builder.triangle(a.position, c.position, centre, a.colour, c.colour, colour)
+    }
+  }
+}
+
 /* ------------------------------------------------------------------ ground mammals */
 
 export function createCapybaraGeometry(seed = 1) {
@@ -481,98 +526,108 @@ export function createMorphoGeometry(seed = 10) {
 export function createCapuchinGeometry(seed = 11) {
   const { b, mass, eye, random } = kit(seed)
   const { cream, brown, cap } = C.monkey
-  // sitting on its haunches, one arm raised to the branch, a long tail curling round
-  mass(v(0, 0.24, 0), 0.17, [0.8, 1.05, 0.9], brown, brown.clone().multiplyScalar(0.7), { detail: 2, lumpy: 0.04 })
-  mass(v(0, 0.24, 0.08), 0.12, [0.8, 1, 0.7], cream, cream.clone().multiplyScalar(0.7), { detail: 1 })
-  mass(v(0, 0.08, -0.04), 0.14, [1.0, 0.55, 1.1], brown, brown, { detail: 1 })
+  // sitting on its haunches: one smooth body from the seat up through the shoulders into the head,
+  // a cream face and chest, a dark cap, brown limbs, a long tail curling round
+  const S = [[0.02, -0.03, 0.04, 0.04], [0.07, -0.03, 0.13, 0.13], [0.2, -0.01, 0.15, 0.14], [0.32, 0.02, 0.14, 0.13], [0.4, 0.05, 0.1, 0.1],
+    [0.46, 0.07, 0.095, 0.1], [0.52, 0.07, 0.085, 0.09], [0.555, 0.065, 0.03, 0.03]]
+  uprightLoft(b, S, {
+    back: brown,
+    belly: brown.clone().lerp(cream, 0.2),
+    paint: (h, u, c, side) => {
+      if (h > 0.2 && h < 0.42) c.lerp(cream, 0.85 * smoothstep(0.3, -0.5, u))
+      if (h > 0.38 && u < 0.1) c.lerp(cream, 0.9)
+      if (h > 0.49) c.lerp(cap, 0.95 * smoothstep(0.49, 0.52, h))
+      if (h > 0.45 && Math.abs(side) > 0.55 && u > -0.4) c.lerp(cream, 0.5)
+    },
+  })
   for (const s of mirror) {
-    tube(b, [v(s * 0.1, 0.34, 0.03), v(s * 0.15, 0.22, 0.12), v(s * 0.12, 0.1, 0.18)], [0.04, 0.032, 0.026], { segments: 9, base: brown, tip: brown, random, mottle: 0.05 })
-    mass(v(s * 0.12, 0.085, 0.19), 0.03, [1, 0.7, 1.2], cap, cap, { detail: 1, lumpy: 0 })
-    tube(b, [v(s * 0.09, 0.1, 0.0), v(s * 0.15, 0.06, 0.1), v(s * 0.13, 0.015, 0.16)], [0.045, 0.034, 0.03], { segments: 9, base: brown, tip: brown, random })
+    tube(b, [v(s * 0.11, 0.34, 0.03), v(s * 0.16, 0.22, 0.12), v(s * 0.13, 0.1, 0.18)], [0.042, 0.034, 0.028], { segments: 9, base: brown, tip: brown, random, mottle: 0.05 })
+    mass(v(s * 0.13, 0.085, 0.19), 0.03, [1, 0.7, 1.2], cap, cap, { detail: 1, lumpy: 0 })
+    tube(b, [v(s * 0.1, 0.1, 0.0), v(s * 0.15, 0.06, 0.1), v(s * 0.13, 0.015, 0.16)], [0.05, 0.036, 0.03], { segments: 9, base: brown, tip: brown, random })
+    eye(s * 0.04, 0.485, 0.155, 0.012)
+    mass(v(s * 0.092, 0.47, 0.06), 0.027, [0.6, 1, 0.8], cream, cap, { detail: 1, lumpy: 0 })
   }
-  mass(v(0, 0.46, 0.06), 0.09, [1, 1, 1], cream, cream.clone().multiplyScalar(0.8), { detail: 2, lumpy: 0.01 })
-  mass(v(0, 0.5, 0.04), 0.075, [1.05, 0.6, 1.1], cap, cap, { detail: 1, lumpy: 0 })
-  mass(v(0, 0.425, 0.13), 0.04, [1, 0.8, 0.8], brown.clone().lerp(cream, 0.4), brown, { detail: 1, lumpy: 0 })
-  for (const s of mirror) {
-    eye(s * 0.04, 0.46, 0.125, 0.012)
-    mass(v(s * 0.09, 0.47, 0.04), 0.025, [0.6, 1, 0.8], cream, cap, { detail: 0, lumpy: 0 })
-  }
-  tube(b, cubic(v(0, 0.12, -0.14), v(0, 0.06, -0.4), v(0.18, 0.03, -0.46), v(0.22, 0.16, -0.36), 8), [0.036, 0.034, 0.03, 0.028, 0.026, 0.024, 0.022, 0.018, 0.012], { segments: 9, base: brown, tip: cap })
+  mass(v(0, 0.435, 0.16), 0.036, [1, 0.8, 0.8], cream.clone().lerp(brown, 0.3), brown, { detail: 1, lumpy: 0 })
+  tube(b, cubic(v(0, 0.12, -0.14), v(0, 0.06, -0.4), v(0.18, 0.03, -0.46), v(0.22, 0.16, -0.36), 8), [0.04, 0.038, 0.034, 0.031, 0.029, 0.026, 0.024, 0.02, 0.012], { segments: 9, base: brown, tip: cap })
   return model(b)
 }
 
 export function createSlothGeometry(seed = 12) {
   const { b, mass, eye, random } = kit(seed)
   const { fur, dark, face, mask, claw } = C.sloth
-  // a shaggy round body hugging a bough, long arms ending in three hooked claws
-  mass(v(0, 0.3, -0.02), 0.24, [0.95, 1.0, 1.05], fur, dark, { detail: 2, lumpy: 0.09 })
-  mass(v(0, 0.15, 0.03), 0.2, [1.0, 0.75, 1.1], fur, dark, { detail: 2, lumpy: 0.08 })
+  // a shaggy round body hugging a bough, a pale face with the dark eye-stripe, long arms ending in hooked claws
+  const S = [[0.02, 0, 0.08, 0.08], [0.08, 0, 0.19, 0.19], [0.22, -0.02, 0.23, 0.22], [0.36, 0, 0.2, 0.2], [0.45, 0.05, 0.14, 0.14],
+    [0.5, 0.12, 0.12, 0.12], [0.52, 0.19, 0.105, 0.105], [0.5, 0.26, 0.08, 0.085], [0.47, 0.305, 0.03, 0.03]]
+  uprightLoft(b, S, { back: fur, belly: fur.clone().lerp(dark, 0.3), paint: (h, u, c) => { if (h > 0.46 && u < 0.2) c.lerp(face, 0.9 * smoothstep(0.46, 0.5, h)) } })
   for (const s of mirror) {
     const hand = v(s * 0.2, 0.52, 0.34)
-    tube(b, [v(s * 0.2, 0.36, 0.08), v(s * 0.3, 0.4, 0.22), hand], [0.07, 0.06, 0.05], { segments: 9, base: fur, tip: dark, random, mottle: 0.1 })
+    tube(b, [v(s * 0.2, 0.36, 0.08), v(s * 0.3, 0.4, 0.22), hand], [0.075, 0.062, 0.05], { segments: 9, base: fur, tip: dark, random, mottle: 0.1 })
     for (const k of [-1, 0, 1]) tube(b, [v(hand.x + k * 0.025, hand.y, hand.z), v(hand.x + k * 0.03, hand.y + 0.09, hand.z + 0.07)], [0.012, 0.003], { segments: 4, base: claw })
     const foot = v(s * 0.18, 0.04, 0.2)
-    tube(b, [v(s * 0.16, 0.18, -0.12), v(s * 0.24, 0.1, 0.05), foot], [0.07, 0.055, 0.045], { segments: 9, base: fur, tip: dark, random })
+    tube(b, [v(s * 0.16, 0.18, -0.12), v(s * 0.24, 0.1, 0.05), foot], [0.075, 0.057, 0.045], { segments: 9, base: fur, tip: dark, random })
     for (const k of [-1, 0, 1]) tube(b, [v(foot.x + k * 0.025, foot.y, foot.z), v(foot.x + k * 0.03, 0.0, foot.z + 0.07)], [0.012, 0.003], { segments: 4, base: claw })
+    mass(v(s * 0.045, 0.505, 0.285), 0.03, [1.3, 0.5, 0.5], mask, mask, { detail: 1, lumpy: 0 })
+    eye(s * 0.05, 0.505, 0.29, 0.008)
   }
-  // head: pale, with the dark eye-stripe that makes a sloth look like it is smiling
-  mass(v(0, 0.5, 0.16), 0.115, [1, 0.95, 0.95], fur, fur.clone().multiplyScalar(0.8), { detail: 2, lumpy: 0.07 })
-  mass(v(0, 0.48, 0.23), 0.085, [1.0, 0.9, 0.8], face, face.clone().multiplyScalar(0.8), { detail: 2, lumpy: 0.01 })
-  for (const s of mirror) {
-    mass(v(s * 0.04, 0.5, 0.29), 0.028, [1.3, 0.5, 0.5], mask, mask, { detail: 1, lumpy: 0 })
-    eye(s * 0.042, 0.5, 0.3, 0.008)
-  }
-  mass(v(0, 0.455, 0.32), 0.022, [1, 0.8, 0.8], mask, mask, { detail: 1, lumpy: 0 })
+  mass(v(0, 0.468, 0.325), 0.022, [1, 0.8, 0.8], mask, mask, { detail: 1, lumpy: 0 })
   return model(b)
 }
 
 export function createMacawGeometry(seed = 13) {
-  const { b, mass, eye, random } = kit(seed)
+  const { b, eye } = kit(seed)
   const { red, yellow, blue, white, beak, beakDark, leg } = C.macaw
-  // a scarlet macaw perched upright: red body, yellow and blue wings, a very long tail
-  mass(v(0, 0.42, 0), 0.15, [0.8, 1.35, 0.85], red, red.clone().multiplyScalar(0.75), { detail: 2, lumpy: 0.015 })
+  // a scarlet macaw perched upright: body, neck and head are one smooth form; the folded wings are
+  // painted down its sides (yellow shoulders, blue flight feathers), and the tail is long and red
+  const S = [[0.2, -0.06, 0.04, 0.04], [0.26, -0.05, 0.1, 0.1], [0.36, 0, 0.135, 0.13], [0.46, 0.015, 0.14, 0.135], [0.56, 0.03, 0.115, 0.115],
+    [0.62, 0.05, 0.075, 0.08], [0.68, 0.075, 0.085, 0.09], [0.735, 0.09, 0.088, 0.09], [0.762, 0.095, 0.03, 0.03]]
+  uprightLoft(b, S, {
+    back: red,
+    belly: red.clone().multiplyScalar(0.92),
+    paint: (h, u, c, side) => {
+      const flank = Math.abs(side) > 0.35 && u > -0.55
+      if (flank && h > 0.42 && h < 0.58) c.lerp(red.clone().lerp(yellow, 0.7), 0.9)
+      if (flank && h > 0.5 && h < 0.57) c.lerp(yellow, 0.95)
+      if (flank && h < 0.46 && h > 0.24) c.lerp(blue, 0.92)
+      if (u > 0.3 && h < 0.5 && h > 0.24) c.lerp(blue, 0.85)
+      if (h > 0.62 && h < 0.74 && u < -0.1 && Math.abs(side) < 0.9) c.lerp(white, 0.9)
+    },
+  })
   for (const s of mirror) {
-    leaf(b, v(s * 0.1, 0.52, -0.02), v(s * 0.15, -1, -0.5), 0.34, 0.09, yellow, blue, { droop: 0.02, fold: 0.1, curl: 0.05, roll: s * 0.12 })
-    leaf(b, v(s * 0.11, 0.5, -0.03), v(s * 0.08, -1, -0.6), 0.34, 0.07, blue, blue.clone().multiplyScalar(0.7), { droop: 0.02, fold: 0.1, curl: 0.05 })
-    leaf(b, v(s * 0.08, 0.57, 0.0), v(s * 0.12, -0.6, -0.35), 0.2, 0.08, red, yellow, { droop: 0.02, fold: 0.1, curl: 0 })
-    tube(b, [v(s * 0.04, 0.2, 0.0), v(s * 0.045, 0.1, 0.02), v(s * 0.05, 0.03, 0.05)], [0.016, 0.012, 0.01], { segments: 5, base: leg, tip: leg })
-    for (const dz of [0.02, 0.05]) tube(b, [v(s * 0.05, 0.03, 0.05), v(s * 0.06 + dz * s, 0.008, 0.09 + dz)], [0.007, 0.003], { segments: 4, base: leg })
+    tube(b, [v(s * 0.045, 0.22, 0.0), v(s * 0.047, 0.11, 0.02), v(s * 0.05, 0.03, 0.05)], [0.02, 0.014, 0.011], { segments: 6, base: leg, tip: leg })
+    for (const dz of [0.02, 0.05]) tube(b, [v(s * 0.05, 0.03, 0.05), v(s * 0.06 + dz * s, 0.008, 0.09 + dz)], [0.008, 0.003], { segments: 4, base: leg })
+    eye(s * 0.084, 0.705, 0.095, 0.013)
   }
   // tail: long red, blue tips
-  for (const k of [-1, 0, 1]) leaf(b, v(k * 0.012, 0.28, -0.06), v(k * 0.06, -0.5, -1), 0.5 - Math.abs(k) * 0.06, 0.045, red, blue, { droop: 0.03, fold: 0.15, curl: 0.04, roll: k * 0.1 })
-  tube(b, [v(0, 0.52, 0.04), v(0, 0.62, 0.07)], [0.07, 0.065], { segments: 9, base: red, tip: red })
-  mass(v(0, 0.68, 0.08), 0.085, [0.95, 1.0, 1.0], red, red.clone().multiplyScalar(0.8), { detail: 2, lumpy: 0.01 })
-  mass(v(0, 0.665, 0.13), 0.06, [1, 0.8, 0.7], white, white.clone().multiplyScalar(0.8), { detail: 1, lumpy: 0 })
-  tube(b, bezier(v(0, 0.7, 0.15), v(0, 0.76, 0.24), v(0, 0.64, 0.27), 5), [0.05, 0.048, 0.04, 0.03, 0.02, 0.01], { segments: 9, base: beak, tip: beak })
-  tube(b, [v(0, 0.64, 0.17), v(0, 0.62, 0.22), v(0, 0.6, 0.235)], [0.032, 0.026, 0.01], { segments: 5, base: beakDark, tip: beakDark })
-  for (const s of mirror) eye(s * 0.055, 0.7, 0.12, 0.013)
-  void random
+  for (const k of [-1, 0, 1]) leaf(b, v(k * 0.012, 0.25, -0.07), v(k * 0.06, -0.5, -1), 0.5 - Math.abs(k) * 0.06, 0.05, red, blue, { droop: 0.03, fold: 0.15, curl: 0.04, roll: k * 0.1 })
+  tube(b, bezier(v(0, 0.7, 0.16), v(0, 0.77, 0.25), v(0, 0.64, 0.28), 5), [0.055, 0.05, 0.042, 0.032, 0.02, 0.01], { segments: 9, base: beak, tip: beak })
+  tube(b, [v(0, 0.645, 0.17), v(0, 0.62, 0.225), v(0, 0.6, 0.245)], [0.034, 0.027, 0.01], { segments: 6, base: beakDark, tip: beakDark })
   return model(b)
 }
 
 export function createToucanGeometry(seed = 14) {
-  const { b, mass, eye, random } = kit(seed)
+  const { b, mass, eye } = kit(seed)
   const { black, white, bill, billTip, blue, red } = C.toucan
-  // toco toucan: a black body, a white throat, a huge orange bill with a black tip
-  mass(v(0, 0.3, 0), 0.13, [0.8, 1.3, 0.9], black, black.clone().multiplyScalar(0.7), { detail: 2, lumpy: 0.015 })
-  mass(v(0, 0.38, 0.06), 0.09, [0.9, 1.0, 0.7], white, white.clone().multiplyScalar(0.8), { detail: 1, lumpy: 0 })
-  mass(v(0, 0.14, -0.06), 0.06, [1, 0.6, 1], red, red, { detail: 1, lumpy: 0 })
+  // toco toucan: a black body with a white throat and a red patch under the tail, all one smooth
+  // form; a huge orange bill with a black tip
+  const S = [[0.16, -0.05, 0.05, 0.05], [0.22, -0.04, 0.09, 0.09], [0.32, 0, 0.12, 0.115], [0.42, 0.02, 0.125, 0.12], [0.5, 0.04, 0.1, 0.1],
+    [0.55, 0.07, 0.075, 0.08], [0.59, 0.09, 0.075, 0.08], [0.625, 0.1, 0.05, 0.055], [0.64, 0.1, 0.02, 0.02]]
+  uprightLoft(b, S, {
+    back: black,
+    belly: black.clone().multiplyScalar(1.3),
+    paint: (h, u, c) => {
+      if (h > 0.4 && h < 0.62 && u < -0.1) c.lerp(white, 0.95 * smoothstep(0.4, 0.45, h))
+      if (h < 0.24 && u < 0.4) c.lerp(red, 0.9)
+    },
+  })
   for (const s of mirror) {
-    leaf(b, v(s * 0.1, 0.4, -0.02), v(s * 0.12, -1, -0.5), 0.28, 0.08, black, black, { droop: 0.02, fold: 0.1, curl: 0.04, roll: s * 0.1 })
-    tube(b, [v(s * 0.04, 0.14, 0.0), v(s * 0.045, 0.06, 0.02), v(s * 0.05, 0.02, 0.04)], [0.014, 0.011, 0.009], { segments: 5, base: blue.clone().multiplyScalar(0.8), tip: blue })
-    for (const dz of [0.02, 0.05]) tube(b, [v(s * 0.05, 0.02, 0.04), v(s * 0.06 + dz * s, 0.006, 0.08 + dz)], [0.006, 0.003], { segments: 4, base: blue })
+    tube(b, [v(s * 0.045, 0.16, 0.0), v(s * 0.048, 0.07, 0.02), v(s * 0.05, 0.02, 0.04)], [0.016, 0.012, 0.01], { segments: 6, base: blue.clone().multiplyScalar(0.8), tip: blue })
+    for (const dz of [0.02, 0.05]) tube(b, [v(s * 0.05, 0.02, 0.04), v(s * 0.06 + dz * s, 0.006, 0.08 + dz)], [0.007, 0.003], { segments: 4, base: blue })
+    mass(v(s * 0.066, 0.585, 0.105), 0.024, [1, 1, 0.5], blue, blue, { detail: 1, lumpy: 0 })
+    eye(s * 0.07, 0.585, 0.11, 0.011)
   }
-  tube(b, [v(0, 0.14, -0.08), v(0, 0.07, -0.2), v(0, 0.06, -0.36)], [0.06, 0.05, 0.05], { segments: 9, base: black, tip: white })
-  // the tail hangs below the perch height: its tip is lifted to stay above y = 0
-  tube(b, [v(0, 0.4, 0.04), v(0, 0.5, 0.07)], [0.05, 0.05], { segments: 9, base: black, tip: black })
-  mass(v(0, 0.54, 0.09), 0.07, [0.95, 1.0, 1.0], black, black, { detail: 2, lumpy: 0.01 })
-  mass(v(0, 0.53, 0.12), 0.052, [1, 0.8, 0.7], white, white.clone().multiplyScalar(0.8), { detail: 1, lumpy: 0 })
-  for (const s of mirror) {
-    mass(v(s * 0.05, 0.57, 0.115), 0.025, [1, 1, 0.5], blue, blue, { detail: 1, lumpy: 0 })
-    eye(s * 0.052, 0.57, 0.12, 0.011)
-  }
-  tube(b, bezier(v(0, 0.55, 0.15), v(0, 0.6, 0.28), v(0, 0.5, 0.4), 6), [0.052, 0.05, 0.04, 0.032, 0.024, 0.016, 0.006], { segments: 9, base: bill, tip: billTip })
-  void random
+  // the long tail, lifted so its tip stays above the perch
+  tube(b, [v(0, 0.2, -0.06), v(0, 0.1, -0.2), v(0, 0.07, -0.36)], [0.065, 0.055, 0.05], { segments: 9, base: black, tip: white })
+  tube(b, bezier(v(0, 0.58, 0.15), v(0, 0.63, 0.29), v(0, 0.52, 0.41), 6), [0.056, 0.052, 0.042, 0.034, 0.025, 0.016, 0.006], { segments: 9, base: bill, tip: billTip })
   return model(b)
 }
 
@@ -643,42 +698,55 @@ export function createTarantulaGeometry(seed = 17) {
 export function createHowlerGeometry(seed = 18) {
   const { b, mass, eye, random } = kit(seed)
   const { black, red, face } = C.howler
-  // a red howler monkey sitting hunched, rust-red fur, a bearded black face, a long tail hanging
-  mass(v(0, 0.3, 0), 0.2, [0.85, 1.1, 0.9], red, red.clone().multiplyScalar(0.6), { detail: 2, lumpy: 0.05 })
-  mass(v(0, 0.1, -0.03), 0.17, [1.0, 0.6, 1.1], red, red.clone().multiplyScalar(0.6), { detail: 1 })
+  // a red howler monkey sitting hunched: a rust-red body and one smooth line up into a bearded black face; a long tail
+  const S = [[0.03, -0.03, 0.05, 0.05], [0.09, -0.03, 0.16, 0.15], [0.25, 0, 0.19, 0.17], [0.4, 0.03, 0.17, 0.16], [0.5, 0.05, 0.12, 0.12],
+    [0.56, 0.08, 0.1, 0.11], [0.62, 0.1, 0.1, 0.11], [0.68, 0.1, 0.07, 0.08], [0.71, 0.1, 0.02, 0.02]]
+  uprightLoft(b, S, {
+    back: red,
+    belly: red.clone().multiplyScalar(0.75),
+    paint: (h, u, c) => {
+      if (h > 0.5 && u < 0.15) c.lerp(face, 0.95 * smoothstep(0.5, 0.56, h))
+      if (h > 0.46 && h < 0.58 && u < 0.4) c.lerp(black, 0.7)
+    },
+  })
   for (const s of mirror) {
-    tube(b, [v(s * 0.13, 0.42, 0.04), v(s * 0.2, 0.28, 0.1), v(s * 0.15, 0.1, 0.18)], [0.05, 0.04, 0.032], { segments: 9, base: red, tip: black, random, mottle: 0.06 })
-    tube(b, [v(s * 0.1, 0.12, 0.0), v(s * 0.17, 0.07, 0.12), v(s * 0.14, 0.015, 0.2)], [0.055, 0.045, 0.035], { segments: 9, base: red, tip: black, random })
+    tube(b, [v(s * 0.14, 0.42, 0.04), v(s * 0.21, 0.28, 0.1), v(s * 0.16, 0.1, 0.18)], [0.055, 0.042, 0.034], { segments: 9, base: red, tip: black, random, mottle: 0.06 })
+    tube(b, [v(s * 0.11, 0.12, 0.0), v(s * 0.18, 0.07, 0.12), v(s * 0.15, 0.015, 0.2)], [0.06, 0.047, 0.036], { segments: 9, base: red, tip: black, random })
+    eye(s * 0.05, 0.605, 0.185, 0.012)
   }
-  mass(v(0, 0.58, 0.07), 0.1, [0.95, 1.05, 1.0], red, red.clone().multiplyScalar(0.7), { detail: 2, lumpy: 0.03 })
-  mass(v(0, 0.55, 0.14), 0.075, [0.9, 1.0, 0.85], face, face, { detail: 2, lumpy: 0.01 })
-  mass(v(0, 0.49, 0.1), 0.06, [1, 1.3, 0.8], black, black, { detail: 1, lumpy: 0.03 })
-  for (const s of mirror) eye(s * 0.04, 0.58, 0.19, 0.012)
-  tube(b, cubic(v(0, 0.12, -0.18), v(0, 0.1, -0.45), v(0.05, 0.02, -0.4), v(0.12, 0.06, -0.34), 7), [0.05, 0.047, 0.044, 0.04, 0.036, 0.032, 0.028, 0.022], { segments: 9, base: red, tip: black })
+  mass(v(0, 0.5, 0.15), 0.06, [1, 1.3, 0.8], black, black, { detail: 1, lumpy: 0.03 })
+  tube(b, cubic(v(0, 0.12, -0.18), v(0, 0.1, -0.45), v(0.05, 0.02, -0.4), v(0.12, 0.06, -0.34), 7), [0.055, 0.05, 0.046, 0.042, 0.038, 0.033, 0.028, 0.022], { segments: 9, base: red, tip: black })
   return model(b)
 }
 
 export function createHarpyEagleGeometry(seed = 19) {
-  const { b, mass, eye } = kit(seed)
+  const { b, eye } = kit(seed)
   const { grey, dark, white, beak, leg, claw } = C.harpy
-  // a harpy eagle: upright, slate back, white front, a split crest, huge yellow legs and black talons
-  mass(v(0, 0.55, 0), 0.21, [0.75, 1.45, 0.85], grey, grey.clone().multiplyScalar(0.7), { detail: 2, lumpy: 0.02 })
-  mass(v(0, 0.52, 0.06), 0.17, [0.8, 1.3, 0.7], white, white.clone().multiplyScalar(0.8), { detail: 1, lumpy: 0 })
-  mass(v(0, 0.66, 0.1), 0.13, [1.3, 0.3, 0.45], dark, dark, { detail: 1, lumpy: 0 })
+  // a harpy eagle: upright, a slate back and folded wings (painted dark down the sides), a white
+  // front, a grey head with a split crest, huge yellow legs and black talons: one smooth body
+  const S = [[0.24, -0.08, 0.05, 0.05], [0.32, -0.07, 0.11, 0.11], [0.45, -0.02, 0.16, 0.15], [0.6, 0, 0.19, 0.17], [0.72, 0.02, 0.17, 0.15],
+    [0.8, 0.05, 0.12, 0.11], [0.88, 0.08, 0.1, 0.1], [0.95, 0.1, 0.1, 0.1], [1.0, 0.11, 0.04, 0.04], [1.02, 0.11, 0.01, 0.01]]
+  uprightLoft(b, S, {
+    back: grey,
+    belly: white,
+    paint: (h, u, c, side) => {
+      if (h > 0.78) c.lerp(grey.clone().lerp(white, 0.2), 0.8)
+      if (h > 0.64 && h < 0.8 && u < 0.2) c.lerp(dark, 0.55 * smoothstep(0.64, 0.7, h))
+      if (Math.abs(side) > 0.4 && u > -0.4 && h < 0.74 && h > 0.26) c.lerp(dark, 0.7)
+      if (h < 0.35) c.lerp(grey, 0.5)
+    },
+  })
   for (const s of mirror) {
-    leaf(b, v(s * 0.15, 0.75, -0.03), v(s * 0.1, -1, -0.45), 0.5, 0.13, grey, dark, { droop: 0.02, fold: 0.1, curl: 0.05, roll: s * 0.1 })
-    tube(b, [v(s * 0.07, 0.3, 0.02), v(s * 0.075, 0.15, 0.04), v(s * 0.08, 0.03, 0.06)], [0.032, 0.026, 0.024], { segments: 9, base: leg, tip: leg })
-    for (const dx of [-0.03, 0, 0.03]) tube(b, [v(s * 0.08, 0.03, 0.06), v(s * 0.08 + dx, 0.012, 0.13)], [0.018, 0.007], { segments: 4, base: claw, tip: claw })
+    tube(b, [v(s * 0.08, 0.32, 0.02), v(s * 0.085, 0.16, 0.04), v(s * 0.09, 0.03, 0.06)], [0.04, 0.03, 0.026], { segments: 9, base: leg, tip: leg })
+    for (const dx of [-0.03, 0, 0.03]) tube(b, [v(s * 0.09, 0.03, 0.06), v(s * 0.09 + dx, 0.012, 0.13)], [0.02, 0.007], { segments: 4, base: claw, tip: claw })
+    eye(s * 0.097, 0.945, 0.14, 0.013)
   }
-  tube(b, [v(0, 0.28, -0.07), v(0, 0.12, -0.17), v(0, 0.06, -0.3)], [0.07, 0.065, 0.055], { segments: 9, base: dark, tip: grey })
-  tube(b, [v(0, 0.78, 0.04), v(0, 0.9, 0.08)], [0.08, 0.075], { segments: 9, base: grey, tip: grey })
-  mass(v(0, 0.92, 0.1), 0.095, [1.0, 1.0, 1.0], grey, grey.clone().multiplyScalar(0.8), { detail: 2, lumpy: 0.01 })
-  mass(v(0, 0.88, 0.14), 0.07, [1, 0.9, 0.8], white.clone().lerp(grey, 0.35), grey, { detail: 1, lumpy: 0 })
-  for (const k of [-1, 0, 1]) leaf(b, v(0, 0.98, 0.03), v(k * 0.4, 0.5, -1), 0.14, 0.03, dark, grey, { droop: 0.05, fold: 0.1, curl: 0.05 })
-  tube(b, bezier(v(0, 0.91, 0.18), v(0, 0.95, 0.26), v(0, 0.84, 0.29), 5), [0.04, 0.038, 0.032, 0.024, 0.014, 0.005], { segments: 9, base: beak, tip: beak })
-  for (const s of mirror) eye(s * 0.06, 0.93, 0.15, 0.013)
+  tube(b, [v(0, 0.3, -0.08), v(0, 0.12, -0.17), v(0, 0.06, -0.3)], [0.075, 0.068, 0.058], { segments: 9, base: dark, tip: grey })
+  for (const k of [-1, 0, 1]) leaf(b, v(0, 1.0, 0.05), v(k * 0.4, 0.5, -1), 0.14, 0.032, dark, grey, { droop: 0.05, fold: 0.1, curl: 0.05 })
+  tube(b, bezier(v(0, 0.92, 0.19), v(0, 0.97, 0.27), v(0, 0.85, 0.3), 5), [0.045, 0.042, 0.035, 0.026, 0.015, 0.005], { segments: 9, base: beak, tip: beak })
   return model(b)
 }
+
 
 export const AMAZON_FAUNA_BUILDERS = Object.freeze({
   capybara: createCapybaraGeometry,
