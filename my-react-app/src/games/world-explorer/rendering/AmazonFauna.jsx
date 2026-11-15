@@ -7,13 +7,17 @@ import { useEffect, useMemo } from 'react'
 import { DoubleSide, MeshPhysicalMaterial } from 'three'
 import { AMAZON_FAUNA, AMAZON_FAUNA_BUILDERS } from './amazonFauna.js'
 import { contactShadowTexture } from './amazonGroundShadow.js'
+import { createCoatMaterial } from './amazonCoatMaterial.js'
 
 // one material and one shadow texture for every animal, made the first time they are needed
 let material = null
+let coat = null
 let shadowTexture = null
 // a satin finish, like a painted and varnished sculpture; a good deal of self-light, so the animals
 // keep their colour in the dim forest instead of sinking into it
 const statueMaterial = () => (material ??= new MeshPhysicalMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.5, side: DoubleSide, emissive: '#4a4030', emissiveIntensity: 0.5 }))
+// the jaguar's coat is worked out per pixel: rosettes, spots and the rings of its tail
+const jaguarMaterial = () => (coat ??= createCoatMaterial())
 const shadow = () => (shadowTexture ??= contactShadowTexture())
 
 /** A soft shadow on the ground under an animal, as long as the animal is (its model faces +z). */
@@ -40,7 +44,7 @@ export default function AmazonFauna({ fauna }) {
   return fauna.map((animal, index) => (
     <group key={index} position={[animal.x, animal.y ?? 0, animal.z]} rotation-y={animal.rot ?? 0}>
       <GroundShadow type={animal.type} />
-      <mesh geometry={geometries[animal.type]} material={statueMaterial()} castShadow receiveShadow />
+      <mesh geometry={geometries[animal.type]} material={animal.type === 'jaguar' ? jaguarMaterial() : statueMaterial()} castShadow receiveShadow />
     </group>
   ))
 }

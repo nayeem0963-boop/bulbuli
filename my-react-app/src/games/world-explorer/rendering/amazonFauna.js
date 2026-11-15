@@ -63,6 +63,8 @@ const C = {
   howler: { black: linear('#1c1410'), red: linear('#8a3a1a'), face: linear('#2a1d16') },
   harpy: { grey: linear('#6a707a'), dark: linear('#262a30'), white: linear('#eeeae0'), beak: linear('#2a2a2c'), leg: linear('#d8c24a'), claw: linear('#1a1a1c') },
   eye: linear('#100c0a'),
+  iris: linear('#b58a2a'),
+  nose: linear('#5a3a38'),
   shine: linear('#ffffff'),
 }
 
@@ -109,17 +111,31 @@ function kit(seed) {
   const out = b
   // big masses are finely subdivided (up to 1,280 faces) so bodies read as smooth sculpture; small details keep what they ask for
   const mass = (center, radius, scale, light, dark, { detail = 2, lumpy = 0.03 } = {}) => blob(out, center, radius, scale, { detail: radius >= 0.1 ? Math.min(3, detail + 1) : detail, random, light, dark, lumpy })
-  const eye = (x, y, z, size = 0.016) => {
-    mass(v(x, y, z), size, [1, 1, 0.8], C.eye, C.eye, { detail: 1, lumpy: 0 })
-    mass(v(x + Math.sign(x) * size * 0.35, y + size * 0.4, z + size * 0.4), size * 0.28, [1, 1, 1], C.shine, C.shine, { detail: 0, lumpy: 0 })
+  const eye = (x, y, z, size = 0.016, iris = C.iris) => {
+    // an amber iris, a dark pupil in front of it, and a small bright catch-light
+    const out_ = Math.sign(x) || 1
+    mass(v(x, y, z), size * 1.15, [0.9, 1, 0.8], iris, iris.clone().multiplyScalar(0.7), { detail: 1, lumpy: 0 })
+    mass(v(x + out_ * size * 0.4, y, z + size * 0.15), size * 0.6, [0.6, 1, 0.8], C.eye, C.eye, { detail: 1, lumpy: 0 })
+    mass(v(x + out_ * size * 0.75, y + size * 0.4, z + size * 0.45), size * 0.22, [1, 1, 1], C.shine, C.shine, { detail: 0, lumpy: 0 })
   }
   /** A leg from the body down to a foot with a padded sole. */
   const leg = (hip, knee, foot, widths, base, tip, pad = tip.clone().multiplyScalar(0.7), padSize = 0.05) => {
-    // a limb that tapers like a real one: stout at the hip, narrowest above the knee, a swell of
-    // calf, slim at the ankle, then a padded paw with toes
-    const upper = hip.clone().lerp(knee, 0.5)
-    const lower = knee.clone().lerp(foot, 0.5)
-    tube(out, [hip, upper, knee, lower, foot], [widths[0] * 1.32, widths[0] * 0.95, widths[1] * 1.0, widths[1] * 0.82, widths[2] * 0.95], { segments: 9, base, tip, random, mottle: 0.04, cap: false })
+    // a limb sculpted from sections, not a tube: a thick, fore-aft-deep thigh, a knee, a lean shin,
+    // an ankle and a broad paw; each section is an ellipse (wider fore-aft than side to side)
+    const along = (a, c, t) => a.clone().lerp(c, t)
+    const sections = [
+      [foot, widths[2] * 1.0, widths[2] * 1.2],
+      [along(knee, foot, 0.88), widths[2] * 0.86, widths[2] * 0.98],
+      [along(knee, foot, 0.5), widths[1] * 0.82, widths[1] * 1.0],
+      [knee, widths[1] * 1.04, widths[1] * 1.22],
+      [along(hip, knee, 0.5), widths[0] * 1.12, widths[0] * 1.45],
+      [hip, widths[0] * 1.15, widths[0] * 1.5],
+      // the top of the leg tapers away inside the body, so no cap shows on its flank
+      [hip.clone().add(v(-Math.sign(hip.x) * hip.x * 0.0 - hip.x * 0.45, hip.y * 0.2, 0)), widths[0] * 0.8, widths[0] * 1.15],
+    ]
+    const stations = sections.map(([p, rx, rd]) => [p.y, p.z, rx, rd, p.x])
+    const reach = Math.max(1e-3, hip.y - foot.y)
+    uprightLoft(out, stations, { back: base, belly: base, segments: 12, steps: 2, paint: (h, u, c) => c.lerp(tip, 0.9 * smoothstep(0.25, 1, (hip.y - h) / reach)) })
     mass(v(foot.x, Math.max(foot.y, padSize * 0.5), foot.z + padSize * 0.5), padSize, [1, 0.55, 1.3], pad, pad, { detail: 1, lumpy: 0 })
     for (const k of [-1, 0, 1]) mass(v(foot.x + k * padSize * 0.55, Math.max(foot.y, padSize * 0.4) * 0.55, foot.z + padSize * 1.15 - Math.abs(k) * padSize * 0.15), padSize * 0.3, [1, 0.8, 1.2], pad, pad.clone().multiplyScalar(0.8), { detail: 1, lumpy: 0 })
   }
@@ -148,7 +164,7 @@ function stationAt(stations, f) {
   const i = Math.max(0, Math.min(last - 1, Math.floor(f)))
   const u = f - i
   const at = (k) => stations[Math.max(0, Math.min(last, k))]
-  return [0, 1, 2, 3].map((c) => spline(at(i - 1)[c], at(i)[c], at(i + 1)[c], at(i + 2)[c], u))
+  return [0, 1, 2, 3, 4].map((c) => spline(at(i - 1)[c] ?? 0, at(i)[c] ?? 0, at(i + 1)[c] ?? 0, at(i + 2)[c] ?? 0, u))
 }
 
 /** The body's middle height and half sizes at z (for putting spots and ridges on its skin). */
@@ -226,7 +242,7 @@ function uprightLoft(builder, stations, { back, belly, paint = null, segments = 
   const rings = (stations.length - 1) * steps + 1
   const grid = []
   for (let r = 0; r < rings; r += 1) {
-    const [h, depth, rx0, rd0] = stationAt(stations, r / steps)
+    const [h, depth, rx0, rd0, dx] = stationAt(stations, r / steps)
     const rx = Math.max(0.004, rx0)
     const rd = Math.max(0.004, rd0)
     const ring = []
@@ -235,9 +251,9 @@ function uprightLoft(builder, stations, { back, belly, paint = null, segments = 
       const u = -Math.sin(a)
       const colour = belly.clone().lerp(back, smoothstep(-0.55, 0.35, u))
       if (paint) paint(h, u, colour, Math.cos(a))
-      ring.push({ position: v(Math.cos(a) * rx, h, depth + Math.sin(a) * rd), colour })
+      ring.push({ position: v(dx + Math.cos(a) * rx, h, depth + Math.sin(a) * rd), colour })
     }
-    grid.push({ ring, centre: v(0, h, depth), colour: belly.clone().lerp(back, 0.5) })
+    grid.push({ ring, centre: v(dx, h, depth), colour: belly.clone().lerp(back, 0.5) })
   }
   for (let r = 1; r < rings; r += 1) {
     for (let k = 0; k < segments; k += 1) {
@@ -281,40 +297,29 @@ export function createCapybaraGeometry(seed = 1) {
 }
 
 export function createJaguarGeometry(seed = 2) {
-  const { b, mass, eye, leg, random } = kit(seed)
+  const { b, mass, eye, leg } = kit(seed)
   const { gold, dark, belly } = C.jag
-  // a muscular cat standing, head low: haunch, waist, deep chest, neck, skull and muzzle are one surface
-  const S = [[-0.7, 0.56, 0.03, 0.03], [-0.62, 0.58, 0.12, 0.13], [-0.45, 0.59, 0.165, 0.185], [-0.2, 0.585, 0.15, 0.175], [0.05, 0.585, 0.155, 0.185],
-    [0.3, 0.6, 0.17, 0.21], [0.5, 0.62, 0.145, 0.185], [0.66, 0.63, 0.11, 0.14], [0.8, 0.6, 0.115, 0.125], [0.93, 0.565, 0.112, 0.112],
-    [1.03, 0.53, 0.07, 0.072], [1.1, 0.515, 0.045, 0.048], [1.13, 0.51, 0.02, 0.02]]
-  loft(b, S, { back: gold, belly: belly.clone().lerp(gold, 0.15), paint: (z, u, c) => { if (z > 1.0) c.lerp(belly, 0.7 * smoothstep(1.0, 1.1, z)) } })
+  // a muscular cat: deep chest, a tucked waist, powerful shoulders and haunches, a thick neck, a broad
+  // skull and a pale muzzle, all one surface. The rosettes and the tail's rings are the coat shader's
+  // (rendering/amazonCoatMaterial.js), worked out from where on the body they fall.
+  const S = [[-0.7, 0.56, 0.03, 0.03], [-0.62, 0.58, 0.12, 0.13], [-0.45, 0.59, 0.172, 0.2], [-0.25, 0.58, 0.15, 0.175], [-0.05, 0.575, 0.135, 0.165],
+    [0.15, 0.585, 0.15, 0.2], [0.3, 0.6, 0.185, 0.23], [0.46, 0.62, 0.175, 0.215], [0.6, 0.635, 0.15, 0.175], [0.74, 0.625, 0.145, 0.16],
+    [0.85, 0.595, 0.152, 0.148], [0.94, 0.565, 0.135, 0.128], [1.0, 0.54, 0.1, 0.092], [1.05, 0.525, 0.072, 0.066], [1.085, 0.518, 0.03, 0.03]]
+  loft(b, S, { back: gold, belly: belly.clone().lerp(gold, 0.1), paint: (z, u, c) => { if (z > 0.95) c.lerp(belly, 0.55 * smoothstep(0.95, 1.07, z)); if (u < -0.6 && z > 0.5) c.lerp(belly, 0.5) } })
   for (const s of mirror) {
-    leg(v(s * 0.13, 0.52, 0.36), v(s * 0.16, 0.27, 0.38), v(s * 0.16, 0.03, 0.4), [0.095, 0.07, 0.06], gold, gold.clone().lerp(belly, 0.25), dark.clone().lerp(gold, 0.4), 0.06)
-    leg(v(s * 0.14, 0.53, -0.46), v(s * 0.2, 0.29, -0.52), v(s * 0.17, 0.03, -0.44), [0.105, 0.07, 0.06], gold, gold.clone().lerp(belly, 0.25), dark.clone().lerp(gold, 0.4), 0.06)
-    mass(v(s * 0.088, 0.705, 0.82), 0.04, [0.9, 1, 0.6], gold, dark, { detail: 1, lumpy: 0 })
-    eye(s * 0.094, 0.585, 0.965, 0.016)
+    leg(v(s * 0.125, 0.52, 0.36), v(s * 0.15, 0.27, 0.39), v(s * 0.155, 0.04, 0.4), [0.115, 0.082, 0.078], gold, gold.clone().lerp(belly, 0.2), gold.clone().lerp(dark, 0.3), 0.1)
+    leg(v(s * 0.13, 0.54, -0.46), v(s * 0.19, 0.3, -0.53), v(s * 0.165, 0.04, -0.44), [0.125, 0.085, 0.078], gold, gold.clone().lerp(belly, 0.2), gold.clone().lerp(dark, 0.3), 0.1)
+    // round ears with a pale spot behind, bright amber eyes, whisker pads and a defined mouth
+    mass(v(s * 0.105, 0.715, 0.8), 0.06, [0.85, 1, 0.55], gold, dark, { detail: 1, lumpy: 0 })
+    mass(v(s * 0.108, 0.72, 0.772), 0.033, [0.8, 1, 0.4], belly, belly, { detail: 1, lumpy: 0 })
+    eye(s * 0.139, 0.598, 0.9, 0.021)
+    mass(v(s * 0.05, 0.5, 1.0), 0.04, [1, 0.85, 1.05], belly, belly.clone().multiplyScalar(0.85), { detail: 1, lumpy: 0 })
+    tube(b, [v(s * 0.014, 0.508, 1.1), v(s * 0.026, 0.488, 1.085), v(s * 0.058, 0.482, 1.02), v(s * 0.085, 0.5, 0.94)], [0.006, 0.0055, 0.0055, 0.0045], { segments: 5, base: dark, tip: dark })
+    for (let k = 0; k < 4; k += 1) tube(b, [v(s * 0.055, 0.505 - k * 0.006, 1.03), v(s * (0.15 + k * 0.012), 0.505 + (k - 1.5) * 0.026, 0.98 - k * 0.012), v(s * (0.25 + k * 0.014), 0.5 + (k - 1.5) * 0.04, 0.91 - k * 0.025)], [0.0016, 0.0014, 0.0008], { segments: 4, base: belly, tip: belly })
   }
-  mass(v(0, 0.515, 1.1), 0.026, [1.2, 0.8, 0.8], C.eye, C.eye, { detail: 0, lumpy: 0 })
-  tube(b, cubic(v(0, 0.6, -0.66), v(0, 0.5, -1.0), v(0, 0.2, -1.1), v(0, 0.5, -1.3), 8), [0.06, 0.055, 0.05, 0.048, 0.045, 0.042, 0.04, 0.036, 0.034], { segments: 9, base: gold, tip: dark })
-  // rosettes on the flank and back: rings of dark spots, a dark spot in the middle of some
-  for (let i = 0; i < 22; i += 1) {
-    const z = -0.62 + random() * 1.05
-    const side = random() < 0.5 ? -1 : 1
-    const around = (random() - 0.15) * 1.3
-    const { y, rx, ry } = sectionAt(S, z)
-    const cx = side * Math.sin(around) * rx * 1.005
-    const cy = y + Math.cos(around) * ry * 1.005
-    const tx = side * Math.cos(around) * rx
-    const ty = -Math.sin(around) * ry
-    const tl = Math.hypot(tx, ty) || 1
-    const radius = 0.036 + random() * 0.014
-    for (let k = 0; k < 6; k += 1) {
-      const a = (k / 6) * Math.PI * 2 + random() * 0.3
-      const round = Math.cos(a) * radius
-      mass(v(cx + (tx / tl) * round, cy + (ty / tl) * round, z + Math.sin(a) * radius * 1.15), 0.0115, [1, 1, 0.45], dark, dark, { detail: 0, lumpy: 0 })
-    }
-    if (i % 3 === 0) mass(v(cx, cy, z), 0.008, [1, 1, 0.45], dark, dark, { detail: 0, lumpy: 0 })
-  }
+  mass(v(0, 0.472, 1.0), 0.046, [0.9, 0.7, 1.1], belly, belly.clone().multiplyScalar(0.85), { detail: 1, lumpy: 0 })
+  mass(v(0, 0.522, 1.095), 0.033, [1.2, 0.85, 0.9], C.nose, C.nose, { detail: 1, lumpy: 0 })
+  tube(b, cubic(v(0, 0.6, -0.66), v(0, 0.5, -1.0), v(0, 0.2, -1.1), v(0, 0.5, -1.3), 8), [0.065, 0.06, 0.055, 0.052, 0.049, 0.046, 0.044, 0.04, 0.038], { segments: 9, base: gold, tip: gold })
   return model(b)
 }
 
