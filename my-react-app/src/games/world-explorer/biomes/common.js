@@ -15,6 +15,7 @@ import { amazonBoughs, amazonTreeHeight } from '../rendering/amazonTrees.js'
 import { MANGROVE_FORMS, mangroveBoughs } from '../rendering/mangroveTrees.js'
 import { scatterBiomeAssets } from '../rendering/scattering.js'
 import { SURROUND } from '../rendering/saharaSurround.js'
+import { stallRoofAt } from '../rendering/saharaCaravan.js'
 import { amazonPlacement, boughColliders, sundarbansPlacement } from './boughs.js'
 import { createColliderIndex } from './colliderIndex.js'
 import { ROCK_STEP, duneHeightAt, duneReach, rockTopAt } from './sandShapes.js'
@@ -158,6 +159,29 @@ export function collidersFor(biome) {
         })
       }
     }
+  })
+  // Decor (the Sahara's caravan, stalls and extra palms): each solid piece is one cylinder
+  ;(biome.decor ?? []).forEach((piece, i) => {
+    if (!piece.solid) return
+    out.push({
+      id: `decor-${i}`,
+      kind: 'prop',
+      x: piece.x,
+      z: piece.z,
+      r: piece.solid.r,
+      supportRadius: piece.solid.r,
+      top: (piece.y ?? 0) + piece.solid.top,
+      bottom: -5,
+      walkable: Boolean(piece.solid.roof),
+      surfaceType: piece.solid.roof ? 'roof' : undefined,
+      // a stall's awning carries the bird on the sloping, sagging cloth that is drawn
+      heightAt: piece.type === 'stall' ? (x, z) => {
+        const rot = piece.rot ?? 0
+        const dx = x - piece.x
+        const dz = z - piece.z
+        return (piece.y ?? 0) + stallRoofAt(dx * Math.cos(rot) - dz * Math.sin(rot), dx * Math.sin(rot) + dz * Math.cos(rot))
+      } : undefined,
+    })
   })
   const scatteredAssets = scatterBiomeAssets(biome)
   scatteredAssets.forEach((asset, i) => {

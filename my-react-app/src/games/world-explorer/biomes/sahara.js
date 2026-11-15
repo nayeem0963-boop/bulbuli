@@ -5,6 +5,7 @@
 import { disc, linksFrom, scatter } from './common.js'
 import { TERRAIN_FOOTPRINT_SCALE } from '../rendering/terrain.js'
 import { rockContactRadius } from './sandShapes.js'
+import { PACK_CAMEL, STALL, TRADER } from '../rendering/saharaCaravan.js'
 
 /**
  * The three steps and the dry bed are drawn at exactly the size that is solid (terrain.js draws
@@ -62,10 +63,34 @@ const props = [
   { type: 'dryRiver', x: 18, y: BED_TOP + 0.02, z: -8, rot: 0.6 },
 ]
 
+/**
+ * Life round the oasis (rendering/saharaCaravan.js): a caravan of loaded camels coming in to the
+ * water, market stalls, more date palms, and a mud-brick fort far out in the desert.
+ *
+ * Kept apart from `props` on purpose: the scenery scatter and the prop colliders are built from
+ * `props`, and neither may shift. Each piece stands on bare sand, clear of the stations, the
+ * rocks and the acacias (saharaCaravan.test.js). `solid` is its collider: a cylinder `r` wide
+ * and `top` tall; `roof` lets Bulbuli land on it. The fort has none: it is beyond the map.
+ */
+const WEST = -Math.PI / 2 // a model that faces +z, turned to walk towards the oasis
+const decor = [
+  { type: 'trader', x: -5.6, z: -1.3, rot: WEST, seed: 3, staff: true, solid: { r: TRADER.radius, top: TRADER.top } },
+  { type: 'packCamel', x: -2.6, z: -1.5, rot: WEST, seed: 11, solid: { r: PACK_CAMEL.radius, top: PACK_CAMEL.top } },
+  { type: 'packCamel', x: 0.7, z: -1.2, rot: WEST + 0.06, seed: 12, solid: { r: PACK_CAMEL.radius, top: PACK_CAMEL.top } },
+  { type: 'packCamel', x: 4.0, z: -1.6, rot: WEST - 0.05, seed: 13, solid: { r: PACK_CAMEL.radius, top: PACK_CAMEL.top } },
+  { type: 'stall', x: -18.2, z: 10, rot: 1.9, seed: 5, solid: { r: STALL.radius, top: STALL.top, roof: true } },
+  { type: 'trader', x: -20.0, z: 10.6, rot: 1.9, seed: 8, solid: { r: TRADER.radius, top: TRADER.top } },
+  { type: 'stall', x: -6.4, z: 6.4, rot: -2.2, seed: 6, solid: { r: STALL.radius, top: STALL.top, roof: true } },
+  { type: 'datePalm', x: -13.6, z: 11.7, scale: 1.0, seed: 41, solid: { r: 0.3, top: 4 } },
+  { type: 'datePalm', x: -9.2, z: 11.6, scale: 1.15, seed: 42, solid: { r: 0.3, top: 4.6 } },
+  { type: 'datePalm', x: -5.0, z: 8.6, scale: 0.85, seed: 43, solid: { r: 0.3, top: 3.4 } },
+  { type: 'fort', x: -55, z: 52.5, rot: 2.33 },
+]
+
 export const SAHARA_MAP = Object.freeze({
   id: 'sahara',
   sky: { top: '#7fb8e6', bottom: '#fbe9c8', fog: '#f1dcb6', dark: { top: '#101a3a', bottom: '#3b2e4a', fog: '#2a2338' } },
   water: null,
   looks: { gravel: '#c9a46f', sand: '#e6c07e', ridge: '#e8c27f', valley: '#a8875c' },
-  discs, links, stations, spawn, props,
+  discs, links, stations, spawn, props, decor,
 })

@@ -15,7 +15,7 @@ import { mulberry32 } from '../../../core/rng.js'
 import { bezier, blob, createBuilder, cubic, leaf, linear, strip, tube, v } from './mangroveGeometry.js'
 
 /** Welds shared corners so the mesh shades smoothly (as giantTree.js does). */
-function finish(builder) {
+export function finish(builder) {
   const geometry = builder.build()
   geometry.deleteAttribute('normal')
   const welded = mergeVertices(geometry, 1e-4)
