@@ -70,6 +70,6 @@ export function createCoatMaterial() {
           diffuseColor.rgb = mix(diffuseColor.rgb, black, 0.98 * dark);
         }`)
   }
-  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v7'
+  material.customProgramCacheKey = () => 'wx-amazon-jaguar-coat-v8'
   return material
 }

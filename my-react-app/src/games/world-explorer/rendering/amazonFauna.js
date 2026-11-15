@@ -345,9 +345,9 @@ export function createJaguarGeometry(seed = 2) {
     [0.6, 0.615, 0.15, 0.15, 0, 0.15], [0.72, 0.62, 0.14, 0.14, 0, 0.13], [0.83, 0.6, 0.15, 0.125, 0, 0.135], [0.9, 0.585, 0.153, 0.118, 0, 0.125], [0.955, 0.57, 0.14, 0.112, 0, 0.115],
     [0.99, 0.555, 0.118, 0.1, 0, 0.1], [1.035, 0.543, 0.094, 0.088, 0, 0.082], [1.08, 0.533, 0.078, 0.075, 0, 0.065], [1.105, 0.529, 0.062, 0.06, 0, 0.048], [1.125, 0.526, 0.035, 0.04], [1.135, 0.526, 0.012, 0.012],
   ]
-  // a big, heavy head, as a jaguar has: the sections from the neck forward are 12% larger
+  // a big, heavy head, as a jaguar has: the sections from the neck forward are 16% larger
   for (let n = 0; n < S.length; n += 1) {
-    if (S[n][0] >= 0.76) { const st = S[n]; S[n] = [st[0], st[1], st[2] * 1.12, st[3] * 1.12, st[4] ?? 0, (st[5] ?? st[3]) * 1.12] }
+    if (S[n][0] >= 0.76) { const st = S[n]; S[n] = [st[0], st[1], st[2] * 1.16, st[3] * 1.16, st[4] ?? 0, (st[5] ?? st[3]) * 1.16] }
   }
   loft(b, S, {
     back: gold,
@@ -399,27 +399,29 @@ export function createJaguarGeometry(seed = 2) {
     // each eye: an almond, slanted down towards the nose (a dark rim, an olive-amber iris, a round
     // pupil, a catch-light), with an eyeliner, a brow above it, pale fur at the inner corner and a
     // dark tear-line down the side of the nose
-    const e = at(0.975, 38, side, 0.985)
+    const e = at(1.015, 62, side, 0.985)
     const slant = side * 0.22
-    solid(b, v(e.x, e.y, e.z - 0.004), [0.043, 0.026, 0.0145], [0, 0, -slant], dark.clone().lerp(gold, 0.15), dark, 1)
-    solid(b, v(e.x, e.y, e.z + 0.003), [0.039, 0.024, 0.0135], [0, 0, -slant], C.iris.clone().lerp(gold, 0.15), C.iris.clone().multiplyScalar(0.6), 1)
-    solid(b, v(e.x + side * 0.003, e.y, e.z + 0.012), [0.0155, 0.0155, 0.007], [0, 0, 0], C.eye, C.eye, 1)
+    solid(b, v(e.x, e.y, e.z - 0.004), [0.054, 0.032, 0.015], [0, 0, -slant], dark.clone().lerp(gold, 0.3), dark, 1)
+    solid(b, v(e.x, e.y, e.z + 0.003), [0.046, 0.0285, 0.014], [0, 0, -slant], C.iris.clone().lerp(gold, 0.15), C.iris.clone().multiplyScalar(0.6), 1)
+    solid(b, v(e.x + side * 0.003, e.y, e.z + 0.012), [0.0185, 0.0185, 0.007], [0, 0, 0], C.eye, C.eye, 1)
     mass(v(e.x + side * 0.009, e.y + 0.007, e.z + 0.0175), 0.0036, [1, 1, 1], C.shine, C.shine, { detail: 0, lumpy: 0 })
-    const brow = at(0.96, 56, side, 1.0)
+    const brow = at(1.0, 76, side, 1.0)
     solid(b, v(brow.x, brow.y + 0.004, brow.z), [0.044, 0.012, 0.02], [0.1, 0, -side * 0.28], gold.clone().multiplyScalar(0.95), gold.clone().multiplyScalar(0.7), 1)
-    const inner = at(1.0, 30, side, 0.995)
-    solid(b, v(inner.x * 0.9, inner.y - 0.006, inner.z), [0.017, 0.012, 0.014], [0, 0, 0], belly, belly.clone().multiplyScalar(0.8), 1)
-    tube(b, [at(1.0, 28, side, 1.011), at(1.04, 17, side, 1.011), at(1.08, 5, side, 1.011)], [0.0038, 0.0045, 0.0035], { segments: 5, base: dark, tip: dark })
+    const inner = at(1.035, 56, side, 0.975)
+    solid(b, v(inner.x * 0.85, inner.y - 0.004, inner.z), [0.022, 0.015, 0.005], [0, 0, 0], belly.clone().lerp(gold, 0.35), belly.clone().lerp(gold, 0.35).multiplyScalar(0.9), 1)
+    const under = at(1.03, 42, side, 0.98)
+    solid(b, v(under.x, under.y, under.z), [0.03, 0.012, 0.005], [0, 0, 0], belly.clone().lerp(gold, 0.35), belly.clone().lerp(gold, 0.35).multiplyScalar(0.9), 1)
+    tube(b, [at(1.04, 52, side, 1.011), at(1.07, 34, side, 1.011), at(1.1, 14, side, 1.011)], [0.0038, 0.0045, 0.0035], { segments: 5, base: dark, tip: dark })
     // the ear: rounded, wide-set, leaning out, a dark back with a pale patch, pale inner fur
     const ear = at(0.82, 58, side, 1.0)
     const lean = side * 0.42
-    solid(b, v(ear.x, ear.y + 0.022, ear.z - 0.008), [0.046, 0.051, 0.014], [-0.25, 0, -lean], gold.clone().lerp(dark, 0.78), dark, 2)
-    solid(b, v(ear.x + side * 0.001, ear.y + 0.024, ear.z - 0.02), [0.026, 0.029, 0.006], [-0.25, 0, -lean], belly, belly, 1)
-    solid(b, v(ear.x - side * 0.002, ear.y + 0.022, ear.z + 0.006), [0.037, 0.042, 0.01], [-0.25, 0, -lean], belly.clone().lerp(gold, 0.55), gold.clone().lerp(dark, 0.2), 1)
+    solid(b, v(ear.x, ear.y + 0.022, ear.z - 0.008), [0.05, 0.056, 0.014], [-0.25, 0, -lean], gold.clone().lerp(dark, 0.78), dark, 2)
+    solid(b, v(ear.x + side * 0.001, ear.y + 0.024, ear.z - 0.02), [0.031, 0.035, 0.006], [-0.25, 0, -lean], belly, belly, 1)
+    solid(b, v(ear.x - side * 0.002, ear.y + 0.022, ear.z + 0.006), [0.045, 0.051, 0.011], [-0.25, 0, -lean], belly.clone().lerp(gold, 0.55), gold.clone().lerp(dark, 0.2), 1)
     // lips, mouth and whisker pad
     tube(b, [at(1.12, -5, side, 1.012), at(1.095, -18, side, 1.012), at(1.05, -24, side, 1.012), at(0.99, -16, side, 1.012)], [0.0042, 0.0042, 0.0042, 0.0034], { segments: 5, base: dark, tip: dark })
     solid(b, v(side * 0.044, 0.505, 1.045), [0.043, 0.033, 0.038], [0, 0, side * 0.2], belly, belly.clone().multiplyScalar(0.85), 1)
-    for (let r = 0; r < 3; r += 1) for (let d = 0; d < 3; d += 1) mass(v(side * (0.03 + d * 0.016), 0.52 - r * 0.012, 1.085 - d * 0.02 - r * 0.012), 0.0042, [1, 1, 0.6], dark, dark, { detail: 0, lumpy: 0 })
+    for (let r = 0; r < 4; r += 1) for (let d = 0; d < 4; d += 1) mass(v(side * (0.028 + d * 0.016), 0.522 - r * 0.012, 1.09 - d * 0.02 - r * 0.012), 0.0058, [1, 1, 0.6], dark, dark, { detail: 0, lumpy: 0 })
     mass(v(side * 0.009, 0.531, 1.15), 0.0055, [1, 1, 0.8], C.eye, C.eye, { detail: 0, lumpy: 0 })
     for (let k = 0; k < 5; k += 1) tube(b, [v(side * 0.05, 0.505 - k * 0.005, 1.04), v(side * (0.11 + k * 0.01), 0.505 + (k - 2) * 0.02, 1.0 - k * 0.01), v(side * (0.17 + k * 0.012), 0.5 + (k - 2) * 0.03, 0.96 - k * 0.02)], [0.0013, 0.0011, 0.0006], { segments: 4, base: belly, tip: belly })
   }
