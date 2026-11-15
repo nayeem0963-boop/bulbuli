@@ -10,7 +10,8 @@ import { AMAZON_FAUNA_BUILDERS } from './amazonFauna.js'
 function Statue({ geometry }) {
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
-      <meshStandardMaterial vertexColors roughness={0.88} metalness={0} side={2} />
+      {/* a little self-light, so the animals do not sink into the dim forest */}
+      <meshStandardMaterial vertexColors roughness={0.82} metalness={0} side={2} emissive="#3a3226" emissiveIntensity={0.4} />
     </mesh>
   )
 }
