@@ -25,6 +25,7 @@ import jaguarUrl from '../assets/jaguar.glb?url'
 import anacondaUrl from '../assets/anaconda.glb?url'
 import eagleUrl from '../assets/harpy-eagle.glb?url'
 import fishUrl from '../assets/crimson-fangback.glb?url'
+import dolphinUrl from '../assets/dolphin.glb?url'
 import hoatzinUrl from '../assets/hoatzin.glb?url'
 import macawUrl from '../assets/macaw-flying.glb?url'
 import blueMacawUrl from '../assets/macaw-blue-yellow.glb?url'
@@ -86,6 +87,7 @@ const MODELS = Object.freeze({
   toucan: { url: toucanUrl, tune: tuneJaguar },
   morpho: { url: morphoUrl, tune: tuneJaguar },
   fish: { url: fishUrl, tune: tuneJaguar },
+  dolphin: { url: dolphinUrl, tune: tuneJaguar },
 })
 
 /**

@@ -7,7 +7,7 @@
  * `radius`/`top`: the cylinder the map makes solid (centred on the model's origin).
  * `length`: how long it is along z (its shadow). `perch`: sits on a branch or platform.
  * `gait`: how it moves when it roams the floor (AmazonFauna.jsx): walk, trot (quick small steps), hop.
- * `gallery`: shown only in the Wildlife Gallery (the Amazon map has no water for the fish).
+ * `gallery`: not one of the forest-floor `fauna`: it swims in a forest pool (`pools`) and is shown in the Wildlife Gallery.
  *
  * Pure data, no THREE: tests and the gallery read it.
  */
@@ -34,6 +34,8 @@ export const AMAZON_FAUNA = Object.freeze({
   toucan: { radius: 0.3, top: 0.67, length: 0.8, perch: false },
   morpho: { radius: 0.15, top: 0.27, length: 0.26, perch: false },
   fish: { radius: 0.35, top: 0.49, length: 1.02, perch: false, gallery: true },
+  // swims in a forest pool (biomes/amazon.js `pools`), and is shown in the gallery
+  dolphin: { radius: 0.4, top: 0.5, length: 1.3, perch: false, gallery: true },
 })
 
 /** Every kind that is a model file, in the order the gallery shows them. */
@@ -98,4 +100,5 @@ export const AMAZON_MODEL_CREDITS = Object.freeze({
   toucan: { file: 'toco-toucan', name: 'Toco toucan (flying)', title: 'Toco Toucan Bird 3D Model Free', author: 'iRahulRajput', authorUrl: 'https://sketchfab.com/rt699448', source: 'https://sketchfab.com/3d-models/toco-toucan-bird-3d-model-free-384e7f893a1d4148b2ced5cb184956b3', license: CC, changes: 'a 424,000-triangle model simplified to about 17,000 triangles, scaled to life size, textures reduced to one JPEG, re-centred; the game moves it round the clearing' },
   morpho: { file: 'morpho', name: 'Blue morpho butterfly', title: 'morpho', author: 'Qween', authorUrl: 'https://sketchfab.com/QweenH', source: 'https://sketchfab.com/3d-models/morpho-0f2f9980584749fda6875b8ef8617b98', license: CC, changes: 'twenty parts joined into one static model, scaled up to a 30 cm wingspan so it can be seen, textures reduced, re-centred; the game moves it round the clearing' },
   fish: { file: 'crimson-fangback', name: 'Crimson fangback (payara)', title: 'Crimson Fangback - fish', author: 'Brian Trepanier (CMBC)', authorUrl: 'https://sketchfab.com/CMBC', source: 'https://sketchfab.com/3d-models/crimson-fangback-fish-6176f566abc3472dabd8ef17ccca4d09', license: CC, changes: 'a 245,000-triangle model simplified to about 14,700 triangles, scaled, textures reduced to one JPEG, re-centred' },
+  dolphin: { file: 'dolphin', name: 'Dolphin', title: 'Game-Ready dolphin (Swimming)', author: 'Allie2k', authorUrl: 'https://sketchfab.com/Allie2k', source: 'https://sketchfab.com/3d-models/game-ready-dolphin-swimming-b621ec8894734bc79c04338edff3cd0d', license: CC, changes: 'the swimming pose baked into a static model (skeleton and animation removed), scaled to 1.3 m, re-centred, colour texture reduced to a 512 px JPEG, normal map dropped; the game moves it round its pool' },
 })

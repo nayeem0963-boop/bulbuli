@@ -12,14 +12,24 @@ export const POOL_BANK = Object.freeze([[1.38, 0.03], [1.55, 0.22], [1.72, 0.33]
 /** The water's surface, a little under the bank's crest (0.33 m), so the lip stands clear of it all the way round. */
 export const POOL_WATER_Y = 0.28
 export const POOL_WATER_R = 1.6
-/** Fish are drawn this fraction of life size: a payara is a metre long, the pool is not. */
-export const FISH_SCALE = 0.75
-
-/** Where a fish is at time t (pool coordinates), and the way it faces (the model faces +z). */
-export function fishAt(fish, t) {
-  const a = fish.dir * (t * fish.speed + fish.phase)
-  const wobble = 1 + 0.12 * Math.sin(t * fish.speed * 0.7 + fish.phase)
-  return { x: Math.cos(a) * fish.r * wobble, z: Math.sin(a) * fish.r * wobble, heading: Math.atan2(-Math.sin(a) * fish.dir, Math.cos(a) * fish.dir) }
+/**
+ * Where a swimmer (a fish or a dolphin) is at time t (pool coordinates): its place on its circle, the way it
+ * faces (the model faces +z), and, if it leaps (`leap`, the height in metres), how far above the water and
+ * how its nose tips (up on the way up, down on the way down).
+ */
+export function swimAt(swimmer, t) {
+  const a = swimmer.dir * (t * swimmer.speed + swimmer.phase)
+  const wobble = 1 + (swimmer.wobble ?? 0.12) * Math.sin(t * swimmer.speed * 0.7 + swimmer.phase)
+  const rise = (time) => (swimmer.leap ? swimmer.leap * Math.max(0, Math.sin(time * swimmer.speed * 0.8 + (swimmer.leapPhase ?? 0))) ** 14 : 0)
+  const y = rise(t)
+  const climb = (rise(t + 0.03) - rise(t - 0.03)) / 0.06
+  return {
+    x: Math.cos(a) * swimmer.r * wobble,
+    z: Math.sin(a) * swimmer.r * wobble,
+    heading: Math.atan2(-Math.sin(a) * swimmer.dir, Math.cos(a) * swimmer.dir),
+    y,
+    pitch: -Math.atan(climb * 0.9),
+  }
 }
 
 /** The water surface is a flat disc; these tilt its normal so it glints as it ripples. */

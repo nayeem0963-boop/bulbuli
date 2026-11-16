@@ -21,7 +21,9 @@ const spot = (index) => [((index % COLS) - (COLS - 1) / 2) * GAP, (Math.floor(in
 /** Where each kind stands in the Amazon, in words. */
 const placed = (kind) => {
   const all = AMAZON_MAP.fauna.filter((a) => a.type === kind)
-  if (!all.length) return 'Not in the forest: the Amazon map has no water, so this one lives only here.'
+  const pools = AMAZON_MAP.pools.filter((pool) => pool.kind === kind)
+  if (!all.length && pools.length) return `${pools[0].swimmers.length} swim in a forest pool on the map${kind === 'dolphin' ? ' (on the open ground to the east)' : ' (at the foot of the giant tree)'}.`
+  if (!all.length) return 'Not on the map: this one lives only here.'
   if (all[0].fly) return `${all.length} fly round over the clearing${kind === 'morpho' ? ', low among the trees' : ''}.`
   if (all[0].y > 0) return `${all.length} perched on the branch and canopy platforms.`
   return `${all.length} on the forest floor.`

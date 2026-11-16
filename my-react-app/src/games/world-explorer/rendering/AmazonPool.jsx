@@ -1,16 +1,16 @@
 /**
- * The Amazon's forest pool: a raised bank of mud round still, dark water, at the foot of the giant
- * tree, with crimson fangbacks (payara, a fish with fangs) circling in it. The fish is a model file
- * like the other animals (AmazonModel.jsx; its tail beats in the shader, amazonMotion.js) and stays
- * below the water, which is see-through enough to show it. The water ripples: its shader tilts the
- * surface normal with slow waves and with rings spreading from each fish, so the sky and the sun
+ * An Amazon forest pool (biomes/amazon.js `pools`): a raised bank of mud round still, dark water, with
+ * crimson fangbacks (payara, a fish with fangs) or dolphins circling in it. Each swimmer is a model file
+ * like the other animals (AmazonModel.jsx; its tail beats in the shader, amazonMotion.js). A fish stays
+ * below the water, which is see-through enough to show it; a dolphin's back breaks the surface, and it leaps now and then. The water ripples: its shader tilts the
+ * surface normal with slow waves and with rings spreading from each swimmer, so the sky and the sun
  * glint on it as it moves. Numbers and shader text: amazonPool.js. Data: biomes/amazon.js `pool`.
  */
 import { Suspense, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { CircleGeometry, LatheGeometry, MeshStandardMaterial, Vector2 } from 'three'
 import { makeMotion } from './amazonMotion.js'
-import { FISH_SCALE, POOL_BANK, POOL_WATER_R, POOL_WATER_Y, RIPPLE_FRAGMENT_HEAD, RIPPLE_NORMAL, RIPPLE_VERTEX, fishAt } from './amazonPool.js'
+import { POOL_BANK, POOL_WATER_R, POOL_WATER_Y, RIPPLE_FRAGMENT_HEAD, RIPPLE_NORMAL, RIPPLE_VERTEX, swimAt } from './amazonPool.js'
 import AmazonModel from './AmazonModel.jsx'
 
 const makeUniforms = () => ({ uT: { value: 0 }, uF0: { value: new Vector2(99, 99) }, uF1: { value: new Vector2(99, 99) }, uF2: { value: new Vector2(99, 99) } })
@@ -28,24 +28,24 @@ function makeWaterMaterial(uniforms) {
   return material
 }
 
-function Fish({ fish, index, uniformsRef }) {
+function Swimmer({ swimmer, kind, baseY, scale, index, uniformsRef }) {
   const group = useRef(null)
   const motion = useRef(makeMotion())
   useFrame(({ clock }) => {
     const g = group.current
     if (!g) return
     const time = clock.elapsedTime
-    const p = fishAt(fish, time)
-    g.position.set(p.x, 0.03 + 0.02 * Math.sin(time * 1.3 + fish.phase), p.z)
-    g.rotation.set(0, p.heading, 0.05 * Math.sin(time * 2 + fish.phase))
-    motion.current.uT.value = time * fish.speed * 1.6 + fish.phase
+    const p = swimAt(swimmer, time)
+    g.position.set(p.x, baseY + 0.02 * Math.sin(time * 1.3 + swimmer.phase) + p.y, p.z)
+    g.rotation.set(p.pitch, p.heading, 0.05 * Math.sin(time * 2 + swimmer.phase))
+    motion.current.uT.value = time * swimmer.speed * 1.6 + swimmer.phase
     motion.current.uIdle.value = 1
     if (index < 3) uniformsRef.current[`uF${index}`].value.set(p.x, p.z)
   })
   return (
     <group ref={group}>
-      <group scale={FISH_SCALE}>
-        <Suspense fallback={null}><AmazonModel kind="fish" motionRef={motion} /></Suspense>
+      <group scale={scale}>
+        <Suspense fallback={null}><AmazonModel kind={kind} motionRef={motion} /></Suspense>
       </group>
     </group>
   )
@@ -69,7 +69,9 @@ export default function AmazonPool({ pool }) {
         <meshStandardMaterial color="#1c261f" roughness={1} />
       </mesh>
       <mesh position={[0, POOL_WATER_Y, 0]} geometry={surface} material={water} renderOrder={2} />
-      {pool.fish.map((fish, index) => <Fish key={index} fish={fish} index={index} uniformsRef={uniformsRef} />)}
+      {pool.swimmers.map((swimmer, index) => (
+        <Swimmer key={index} swimmer={swimmer} kind={pool.kind} baseY={pool.baseY ?? 0.03} scale={swimmer.scale ?? pool.scale ?? 1} index={index} uniformsRef={uniformsRef} />
+      ))}
     </group>
   )
 }

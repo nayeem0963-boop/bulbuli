@@ -496,7 +496,7 @@ function ExpeditionCanvas({ biome, dark, inputRef, activeRef, teleportRef, onNea
         {biome.props.map((p, i) => (biome.id === 'sundarbans' && SUNDARBANS_INSTANCED_PROPS.has(p.type) ? null : <PropView key={i} prop={p} />))}
         {biome.decor ? <SaharaDecor decor={biome.decor} /> : null}
         {biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}
-        {biome.pool ? <AmazonPool pool={biome.pool} /> : null}
+        {biome.pools ? biome.pools.map((pool, index) => <AmazonPool key={index} pool={pool} />) : null}
         {biome.stations.map((s) => (
           <StationMarker
             key={s.n}

@@ -69,10 +69,10 @@ test('R1: the review build contains exactly the review page, its bundles, the Dr
     'sounds/correct.mp3',
     'sounds/wrong.mp3',
   ])
-  // assets/ holds only bundles and the thirteen model files: the Amazon animals and the gallery's fish
+  // assets/ holds only bundles and the fourteen model files: the Amazon animals, the gallery's fish and the dolphin
   // (CC BY 4.0, credited on the review page); the Amazon bird and every other animal are built in code
   const assets = b.files.filter((f) => f.startsWith('assets/'))
-  assert.deepEqual(assets.filter((f) => !/\.(js|css)$/.test(f)).map((f) => f.replace(/-[A-Za-z0-9_-]{8}\./, '-[hash].')), ['anaconda', 'armadillo', 'capuchin', 'crimson-fangback', 'harpy-eagle', 'hoatzin', 'jaguar', 'macaw-blue-yellow', 'macaw-flying', 'morpho', 'ocelot', 'scarlet-macaw', 'toco-toucan'].map((n) => `assets/${n}-[hash].glb`))
+  assert.deepEqual(assets.filter((f) => !/\.(js|css)$/.test(f)).map((f) => f.replace(/-[A-Za-z0-9_-]{8}\./, '-[hash].')), ['anaconda', 'armadillo', 'capuchin', 'crimson-fangback', 'dolphin', 'harpy-eagle', 'hoatzin', 'jaguar', 'macaw-blue-yellow', 'macaw-flying', 'morpho', 'ocelot', 'scarlet-macaw', 'toco-toucan'].map((n) => `assets/${n}-[hash].glb`))
   // none of the main site's service worker, manifest, sitemap or offline page
   for (const f of ['sw.js', 'manifest.webmanifest', 'sitemap.xml', 'offline.html']) assert.ok(!b.files.includes(f), `${f} must not be in the review site`)
 })

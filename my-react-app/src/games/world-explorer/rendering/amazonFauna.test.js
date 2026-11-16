@@ -162,6 +162,7 @@ const MODEL_FILES = {
   toucan: { meshes: 1, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 18000 },
   morpho: { meshes: 3, images: 3, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 },
   fish: { meshes: 1, images: 1, maxBytes: 800 * 1024, maxTriangles: 16000 },
+  dolphin: { meshes: 1, images: 1, maxBytes: 300 * 1024, maxTriangles: 2500 },
 }
 
 test('amazon models: credited, light, static, and the size their colliders say', () => {
@@ -210,35 +211,54 @@ test('amazon models: credited, light, static, and the size their colliders say',
   assert.ok(readFileSync(new URL('./amazonCapuchinCoat.js', import.meta.url), 'utf8').includes('CAPUCHIN_FACE'))
 })
 
-test('amazon pool: the crimson fangbacks swim in a pool at the foot of the giant tree, clear of the trees, the stations and the paths', () => {
-  const { pool } = biome
+test('amazon pools: the fish and the dolphins swim in pools clear of the trees, the stations and the paths', () => {
+  const { pools } = biome
   const trees = scatterAmazon(biome).filter((item) => ['emergent', 'canopy', 'subcanopy'].includes(item.kind))
-  assert.ok(pool.fish.length >= 3)
-  for (const fish of pool.fish) assert.ok(fish.r * 1.12 + 0.4 < 1.6, 'a fish stays inside the water (radius 1.6 m, a fish about 0.75 m long when drawn)')
-  assert.ok(biome.props.some((p) => p.type === 'rainPool' && p.x === pool.x && p.z === pool.z && p.block >= 1.8), 'the bank is solid')
-  for (const tree of trees) assert.ok(apart(pool, tree) > 1.8 + 0.2, `the pool is in a ${tree.kind}`)
-  for (const station of biome.stations) assert.ok(apart(pool, station) > 1.8 + 1.2, `the pool crowds station ${station.n}`)
-  assert.ok(apart(pool, { x: biome.spawn.position[0], z: biome.spawn.position[2] }) > 4)
-  for (const [from, to] of biome.links) {
-    const dx = to.x - from.x, dz = to.z - from.z
-    const t = Math.max(0, Math.min(1, ((pool.x - from.x) * dx + (pool.z - from.z) * dz) / (dx * dx + dz * dz || 1)))
-    assert.ok(Math.hypot(pool.x - from.x - dx * t, pool.z - from.z - dz * t) > 1.8 + 0.5, 'the pool blocks a path')
+  assert.deepEqual(pools.map((p) => p.kind), ['fish', 'dolphin'])
+  assert.ok(pools.every((pool) => pool.swimmers.length >= 3), 'a few of each')
+  for (const pool of pools) {
+    for (const swimmer of pool.swimmers) {
+      const length = AMAZON_FAUNA[pool.kind].length * (swimmer.scale ?? pool.scale)
+      assert.ok(swimmer.r * (1 + (swimmer.wobble ?? 0.12)) + length / 2 < 1.6, `a ${pool.kind} stays inside the water (radius 1.6 m): ${swimmer.r} m out, ${length.toFixed(2)} m long`)
+    }
+    assert.ok(biome.props.some((p) => p.type === 'rainPool' && p.x === pool.x && p.z === pool.z && p.block >= 1.8), 'the bank is solid')
+    for (const tree of trees) assert.ok(apart(pool, tree) > 1.8 + 0.2, `the ${pool.kind} pool is in a ${tree.kind}`)
+    for (const station of biome.stations) assert.ok(apart(pool, station) > 1.8 + 1.2, `the ${pool.kind} pool crowds station ${station.n}`)
+    assert.ok(apart(pool, { x: biome.spawn.position[0], z: biome.spawn.position[2] }) > 4)
+    for (const [from, to] of biome.links) {
+      const dx = to.x - from.x, dz = to.z - from.z
+      const t = Math.max(0, Math.min(1, ((pool.x - from.x) * dx + (pool.z - from.z) * dz) / (dx * dx + dz * dz || 1)))
+      assert.ok(Math.hypot(pool.x - from.x - dx * t, pool.z - from.z - dz * t) > 1.8 + 0.5, `the ${pool.kind} pool blocks a path`)
+    }
+    for (const fauna of biome.fauna.filter((a) => !a.fly && a.y === 0)) assert.ok(apart(pool, fauna) > 1.8 + 0.5, `the ${pool.kind} pool is on a ${fauna.type}`)
   }
+  assert.ok(apart(pools[0], pools[1]) > 1.8 + 1.8 + 1, 'room to walk between the two banks')
   const ExpeditionCanvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
-  assert.ok(ExpeditionCanvas.includes('<AmazonPool pool={biome.pool} />'))
+  assert.ok(ExpeditionCanvas.includes('biome.pools.map((pool, index) => <AmazonPool key={index} pool={pool} />)'))
 })
 
-test('amazon pool: the water ripples (a shader, with rings from each fish) and the numbers agree', async () => {
-  const { POOL_BANK, POOL_WATER_R, RIPPLE_NORMAL, RIPPLE_FRAGMENT_HEAD, fishAt } = await import('./amazonPool.js')
+test('amazon pools: the water ripples (a shader, with rings from each swimmer), the dolphins leap, and the numbers agree', async () => {
+  const { POOL_BANK, POOL_WATER_R, RIPPLE_NORMAL, RIPPLE_FRAGMENT_HEAD, swimAt } = await import('./amazonPool.js')
   assert.ok(POOL_WATER_R > 1.22, 'bigger than the first pool')
   assert.equal(Math.max(...POOL_BANK.map(([r]) => r)), 2.35, 'the low skirt ends at 2.35 m')
   assert.ok(POOL_BANK.find(([, y]) => y === 0.33)[0] <= 1.9, 'the crest is about where the solid collider (1.8 m) ends')
   assert.match(RIPPLE_NORMAL, /uF|ring\(vWaterXZ, uF0\)/)
   assert.match(RIPPLE_FRAGMENT_HEAD, /uniform float uT/)
-  const fish = biome.pool.fish[0]
-  const a = fishAt(fish, 0), b = fishAt(fish, 5)
-  assert.ok(Math.hypot(a.x - b.x, a.z - b.z) > 0.2, 'a fish moves')
-  for (let t = 0; t < 60; t += 0.5) for (const f of biome.pool.fish) assert.ok(Math.hypot(fishAt(f, t).x, fishAt(f, t).z) + 0.38 < 1.6, 'a fish never leaves the water')
+  for (const pool of biome.pools) {
+    const a = swimAt(pool.swimmers[0], 0), b = swimAt(pool.swimmers[0], 5)
+    assert.ok(Math.hypot(a.x - b.x, a.z - b.z) > 0.2, `a ${pool.kind} moves`)
+    for (let t = 0; t < 80; t += 0.25) for (const s of pool.swimmers) {
+      const p = swimAt(s, t)
+      assert.ok(Math.hypot(p.x, p.z) + AMAZON_FAUNA[pool.kind].length * (s.scale ?? pool.scale) / 2 < 1.6, `a ${pool.kind} never leaves the water`)
+      if (!s.leap) assert.equal(p.y, 0)
+      else assert.ok(p.y >= 0 && p.y <= s.leap + 1e-9)
+    }
+  }
+  // a dolphin leaps: it is clear of the water for part of its circuit, nose up on the way up and down on the way down
+  const dolphin = biome.pools[1].swimmers[0]
+  const track = Array.from({ length: 400 }, (_, i) => swimAt(dolphin, i * 0.05))
+  assert.ok(track.some((p) => p.y > 0.2), 'a dolphin leaps')
+  assert.ok(track.some((p) => p.y > 0.05 && p.pitch < -0.1) && track.some((p) => p.y > 0.05 && p.pitch > 0.1), 'nose up, then nose down')
 })
 
 test('amazon pool: the water disc is built lying flat once, not turned from a draw callback', () => {

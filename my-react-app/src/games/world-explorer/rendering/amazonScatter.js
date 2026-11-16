@@ -110,9 +110,10 @@ export function scatterAmazon(biome) {
   const spots = standing.flatMap((animal) => (animal.roam
     ? roamLoop(animal.roam).map((point) => ({ ...point, r: AMAZON_FAUNA[animal.type].radius }))
     : [{ x: animal.x, z: animal.z, r: animal.solid?.r ?? 0.1 }]))
-  const treeClearings = spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 1.4 }))
-  // the forest pool (biomes/amazon.js `pool`) keeps the small plants off its bank too
-  const plantClearings = [...spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 0.5 })), ...(biome.pool ? [{ x: biome.pool.x, z: biome.pool.z, radius: biome.pool.clearR }] : [])]
+  const pools = biome.pools ?? []
+  const treeClearings = [...spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 1.4 })), ...pools.filter((pool) => pool.treeR > 0).map((pool) => ({ x: pool.x, z: pool.z, radius: pool.treeR }))]
+  // the forest pools (biomes/amazon.js `pools`) keep the small plants off their banks, and the trees off too where `treeR` says
+  const plantClearings = [...spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 0.5 })), ...pools.map((pool) => ({ x: pool.x, z: pool.z, radius: pool.clearR }))]
   const placements = []
   const forestDisc = { ...floor, r: floor.r * 2.35 }
   const interiorDisc = { ...floor, r: floor.r * 1.08 }

@@ -40,8 +40,9 @@ const stations = [
 ]
 
 const spawn = { position: [0, 0, -9], facing: 0 }
-/** A pool of still water at the foot of the giant tree, with crimson fangbacks circling in it (rendering/AmazonPool.jsx). */
-const POOL = { x: -2.5, z: 10 }
+/** Where the forest pools are: one at the foot of the giant tree, one on the open ground to the east, where an armadillo used to walk (rendering/AmazonPool.jsx). */
+const FISH_POOL = { x: -2.5, z: 10 }
+const DOLPHIN_POOL = { x: 9.0, z: 6.8 }
 
 const props = [
   { type: 'giantTree', x: TRUNK.x, y: 0, z: TRUNK.z, scale: 1, block: 1.0 },
@@ -54,8 +55,9 @@ const props = [
   { type: 'leafLitter', x: 6, y: 0.02, z: -7 },
   { type: 'leafBag', x: s4.x - 0.8, y: s4.top, z: s4.z + 0.6 },
   { type: 'mist', x: 0, y: 9, z: 12 },
-  // the forest pool at the foot of the giant tree (below, `pool`): its bank is solid, a little over knee high
-  { type: 'rainPool', x: POOL.x, y: 0, z: POOL.z, block: 1.8, blockTop: 0.34 },
+  // the two forest pools (below, `pools`): each bank is solid, a little over knee high
+  { type: 'rainPool', x: FISH_POOL.x, y: 0, z: FISH_POOL.z, block: 1.8, blockTop: 0.34 },
+  { type: 'rainPool', x: DOLPHIN_POOL.x, y: 0, z: DOLPHIN_POOL.z, block: 1.8, blockTop: 0.34 },
 ]
 
 /**
@@ -64,7 +66,7 @@ const props = [
  * branch and canopy platforms (and more of them roaming the floor), and macaws, toucans and morpho butterflies flying round over the clearing. Each stands on bare
  * ground, clear of the stations, the paths and the trees: the tree scatter keeps a clearing round
  * every ground animal (rendering/amazonScatter.js). `solid` is its collider (a cylinder); a flyer has
- * none and circles (`fly`). A roamer (`roam`) walks a loop on the forest floor and is not solid. The crimson fangback (a fish) lives in the forest pool at the foot of the giant tree (`pool`), and in the Wildlife Gallery.
+ * none and circles (`fly`). A roamer (`roam`) walks a loop on the forest floor and is not solid. The crimson fangbacks (fish) and the dolphins live in the two forest pools (`pools`), and in the Wildlife Gallery.
  */
 const animal = (type, x, z, rot, seed, y = 0) => ({
   type, x, y, z, rot, seed, solid: { r: AMAZON_FAUNA[type].radius, top: AMAZON_FAUNA[type].top },
@@ -94,7 +96,6 @@ const fauna = [
   roam('ocelot', -5.2, 6.6, 1.8, 1.2, 0.3, 0.8, 1.0, 1, 72),
   roam('ocelot', 8.2, 1.2, 2.0, 1.4, -0.5, 0.85, 2.4, -1, 73),
   rest('armadillo', -6.8, -10.0, 1.3, 0.9, 0.6, 0.5, 0.7, 64),
-  rest('armadillo', 9.0, 6.8, 1.5, 1.0, -0.3, 3.6, -2.4, 65),
   roam('jaguar', 4.0, 5.2, 1.8, 1.5, -0.4, 0.9, 1.7, -1, 91),
   roam('hoatzin', 6, -10, 1.5, 1.0, 0, 0.6, 0.8, 1, 92),
   roam('hoatzin', -3.5, 0.5, 1.4, 1.0, 0, 0.55, 3.0, -1, 93),
@@ -137,7 +138,7 @@ const fauna = [
   rest('armadillo', 4.71, 1.59, 0.2, 0.15, -0.3, 2.0, -1.99, 67, true),
   rest('armadillo', -3.18, 4.55, 0.2, 0.15, 0.4, 3.0, 2.99, 68, true),
   rest('armadillo', 12.99, -1.23, 0.2, 0.15, 0.1, 4.0, 3.25, 97, true),
-  rest('armadillo', 8.56, 9.39, 0.2, 0.15, 0.3, 5.0, 1.42, 98, true),
+  rest('armadillo', -9.48, 8.19, 0.2, 0.15, 0.3, 5.0, 1.68, 98, true),
   rest('armadillo', -5.99, 10.53, 0.2, 0.15, -0.2, 0.6, 2.46, 99, true),
 ]
 
@@ -147,15 +148,25 @@ export const AMAZON_MAP = Object.freeze({
   water: null,
   looks: { floor: '#5b4a33', branch: '#7a5634', canopy: '#3f8a3a', cleared: '#9b7f57' },
   discs, links, stations, spawn, props, fauna,
-  pool: {
-    ...POOL,
-    // the water reaches 1.6 m from the middle, the solid bank 1.8 m and its low skirt 2.35 m; the small plants keep 2.5 m clear
-    clearR: 2.5,
-    // crimson fangbacks circling the pool: r from its middle (m), speed (rad/s), phase, dir (+1/-1)
-    fish: [
-      { r: 0.65, speed: 0.7, phase: 0, dir: 1 },
-      { r: 0.65, speed: 0.7, phase: Math.PI, dir: 1 },
-      { r: 0.95, speed: 0.48, phase: 1.6, dir: -1 },
-    ],
-  },
+  // forest pools (rendering/AmazonPool.jsx). The water reaches 1.6 m from the middle, the solid bank 1.8 m and its
+  // low skirt 2.35 m; the small plants keep `clearR` clear, and the trees `treeR` (0: no tree is in the way).
+  // Each swimmer circles: r from the middle (m), speed (rad/s), phase, dir (+1/-1); a dolphin leaps (`leap`, m).
+  pools: [
+    {
+      kind: 'fish', ...FISH_POOL, clearR: 2.5, treeR: 0, baseY: 0.03, scale: 0.75,
+      swimmers: [
+        { r: 0.65, speed: 0.7, phase: 0, dir: 1 },
+        { r: 0.65, speed: 0.7, phase: Math.PI, dir: 1 },
+        { r: 0.95, speed: 0.48, phase: 1.6, dir: -1 },
+      ],
+    },
+    {
+      kind: 'dolphin', ...DOLPHIN_POOL, clearR: 2.5, treeR: 3.5, baseY: 0, scale: 0.85,
+      swimmers: [
+        { r: 0.85, speed: 0.6, phase: 0, dir: 1, wobble: 0.06, leap: 0.45, leapPhase: 0 },
+        { r: 0.85, speed: 0.6, phase: Math.PI, dir: 1, wobble: 0.06, leap: 0.45, leapPhase: 2.4 },
+        { r: 0.3, speed: 0.9, phase: 1.0, dir: -1, scale: 0.55, wobble: 0.05, leap: 0.2, leapPhase: 4.2 },
+      ],
+    },
+  ],
 })
