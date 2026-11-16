@@ -9,12 +9,12 @@
  * Pure data and string building, no THREE: tests read it.
  */
 
-/** Legs: `hip` the height the legs pivot at, `xw`/`zw` the half-width and half-length that tell left from right and front from back, `ang` the swing (rad), `lift` the foot lift (m). */
+/** Legs: `hip` the height the legs pivot at, `cx`/`cz` the middle between the left and right, front and back legs (the model's own pose is not always centred), `xw`/`zw` the half-width and half-length that tell left from right and front from back, `ang` the swing (rad), `lift` the foot lift (m). */
 export const LEG_MOTION = Object.freeze({
-  jaguar: { hip: 0.46, xw: 0.14, zw: 0.2, ang: 0.5, lift: 0.07 },
-  ocelot: { hip: 0.3, xw: 0.05, zw: 0.15, ang: 0.55, lift: 0.045 },
-  armadillo: { hip: 0.2, xw: 0.1, zw: 0.15, ang: 0.5, lift: 0.03 },
-  capuchin: { hip: 0.26, xw: 0.07, zw: 0.07, ang: 0.5, lift: 0.045 },
+  jaguar: { hip: 0.46, cx: 0.05, cz: 0, xw: 0.14, zw: 0.2, ang: 0.5, lift: 0.07 },
+  ocelot: { hip: 0.3, cx: 0, cz: -0.04, xw: 0.05, zw: 0.15, ang: 0.55, lift: 0.045 },
+  armadillo: { hip: 0.2, cx: -0.07, cz: -0.05, xw: 0.07, zw: 0.15, ang: 0.5, lift: 0.03 },
+  capuchin: { hip: 0.26, cx: 0.02, cz: 0.1, xw: 0.07, zw: 0.07, ang: 0.5, lift: 0.045 },
 })
 
 /** Wings: `x0` the half-width of the body (nothing moves inside it), `ang` the beat (rad), `rate` flaps per second (rad/s), `bob` how much the body rises with each beat (m). */
@@ -34,8 +34,8 @@ export function motionGlsl(kind) {
   const leg = LEG_MOTION[kind]
   if (leg) {
     return `
-  float mSx = clamp(position.x / ${f(leg.xw)}, -1.0, 1.0);
-  float mSz = clamp(position.z / ${f(leg.zw)}, -1.0, 1.0);
+  float mSx = clamp((position.x - ${f(leg.cx)}) / ${f(leg.xw)}, -1.0, 1.0);
+  float mSz = clamp((position.z - ${f(leg.cz)}) / ${f(leg.zw)}, -1.0, 1.0);
   float mBelow = max(${f(leg.hip)} - position.y, 0.0);
   float mDiag = mSx * mSz;
   transformed.z += ${f(leg.ang)} * uAmp * sin(uPh) * mDiag * mBelow;
