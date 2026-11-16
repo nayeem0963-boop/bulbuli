@@ -9,13 +9,13 @@ const biome = BIOMES.amazon
 const fauna = biome.fauna
 const apart = (a, b) => Math.hypot(a.x - b.x, a.z - b.z)
 
-test('amazon fauna: eight kinds in the forest and one in the gallery, all model files; only the Amazon has any', () => {
+test('amazon fauna: twelve kinds in the forest and one in the gallery, all model files; only the Amazon has any', () => {
   assert.deepEqual([...AMAZON_FAUNA_MODELS].sort(), Object.keys(AMAZON_FAUNA).sort())
   assert.deepEqual(Object.keys(AMAZON_MODEL_CREDITS).sort(), Object.keys(AMAZON_FAUNA).sort())
   const inForest = Object.keys(AMAZON_FAUNA).filter((type) => !AMAZON_FAUNA[type].gallery)
   assert.deepEqual([...new Set(fauna.map((a) => a.type))].sort(), inForest.sort(), 'every forest kind appears, and only those')
   for (const type of inForest) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
-  assert.ok(fauna.length >= 16)
+  assert.ok(fauna.length >= 25)
   for (const id of ['sundarbans', 'sahara']) assert.equal(BIOMES[id].fauna, undefined)
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'))
@@ -64,8 +64,8 @@ test('amazon fauna: every animal stands on its ground, clear of the stations, th
   }
   // perched animals keep off the way in: the stair lands on the near side of the platform
   for (const animal of fauna.filter((a) => a.y > 0 && !a.fly)) assert.ok(animal.solid && animal.y >= 3.4)
-  // a flyer is not solid, and flies clear of the platforms and well above the ground
-  for (const animal of fauna.filter((a) => a.fly)) assert.ok(!animal.solid && animal.fly.y >= 3 && animal.fly.r >= 2)
+  // a flyer is not solid and is up in the air (the butterflies low, the birds high)
+  for (const animal of fauna.filter((a) => a.fly)) assert.ok(!animal.solid && animal.fly.y >= 1 && animal.fly.r >= 1.2)
 })
 
 test('amazon fauna: the models stand still, the macaws circle, and each flight is a closed loop', () => {
@@ -108,6 +108,10 @@ const MODEL_FILES = {
   harpyEagle: { meshes: 1, images: 1, maxBytes: 1.4 * 1024 * 1024, maxTriangles: 19000 },
   hoatzin: { meshes: 4, images: 4, maxBytes: 900 * 1024, maxTriangles: 28000 },
   macaw: { meshes: 1, images: 1, maxBytes: 700 * 1024, maxTriangles: 16000 },
+  blueMacaw: { meshes: 1, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 16000 },
+  scarletMacaw: { meshes: 1, images: 1, maxBytes: 300 * 1024, maxTriangles: 1500 },
+  toucan: { meshes: 1, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 18000 },
+  morpho: { meshes: 3, images: 3, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 },
   fish: { meshes: 1, images: 1, maxBytes: 800 * 1024, maxTriangles: 16000 },
 }
 

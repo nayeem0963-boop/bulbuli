@@ -20,6 +20,11 @@ export const AMAZON_FAUNA = Object.freeze({
   hoatzin: { radius: 0.5, top: 0.7, length: 0.9, perch: true },
   // a flying macaw: it circles over the clearing and is not solid
   macaw: { radius: 0.3, top: 0.65, length: 0.52, perch: false },
+  // more flyers: they circle over the clearing too (the morphos low, among the trees)
+  blueMacaw: { radius: 0.3, top: 0.86, length: 0.85, perch: false },
+  scarletMacaw: { radius: 0.3, top: 0.41, length: 0.64, perch: false },
+  toucan: { radius: 0.3, top: 0.67, length: 0.8, perch: false },
+  morpho: { radius: 0.15, top: 0.27, length: 0.26, perch: false },
   fish: { radius: 0.35, top: 0.49, length: 1.02, perch: false, gallery: true },
 })
 
@@ -50,5 +55,9 @@ export const AMAZON_MODEL_CREDITS = Object.freeze({
   harpyEagle: { file: 'harpy-eagle', name: 'Harpy eagle', title: 'Harpy Eagle', author: 'G-Box', authorUrl: 'https://sketchfab.com/gabszf', source: 'https://sketchfab.com/3d-models/harpy-eagle-3ced481e50d24b38a87406708cb7a2c4', license: CC, changes: 'simplified to about 17,500 triangles, scaled to life size, textures reduced to one JPEG, re-centred' },
   hoatzin: { file: 'hoatzin', name: 'Hoatzin', title: 'hoatzin', author: 'graduisc', authorUrl: 'https://sketchfab.com/graduisc', source: 'https://sketchfab.com/3d-models/hoatzin-607caf85a0f24586bb8b70a124d168a1', license: CC, changes: 'a 519,000-triangle sculpt simplified to about 26,700 triangles, scaled to life size, textures reduced, re-centred' },
   macaw: { file: 'macaw-flying', name: 'Scarlet macaw (flying)', title: 'Low poly Rainbow Macaw In Flying 3D Model Free', author: 'iRahulRajput', authorUrl: 'https://sketchfab.com/rt699448', source: 'https://sketchfab.com/3d-models/low-poly-rainbow-macaw-in-flying-3d-model-free-7ac34a313b63475cabcadaf48b92b80b', license: CC, changes: 'baked into one static model, textures reduced to one JPEG, re-centred; the game moves it round the clearing' },
+  blueMacaw: { file: 'macaw-blue-yellow', name: 'Blue-and-yellow macaw (flying)', title: 'Macaw+3d+model', author: 'iRahulRajput', authorUrl: 'https://sketchfab.com/rt699448', source: 'https://sketchfab.com/3d-models/macaw3dmodel-0a16d7ad853e475f87a3694baa8ed46c', license: CC, changes: 'a 91,000-triangle model simplified to about 15,500 triangles, textures reduced to one JPEG, re-centred; the game moves it round the clearing' },
+  scarletMacaw: { file: 'scarlet-macaw', name: 'Scarlet macaw (low-poly, flying)', title: 'Scarlet Macaw', author: 'Mateus Schwaab', authorUrl: 'https://sketchfab.com/Mehrus', source: 'https://sketchfab.com/3d-models/scarlet-macaw-0bb61160866b4811bd79b6d11e3d8907', license: CC, changes: 'the flying pose baked into a static model (skeleton and animations removed), scaled to life size, material converted, re-centred; the game moves it round the clearing' },
+  toucan: { file: 'toco-toucan', name: 'Toco toucan (flying)', title: 'Toco Toucan Bird 3D Model Free', author: 'iRahulRajput', authorUrl: 'https://sketchfab.com/rt699448', source: 'https://sketchfab.com/3d-models/toco-toucan-bird-3d-model-free-384e7f893a1d4148b2ced5cb184956b3', license: CC, changes: 'a 424,000-triangle model simplified to about 17,000 triangles, scaled to life size, textures reduced to one JPEG, re-centred; the game moves it round the clearing' },
+  morpho: { file: 'morpho', name: 'Blue morpho butterfly', title: 'morpho', author: 'Qween', authorUrl: 'https://sketchfab.com/QweenH', source: 'https://sketchfab.com/3d-models/morpho-0f2f9980584749fda6875b8ef8617b98', license: CC, changes: 'twenty parts joined into one static model, scaled up to a 30 cm wingspan so it can be seen, textures reduced, re-centred; the game moves it round the clearing' },
   fish: { file: 'crimson-fangback', name: 'Crimson fangback (payara)', title: 'Crimson Fangback - fish', author: 'Brian Trepanier (CMBC)', authorUrl: 'https://sketchfab.com/CMBC', source: 'https://sketchfab.com/3d-models/crimson-fangback-fish-6176f566abc3472dabd8ef17ccca4d09', license: CC, changes: 'a 245,000-triangle model simplified to about 14,700 triangles, scaled, textures reduced to one JPEG, re-centred' },
 })

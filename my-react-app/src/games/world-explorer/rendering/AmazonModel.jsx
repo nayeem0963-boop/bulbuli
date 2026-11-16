@@ -26,6 +26,10 @@ import eagleUrl from '../assets/harpy-eagle.glb?url'
 import fishUrl from '../assets/crimson-fangback.glb?url'
 import hoatzinUrl from '../assets/hoatzin.glb?url'
 import macawUrl from '../assets/macaw-flying.glb?url'
+import blueMacawUrl from '../assets/macaw-blue-yellow.glb?url'
+import morphoUrl from '../assets/morpho.glb?url'
+import scarletMacawUrl from '../assets/scarlet-macaw.glb?url'
+import toucanUrl from '../assets/toco-toucan.glb?url'
 import ocelotUrl from '../assets/ocelot.glb?url'
 
 /** Matte, shadows, and a touch of self-light (from the model's own colours) so the animal holds its colour in the dim forest. */
@@ -76,6 +80,10 @@ const MODELS = Object.freeze({
   harpyEagle: { url: eagleUrl, tune: tuneJaguar },
   hoatzin: { url: hoatzinUrl, tune: tuneJaguar },
   macaw: { url: macawUrl, tune: tuneJaguar },
+  blueMacaw: { url: blueMacawUrl, tune: tuneJaguar },
+  scarletMacaw: { url: scarletMacawUrl, tune: tuneJaguar },
+  toucan: { url: toucanUrl, tune: tuneJaguar },
+  morpho: { url: morphoUrl, tune: tuneJaguar },
   fish: { url: fishUrl, tune: tuneJaguar },
 })
 

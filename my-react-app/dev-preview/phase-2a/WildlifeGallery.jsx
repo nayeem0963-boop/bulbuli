@@ -12,14 +12,17 @@ import { AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS } from '../../src/games/world
 import { AMAZON_MAP } from '../../src/games/world-explorer/biomes/amazon.js'
 
 const GAP = 3.1
-/** The plinths stand three to a row, so the whole gallery fits in one view. */
-const spot = (index) => [((index % 3) - 1) * GAP, (Math.floor(index / 3) - 1) * GAP]
+const FLYERS = new Set(['macaw', 'blueMacaw', 'scarletMacaw', 'toucan', 'morpho'])
+/** The plinths stand four to a row, so the whole gallery fits in one view. */
+const COLS = 4
+const ROWS = Math.ceil(AMAZON_FAUNA_MODELS.length / COLS)
+const spot = (index) => [((index % COLS) - (COLS - 1) / 2) * GAP, (Math.floor(index / COLS) - (ROWS - 1) / 2) * GAP]
 
 /** Where each kind stands in the Amazon, in words. */
 const placed = (kind) => {
   const all = AMAZON_MAP.fauna.filter((a) => a.type === kind)
   if (!all.length) return 'Not in the forest: the Amazon map has no water, so this one lives only here.'
-  if (all[0].fly) return `${all.length} fly round over the clearing.`
+  if (all[0].fly) return `${all.length} fly round over the clearing${kind === 'morpho' ? ', low among the trees' : ''}.`
   if (all[0].y > 0) return `${all.length} perched on the branch and canopy platforms.`
   return `${all.length} on the forest floor.`
 }
@@ -33,7 +36,7 @@ function Plinth({ kind, index, selected, shown }) {
         <cylinderGeometry args={[1.35, 1.45, 0.12, 40]} />
         <meshStandardMaterial color={selected ? '#7a6a48' : '#4b4636'} roughness={0.9} />
       </mesh>
-      <group ref={turn} position={[0, kind === 'macaw' ? 0.5 : 0, 0]}>
+      <group ref={turn} position={[0, FLYERS.has(kind) ? 0.5 : 0, 0]}>
         <Suspense fallback={null}><AmazonModel kind={kind} /></Suspense>
       </group>
     </group>
@@ -48,7 +51,7 @@ function Rig({ selected }) {
     const index = AMAZON_FAUNA_MODELS.indexOf(selected)
     const all = index < 0
     const [x, z] = all ? [0, 0] : spot(index)
-    if (all) camera.position.set(0, 8.2, 10.5)
+    if (all) camera.position.set(0, 12.5, 14)
     else camera.position.set(x, 1.1, z + (selected === 'anaconda' ? 4.2 : 2.7))
     if (controls.current) { controls.current.target.set(x, all ? 0.2 : 0.45, z); controls.current.update() }
   }, [selected, camera])

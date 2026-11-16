@@ -57,7 +57,7 @@ const props = [
 /**
  * Rainforest animals, all model files (rendering/AmazonModel.jsx): jaguars, ocelots, armadillos and
  * anacondas in clearings on the forest floor, capuchins, harpy eagles and hoatzins perched on the
- * branch and canopy platforms, and scarlet macaws flying round over the clearing. Each stands on bare
+ * branch and canopy platforms, and macaws, toucans and morpho butterflies flying round over the clearing. Each stands on bare
  * ground, clear of the stations, the paths and the trees: the tree scatter keeps a clearing round
  * every ground animal (rendering/amazonScatter.js). `solid` is its collider (a cylinder); a flyer has
  * none and circles (`fly`). The crimson fangback (a fish) is only in the Wildlife Gallery: the map has no water.
@@ -92,6 +92,15 @@ const fauna = [
   // flying over the clearing
   fly('macaw', -3, -2, 3.2, 3.4, 1.4, 0, 1, 37),
   fly('macaw', 4, 5, 2.6, 4.2, 1.2, 3.1, -1, 59),
+  fly('blueMacaw', 1, -6, 3.6, 3.9, 1.3, 1.5, 1, 74),
+  fly('blueMacaw', -6, 1, 2.8, 4.6, 1.1, 4.4, -1, 75),
+  fly('scarletMacaw', 6, -2, 3.0, 3.6, 1.5, 0.8, -1, 76),
+  fly('scarletMacaw', -2, 7, 2.4, 4.4, 1.3, 5.2, 1, 77),
+  fly('toucan', -1, 1, 4.0, 3.3, 1.6, 2.2, 1, 78),
+  fly('toucan', 7, 6, 2.2, 4.0, 1.4, 0.2, -1, 79),
+  fly('morpho', -4, 3, 1.6, 1.3, 0.6, 0, 1, 80),
+  fly('morpho', 5, -4, 2.0, 1.7, 0.7, 2.0, -1, 81),
+  fly('morpho', 0, 4, 1.4, 1.1, 0.5, 4.0, 1, 82),
 ]
 
 export const AMAZON_MAP = Object.freeze({
