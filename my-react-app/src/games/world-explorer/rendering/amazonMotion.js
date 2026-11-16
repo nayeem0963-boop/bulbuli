@@ -47,13 +47,15 @@ export const MODEL_FIX = Object.freeze({
 
 /**
  * Idle motion for the animals that stand or perch where they are put (uniforms `uT` time, `uIdle` 0..1):
- * `tail` a swish from `from` to `to` along the body (a jaguar's), `wave` a slither (an anaconda's),
+ * `tail` a swish from `from` to `to` along the body (a jaguar's), `wave` a slither (an anaconda's), `wag` a fish's tail beat,
  * `head` a slow look about from above `neckY`, turning round z = `pz`, `ruffle` now and then the wings shake out.
  * Roamers and flyers keep `uIdle` at 0, so they do none of it.
  */
 export const IDLE_MOTION = Object.freeze({
   jaguar: { tail: { from: -0.5, to: -0.8, amp: 0.09, rate: 2.0 } },
   anaconda: { wave: { amp: 0.05, k: 6, rate: 2.2 } },
+  // a fish beats its tail: the swing grows towards the tail (z < 0) and runs along the body
+  fish: { wag: { amp: 0.09, k: 7, rate: 7 } },
   capuchin: { head: { neckY: 0.38, pz: 0.1, turn: 0.5 } },
   harpyEagle: { head: { neckY: 0.72, pz: 0.12, turn: 0.45 }, ruffle: { x0: 0.1, lift: 0.5, flare: 0.6 } },
   hoatzin: { head: { neckY: 0.5, pz: 0.3, turn: 0.5 }, ruffle: { x0: 0.14, lift: 0.4, flare: 0.3 } },
@@ -115,6 +117,9 @@ function idleGlsl(kind) {
   float iTail = smoothstep(${f(idle.tail.from)}, ${f(idle.tail.to)}, iU);
   transformed.xz += vec2(iA.y, -iA.x) * ${f(idle.tail.amp)} * uIdle * iTail * sin(uT * ${f(idle.tail.rate)} + iU * 4.0);`
   }
+  if (idle.wag) out += `
+  float iTailW = smoothstep(0.15, -0.5, position.z);
+  transformed.x += ${f(idle.wag.amp)} * uIdle * iTailW * sin(uT * ${f(idle.wag.rate)} + position.z * ${f(idle.wag.k)});`
   if (idle.wave) out += `
   transformed.x += ${f(idle.wave.amp)} * uIdle * sin(position.z * ${f(idle.wave.k)} - uT * ${f(idle.wave.rate)});`
   if (idle.head) {

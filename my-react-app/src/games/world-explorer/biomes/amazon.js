@@ -40,6 +40,8 @@ const stations = [
 ]
 
 const spawn = { position: [0, 0, -9], facing: 0 }
+/** A pool of still water at the foot of the giant tree, with crimson fangbacks circling in it (rendering/AmazonPool.jsx). */
+const POOL = { x: -2.5, z: 10 }
 
 const props = [
   { type: 'giantTree', x: TRUNK.x, y: 0, z: TRUNK.z, scale: 1, block: 1.0 },
@@ -52,6 +54,8 @@ const props = [
   { type: 'leafLitter', x: 6, y: 0.02, z: -7 },
   { type: 'leafBag', x: s4.x - 0.8, y: s4.top, z: s4.z + 0.6 },
   { type: 'mist', x: 0, y: 9, z: 12 },
+  // the forest pool at the foot of the giant tree (below, `pool`): its bank is solid, a little over knee high
+  { type: 'rainPool', x: POOL.x, y: 0, z: POOL.z, block: 1.8, blockTop: 0.34 },
 ]
 
 /**
@@ -60,7 +64,7 @@ const props = [
  * branch and canopy platforms (and more of them roaming the floor), and macaws, toucans and morpho butterflies flying round over the clearing. Each stands on bare
  * ground, clear of the stations, the paths and the trees: the tree scatter keeps a clearing round
  * every ground animal (rendering/amazonScatter.js). `solid` is its collider (a cylinder); a flyer has
- * none and circles (`fly`). A roamer (`roam`) walks a loop on the forest floor and is not solid. The crimson fangback (a fish) is only in the Wildlife Gallery: the map has no water.
+ * none and circles (`fly`). A roamer (`roam`) walks a loop on the forest floor and is not solid. The crimson fangback (a fish) lives in the forest pool at the foot of the giant tree (`pool`), and in the Wildlife Gallery.
  */
 const animal = (type, x, z, rot, seed, y = 0) => ({
   type, x, y, z, rot, seed, solid: { r: AMAZON_FAUNA[type].radius, top: AMAZON_FAUNA[type].top },
@@ -143,4 +147,13 @@ export const AMAZON_MAP = Object.freeze({
   water: null,
   looks: { floor: '#5b4a33', branch: '#7a5634', canopy: '#3f8a3a', cleared: '#9b7f57' },
   discs, links, stations, spawn, props, fauna,
+  pool: {
+    ...POOL,
+    // crimson fangbacks circling the pool: r from its middle (m), speed (rad/s), phase, dir (+1/-1)
+    fish: [
+      { r: 0.5, speed: 0.8, phase: 0, dir: 1 },
+      { r: 0.5, speed: 0.8, phase: Math.PI, dir: 1 },
+      { r: 0.8, speed: 0.55, phase: 1.6, dir: -1 },
+    ],
+  },
 })

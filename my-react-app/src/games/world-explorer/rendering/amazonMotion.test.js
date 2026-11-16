@@ -6,8 +6,8 @@ import { LEG_MOTION, WING_MOTION, hasMotion, makeMotion, motionGlsl, patchShader
 test('every roaming gait and every flyer kind has limb motion; static ones have none', () => {
   for (const kind of ['jaguar', 'ocelot', 'armadillo', 'capuchin']) assert.ok(LEG_MOTION[kind] && AMAZON_FAUNA[kind], kind)
   for (const kind of ['macaw', 'blueMacaw', 'scarletMacaw', 'toucan', 'morpho']) assert.ok(WING_MOTION[kind] && AMAZON_FAUNA[kind], kind)
-  assert.equal(hasMotion('fish'), false)
-  assert.equal(motionGlsl('fish'), '')
+  assert.equal(hasMotion('nothing'), false)
+  assert.equal(motionGlsl('nothing'), '')
 })
 
 test('the patch adds the uniforms once and moves `transformed`, never `position`', () => {
@@ -32,6 +32,6 @@ test('fixed animals have idle motion that only runs while `uIdle` is up', () => 
   assert.match(motionGlsl('anaconda'), /uIdle \* sin\(position\.z/)
   assert.match(motionGlsl('capuchin'), /iAng/)
   assert.match(motionGlsl('harpyEagle'), /iRuf/)
-  for (const kind of ['jaguar', 'anaconda', 'capuchin', 'harpyEagle', 'hoatzin']) assert.ok(hasMotion(kind), kind)
+  for (const kind of ['jaguar', 'anaconda', 'capuchin', 'harpyEagle', 'hoatzin', 'fish']) assert.ok(hasMotion(kind), kind)
   assert.equal(makeMotion().uIdle.value, 0, 'idle is off until a fixed animal turns it on')
 })

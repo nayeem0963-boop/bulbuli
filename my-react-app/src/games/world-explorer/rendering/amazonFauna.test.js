@@ -209,3 +209,21 @@ test('amazon models: credited, light, static, and the size their colliders say',
   assert.ok(ocelot.includes('OCELOT_EYES') && ocelot.includes('OCELOT_NOSE'))
   assert.ok(readFileSync(new URL('./amazonCapuchinCoat.js', import.meta.url), 'utf8').includes('CAPUCHIN_FACE'))
 })
+
+test('amazon pool: the crimson fangbacks swim in a pool at the foot of the giant tree, clear of the trees, the stations and the paths', () => {
+  const { pool } = biome
+  const trees = scatterAmazon(biome).filter((item) => ['emergent', 'canopy', 'subcanopy'].includes(item.kind))
+  assert.ok(pool.fish.length >= 3)
+  for (const fish of pool.fish) assert.ok(fish.r + 0.3 < 1.22, 'a fish stays inside the water (radius 1.22 m, a fish is about 0.55 m long)')
+  assert.ok(biome.props.some((p) => p.type === 'rainPool' && p.x === pool.x && p.z === pool.z && p.block >= 1.8), 'the bank is solid')
+  for (const tree of trees) assert.ok(apart(pool, tree) > 1.8 + 0.2, `the pool is in a ${tree.kind}`)
+  for (const station of biome.stations) assert.ok(apart(pool, station) > 1.8 + 1.2, `the pool crowds station ${station.n}`)
+  assert.ok(apart(pool, { x: biome.spawn.position[0], z: biome.spawn.position[2] }) > 4)
+  for (const [from, to] of biome.links) {
+    const dx = to.x - from.x, dz = to.z - from.z
+    const t = Math.max(0, Math.min(1, ((pool.x - from.x) * dx + (pool.z - from.z) * dz) / (dx * dx + dz * dz || 1)))
+    assert.ok(Math.hypot(pool.x - from.x - dx * t, pool.z - from.z - dz * t) > 1.8 + 0.5, 'the pool blocks a path')
+  }
+  const ExpeditionCanvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
+  assert.ok(ExpeditionCanvas.includes('<AmazonPool pool={biome.pool} />'))
+})
