@@ -111,7 +111,8 @@ export function scatterAmazon(biome) {
     ? roamLoop(animal.roam).map((point) => ({ ...point, r: AMAZON_FAUNA[animal.type].radius }))
     : [{ x: animal.x, z: animal.z, r: animal.solid?.r ?? 0.1 }]))
   const treeClearings = spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 1.4 }))
-  const plantClearings = spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 0.5 }))
+  // the forest pool (biomes/amazon.js `pool`) keeps the small plants off its bank too
+  const plantClearings = [...spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 0.5 })), ...(biome.pool ? [{ x: biome.pool.x, z: biome.pool.z, radius: biome.pool.clearR }] : [])]
   const placements = []
   const forestDisc = { ...floor, r: floor.r * 2.35 }
   const interiorDisc = { ...floor, r: floor.r * 1.08 }

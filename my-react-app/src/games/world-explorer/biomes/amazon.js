@@ -149,11 +149,13 @@ export const AMAZON_MAP = Object.freeze({
   discs, links, stations, spawn, props, fauna,
   pool: {
     ...POOL,
+    // the water reaches 1.6 m from the middle, the solid bank 1.8 m and its low skirt 2.35 m; the small plants keep 2.5 m clear
+    clearR: 2.5,
     // crimson fangbacks circling the pool: r from its middle (m), speed (rad/s), phase, dir (+1/-1)
     fish: [
-      { r: 0.5, speed: 0.8, phase: 0, dir: 1 },
-      { r: 0.5, speed: 0.8, phase: Math.PI, dir: 1 },
-      { r: 0.8, speed: 0.55, phase: 1.6, dir: -1 },
+      { r: 0.65, speed: 0.7, phase: 0, dir: 1 },
+      { r: 0.65, speed: 0.7, phase: Math.PI, dir: 1 },
+      { r: 0.95, speed: 0.48, phase: 1.6, dir: -1 },
     ],
   },
 })

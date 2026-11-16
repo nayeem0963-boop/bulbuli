@@ -214,7 +214,7 @@ test('amazon pool: the crimson fangbacks swim in a pool at the foot of the giant
   const { pool } = biome
   const trees = scatterAmazon(biome).filter((item) => ['emergent', 'canopy', 'subcanopy'].includes(item.kind))
   assert.ok(pool.fish.length >= 3)
-  for (const fish of pool.fish) assert.ok(fish.r + 0.3 < 1.22, 'a fish stays inside the water (radius 1.22 m, a fish is about 0.55 m long)')
+  for (const fish of pool.fish) assert.ok(fish.r * 1.12 + 0.4 < 1.6, 'a fish stays inside the water (radius 1.6 m, a fish about 0.75 m long when drawn)')
   assert.ok(biome.props.some((p) => p.type === 'rainPool' && p.x === pool.x && p.z === pool.z && p.block >= 1.8), 'the bank is solid')
   for (const tree of trees) assert.ok(apart(pool, tree) > 1.8 + 0.2, `the pool is in a ${tree.kind}`)
   for (const station of biome.stations) assert.ok(apart(pool, station) > 1.8 + 1.2, `the pool crowds station ${station.n}`)
@@ -226,4 +226,17 @@ test('amazon pool: the crimson fangbacks swim in a pool at the foot of the giant
   }
   const ExpeditionCanvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(ExpeditionCanvas.includes('<AmazonPool pool={biome.pool} />'))
+})
+
+test('amazon pool: the water ripples (a shader, with rings from each fish) and the numbers agree', async () => {
+  const { POOL_BANK, POOL_WATER_R, RIPPLE_NORMAL, RIPPLE_FRAGMENT_HEAD, fishAt } = await import('./amazonPool.js')
+  assert.ok(POOL_WATER_R > 1.22, 'bigger than the first pool')
+  assert.equal(Math.max(...POOL_BANK.map(([r]) => r)), 2.35, 'the low skirt ends at 2.35 m')
+  assert.ok(POOL_BANK.find(([, y]) => y === 0.33)[0] <= 1.9, 'the crest is about where the solid collider (1.8 m) ends')
+  assert.match(RIPPLE_NORMAL, /uF|ring\(vWaterXZ, uF0\)/)
+  assert.match(RIPPLE_FRAGMENT_HEAD, /uniform float uT/)
+  const fish = biome.pool.fish[0]
+  const a = fishAt(fish, 0), b = fishAt(fish, 5)
+  assert.ok(Math.hypot(a.x - b.x, a.z - b.z) > 0.2, 'a fish moves')
+  for (let t = 0; t < 60; t += 0.5) for (const f of biome.pool.fish) assert.ok(Math.hypot(fishAt(f, t).x, fishAt(f, t).z) + 0.38 < 1.6, 'a fish never leaves the water')
 })
