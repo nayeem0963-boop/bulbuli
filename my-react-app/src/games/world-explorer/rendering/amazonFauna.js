@@ -13,8 +13,8 @@
  */
 /** Each gait's bob (m), side sway and nod (rad), and steps per metre. */
 export const GAITS = Object.freeze({
-  walk: { bob: 0.035, sway: 0.04, nod: 0.025, steps: 1 },
-  trot: { bob: 0.02, sway: 0.05, nod: 0.02, steps: 1.8 },
+  walk: { bob: 0.03, sway: 0.04, nod: 0.03, steps: 2 },
+  trot: { bob: 0.02, sway: 0.05, nod: 0.02, steps: 3 },
   hop: { bob: 0.09, sway: 0.03, nod: 0.07, steps: 0.8 },
 })
 

@@ -13,6 +13,7 @@
  * forest is drawn while it arrives.
  */
 import { useLayoutEffect, useMemo } from 'react'
+import { hasMotion, patchShader } from './amazonMotion.js'
 import { useLoader } from '@react-three/fiber'
 import { Color } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -87,11 +88,35 @@ const MODELS = Object.freeze({
   fish: { url: fishUrl, tune: tuneJaguar },
 })
 
-export default function AmazonModel({ kind }) {
+/**
+ * `motionRef` (a ref to { uPh, uAmp }, uniform objects the game updates each frame) gives this animal its own copy of
+ * every material with swinging legs or beating wings (amazonMotion.js). Without it the model is static.
+ */
+export default function AmazonModel({ kind, motionRef }) {
   const { url, tune } = MODELS[kind]
   const gltf = useLoader(GLTFLoader, url)
   // each animal is a copy of the loaded scene; geometry and materials are shared
   const scene = useMemo(() => gltf.scene.clone(true), [gltf])
   useLayoutEffect(() => { tune(gltf.scene) }, [gltf, tune])
+  useLayoutEffect(() => {
+    const motion = motionRef?.current
+    if (!motion || !hasMotion(kind)) return undefined
+    const own = []
+    scene.traverse((object) => {
+      if (!object.isMesh || Array.isArray(object.material)) return
+      const shared = object.material
+      const copy = shared.clone()
+      const coat = shared.onBeforeCompile
+      const coatKey = shared.customProgramCacheKey?.() ?? ''
+      copy.onBeforeCompile = (shader, renderer) => {
+        coat.call(copy, shader, renderer)
+        patchShader(shader, kind, motion)
+      }
+      copy.customProgramCacheKey = () => `${coatKey}|motion-${kind}`
+      object.material = copy
+      own.push(copy)
+    })
+    return () => own.forEach((material) => material.dispose())
+  }, [scene, kind, motionRef])
   return <primitive object={scene} />
 }
