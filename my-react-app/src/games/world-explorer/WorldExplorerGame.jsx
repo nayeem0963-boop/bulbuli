@@ -394,10 +394,6 @@ function JournalScreen({ text, language, expedition, record, content, onBack }) 
  * written outside React: only from these event handlers and the keyboard hook; the 3D loop reads it.
  */
 function setTouch(inputRef, axis, value) { inputRef.current[axis] = value }
-function pressJump(inputRef, down) {
-  if (down) inputRef.current.jumpPresses += 1
-  inputRef.current.touchJump = down
-}
 
 function TouchPad({ inputRef, text }) {
   const hold = (axis, value) => ({
@@ -418,10 +414,14 @@ function TouchPad({ inputRef, text }) {
         type="button"
         className="wx-jump"
         aria-label={text.move.jump}
-        onPointerDown={(e) => { e.preventDefault(); pressJump(inputRef, true) }}
-        onPointerUp={() => pressJump(inputRef, false)}
-        onPointerLeave={() => pressJump(inputRef, false)}
+        onPointerDown={(e) => { e.preventDefault(); inputRef.current.touchFly = true }}
       >⤒</button>
+      <button
+        type="button"
+        className="wx-land"
+        aria-label={text.move.land}
+        onPointerDown={(e) => { e.preventDefault(); inputRef.current.touchFly = false }}
+      >⤓</button>
     </div>
   )
 }

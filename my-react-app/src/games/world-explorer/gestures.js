@@ -6,8 +6,9 @@
  *                             towards where Bulbuli should go (up = ahead, relative to the camera);
  *                             the further the drag, the faster, up to full speed at STICK_RADIUS.
  *   drag on the right half    turns the camera: sideways, further = faster
- *   flick up on the right     jump; keep the finger down to keep flying (the same as holding Space)
- *   tap on the right          jump
+ *   tap or flick up on the right   take off and keep flying: it climbs, then cruises on its own, on the
+ *                             way it was last steered, until you flick down to land (drive.js CRUISE)
+ *   flick down on the right   stop flying (it glides down, then lands)
  *
  * Each half follows its own finger, so a thumb on each side works together. A stick or a turn
  * "drags" its anchor along when the finger goes past its radius, so changing direction is quick.
@@ -75,10 +76,9 @@ export function createGestures(input, width, hooks = {}) {
         t.ox = x - (dx / d) * STICK_RADIUS
         t.oy = y - (dy / d) * STICK_RADIUS
       }
-      if (t.role === 'look' && !t.jumped && t.y0 - y > FLICK_PX && now - t.t0 < FLICK_MS && Math.abs(x - t.x0) < (t.y0 - y)) {
-        t.jumped = true
-        input.jumpPresses += 1
-        input.touchJump = true // held until the finger lifts: keep flying
+      if (t.role === 'look' && !t.jumped && now - t.t0 < FLICK_MS && Math.abs(x - t.x0) < Math.abs(y - t.y0)) {
+        if (t.y0 - y > FLICK_PX) { t.jumped = true; input.touchFly = true } // flick up: fly
+        else if (y - t.y0 > FLICK_PX) { t.jumped = true; input.touchFly = false } // flick down: land
       }
       apply()
       draw()
@@ -87,22 +87,16 @@ export function createGestures(input, width, hooks = {}) {
       const t = touches.get(id)
       if (!t) return
       touches.delete(id)
-      if (t.role === 'look') {
-        if (t.jumped) input.touchJump = false
-        else if (now - t.t0 < TAP_MS && Math.hypot(t.x - t.x0, t.y - t.y0) < TAP_SLOP) {
-          input.jumpPresses += 1
-          input.touchJump = true
-          hooks.afterTap?.(() => { input.touchJump = false })
-        }
+      if (t.role === 'look' && !t.jumped && now - t.t0 < TAP_MS && Math.hypot(t.x - t.x0, t.y - t.y0) < TAP_SLOP) {
+        input.touchFly = true // a tap: take off and keep flying
       }
       apply()
       draw()
     },
     /** Lets go of everything (a dialog opened, or the page lost focus). */
     cancel() {
-      const wasJumping = [...touches.values()].some((t) => t.jumped)
       touches.clear()
-      if (wasJumping) input.touchJump = false
+      input.touchFly = false
       input.touchX = 0
       input.touchY = 0
       input.touchTurn = 0

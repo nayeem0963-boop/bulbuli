@@ -1,7 +1,7 @@
 /**
  * The touch gesture layer over the expedition (gestures.js has the rules). A transparent surface
  * takes one finger on each half of the screen: left drags a floating stick, right swipes to turn,
- * flicks up to jump (hold to keep flying) or taps to jump. A faint ring and dot under each finger
+ * taps or flicks up to take off and keep flying, flicks down to land. A faint ring and dot under each finger
  * show what it is doing; they are drawn by setting styles directly, so a drag never re-renders React.
  */
 import { useEffect, useRef } from 'react'
@@ -28,7 +28,6 @@ export default function GestureControls({ inputRef, text, active }) {
     }
     const g = createGestures(input, () => el.clientWidth, {
       onChange: (view) => { place('move', view.move); place('look', view.look) },
-      afterTap: (release) => setTimeout(release, 140),
     })
     const at = (e) => { const r = el.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top] }
     const down = (e) => { e.preventDefault(); el.setPointerCapture?.(e.pointerId); g.down(e.pointerId, ...at(e), e.timeStamp) }
