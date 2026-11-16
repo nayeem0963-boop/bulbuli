@@ -13,6 +13,7 @@ import SkyScienceGame from '../../src/games/sky-science/index.jsx'
 import WorldExplorerGame from '../../src/games/world-explorer/index.jsx'
 import WildlifeGallery from './WildlifeGallery.jsx'
 import { AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS } from '../../src/games/world-explorer/rendering/amazonFauna.js'
+import { SUNDARBANS_MODEL_CREDITS } from '../../src/games/world-explorer/rendering/sundarbansCredits.js'
 
 const TABS = ['sky', 'world', 'gallery']
 const tabFromHash = () => {
@@ -101,6 +102,11 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
                 </p>
               )
             })}
+            {Object.entries(SUNDARBANS_MODEL_CREDITS).map(([kind, c]) => (
+              <p key={kind} className="pv-note" data-testid={`pv-credits-${kind}`}>
+                Sundarbans {c.name.toLowerCase()}: <a href={c.source} target="_blank" rel="noreferrer">&ldquo;{c.title}&rdquo;</a> by <a href={c.authorUrl} target="_blank" rel="noreferrer">{c.author}</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">{c.license}</a>. Changes: {c.changes}.
+              </p>
+            ))}
           </div>
         </details>
         <button type="button" onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}>{language === 'en' ? 'বাংলা' : 'English'}</button>

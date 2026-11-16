@@ -12,6 +12,7 @@ import AmazonAtmosphere from './rendering/AmazonAtmosphere.jsx'
 import AmazonScenery from './rendering/AmazonScenery.jsx'
 import AmazonFauna from './rendering/AmazonFauna.jsx'
 import AmazonPool from './rendering/AmazonPool.jsx'
+import SundarbansCat from './rendering/SundarbansCat.jsx'
 import BiomeAtmosphere from './rendering/BiomeAtmosphere.jsx'
 import BiomeScatter from './rendering/BiomeScatter.jsx'
 import SundarbansScenery from './rendering/SundarbansScenery.jsx'
@@ -258,6 +259,7 @@ function PropView({ prop }) {
         {[0, 1, 2, 3, 4].map((i) => <mesh key={i} position={[(i % 2) * 0.35, 0, i * 0.7]} rotation-x={-Math.PI / 2}><circleGeometry args={[0.14, 6]} /><meshStandardMaterial color="#3d2f22" /></mesh>)}
       </group>
     ); break
+    case 'spinCat': body = <SundarbansCat scale={scale} />; break
     case 'leafLitter': body = <Flat color="#8a5a2b" w={2.2} d={2.2} />; break
     case 'quadrat': body = <Flat color="#f4efe6" w={1.6} d={1.6} opacity={0.45} />; break
     case 'pool': body = <OasisPool />; break
