@@ -1,5 +1,5 @@
 /**
- * The Amazon's animals that are model files (everything else is built in code):
+ * The Amazon's animals, all model files (the first four, and the credits of every one, in amazonFauna.js):
  *   - the jaguar: "jaguar" by Ear.Rodriguez (Sketchfab, CC BY 4.0), assets/jaguar.glb
  *   - the ocelot: "Cat" by photon (that one larry) (Sketchfab, CC BY 4.0), assets/ocelot.glb, a house
  *     cat re-skinned as an ocelot by rendering/amazonOcelotCoat.js
@@ -21,6 +21,11 @@ import { applyOcelotCoat } from './amazonOcelotCoat.js'
 import armadilloUrl from '../assets/armadillo.glb?url'
 import capuchinUrl from '../assets/capuchin.glb?url'
 import jaguarUrl from '../assets/jaguar.glb?url'
+import anacondaUrl from '../assets/anaconda.glb?url'
+import eagleUrl from '../assets/harpy-eagle.glb?url'
+import fishUrl from '../assets/crimson-fangback.glb?url'
+import hoatzinUrl from '../assets/hoatzin.glb?url'
+import macawUrl from '../assets/macaw-flying.glb?url'
 import ocelotUrl from '../assets/ocelot.glb?url'
 
 /** Matte, shadows, and a touch of self-light (from the model's own colours) so the animal holds its colour in the dim forest. */
@@ -67,6 +72,11 @@ const MODELS = Object.freeze({
   ocelot: { url: ocelotUrl, tune: tuneOcelot },
   armadillo: { url: armadilloUrl, tune: tuneJaguar },
   capuchin: { url: capuchinUrl, tune: tuneCapuchin },
+  anaconda: { url: anacondaUrl, tune: tuneJaguar },
+  harpyEagle: { url: eagleUrl, tune: tuneJaguar },
+  hoatzin: { url: hoatzinUrl, tune: tuneJaguar },
+  macaw: { url: macawUrl, tune: tuneJaguar },
+  fish: { url: fishUrl, tune: tuneJaguar },
 })
 
 export default function AmazonModel({ kind }) {

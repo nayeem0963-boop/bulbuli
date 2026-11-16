@@ -3,56 +3,32 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { BIOMES, collidersFor } from '../biomes/index.js'
 import { scatterAmazon } from './amazonScatter.js'
-import { AMAZON_FAUNA, AMAZON_FAUNA_BUILDERS, AMAZON_FAUNA_MODELS } from './amazonFauna.js'
+import { AMAZON_FAUNA, AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS, flightAt } from './amazonFauna.js'
 
 const biome = BIOMES.amazon
 const fauna = biome.fauna
-const vertices = (geometry) => {
-  const position = geometry.attributes.position
-  return Array.from({ length: position.count }, (_, i) => [position.getX(i), position.getY(i), position.getZ(i)])
-}
-const triangles = (geometry) => (geometry.index ? geometry.index.count : geometry.attributes.position.count) / 3
 const apart = (a, b) => Math.hypot(a.x - b.x, a.z - b.z)
 
-test('amazon fauna: twenty kinds, as many animals as the forest has room for; only the Amazon has any', () => {
-  // every kind is built in code, except the jaguar, ocelot, armadillo and capuchin, which are model files
-  assert.deepEqual([...Object.keys(AMAZON_FAUNA_BUILDERS), ...AMAZON_FAUNA_MODELS].sort(), Object.keys(AMAZON_FAUNA).sort())
-  assert.equal(new Set(fauna.map((a) => a.type)).size, 20, 'every kind appears')
-  for (const type of Object.keys(AMAZON_FAUNA)) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
-  assert.ok(fauna.length >= 53)
+test('amazon fauna: eight kinds in the forest and one in the gallery, all model files; only the Amazon has any', () => {
+  assert.deepEqual([...AMAZON_FAUNA_MODELS].sort(), Object.keys(AMAZON_FAUNA).sort())
+  assert.deepEqual(Object.keys(AMAZON_MODEL_CREDITS).sort(), Object.keys(AMAZON_FAUNA).sort())
+  const inForest = Object.keys(AMAZON_FAUNA).filter((type) => !AMAZON_FAUNA[type].gallery)
+  assert.deepEqual([...new Set(fauna.map((a) => a.type))].sort(), inForest.sort(), 'every forest kind appears, and only those')
+  for (const type of inForest) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
+  assert.ok(fauna.length >= 16)
   for (const id of ['sundarbans', 'sahara']) assert.equal(BIOMES[id].fauna, undefined)
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'))
-  // built in code: no model or image is fetched, except the model files, loaded only by AmazonModel.jsx
-  for (const file of ['./AmazonFauna.jsx', './amazonFauna.js']) assert.ok(!/useLoader|useGLTF|GLTFLoader|https?:\/\//.test(readFileSync(new URL(file, import.meta.url), 'utf8').replace(/^\/\*\*[\s\S]*?\*\//, '')))
+  // clean-up: nothing is built in code any more; the models are loaded only by AmazonModel.jsx
+  for (const file of ['./AmazonFauna.jsx', './amazonFauna.js']) assert.ok(!/useLoader|useGLTF|GLTFLoader|https?:\/\/|createBuilder|BufferGeometry|MeshPhysicalMaterial/.test(readFileSync(new URL(file, import.meta.url), 'utf8').replace(/^\/\*\*[\s\S]*?\*\//, '').replace(/^ {2}\w+: \{ file:.*$/gm, '')))
   assert.ok(/useLoader\(GLTFLoader, url\)/.test(readFileSync(new URL('./AmazonModel.jsx', import.meta.url), 'utf8')))
-})
-
-test('amazon fauna: each model stands on the ground, within the size its collider says, and is always the same', () => {
-  for (const [type, build] of Object.entries(AMAZON_FAUNA_BUILDERS)) {
-    const spec = AMAZON_FAUNA[type]
-    const geometry = build(5)
-    const points = vertices(geometry)
-    assert.ok(points.every((p) => p.every(Number.isFinite)), `${type} is finite`)
-    assert.ok(geometry.attributes.color && geometry.attributes.normal, `${type} has colours and normals`)
-    assert.ok(triangles(geometry) < 12000, `${type} has ${triangles(geometry)} triangles`)
-    const ys = points.map((p) => p[1])
-    assert.ok(Math.min(...ys) >= -0.02 && Math.min(...ys) < 0.06, `${type} stands on the ground (lowest ${Math.min(...ys).toFixed(3)})`)
-    assert.ok(Math.max(...ys) <= spec.top + 0.12 && Math.max(...ys) >= spec.top - 0.3, `${type} is ${Math.max(...ys).toFixed(2)} m tall, collider ${spec.top} m`)
-    const reach = Math.max(...points.map(([x, , z]) => Math.hypot(x, z)))
-    assert.ok(reach <= spec.radius + 0.9 * (spec.length / 2) + 0.2, `${type} reaches ${reach.toFixed(2)} m`)
-    assert.deepEqual(vertices(build(5)), points)
-  }
-  // length: along z, within the stated size
-  const length = (type) => { const zs = vertices(AMAZON_FAUNA_BUILDERS[type](1)).map((p) => p[2]); return Math.max(...zs) - Math.min(...zs) }
-  assert.ok(length('tapir') > 1.2 && length('anteater') > 1.6 && length('caiman') > 1.6 && length('capybara') > 0.9)
 })
 
 test('amazon fauna: every solid animal has a collider; the tiny ones have none', () => {
   const colliders = collidersFor(biome)
   fauna.forEach((animal, i) => {
     const collider = colliders.find((c) => c.id === `fauna-${i}`)
-    if (!animal.solid) return assert.equal(collider, undefined, `${animal.type} is too small to bump into`)
+    if (!animal.solid) return assert.equal(collider, undefined, `${animal.type} is not solid`)
     assert.ok(collider.x === animal.x && collider.z === animal.z && collider.r === animal.solid.r)
     assert.equal(collider.walkable, false)
     assert.ok(Math.abs(collider.top - (animal.y + animal.solid.top)) < 1e-9)
@@ -65,14 +41,14 @@ test('amazon fauna: every animal stands on its ground, clear of the stations, th
   const trees = scatterAmazon(biome).filter((item) => ['emergent', 'canopy', 'subcanopy'].includes(item.kind))
   const floor = biome.discs.find((d) => d.id === 'floor')
   const ground = fauna.filter((a) => a.y === 0)
-  assert.ok(ground.length >= 15)
-  for (const animal of fauna) {
+  assert.ok(ground.length >= 8)
+  for (const animal of fauna.filter((a) => !a.fly)) {
     const r = animal.solid?.r ?? 0.1
     const name = `${animal.type} at (${animal.x.toFixed(1)}, ${animal.z.toFixed(1)})`
     const disc = biome.discs.filter((d) => apart(animal, d) + r <= d.r && Math.abs(d.top - animal.y) < 1e-9)
     assert.ok(disc.length, `${name} stands on a disc, at its height`)
     for (const station of biome.stations) assert.ok(apart(animal, station) - r >= 1.2, `${name} crowds station ${station.n}`)
-    for (const other of fauna) if (other !== animal && Math.abs(other.y - animal.y) < 1e-9) assert.ok(apart(animal, other) >= r + (other.solid?.r ?? 0.1) - 0.05 || !animal.solid || !other.solid, `${name} overlaps ${other.type}`)
+    for (const other of fauna.filter((a) => !a.fly)) if (other !== animal && Math.abs(other.y - animal.y) < 1e-9) assert.ok(apart(animal, other) >= r + (other.solid?.r ?? 0.1) - 0.05 || !animal.solid || !other.solid, `${name} overlaps ${other.type}`)
     if (animal.y === 0) {
       assert.ok(apart(animal, floor) + r < floor.r - 1 || disc[0].id !== 'floor', `${name} is not well inside the floor`)
       assert.ok(apart(animal, { x: biome.spawn.position[0], z: biome.spawn.position[2] }) - r > 2.5, `${name} crowds the start`)
@@ -87,24 +63,31 @@ test('amazon fauna: every animal stands on its ground, clear of the stations, th
     }
   }
   // perched animals keep off the way in: the stair lands on the near side of the platform
-  for (const animal of fauna.filter((a) => a.y > 0)) assert.ok(animal.solid && animal.y >= 3.4)
+  for (const animal of fauna.filter((a) => a.y > 0 && !a.fly)) assert.ok(animal.solid && animal.y >= 3.4)
+  // a flyer is not solid, and flies clear of the platforms and well above the ground
+  for (const animal of fauna.filter((a) => a.fly)) assert.ok(!animal.solid && animal.fly.y >= 3 && animal.fly.r >= 2)
 })
 
-test('amazon fauna: finely modelled statues: smooth, a budget of triangles, and nothing moves', () => {
-  let total = 0
-  for (const [type, build] of Object.entries(AMAZON_FAUNA_BUILDERS)) {
-    const geometry = build(3)
-    const count = triangles(geometry)
-    assert.ok(count >= 400 || type === 'morpho', `${type} has only ${count} triangles`)
-    assert.ok(count <= 12000, `${type} has ${count} triangles`)
-    total += count * fauna.filter((a) => a.type === type).length
-    // smooth: the surface is welded, so neighbouring faces share their corners
-    assert.ok(geometry.index, `${type} is one welded surface`)
-  }
-  assert.ok(total < 200000, `${total} triangles for every animal`)
-  // they stand still: nothing moves them
-  for (const file of ['./AmazonFauna.jsx', './amazonFauna.js']) assert.ok(!/useFrame|requestAnimationFrame|elapsedTime/.test(readFileSync(new URL(file, import.meta.url), 'utf8')))
+test('amazon fauna: the models stand still, the macaws circle, and each flight is a closed loop', () => {
+  const files = ['./AmazonFauna.jsx'].map((file) => readFileSync(new URL(file, import.meta.url), 'utf8'))
+  // only the flyer is moved, and only by its position and heading
+  assert.equal((files[0].match(/useFrame\(/g) ?? []).length, 1)
+  assert.ok(!/requestAnimationFrame/.test(files[0]))
   assert.ok(fauna.every((animal) => animal.roam === undefined && animal.route === undefined))
+  for (const animal of fauna.filter((a) => a.fly)) {
+    const start = flightAt(animal.fly, 0)
+    assert.ok(Math.abs(start.x - animal.x) < 1e-9 && Math.abs(start.z - animal.z) < 1e-9 || animal.fly.phase !== 0, 'starts on its circle')
+    for (let t = 0; t < 60; t += 3.7) {
+      const p = flightAt(animal.fly, t)
+      assert.ok(Math.abs(Math.hypot(p.x - animal.fly.x, p.z - animal.fly.z) - animal.fly.r) < 1e-9, 'stays on its circle')
+      assert.ok(Math.abs(p.y - animal.fly.y) <= 0.19)
+      // it heads along the circle: its heading is the direction of travel
+      const q = flightAt(animal.fly, t + 0.01)
+      const dx = q.x - p.x, dz = q.z - p.z
+      assert.ok(Math.abs(Math.sin(p.heading) * dz - Math.cos(p.heading) * dx) < 1e-3 * Math.hypot(dx, dz) * 100, 'faces the way it flies')
+      assert.ok(Math.sin(p.heading) * dx + Math.cos(p.heading) * dz > 0, 'forwards')
+    }
+  }
 })
 
 /** The parts of a .glb the tests need: its JSON chunk and its size. */
@@ -117,26 +100,38 @@ function readGlb(name) {
 
 // what each model file must say and be: its credit, its parts and its size
 const MODEL_FILES = {
-  jaguar: { author: /Ear\.Rodriguez/, source: 'sketchfab.com/3d-models/jaguar-91c61c329d2a4668816f81f08dfcd492', meshes: 2, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 },
-  ocelot: { author: /photon \(that one larry\)/, source: 'sketchfab.com/3d-models/cat-74321b8d6b6b4c168db849ee6c8b3d6a', meshes: 3, images: 3, maxBytes: 400 * 1024, maxTriangles: 4000 },
-  armadillo: { author: /RISD Nature Lab/, source: 'sketchfab.com/3d-models/armadillo-1d86c64b646048d38e8a74fc18fa7e4d', meshes: 1, images: 1, maxBytes: 900 * 1024, maxTriangles: 20000 },
-  capuchin: { author: /TdoubleU8/, source: 'sketchfab.com/3d-models/realsitic-monkey-50e4b1da03494429b1265fc095f2c530', meshes: 1, images: 1, maxBytes: 600 * 1024, maxTriangles: 15000 },
+  jaguar: { meshes: 2, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 },
+  ocelot: { meshes: 3, images: 3, maxBytes: 400 * 1024, maxTriangles: 4000 },
+  armadillo: { meshes: 1, images: 1, maxBytes: 900 * 1024, maxTriangles: 20000 },
+  capuchin: { meshes: 1, images: 1, maxBytes: 600 * 1024, maxTriangles: 15000 },
+  anaconda: { meshes: 1, images: 1, maxBytes: 600 * 1024, maxTriangles: 16000 },
+  harpyEagle: { meshes: 1, images: 1, maxBytes: 1.4 * 1024 * 1024, maxTriangles: 19000 },
+  hoatzin: { meshes: 4, images: 4, maxBytes: 900 * 1024, maxTriangles: 28000 },
+  macaw: { meshes: 1, images: 1, maxBytes: 700 * 1024, maxTriangles: 16000 },
+  fish: { meshes: 1, images: 1, maxBytes: 800 * 1024, maxTriangles: 16000 },
 }
 
 test('amazon models: credited, light, static, and the size their colliders say', () => {
   assert.deepEqual(Object.keys(MODEL_FILES).sort(), [...AMAZON_FAUNA_MODELS].sort())
   for (const [name, want] of Object.entries(MODEL_FILES)) {
-    const { json, bytes } = readGlb(name)
+    const credit = AMAZON_MODEL_CREDITS[name]
+    const { json, bytes } = readGlb(credit.file)
     // credited (CC BY 4.0 asks for the author, the licence and a note of the changes)
     assert.match(json.asset.extras.license, /CC-BY-4\.0/, name)
-    assert.match(json.asset.extras.author, want.author, name)
-    const note = readFileSync(new URL(`../assets/${name}.LICENSE.md`, import.meta.url), 'utf8')
-    for (const needle of [want.source, 'CC BY 4.0', 'Changes made']) assert.ok(note.includes(needle), `${name}: the licence note names ${needle}`)
+    assert.ok(json.asset.extras.author.includes(credit.authorUrl), name)
+    assert.equal(json.asset.extras.source, credit.source, name)
+    assert.equal(credit.license, 'CC BY 4.0')
+    const note = readFileSync(new URL(`../assets/${credit.file}.LICENSE.md`, import.meta.url), 'utf8')
+    for (const needle of [credit.source, 'CC BY 4.0', 'Changes made']) assert.ok(note.includes(needle), `${name}: the licence note names ${needle}`)
     const preview = readFileSync(new URL('../../../../dev-preview/phase-2a/PreviewApp.jsx', import.meta.url), 'utf8')
-    assert.ok(preview.includes(want.source) && preview.includes('CC BY 4.0'), `${name} is credited on the review page`)
+    assert.ok(preview.includes('AMAZON_MODEL_CREDITS') && preview.includes('c.source') && preview.includes('c.author'), 'the review page credits every model from the credits table')
+    const gallery = readFileSync(new URL('../../../../dev-preview/phase-2a/WildlifeGallery.jsx', import.meta.url), 'utf8')
+    assert.ok(gallery.includes('credit.source') && gallery.includes('credit.author') && gallery.includes('AMAZON_FAUNA_MODELS'), `${name} is in the gallery, credited`)
     // light and static: no skeleton, no animation
     assert.ok(bytes < want.maxBytes, `${name}: ${bytes} bytes`)
     assert.ok(!json.skins && !json.animations, `${name}: static: no skeleton, no animation`)
+    // the sizes below are read from the vertices, so no node may move, turn or scale them
+    assert.ok(json.nodes.every((node) => !node.translation && !node.rotation && !node.scale && !node.matrix), `${name}: every transform is baked into the vertices`)
     assert.equal(json.images.length, want.images, name)
     assert.equal(json.meshes.length, want.meshes, name)
     let triangles = 0

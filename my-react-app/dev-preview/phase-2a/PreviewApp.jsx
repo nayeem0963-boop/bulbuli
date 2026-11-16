@@ -4,15 +4,17 @@
  *   mode 'review' : the controlled review build (review/, npm run build:review; see review/main.jsx)
  * Both mount a sandbox adapter (preview / review) that awards nothing and talks to no server.
  *
- * The selected game is kept in the URL hash (#sky / #world), so a reviewer's direct link and a
+ * The selected game is kept in the URL hash (#sky / #world / #gallery), so a reviewer's direct link and a
  * page refresh both land on the same game.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLearningSnapshot } from '../../src/learning/store/learningStore.js'
 import SkyScienceGame from '../../src/games/sky-science/index.jsx'
 import WorldExplorerGame from '../../src/games/world-explorer/index.jsx'
+import WildlifeGallery from './WildlifeGallery.jsx'
+import { AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS } from '../../src/games/world-explorer/rendering/amazonFauna.js'
 
-const TABS = ['sky', 'world']
+const TABS = ['sky', 'world', 'gallery']
 const tabFromHash = () => {
   const tab = window.location.hash.replace(/^#\/?/, '').split('/')[0]
   return TABS.includes(tab) ? tab : null
@@ -91,18 +93,14 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
             <p className="pv-note">Recorded here only. Nothing is sent anywhere. {mode === 'review' ? 'Review' : 'Preview'} total: {snapshot.learningXp ?? 0} XP (not real XP)</p>
             <ol data-testid="pv-awards">{awards.map((a) => <li key={a.roundKey}>{a.gameId}: +{a.amount} XP</li>)}</ol>
             <h2>Credits</h2>
-            <p className="pv-note" data-testid="pv-credits">
-              Amazon Rainforest jaguar: <a href="https://sketchfab.com/3d-models/jaguar-91c61c329d2a4668816f81f08dfcd492" target="_blank" rel="noreferrer">&ldquo;jaguar&rdquo;</a> by <a href="https://sketchfab.com/Ear.Rodriguez" target="_blank" rel="noreferrer">Ear.Rodriguez</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: the rest pose baked into a static model, tongue, teeth and animation removed, texture reduced, scaled and re-centred.
-            </p>
-            <p className="pv-note" data-testid="pv-credits-ocelot">
-              Amazon Rainforest ocelot: <a href="https://sketchfab.com/3d-models/cat-74321b8d6b6b4c168db849ee6c8b3d6a" target="_blank" rel="noreferrer">&ldquo;Cat&rdquo;</a> by <a href="https://sketchfab.com/Professor_E12" target="_blank" rel="noreferrer">photon (that one larry)</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: a house cat re-skinned as an ocelot (a tawny, spotted coat in place of the calico one; an approximation, not an exact ocelot), the rest pose baked into a static model, textures converted, scaled and re-centred.
-            </p>
-            <p className="pv-note" data-testid="pv-credits-armadillo">
-              Amazon Rainforest armadillo: <a href="https://sketchfab.com/3d-models/armadillo-1d86c64b646048d38e8a74fc18fa7e4d" target="_blank" rel="noreferrer">&ldquo;Armadillo&rdquo;</a> by <a href="https://sketchfab.com/RISDNaturelab" target="_blank" rel="noreferrer">RISD Nature Lab</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: a 1,000,000-triangle scan simplified to about 16,500 triangles, turned, tilted, scaled and re-centred, texture reduced.
-            </p>
-            <p className="pv-note" data-testid="pv-credits-capuchin">
-              Amazon Rainforest capuchin: <a href="https://sketchfab.com/3d-models/realsitic-monkey-50e4b1da03494429b1265fc095f2c530" target="_blank" rel="noreferrer">&ldquo;Realsitic Monkey&rdquo;</a> by <a href="https://sketchfab.com/TdoubleU8" target="_blank" rel="noreferrer">TdoubleU8</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: a rhesus macaque re-skinned as a capuchin (dark brown coat, cream face frame and chest, dark cap; an approximation, not an exact capuchin), simplified to about 12,300 triangles, material converted, texture reduced and re-centred.
-            </p>
+            {AMAZON_FAUNA_MODELS.map((kind) => {
+              const c = AMAZON_MODEL_CREDITS[kind]
+              return (
+                <p key={kind} className="pv-note" data-testid={kind === 'jaguar' ? 'pv-credits' : `pv-credits-${kind}`}>
+                  Amazon Rainforest {c.name.toLowerCase()}: <a href={c.source} target="_blank" rel="noreferrer">&ldquo;{c.title}&rdquo;</a> by <a href={c.authorUrl} target="_blank" rel="noreferrer">{c.author}</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">{c.license}</a>. Changes: {c.changes}.
+                </p>
+              )
+            })}
           </div>
         </details>
         <button type="button" onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}>{language === 'en' ? 'বাংলা' : 'English'}</button>
@@ -112,6 +110,7 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
       <nav className="pv-tabs" aria-label="Preview games">
         <button type="button" aria-pressed={tab === 'sky'} onClick={() => setTab('sky')} data-tab="sky">Sky Science Explorer</button>
         <button type="button" aria-pressed={tab === 'world'} onClick={() => setTab('world')} data-tab="world">World Explorer 3D</button>
+        <button type="button" aria-pressed={tab === 'gallery'} onClick={() => setTab('gallery')} data-tab="gallery">Wildlife Gallery</button>
       </nav>
       <main ref={mainRef} className="pv-main">
         {tab === 'sky' && (
@@ -124,6 +123,7 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
             onStepShown={onStepShown}
           />
         )}
+        {tab === 'gallery' && <WildlifeGallery />}
         {tab === 'world' && (
           <WorldExplorerGame
             language={language}

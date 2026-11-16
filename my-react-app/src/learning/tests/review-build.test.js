@@ -69,10 +69,10 @@ test('R1: the review build contains exactly the review page, its bundles, the Dr
     'sounds/correct.mp3',
     'sounds/wrong.mp3',
   ])
-  // assets/ holds only bundles and the four model files: the Amazon jaguar, ocelot, armadillo and capuchin
+  // assets/ holds only bundles and the nine model files: the Amazon jaguar, ocelot, armadillo, capuchin, anaconda, harpy eagle, hoatzin, macaw and the gallery's fish
   // (CC BY 4.0, credited on the review page); the Amazon bird and every other animal are built in code
   const assets = b.files.filter((f) => f.startsWith('assets/'))
-  assert.deepEqual(assets.filter((f) => !/\.(js|css)$/.test(f)).map((f) => f.replace(/-[A-Za-z0-9_-]{8}\./, '-[hash].')), ['assets/armadillo-[hash].glb', 'assets/capuchin-[hash].glb', 'assets/jaguar-[hash].glb', 'assets/ocelot-[hash].glb'])
+  assert.deepEqual(assets.filter((f) => !/\.(js|css)$/.test(f)).map((f) => f.replace(/-[A-Za-z0-9_-]{8}\./, '-[hash].')), ['anaconda', 'armadillo', 'capuchin', 'crimson-fangback', 'harpy-eagle', 'hoatzin', 'jaguar', 'macaw-flying', 'ocelot'].map((n) => `assets/${n}-[hash].glb`))
   // none of the main site's service worker, manifest, sitemap or offline page
   for (const f of ['sw.js', 'manifest.webmanifest', 'sitemap.xml', 'offline.html']) assert.ok(!b.files.includes(f), `${f} must not be in the review site`)
 })
