@@ -1,11 +1,9 @@
 import { Gamepad2, Hammer, Trophy, UserRound } from 'lucide-react'
 import { useRef } from 'react'
 import { TABS } from '../../data/mockData.js'
+import { panelId, tabId } from './navTabIds.js'
 
 const ICONS = { play: Gamepad2, build: Hammer, leaderboards: Trophy, profile: UserRound }
-
-export const tabId = (id) => `tab-${id}`
-export const panelId = (id) => `panel-${id}`
 
 /** WAI-ARIA tabs: roving tabindex, arrow keys / Home / End move focus and select. */
 export default function NavTabs({ activeTab, onChange, className = '' }) {

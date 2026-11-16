@@ -7,6 +7,7 @@ import { COLORS, PLATFORM_WIDTH } from '../../config/constants'
 import { useSensor } from '../../hooks/useCollision'
 import { runtime } from '../../stores/runtime'
 import { boxFrom } from '../../systems/collisionWorld'
+import { useLatest } from '../../../../shared/hooks/useLatest.js'
 
 /*
  * Obstacle — every hazard in the game.
@@ -63,14 +64,13 @@ const BEAM_DEPTH = 0.5 // sensor is deeper than the visual beam so fast players 
 function useHazardContact(kind, getPosition) {
   const [struck, setStruck] = useState(false)
   const done = useRef(false)
-  const posFn = useRef(getPosition)
-  posFn.current = getPosition
+  const posFn = useLatest(getPosition)
   const onEnter = useCallback(() => {
     if (done.current) return
     done.current = true
     runtime.hitQueue.push({ kind, position: posFn.current() })
     setStruck(true)
-  }, [kind])
+  }, [kind, posFn])
   return [struck, onEnter]
 }
 

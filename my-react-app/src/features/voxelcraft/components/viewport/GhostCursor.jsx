@@ -22,6 +22,10 @@ export default function GhostCursor({ ref }) {
   const edges = useMemo(() => new THREE.EdgesGeometry(box), [box])
   useEffect(() => () => [fill, line, box, edges].forEach((o) => o.dispose()), [fill, line, box, edges])
 
+  // the live materials are reached through the meshes (render-time values stay immutable)
+  const fillMesh = useRef(null)
+  const lineMesh = useRef(null)
+
   useImperativeHandle(ref, () => ({
     /** @param {{x,y,z}} cell  @param {'place'|'erase'|'invalid'} kind  @param {string} color */
     show(cell, kind, color) {
@@ -31,28 +35,28 @@ export default function GhostCursor({ ref }) {
       g.position.set(cellCenter(cell.x), cell.y + 0.5, cellCenter(cell.z))
       g.scale.setScalar(kind === 'erase' ? 1.04 : 1)
       const c = COLORS[kind] ?? color
-      fill.color.set(c)
-      line.color.set(c)
+      fillMesh.current?.material.color.set(c)
+      lineMesh.current?.material.color.set(c)
       g.userData.kind = kind
     },
     hide() {
       if (group.current) group.current.visible = false
     },
-  }), [fill, line])
+  }), [])
 
   // Gentle pulse so the cursor reads as "live" against static blocks.
   useFrame(({ clock }) => {
     const g = group.current
     if (!g?.visible) return
     const base = g.userData.kind === 'place' ? 0.28 : 0.2
-    fill.opacity = base + Math.sin(clock.elapsedTime * 6) * 0.08
+    if (fillMesh.current) fillMesh.current.material.opacity = base + Math.sin(clock.elapsedTime * 6) * 0.08
   })
 
   return (
     // noSnapshot: never appears in published thumbnails
     <group ref={group} visible={false} userData={{ noSnapshot: true }}>
-      <mesh geometry={box} material={fill} raycast={noRaycast} renderOrder={2} />
-      <lineSegments geometry={edges} material={line} raycast={noRaycast} renderOrder={3} />
+      <mesh ref={fillMesh} geometry={box} material={fill} raycast={noRaycast} renderOrder={2} />
+      <lineSegments ref={lineMesh} geometry={edges} material={line} raycast={noRaycast} renderOrder={3} />
     </group>
   )
 }

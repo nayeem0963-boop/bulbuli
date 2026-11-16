@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { HalfFloatType, Vector2, WebGLRenderTarget } from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
@@ -10,6 +10,7 @@ import { useGameEvent, useReducedMotion, useVfxQuality } from '../../hooks/useVi
 import { createGradeShader, createSurgeShader } from '../../postfx/neonPasses'
 import { EV } from '../../systems/events'
 import { vfx } from '../../systems/vfx'
+import { useLatest } from '../../../../shared/hooks/useLatest.js'
 
 /*
  * Post-processing on three.js's own EffectComposer (three/examples/jsm), so no extra
@@ -44,7 +45,11 @@ export function PostFX() {
   const high = quality === 'high'
   const warp = useRef(0)
 
-  const chain = useMemo(() => {
+  // The composer chain is built (and disposed) by a layout effect and kept in a ref: it is mutated
+  // every frame, so it must not be a render-time value. Layout effects run before the next frame.
+  const chainRef = useRef(null)
+  const sizeRef = useLatest({ width: size.width, height: size.height, dpr })
+  useLayoutEffect(() => {
     const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: high ? 4 : 0 })
     const composer = new EffectComposer(gl, target)
     const bloom = new UnrealBloomPass(new Vector2(256, 256), 0.6, 0.6, 1.0)
@@ -55,19 +60,32 @@ export function PostFX() {
     composer.addPass(surge)
     composer.addPass(grade)
     composer.addPass(new OutputPass())
-    return { composer, bloom, surge: surge.uniforms, grade: grade.uniforms }
-  }, [gl, scene, camera, high])
+    const { width, height, dpr: ratio } = sizeRef.current
+    composer.setPixelRatio(ratio)
+    composer.setSize(width, height)
+    const chain = { composer, bloom, surge: surge.uniforms, grade: grade.uniforms }
+    chainRef.current = chain
+    return () => {
+      if (chainRef.current === chain) chainRef.current = null
+      composer.dispose()
+    }
+  }, [gl, scene, camera, high, sizeRef])
 
-  useEffect(() => () => chain.composer.dispose(), [chain])
-
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const chain = chainRef.current
+    if (!chain) return
     chain.composer.setPixelRatio(dpr)
     chain.composer.setSize(size.width, size.height)
-  }, [chain, size.width, size.height, dpr])
+  }, [size.width, size.height, dpr])
 
   useGameEvent(EV.SURGE_START, () => { warp.current = 1 })
 
   useFrame((state, delta) => {
+    const chain = chainRef.current
+    if (!chain) {
+      state.gl.render(state.scene, state.camera) // never a blank frame
+      return
+    }
     const dt = Math.min(delta, 0.05)
     const time = state.clock.elapsedTime
     const { speedFactor: sp, surge: sg, hit, pickup } = vfx

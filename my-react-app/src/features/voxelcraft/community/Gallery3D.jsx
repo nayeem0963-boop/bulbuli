@@ -1,6 +1,6 @@
 import { PerspectiveCamera, View } from '@react-three/drei'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import BlockLayer from '../components/viewport/blocks/BlockLayer.jsx'
 
 /**
@@ -61,11 +61,11 @@ function levelBounds(blocks) {
   }
 }
 
-function PreviewScene({ blocks, spin }) {
+function PreviewScene({ blocks, spinRef }) {
   const { center, radius } = useMemo(() => levelBounds(blocks), [blocks])
   const group = useRef(null)
   const camera = useRef(null)
-  const still = useMemo(reducedMotion, [])
+  const [still] = useState(reducedMotion) // read once
   const distance = radius / Math.sin((35 / 2) * (Math.PI / 180)) * 0.74 // fit the level snugly
 
   useLayoutEffect(() => {
@@ -74,7 +74,7 @@ function PreviewScene({ blocks, spin }) {
   }, [distance])
 
   useFrame((_, dt) => {
-    const s = spin.current
+    const s = spinRef.current
     if (!s.dragging && !still) s.angle += Math.min(dt, 0.05) * (s.hover ? 0.9 : 0.3)
     if (group.current) group.current.rotation.y = s.angle
   })
@@ -97,10 +97,10 @@ function PreviewScene({ blocks, spin }) {
 }
 
 /** A card's live preview: a tracked div whose pixels come from the shared GalleryCanvas. */
-export function LevelPreview3D({ blocks, spin, className }) {
+export function LevelPreview3D({ blocks, spinRef, className }) {
   return (
     <View className={className}>
-      <PreviewScene blocks={blocks} spin={spin} />
+      <PreviewScene blocks={blocks} spinRef={spinRef} />
     </View>
   )
 }

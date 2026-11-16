@@ -4,18 +4,10 @@ import { correctSoFar, encouragement, starsFor } from '../engine.js'
 import { Confetti, StarRow } from './Celebrate.jsx'
 import { GOLD_BUTTON, LEVEL_ICONS, lvlStyle } from './theme.js'
 import Visual from './Visuals.jsx'
+import { tight, unitOf, withUnit } from './units.js'
 
 const KEYS = ['1', '2', '3', '4']
 
-/** A question's unit in the player's language ('%', '°' and 'cm²' are the same in both). */
-export const unitOf = (question, language) => {
-  const unit = question.unit
-  if (!unit) return ''
-  return typeof unit === 'string' ? unit : unit[language] ?? unit.en
-}
-/** % and ° sit right against the number; words get a space. */
-const tight = (unit) => unit === '%' || unit === '°'
-export const withUnit = (value, unit) => (unit ? `${value}${tight(unit) ? '' : ' '}${unit}` : value)
 
 /** The bar over the card: back to missions, the mission, the question count, score and stars so far. */
 function RoundBar({ round, level, language, text, n, onQuit }) {

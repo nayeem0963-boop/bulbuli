@@ -312,3 +312,18 @@ test('summary and XP', () => {
   assert.equal(xpForRun(stats, true), 0)
   assert.equal(xpForRun({ correct: 999, bestCombo: 999 }, false), 40)
 })
+
+test('learning tracks (Adventure Run modes): Multiplication Hop offers counting, Letter Hop offers vowels', async () => {
+  const { TRACKS, modesForTrack, modeInTrack } = await import('./engine.js')
+  assert.deepEqual(TRACKS.count, ['by2', 'by3', 'by5', 'by10'])
+  assert.deepEqual(TRACKS.letters, ['vowels'])
+  assert.deepEqual(modesForTrack('count'), TRACKS.count)
+  assert.deepEqual(modesForTrack('letters'), TRACKS.letters)
+  // no track, or an unknown one: every target, as before
+  for (const track of [null, undefined, '', 'nonsense', 'toString', '__proto__']) assert.deepEqual(modesForTrack(track), MODE_IDS)
+  // a saved choice from the other track falls back to this track's first target; inside the track it's kept
+  assert.equal(modeInTrack('vowels', 'count'), 'by2')
+  assert.equal(modeInTrack('by5', 'count'), 'by5')
+  assert.equal(modeInTrack('by5', 'letters'), 'vowels')
+  assert.equal(modeInTrack('by10', null), 'by10')
+})

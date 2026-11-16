@@ -1,5 +1,6 @@
-import { useId, useLayoutEffect, useRef } from 'react'
+import { useId, useLayoutEffect } from 'react'
 import { collisionWorld } from '../systems/collisionWorld'
+import { useLatest } from '../../../shared/hooks/useLatest.js'
 
 /*
  * Register a component's collision shapes for as long as it's mounted.
@@ -26,15 +27,14 @@ export function useRamp(ramp) {
  */
 export function useSensor(active, shape, onEnter) {
   const id = useId()
-  const handler = useRef(onEnter)
-  handler.current = onEnter
-  const shapeRef = useRef(shape)
-  shapeRef.current = shape
+  // latest handler / shape, refreshed in layout effects declared before (so they run before) the one below
+  const handler = useLatest(onEnter)
+  const shapeRef = useLatest(shape)
   useLayoutEffect(() => {
     if (!active) return undefined
     const sensor = typeof shapeRef.current === 'function'
       ? { getBox: (out) => shapeRef.current(out), onEnter: () => handler.current() }
       : { box: shapeRef.current, onEnter: () => handler.current() }
     return collisionWorld.addSensor(id, sensor)
-  }, [id, active])
+  }, [id, active, handler, shapeRef])
 }

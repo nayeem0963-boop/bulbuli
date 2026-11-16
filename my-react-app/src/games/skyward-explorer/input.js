@@ -2,7 +2,8 @@
  * Keyboard and touch input, kept in a ref (no re-renders). The 3D scene reads it every frame.
  *
  *   W A S D / arrows   move (relative to the camera)
- *   Space              jump; hold in the air to glide
+ *   Space / W / ↑      hold for continuous flight in World Explorer
+ *   Space              jump; hold in the air to glide in Skyward Explorer
  *   Q / E              turn the camera
  * Touch: the on-screen stick and jump button in HUD.jsx write into the same object.
  */
@@ -27,9 +28,10 @@ export function createInputState() {
   }
 }
 
-/** Keyboard listeners that write into `input`. Game keys only stop page scrolling while `activeRef.current`. */
-export function useKeyboardInput(input, activeRef) {
+/** Keyboard listeners that write into `inputRef.current`. Game keys only stop page scrolling while `activeRef.current`. */
+export function useKeyboardInput(inputRef, activeRef) {
   useEffect(() => {
+    const input = inputRef.current
     const onDown = (event) => {
       const action = KEYMAP[event.code]
       if (!action) return
@@ -56,7 +58,7 @@ export function useKeyboardInput(input, activeRef) {
       window.removeEventListener('keyup', onUp)
       window.removeEventListener('blur', clear)
     }
-  }, [input, activeRef])
+  }, [inputRef, activeRef])
 }
 
 /** Stick direction (right, forward), length ≤ 1, from keys and touch together. */
@@ -73,11 +75,15 @@ export function readStick(input) {
 }
 
 export const isJumpHeld = (input) => input.held.has('jump') || input.touchJump
+export const isFlightHeld = (input) => isJumpHeld(input) || input.held.has('forward')
 export const cameraTurn = (input) => (input.held.has('turnRight') ? 1 : 0) - (input.held.has('turnLeft') ? 1 : 0)
 
-/** One shared input object per screen. */
+/**
+ * One shared input object per screen, returned as a ref: read / write `inputRef.current` only in
+ * event handlers, effects and useFrame (never during render).
+ */
 export function useInputState() {
   const ref = useRef(null)
-  if (!ref.current) ref.current = createInputState()
-  return ref.current
+  if (ref.current === null) ref.current = createInputState()
+  return ref
 }

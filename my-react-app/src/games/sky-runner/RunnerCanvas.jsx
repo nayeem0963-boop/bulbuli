@@ -292,29 +292,35 @@ class BirdBoundary extends Component {
 
 /* ------------------------------------------------------------------ world: stars, clouds, bird */
 
-const World = memo(function World({ world, running, paused, difficulty, reducedMotion, onStar, onBump, statsRef }) {
+// Scratch object for building instance matrices. useFrame and the effects below use it synchronously,
+// so one shared instance is safe (and keeps render-time values immutable for the React Compiler).
+const dummy = new Object3D()
+
+const World = memo(function World({ worldRef, running, paused, difficulty, reducedMotion, onStar, onBump, statsRef }) {
   const bird = useRef()
   const stars = useRef()
   const puffs = useRef()
   const eyes = useRef()
   const starGeometry = useStarGeometry()
-  const dummy = useMemo(() => new Object3D(), [])
 
-  const props = useRef(null)
-  props.current = { running, paused, difficulty, onStar, onBump }
+  // latest props for the frame loop, refreshed after each commit (never written during render)
+  const props = useRef({ running, paused, difficulty, onStar, onBump })
+  useLayoutEffect(() => {
+    props.current = { running, paused, difficulty, onStar, onBump }
+  }, [running, paused, difficulty, onStar, onBump])
 
   useEffect(() => {
-    if (statsRef) statsRef.current = world.stats
-  }, [statsRef, world])
+    if (statsRef) statsRef.current = worldRef.current.stats
+  }, [statsRef, worldRef])
 
   useLayoutEffect(() => {
     hideAll(stars.current, STAR_POOL, dummy)
     hideAll(puffs.current, CLOUD_POOL * PUFFS.length, dummy)
     hideAll(eyes.current, CLOUD_POOL * 2, dummy)
-  }, [dummy])
+  }, [])
 
   useFrame((state, delta) => {
-    const w = world
+    const w = worldRef.current
     const p = props.current
     const dt = Math.min(delta, MAX_DT)
     const time = state.clock.elapsedTime
@@ -477,23 +483,23 @@ const World = memo(function World({ world, running, paused, difficulty, reducedM
         <meshBasicMaterial color="#1b2a49" />
       </instancedMesh>
 
-      <Sparkles world={world} reducedMotion={reducedMotion} />
+      <Sparkles worldRef={worldRef} reducedMotion={reducedMotion} />
     </>
   )
 })
 
 /** Little gold burst when a star is collected. */
-function Sparkles({ world, reducedMotion }) {
+function Sparkles({ worldRef, reducedMotion }) {
   const mesh = useRef()
-  const dummy = useMemo(() => new Object3D(), [])
-  const parts = useMemo(
-    () => Array.from({ length: SPARKLE_COUNT }, () => ({ x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, life: 0 })),
-    [],
-  )
+  // particle pool: simulation state in a ref (lazy init is the one allowed ref write during render)
+  const pool = useRef(null)
+  if (pool.current === null) pool.current = Array.from({ length: SPARKLE_COUNT }, () => ({ x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, life: 0 }))
   const active = useRef(false)
 
   useLayoutEffect(() => {
     hideAll(mesh.current, SPARKLE_COUNT, dummy)
+    const world = worldRef.current
+    const parts = pool.current
     let next = 0
     world.burst = (x, y, z) => {
       // Re-use the oldest sparkles so overlapping bursts never run out.
@@ -507,13 +513,13 @@ function Sparkles({ world, reducedMotion }) {
       active.current = true
     }
     return () => { world.burst = () => {} }
-  }, [world, parts, dummy, reducedMotion])
+  }, [worldRef, reducedMotion])
 
   useFrame((_, delta) => {
     if (!active.current) return
     const dt = Math.min(delta, MAX_DT)
     let alive = false
-    parts.forEach((part, i) => {
+    pool.current.forEach((part, i) => {
       if (part.life > 0) {
         part.life -= dt
         part.x += part.vx * dt
@@ -543,31 +549,35 @@ function Sparkles({ world, reducedMotion }) {
 
 /* ------------------------------------------------------------------ scenery: parallax clouds + lane dashes */
 
+/** The parallax cloud layout (fixed seed: the same sky every time). */
+function makeSceneryClouds() {
+  const rng = createRng(42)
+  return Array.from({ length: SCENERY_COUNT }, (_, i) => {
+    const side = i % 2 === 0 ? -1 : 1
+    return {
+      x: side * (7 + rng() * 8), // well clear of the outer lanes
+      y: -4.5 + rng() * 7,
+      z: SPAWN_Z + rng() * (DESPAWN_Z - SPAWN_Z),
+      size: 1.2 + rng() * 1.4,
+    }
+  })
+}
+
 /** Big white clouds on both sides and below, drifting past slower than the lanes (parallax). */
-function Scenery({ world, running, paused }) {
+function Scenery({ worldRef, running, paused }) {
   const mesh = useRef()
-  const dummy = useMemo(() => new Object3D(), [])
-  const props = useRef(null)
-  props.current = { running, paused }
-  const clouds = useMemo(() => {
-    const rng = createRng(42)
-    return Array.from({ length: SCENERY_COUNT }, (_, i) => {
-      const side = i % 2 === 0 ? -1 : 1
-      return {
-        x: side * (7 + rng() * 8), // well clear of the outer lanes
-        y: -4.5 + rng() * 7,
-        z: SPAWN_Z + rng() * (DESPAWN_Z - SPAWN_Z),
-        size: 1.2 + rng() * 1.4,
-      }
-    })
-  }, [])
+  const props = useRef({ running, paused })
+  useLayoutEffect(() => { props.current = { running, paused } }, [running, paused])
+  // drifting cloud positions are frame-loop state: a lazily initialised ref
+  const cloudsRef = useRef(null)
+  if (cloudsRef.current === null) cloudsRef.current = makeSceneryClouds()
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, MAX_DT)
     const { running: r, paused: pz } = props.current
     // Gentle drift even before the run starts, so the sky feels alive.
-    const step = pz ? 0 : (r ? world.speed * 0.55 : 0.6) * dt
-    clouds.forEach((cloud, i) => {
+    const step = pz ? 0 : (r ? worldRef.current.speed * 0.55 : 0.6) * dt
+    cloudsRef.current.forEach((cloud, i) => {
       cloud.z += step
       if (cloud.z > DESPAWN_Z + 6) cloud.z = SPAWN_Z - 6
       SCENERY_PUFFS.forEach(([dx, dy, dz, r2], k) => {
@@ -589,19 +599,18 @@ function Scenery({ world, running, paused }) {
 }
 
 /** Soft dashed "air streams" between the lanes, scrolling at belt speed so motion reads clearly. */
-function LaneDashes({ world, running, paused }) {
+function LaneDashes({ worldRef, running, paused }) {
   const mesh = useRef()
-  const dummy = useMemo(() => new Object3D(), [])
   const offset = useRef(0)
   const perLine = Math.ceil((DESPAWN_Z - SPAWN_Z) / DASH_SPACING)
   const boundaries = [(LANES[0] + LANES[1]) / 2, (LANES[1] + LANES[2]) / 2]
-  const props = useRef(null)
-  props.current = { running, paused }
+  const props = useRef({ running, paused })
+  useLayoutEffect(() => { props.current = { running, paused } }, [running, paused])
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, MAX_DT)
     if (props.current.running && !props.current.paused) {
-      offset.current = (offset.current + world.speed * dt) % DASH_SPACING
+      offset.current = (offset.current + worldRef.current.speed * dt) % DASH_SPACING
     }
     boundaries.forEach((x, b) => {
       for (let i = 0; i < perLine; i += 1) {
@@ -625,7 +634,7 @@ function LaneDashes({ world, running, paused }) {
 /* ------------------------------------------------------------------ camera */
 
 /** Keeps all three lanes in view on any screen, a little behind and above Bulbuli. Adds bump shake. */
-function CameraRig({ world }) {
+function CameraRig({ worldRef }) {
   const camera = useThree((state) => state.camera)
   const size = useThree((state) => state.size)
   const base = useRef({ y: 2.4, z: 7 })
@@ -641,14 +650,15 @@ function CameraRig({ world }) {
     camera.updateProjectionMatrix()
   }, [camera, size])
 
-  useFrame((state) => {
-    const s = world.shake
+  // the shake reads the camera from the frame state (three.js-owned), not the render-time hook value
+  useFrame(({ camera, clock }) => {
+    const s = worldRef.current.shake
     if (s <= 0) {
       camera.position.x = 0
       camera.position.y = base.current.y
       return
     }
-    const t = state.clock.elapsedTime
+    const t = clock.elapsedTime
     camera.position.x = Math.sin(t * 47) * s * 0.18
     camera.position.y = base.current.y + Math.cos(t * 39) * s * 0.12
   })
@@ -657,19 +667,19 @@ function CameraRig({ world }) {
 
 /* ------------------------------------------------------------------ scene + canvas */
 
-function Scene({ world, running, paused, difficulty, reducedMotion, onStar, onBump, statsRef }) {
+function Scene({ worldRef, running, paused, difficulty, reducedMotion, onStar, onBump, statsRef }) {
   return (
     <>
-      <CameraRig world={world} />
+      <CameraRig worldRef={worldRef} />
       <fog attach="fog" args={['#dff1ff', 22, 62]} />
       <hemisphereLight args={['#ffffff', '#9fd2ff', 1.1]} />
       <directionalLight position={[3, 6, 5]} intensity={1.6} color="#fff1d6" />
       <ambientLight intensity={0.25} />
 
-      <Scenery world={world} running={running} paused={paused} />
-      <LaneDashes world={world} running={running} paused={paused} />
+      <Scenery worldRef={worldRef} running={running} paused={paused} />
+      <LaneDashes worldRef={worldRef} running={running} paused={paused} />
       <World
-        world={world}
+        worldRef={worldRef}
         running={running}
         paused={paused}
         difficulty={difficulty}
@@ -732,24 +742,29 @@ function RunnerCanvas({
   seed,
 }) {
   const [reducedMotion] = useState(prefersReducedMotion)
-  const [world] = useState(() => createWorld(seed))
+  // all per-frame state lives in one plain object, held in a ref (created once per mount / run key)
+  const worldRef = useRef(null)
+  if (worldRef.current === null) worldRef.current = createWorld(seed)
   const overlay = useRef(null) // drei <Html> renders here (a fixed target avoids remounting on the first frame)
   const gesture = useRef(null)
 
   const active = running && !paused
   const activeRef = useRef(active)
-  activeRef.current = active
   const onMoveRef = useRef(onMove)
-  onMoveRef.current = onMove
+  useLayoutEffect(() => {
+    activeRef.current = active
+    onMoveRef.current = onMove
+  }, [active, onMove])
 
   const goTo = useCallback((lane) => {
     if (!activeRef.current) return
+    const world = worldRef.current
     const next = MathUtils.clamp(lane, 0, LANES.length - 1)
     if (next === world.targetLane) return
     world.targetLane = next
     onMoveRef.current?.(next)
-  }, [world])
-  const move = useCallback((dir) => goTo(world.targetLane + dir), [goTo, world])
+  }, [])
+  const move = useCallback((dir) => goTo(worldRef.current.targetLane + dir), [goTo])
 
   useEffect(() => {
     if (!controlsRef) return undefined
@@ -825,7 +840,7 @@ function RunnerCanvas({
             )}
           >
             <Scene
-              world={world}
+              worldRef={worldRef}
               running={running}
               paused={paused}
               difficulty={difficulty}

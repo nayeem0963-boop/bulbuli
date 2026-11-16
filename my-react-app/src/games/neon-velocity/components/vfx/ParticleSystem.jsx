@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import {
   AdditiveBlending, BufferAttribute, BufferGeometry, DynamicDrawUsage, ShaderMaterial,
@@ -134,6 +134,38 @@ function emitInto(sim, opts) {
   sim.alive = sim.count // a burst may land anywhere in the ring; next step re-scans
 }
 
+/** Advances every live particle by `dt` (plain simulation code, outside React render). */
+function stepParticles(sim, dt) {
+  const pos = sim.position.array
+  const alpha = sim.alpha.array
+  const size = sim.size.array
+  let alive = 0
+
+  for (let i = 0; i < sim.count; i++) {
+    if (sim.life[i] <= 0) {
+      if (alpha[i] !== 0) { alpha[i] = 0; size[i] = 0 }
+      continue
+    }
+    alive++
+    const i3 = i * 3
+    sim.life[i] -= dt
+    const k = Math.exp(-sim.drag[i] * dt)
+    sim.velocity[i3] *= k
+    sim.velocity[i3 + 1] = sim.velocity[i3 + 1] * k + sim.gravity[i] * dt
+    sim.velocity[i3 + 2] *= k
+    pos[i3] += sim.velocity[i3] * dt
+    pos[i3 + 1] += sim.velocity[i3 + 1] * dt
+    pos[i3 + 2] += sim.velocity[i3 + 2] * dt
+    const f = Math.max(0, sim.life[i] / sim.maxLife[i])
+    alpha[i] = f * f
+    size[i] = sim.baseSize[i] * (0.35 + 0.65 * f)
+  }
+  sim.alive = alive
+  sim.position.needsUpdate = true
+  sim.alpha.needsUpdate = true
+  sim.size.needsUpdate = true
+}
+
 export function ParticleSystem() {
   const quality = useVfxQuality()
   const count = POOL[quality] ?? POOL.high
@@ -152,39 +184,12 @@ export function ParticleSystem() {
   useEffect(() => () => geometry.dispose(), [geometry])
   useEffect(() => () => material.dispose(), [material])
 
+  const points = useRef(null)
   useFrame((state, delta) => {
-    material.uniforms.uPixelRatio.value = state.gl.getPixelRatio()
+    if (points.current) points.current.material.uniforms.uPixelRatio.value = state.gl.getPixelRatio()
     if (useGameStore.getState().status === GameStatus.PAUSED || sim.alive === 0) return
-    const dt = Math.min(delta, 0.05)
-    const pos = sim.position.array
-    const alpha = sim.alpha.array
-    const size = sim.size.array
-    let alive = 0
-
-    for (let i = 0; i < sim.count; i++) {
-      if (sim.life[i] <= 0) {
-        if (alpha[i] !== 0) { alpha[i] = 0; size[i] = 0 }
-        continue
-      }
-      alive++
-      const i3 = i * 3
-      sim.life[i] -= dt
-      const k = Math.exp(-sim.drag[i] * dt)
-      sim.velocity[i3] *= k
-      sim.velocity[i3 + 1] = sim.velocity[i3 + 1] * k + sim.gravity[i] * dt
-      sim.velocity[i3 + 2] *= k
-      pos[i3] += sim.velocity[i3] * dt
-      pos[i3 + 1] += sim.velocity[i3 + 1] * dt
-      pos[i3 + 2] += sim.velocity[i3 + 2] * dt
-      const f = Math.max(0, sim.life[i] / sim.maxLife[i])
-      alpha[i] = f * f
-      size[i] = sim.baseSize[i] * (0.35 + 0.65 * f)
-    }
-    sim.alive = alive
-    sim.position.needsUpdate = true
-    sim.alpha.needsUpdate = true
-    sim.size.needsUpdate = true
+    stepParticles(sim, Math.min(delta, 0.05))
   })
 
-  return <points geometry={geometry} material={material} frustumCulled={false} />
+  return <points ref={points} geometry={geometry} material={material} frustumCulled={false} />
 }

@@ -27,6 +27,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { useLatest } from '../../shared/hooks/useLatest.js';
 
 /* ================================================================== */
 /* Validation result -> what should be in the scene                    */
@@ -41,7 +42,7 @@ const findAll = (node, tag, out = []) => {
 const fullText = (node) =>
   [node.text || '', ...(node.children || []).map(fullText)].join(' ').replace(/\s+/g, ' ').trim();
 
-export function deriveSceneState(validation) {
+function deriveSceneState(validation) {
   const typed = validation?.typedTags || {};
   const broken = new Set(validation?.brokenTags || []);
   const tree = validation?.parsedTree;
@@ -829,8 +830,7 @@ const SPAWNABLES = {
 export default function HTMLArchitectCanvas({ validation, height = 480, onObjectSpawn, className, style }) {
   const containerRef = useRef(null);
   const worldRef = useRef(null);
-  const onSpawnRef = useRef(onObjectSpawn);
-  onSpawnRef.current = onObjectSpawn;
+  const onSpawnRef = useLatest(onObjectSpawn);
 
   const sceneState = deriveSceneState(validation);
   const stateKey = JSON.stringify(sceneState);
@@ -1036,7 +1036,7 @@ export default function HTMLArchitectCanvas({ validation, height = 480, onObject
       renderer.domElement.remove();
       worldRef.current = null;
     };
-  }, []);
+  }, [onSpawnRef]);
 
   /* ---------- react to new validation results ---------- */
   useEffect(() => {

@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:review": "vite build --config vite.review.config.js",
     "lint": "oxlint",
     "preview": "vite preview",
+    "preview:review": "vite preview --config vite.review.config.js --port 4174",
     "test": "node --test \"src/**/*.test.js\"",
     "build:voxelcraft-css": "node scripts/build-voxelcraft-css.mjs",
     "build:math-hero-pro-css": "node scripts/build-math-hero-pro-css.mjs",
     "build:math-hero-pro-plus-css": "node scripts/build-math-hero-pro-plus-css.mjs",
-    "check:voxelcraft-levels": "node scripts/check-voxelcraft-levels.js"
+    "check:voxelcraft-levels": "node scripts/check-voxelcraft-levels.js",
+    "content:report": "node scripts/content-report.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -30,6 +33,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "fake-indexeddb": "6.2.6",
     "oxlint": "^1.81.0",
     "tailwindcss": "^4.1.11",
     "vite": "^8.3.0"

@@ -10,7 +10,7 @@ import PlayHud from '../play/PlayHud.jsx'
 import PlaySession from '../play/PlaySession.jsx'
 import { createPlayStore } from '../play/playStore.js'
 import { effectiveLook } from '../profile/cosmetics.js'
-import { useGameActions, useGameState } from '../state/GameStateProvider.jsx'
+import { useGameActions, useGameState } from '../state/gameStateContext.js'
 
 /**
  * "Play Community Level": a full-screen Play Mode for a gallery level, reusing the Studio's

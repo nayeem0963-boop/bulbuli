@@ -14,8 +14,8 @@
  *     seed={7}
  *     status="playing"         // 'ready' | 'playing' | 'win' | 'gameover'
  *     paused={false}
- *     input={input}            // input.js
- *     live={live}              // { timeLeft, stamina, gliding }
+ *     inputRef={inputRef}      // input.js (useInputState)
+ *     liveRef={liveRef}        // ref to { timeLeft, stamina, gliding, focus }
  *     onCollect={(count, total) => …}
  *     onTimeUp={() => …}
  *   />
@@ -36,6 +36,7 @@
  *   • frameloop="never" while paused: nothing is drawn or simulated.
  */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLatest } from '../../shared/hooks/useLatest.js'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { PerformanceMonitor, Sky, Sparkles } from '@react-three/drei'
 import { Object3D, Vector3 } from 'three'
@@ -53,7 +54,7 @@ const FOG_NEAR = 35
 const FOG_FAR = 130
 const STREAK_WINDOW = 2.5     // seconds between pick-ups that still count as a streak (rising chime)
 
-export const QUALITY = {
+const QUALITY = {
   high: { dpr: [1, 1.5], shadowMap: 2048, shadowBox: 22, sparkles: true },
   low: { dpr: 1, shadowMap: 1024, shadowBox: 16, sparkles: false },
 }
@@ -70,7 +71,7 @@ function initialTier() {
 /* ------------------------------------------------------------------ lighting */
 
 /** The sun: the only shadow caster. Its shadow box rides along with Bulbuli. */
-function Sun({ live, quality }) {
+function Sun({ liveRef, quality }) {
   const light = useRef()
   const target = useMemo(() => new Object3D(), [])
 
@@ -89,7 +90,7 @@ function Sun({ live, quality }) {
   useFrame(() => {
     const l = light.current
     if (!l) return
-    const [x, y, z] = live.focus ?? [0, 0, 0]
+    const [x, y, z] = liveRef.current.focus ?? [0, 0, 0]
     // move in whole shadow texels, or the shadow edges crawl as Bulbuli runs
     const texel = (quality.shadowBox * 2) / quality.shadowMap
     const fx = Math.round(x / texel) * texel
@@ -123,26 +124,26 @@ function Sun({ live, quality }) {
   )
 }
 
-function Lighting({ live, quality }) {
+function Lighting({ liveRef, quality }) {
   return (
     <>
       {/* soft fill: sky-blue from above, grassy bounce from below */}
       <hemisphereLight args={['#e3f3ff', '#6d8f58', 0.85]} />
       <ambientLight intensity={0.15} />
-      <Sun live={live} quality={quality} />
+      <Sun liveRef={liveRef} quality={quality} />
     </>
   )
 }
 
 /* ------------------------------------------------------------------ game clock */
 
-/** Counts live.timeLeft down while playing; calls onTimeUp once when it reaches 0. */
-function GameClock({ running, live, onTimeUp }) {
-  const runningRef = useRef(running)
-  runningRef.current = running
+/** Counts liveRef.current.timeLeft down while playing; calls onTimeUp once when it reaches 0. */
+function GameClock({ running, liveRef, onTimeUp }) {
+  const runningRef = useLatest(running)
   const fired = useRef(false)
   useFrame((_, delta) => {
     if (!runningRef.current || fired.current) return
+    const live = liveRef.current
     live.timeLeft = Math.max(0, live.timeLeft - Math.min(delta, 0.1))
     if (live.timeLeft === 0) {
       fired.current = true
@@ -154,7 +155,7 @@ function GameClock({ running, live, onTimeUp }) {
 
 /* ------------------------------------------------------------------ scene */
 
-const World = memo(function World({ seed, status, input, live, onCollect, onTimeUp }) {
+const World = memo(function World({ seed, status, inputRef, liveRef, onCollect, onTimeUp }) {
   const world = useMemo(() => generateWorld(seed), [seed])
   const colliders = useMemo(() => buildColliders(world), [world])
   const playing = status === 'playing'
@@ -188,19 +189,19 @@ const World = memo(function World({ seed, status, input, live, onCollect, onTime
       <PlayerController
         world={world}
         colliders={colliders}
-        input={input}
+        inputRef={inputRef}
         active={playing}
         crystals={world.crystals}
         collectedRef={collectedRef}
         onCollect={handleCollect}
-        live={live}
+        liveRef={liveRef}
       />
-      <GameClock running={playing} live={live} onTimeUp={onTimeUp} />
+      <GameClock running={playing} liveRef={liveRef} onTimeUp={onTimeUp} />
     </>
   )
 })
 
-function SkywardExplorerCanvas({ seed = 7, status = 'ready', paused = false, input, live, onCollect, onTimeUp, className = '' }) {
+function SkywardExplorerCanvas({ seed = 7, status = 'ready', paused = false, inputRef, liveRef, onCollect, onTimeUp, className = '' }) {
   const [tier, setTier] = useState(initialTier)
   const quality = QUALITY[tier]
 
@@ -235,8 +236,8 @@ function SkywardExplorerCanvas({ seed = 7, status = 'ready', paused = false, inp
         <Sparkles count={70} scale={[60, 24, 60]} position={[0, 6, 0]} size={3} speed={0.25} opacity={0.55} color="#fff6d5" />
       )}
 
-      <Lighting live={live} quality={quality} />
-      <World seed={seed} status={status} input={input} live={live} onCollect={onCollect} onTimeUp={onTimeUp} />
+      <Lighting liveRef={liveRef} quality={quality} />
+      <World seed={seed} status={status} inputRef={inputRef} liveRef={liveRef} onCollect={onCollect} onTimeUp={onTimeUp} />
     </Canvas>
   )
 }

@@ -14,6 +14,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useGameProgress } from '../../hooks/useGameProgress.js'
 import { useScoreSync } from '../../hooks/useScoreSync.js'
+import { useLatest } from '../../shared/hooks/useLatest.js'
 import { playSound } from '../../utils/sound.js'
 import { formatDigits } from '../../utils/mathHeroText.js'
 import {
@@ -74,8 +75,7 @@ export default function ShapeSortingGame({ playerId, language }) {
   const [paused, setPaused] = useState(false)
 
   const rng = useRef(createRng())
-  const gameRef = useRef(game)
-  gameRef.current = game
+  const gameRef = useLatest(game)
   const advanceTimer = useRef(null)
   const commandRef = useRef(null) // { dropInto(binId) } from the 3D scene, for the keyboard buttons
 
@@ -104,7 +104,7 @@ export default function ShapeSortingGame({ playerId, language }) {
     setMessage('')
     setPaused(false)
     setGame(next)
-  }, [levelId])
+  }, [levelId, gameRef])
 
   // Announce each new item as it rolls out (queued after any "Yes!" still being spoken).
   const itemId = game && !game.finished ? game.item.id : null
@@ -112,13 +112,13 @@ export default function ShapeSortingGame({ playerId, language }) {
     const current = gameRef.current
     if (!itemId || !current) return
     say(text.comes(itemName(current.item, current.sortBy), current.sortBy), { interrupt: false })
-  }, [itemId, text, itemName, say])
+  }, [itemId, text, itemName, say, gameRef])
 
   const repeatPrompt = useCallback(() => {
     const current = gameRef.current
     if (!current || current.finished) return
     say(text.comes(itemName(current.item, current.sortBy), current.sortBy))
-  }, [text, itemName, say])
+  }, [text, itemName, say, gameRef])
 
   const finish = useCallback((finished) => {
     const stars = starsFor(finished.mistakes, finished.total)
@@ -173,7 +173,7 @@ export default function ShapeSortingGame({ playerId, language }) {
       if (advanced.finished) finish(advanced)
     }, CORRECT_DELAY)
     return outcome
-  }, [finish, itemName, nameOf, say, text])
+  }, [finish, itemName, nameOf, say, text, gameRef])
 
   const handleMiss = useCallback(() => {
     const current = gameRef.current
@@ -184,14 +184,14 @@ export default function ShapeSortingGame({ playerId, language }) {
     setGame(next)
     playSound('wrong')
     say(text.missed(itemName(current.item, current.sortBy)))
-  }, [itemName, say, text])
+  }, [itemName, say, text, gameRef])
 
   const handleBinInfo = useCallback((binId) => {
     const current = gameRef.current
     if (!current) return
     playSound('click')
     say(text.binSpoken(nameOf(current.sortBy, binId)))
-  }, [nameOf, say, text])
+  }, [nameOf, say, text, gameRef])
 
   const togglePause = useCallback(() => {
     playSound('click')

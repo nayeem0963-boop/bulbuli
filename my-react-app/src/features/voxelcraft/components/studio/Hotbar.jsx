@@ -1,7 +1,8 @@
 import { Eraser, Palette, Redo2, Trash, Undo2, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { BLOCK, BLOCK_TYPE_LIST, BLOCK_TYPES, PAINT_PRESETS } from '../../level/blockTypes.js'
-import { useEditorActions, useEditorTool, useLevel } from '../../level/LevelEditorProvider.jsx'
+import { useEditorActions, useEditorTool, useLevel } from '../../level/levelEditorContext.js'
+import { useDraftState } from '../../../../shared/hooks/useDraftState.js'
 
 const HEX = /^#[0-9a-f]{6}$/i
 
@@ -54,8 +55,7 @@ function PaintButton({ color, disabled, open, panelId, onToggle }) {
 
 /** Preset swatches + native hex picker + hex text field. Rendered above the toolbar (not inside its scroll box). */
 function PaintPanel({ id, color, onChange }) {
-  const [draft, setDraft] = useState(color)
-  useEffect(() => setDraft(color), [color])
+  const [draft, setDraft] = useDraftState(color)
 
   return (
     <div id={id} className="pointer-events-auto w-56 rounded-xl bg-slate-900 p-3 shadow-2xl ring-1 ring-slate-700">
