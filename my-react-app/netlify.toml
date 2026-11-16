@@ -15,3 +15,9 @@
 [context.phase2a-review]
   command = "npm run build:review"
   publish = "dist-review"
+
+# Amazon review deploy: same review build as phase2a-review, from the latest main (Amazon animals,
+# touch gestures, fly/land). Only the branch "amazon-review" uses it; production is unaffected.
+[context.amazon-review]
+  command = "npm run build:review"
+  publish = "dist-review"
