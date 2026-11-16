@@ -8,6 +8,9 @@ import { cameraTurn, isFlightHeld, isJumpHeld, readStick } from '../skyward-expl
 import { duneHeightAt } from './biomes/sandShapes.js'
 
 export const TURN_SPEED = 1.8
+
+/** Camera turn, -1..1: the Q / E keys, plus a swipe on a touch screen (`input.touchTurn`, gestures.js). */
+export const turnOf = (input) => Math.max(-1, Math.min(1, cameraTurn(input) + (input.touchTurn ?? 0)))
 export const AVATAR_HEIGHT_OFFSET = 0.06
 
 /**
@@ -21,7 +24,7 @@ export function readExplorerControls(input, { active, yaw, lastJumps, dt }) {
     throw new TypeError('World Explorer controls need the input object (inputRef.current), not the ref or nothing')
   }
   const stick = active ? readStick(input) : { right: 0, forward: 0 }
-  const nextYaw = yaw + (active ? cameraTurn(input) : 0) * TURN_SPEED * dt
+  const nextYaw = yaw + (active ? turnOf(input) : 0) * TURN_SPEED * dt
   const move = cameraRelative(stick.right, stick.forward, nextYaw)
   return {
     yaw: nextYaw,

@@ -21,6 +21,7 @@
  *   onQa        optional callback for the dev preview's automated tests
  */
 import Investigation from './Investigation.jsx'
+import GestureControls from './GestureControls.jsx'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useLearningAdapter } from '../../learning/adapters/adapterContext.js'
 import { useLearningSnapshot } from '../../learning/store/learningStore.js'
@@ -456,6 +457,15 @@ function ExpeditionScreen({ text, language, expedition, content, record, dark, o
   const [near, setNear] = useState(null)
   const [safety, setSafety] = useState(null) // 'warning' | 'returning' | 'returned:<reason>' (recovery.js)
   const [logOpen, setLogOpen] = useState(false)
+  // touch screens: gestures by default, the on-screen buttons one tap away (the choice is remembered)
+  const [gestureMode, setGestureModeState] = useState(() => {
+    try { return localStorage.getItem('wx-touch-mode') !== 'buttons' } catch { return true }
+  })
+  const setGestureMode = (update) => setGestureModeState((v) => {
+    const next = typeof update === 'function' ? update(v) : update
+    try { localStorage.setItem('wx-touch-mode', next ? 'gestures' : 'buttons') } catch { /* remembered only when storage allows */ }
+    return next
+  })
   const activeRef = useRef(true)
   const teleportRef = useRef(null)
   const frameRef = useRef(null)
@@ -576,7 +586,14 @@ function ExpeditionScreen({ text, language, expedition, content, record, dark, o
             ) : null}
           </div>
         ) : null}
-        {open === null && !logOpen ? <TouchPad inputRef={inputRef} text={text} /> : null}
+        {open === null && !logOpen ? (
+          <>
+            {gestureMode ? <GestureControls inputRef={inputRef} text={text} active={open === null && !logOpen} /> : <TouchPad inputRef={inputRef} text={text} />}
+            <button type="button" className="wx-touch-switch" onClick={() => setGestureMode((v) => !v)} aria-label={text.gestures.switchTo}>
+              {gestureMode ? text.gestures.useButtons : text.gestures.useGestures}
+            </button>
+          </>
+        ) : null}
 
         {/* Mission Log drawer */}
         <div className={`wx-scrim${logOpen ? ' is-open' : ''}`} onClick={() => setLogOpen(false)} aria-hidden="true" />
