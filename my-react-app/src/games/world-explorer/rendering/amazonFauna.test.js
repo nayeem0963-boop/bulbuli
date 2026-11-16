@@ -15,7 +15,7 @@ const triangles = (geometry) => (geometry.index ? geometry.index.count : geometr
 const apart = (a, b) => Math.hypot(a.x - b.x, a.z - b.z)
 
 test('amazon fauna: twenty kinds, as many animals as the forest has room for; only the Amazon has any', () => {
-  // every kind is built in code, except the jaguar and the ocelot, which are model files
+  // every kind is built in code, except the jaguar, ocelot, armadillo and capuchin, which are model files
   assert.deepEqual([...Object.keys(AMAZON_FAUNA_BUILDERS), ...AMAZON_FAUNA_MODELS].sort(), Object.keys(AMAZON_FAUNA).sort())
   assert.equal(new Set(fauna.map((a) => a.type)).size, 20, 'every kind appears')
   for (const type of Object.keys(AMAZON_FAUNA)) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
@@ -23,7 +23,7 @@ test('amazon fauna: twenty kinds, as many animals as the forest has room for; on
   for (const id of ['sundarbans', 'sahara']) assert.equal(BIOMES[id].fauna, undefined)
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'))
-  // built in code: no model or image is fetched, except the two model files, loaded only by AmazonModel.jsx
+  // built in code: no model or image is fetched, except the model files, loaded only by AmazonModel.jsx
   for (const file of ['./AmazonFauna.jsx', './amazonFauna.js']) assert.ok(!/useLoader|useGLTF|GLTFLoader|https?:\/\//.test(readFileSync(new URL(file, import.meta.url), 'utf8').replace(/^\/\*\*[\s\S]*?\*\//, '')))
   assert.ok(/useLoader\(GLTFLoader, url\)/.test(readFileSync(new URL('./AmazonModel.jsx', import.meta.url), 'utf8')))
 })
@@ -119,6 +119,8 @@ function readGlb(name) {
 const MODEL_FILES = {
   jaguar: { author: /Ear\.Rodriguez/, source: 'sketchfab.com/3d-models/jaguar-91c61c329d2a4668816f81f08dfcd492', meshes: 2, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 },
   ocelot: { author: /photon \(that one larry\)/, source: 'sketchfab.com/3d-models/cat-74321b8d6b6b4c168db849ee6c8b3d6a', meshes: 3, images: 3, maxBytes: 400 * 1024, maxTriangles: 4000 },
+  armadillo: { author: /RISD Nature Lab/, source: 'sketchfab.com/3d-models/armadillo-1d86c64b646048d38e8a74fc18fa7e4d', meshes: 1, images: 1, maxBytes: 900 * 1024, maxTriangles: 20000 },
+  capuchin: { author: /TdoubleU8/, source: 'sketchfab.com/3d-models/realsitic-monkey-50e4b1da03494429b1265fc095f2c530', meshes: 1, images: 1, maxBytes: 600 * 1024, maxTriangles: 15000 },
 }
 
 test('amazon models: credited, light, static, and the size their colliders say', () => {
@@ -154,7 +156,8 @@ test('amazon models: credited, light, static, and the size their colliders say',
     assert.ok(Math.abs(box.min[0] + box.max[0]) < 0.05 && Math.abs(box.min[2] + box.max[2]) < 0.05, `${name}: centred on its place`)
     assert.ok(Math.hypot(box.max[0], box.max[2]) <= spec.radius + 0.9 * (spec.length / 2) + 0.2 + 0.3, `${name}: within reach of its place`)
   }
-  // the ocelot's coat is the shader's: it keeps the model's eyes and nose where the file puts them
-  const coat = readFileSync(new URL('./amazonOcelotCoat.js', import.meta.url), 'utf8')
-  assert.ok(coat.includes('OCELOT_EYES') && coat.includes('OCELOT_NOSE'))
+  // the ocelot's and the capuchin's coats are shaders: each keeps the model's own eyes, nose and face where the file puts them
+  const ocelot = readFileSync(new URL('./amazonOcelotCoat.js', import.meta.url), 'utf8')
+  assert.ok(ocelot.includes('OCELOT_EYES') && ocelot.includes('OCELOT_NOSE'))
+  assert.ok(readFileSync(new URL('./amazonCapuchinCoat.js', import.meta.url), 'utf8').includes('CAPUCHIN_FACE'))
 })

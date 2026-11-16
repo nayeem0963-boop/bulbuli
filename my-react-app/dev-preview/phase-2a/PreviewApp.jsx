@@ -97,6 +97,12 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
             <p className="pv-note" data-testid="pv-credits-ocelot">
               Amazon Rainforest ocelot: <a href="https://sketchfab.com/3d-models/cat-74321b8d6b6b4c168db849ee6c8b3d6a" target="_blank" rel="noreferrer">&ldquo;Cat&rdquo;</a> by <a href="https://sketchfab.com/Professor_E12" target="_blank" rel="noreferrer">photon (that one larry)</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: a house cat re-skinned as an ocelot (a tawny, spotted coat in place of the calico one; an approximation, not an exact ocelot), the rest pose baked into a static model, textures converted, scaled and re-centred.
             </p>
+            <p className="pv-note" data-testid="pv-credits-armadillo">
+              Amazon Rainforest armadillo: <a href="https://sketchfab.com/3d-models/armadillo-1d86c64b646048d38e8a74fc18fa7e4d" target="_blank" rel="noreferrer">&ldquo;Armadillo&rdquo;</a> by <a href="https://sketchfab.com/RISDNaturelab" target="_blank" rel="noreferrer">RISD Nature Lab</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: a 1,000,000-triangle scan simplified to about 16,500 triangles, turned, tilted, scaled and re-centred, texture reduced.
+            </p>
+            <p className="pv-note" data-testid="pv-credits-capuchin">
+              Amazon Rainforest capuchin: <a href="https://sketchfab.com/3d-models/realsitic-monkey-50e4b1da03494429b1265fc095f2c530" target="_blank" rel="noreferrer">&ldquo;Realsitic Monkey&rdquo;</a> by <a href="https://sketchfab.com/TdoubleU8" target="_blank" rel="noreferrer">TdoubleU8</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Changes: a rhesus macaque re-skinned as a capuchin (dark brown coat, cream face frame and chest, dark cap; an approximation, not an exact capuchin), simplified to about 12,300 triangles, material converted, texture reduced and re-centred.
+            </p>
           </div>
         </details>
         <button type="button" onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}>{language === 'en' ? 'বাংলা' : 'English'}</button>

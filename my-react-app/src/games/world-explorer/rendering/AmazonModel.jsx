@@ -1,8 +1,12 @@
 /**
- * The Amazon's two animals that are model files (everything else is built in code):
+ * The Amazon's animals that are model files (everything else is built in code):
  *   - the jaguar: "jaguar" by Ear.Rodriguez (Sketchfab, CC BY 4.0), assets/jaguar.glb
  *   - the ocelot: "Cat" by photon (that one larry) (Sketchfab, CC BY 4.0), assets/ocelot.glb, a house
  *     cat re-skinned as an ocelot by rendering/amazonOcelotCoat.js
+ *   - the armadillo: "Armadillo" by RISD Nature Lab (Sketchfab, CC BY 4.0), assets/armadillo.glb, a scan
+ *     reduced from a million triangles to 16,500
+ *   - the capuchin: "Realsitic Monkey" by TdoubleU8 (Sketchfab, CC BY 4.0), assets/capuchin.glb, a macaque
+ *     re-skinned as a capuchin by rendering/amazonCapuchinCoat.js
  * See the .LICENSE.md next to each file, and the credits on the review page. Both files are a rest
  * pose baked into static geometry: no skeleton, no animation. Each stands where it is put, feet on the
  * ground, facing +z, like every other animal (AmazonFauna.jsx), and loads on its own: the rest of the
@@ -12,11 +16,14 @@ import { useLayoutEffect, useMemo } from 'react'
 import { useLoader } from '@react-three/fiber'
 import { Color } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { applyCapuchinCoat } from './amazonCapuchinCoat.js'
 import { applyOcelotCoat } from './amazonOcelotCoat.js'
+import armadilloUrl from '../assets/armadillo.glb?url'
+import capuchinUrl from '../assets/capuchin.glb?url'
 import jaguarUrl from '../assets/jaguar.glb?url'
 import ocelotUrl from '../assets/ocelot.glb?url'
 
-/** Matte fur, shadows, and a touch of self-light so the animal holds its colour in the dim forest. */
+/** Matte, shadows, and a touch of self-light (from the model's own colours) so the animal holds its colour in the dim forest. */
 function tuneJaguar(scene) {
   scene.traverse((object) => {
     if (!object.isMesh) return
@@ -43,9 +50,23 @@ function tuneOcelot(scene) {
   })
 }
 
+/** The capuchin: the coat is the shader's (a plain emissive: the model's own map is the macaque's). */
+function tuneCapuchin(scene) {
+  scene.traverse((object) => {
+    if (!object.isMesh) return
+    object.castShadow = true
+    object.receiveShadow = true
+    object.material.emissive = new Color('#2a2118')
+    object.material.emissiveIntensity = 0.32
+    applyCapuchinCoat(object.material)
+  })
+}
+
 const MODELS = Object.freeze({
   jaguar: { url: jaguarUrl, tune: tuneJaguar },
   ocelot: { url: ocelotUrl, tune: tuneOcelot },
+  armadillo: { url: armadilloUrl, tune: tuneJaguar },
+  capuchin: { url: capuchinUrl, tune: tuneCapuchin },
 })
 
 export default function AmazonModel({ kind }) {

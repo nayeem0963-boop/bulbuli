@@ -1,7 +1,7 @@
 /**
  * Draws the Amazon's animals (biomes/amazon.js `fauna`): smooth, finely modelled statues with a
  * satin finish (rendering/amazonFauna.js: one vertex-coloured mesh per kind, shared by every animal
- * of that kind, built in code), and the jaguar and the ocelot, which are model files (AmazonModel.jsx). They stand
+ * of that kind, built in code), and the jaguar, ocelot, armadillo and capuchin, which are model files (AmazonModel.jsx). They stand
  * still.
  */
 import { Suspense, useEffect, useMemo } from 'react'

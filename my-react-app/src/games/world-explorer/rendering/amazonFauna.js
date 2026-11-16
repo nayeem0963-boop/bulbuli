@@ -1,9 +1,8 @@
 /**
  * Rainforest animals for the Amazon map, as asset-free, vertex-coloured meshes (no model files,
  * nothing to download or license): capybara, tapir, giant anteater, coati, black caiman,
- * green anaconda, red-footed tortoise, poison dart frog, blue morpho butterfly, capuchin monkey,
- * three-toed sloth, scarlet macaw, toco toucan, agouti, giant armadillo, goliath tarantula,
- * red howler monkey and harpy eagle. The jaguar and the ocelot are the exceptions: model files
+ * green anaconda, red-footed tortoise, poison dart frog, blue morpho butterfly, three-toed sloth, scarlet macaw, toco toucan, agouti, goliath tarantula,
+ * red howler monkey and harpy eagle. The jaguar, ocelot, armadillo and capuchin are the exceptions: model files
  * (AmazonModel.jsx, CC BY 4.0, credited).
  *
  * They are statues: smooth, finely modelled, each caught in a pose. Every model faces +z with its
@@ -22,7 +21,7 @@ import { finish } from './saharaLandmarks.js'
  * `ground`: stands on the forest floor; `perch`: sits on a branch or platform.
  */
 /** The kinds that are model files, not built here. */
-export const AMAZON_FAUNA_MODELS = Object.freeze(['jaguar', 'ocelot'])
+export const AMAZON_FAUNA_MODELS = Object.freeze(['jaguar', 'ocelot', 'armadillo', 'capuchin'])
 
 export const AMAZON_FAUNA = Object.freeze({
   capybara: { radius: 0.5, top: 0.55, length: 1.1, perch: false },
@@ -37,12 +36,13 @@ export const AMAZON_FAUNA = Object.freeze({
   tortoise: { radius: 0.3, top: 0.3, length: 0.5, perch: false },
   frog: { radius: 0.1, top: 0.1, length: 0.12, perch: false },
   morpho: { radius: 0.12, top: 0.14, length: 0.15, perch: false },
-  capuchin: { radius: 0.24, top: 0.5, length: 0.6, perch: true },
+  capuchin: { radius: 0.3, top: 0.52, length: 0.52, perch: true },
   sloth: { radius: 0.3, top: 0.62, length: 0.7, perch: true },
   macaw: { radius: 0.2, top: 0.82, length: 0.85, perch: true },
   toucan: { radius: 0.2, top: 0.6, length: 0.62, perch: true },
   agouti: { radius: 0.3, top: 0.42, length: 0.55, perch: false },
-  armadillo: { radius: 0.5, top: 0.5, length: 1.3, perch: false },
+  // (a model file: rendering/AmazonModel.jsx; its size is checked against the file in the tests)
+  armadillo: { radius: 0.5, top: 0.55, length: 0.93, perch: false },
   tarantula: { radius: 0.12, top: 0.09, length: 0.2, perch: false },
   howler: { radius: 0.3, top: 0.72, length: 0.8, perch: true },
   harpyEagle: { radius: 0.3, top: 1.0, length: 0.9, perch: true },
@@ -509,35 +509,6 @@ export function createMorphoGeometry(seed = 10) {
 
 /* ------------------------------------------------------------------ perching animals */
 
-export function createCapuchinGeometry(seed = 11) {
-  const { b, mass, eye, random } = kit(seed)
-  const { cream, brown, cap } = C.monkey
-  // sitting on its haunches: one smooth body from the seat up through the shoulders into the head,
-  // a cream face and chest, a dark cap, brown limbs, a long tail curling round
-  const S = [[0.02, -0.03, 0.04, 0.04], [0.07, -0.03, 0.13, 0.13], [0.2, -0.01, 0.15, 0.14], [0.32, 0.02, 0.14, 0.13], [0.4, 0.05, 0.1, 0.1],
-    [0.46, 0.07, 0.095, 0.1], [0.52, 0.07, 0.085, 0.09], [0.555, 0.065, 0.03, 0.03]]
-  uprightLoft(b, S, {
-    back: brown,
-    belly: brown.clone().lerp(cream, 0.2),
-    paint: (h, u, c, side) => {
-      if (h > 0.2 && h < 0.42) c.lerp(cream, 0.85 * smoothstep(0.3, -0.5, u))
-      if (h > 0.38 && u < 0.1) c.lerp(cream, 0.9)
-      if (h > 0.49) c.lerp(cap, 0.95 * smoothstep(0.49, 0.52, h))
-      if (h > 0.45 && Math.abs(side) > 0.55 && u > -0.4) c.lerp(cream, 0.5)
-    },
-  })
-  for (const s of mirror) {
-    tube(b, [v(s * 0.11, 0.34, 0.03), v(s * 0.16, 0.22, 0.12), v(s * 0.13, 0.1, 0.18)], [0.042, 0.034, 0.028], { segments: 9, base: brown, tip: brown, random, mottle: 0.05 })
-    mass(v(s * 0.13, 0.085, 0.19), 0.03, [1, 0.7, 1.2], cap, cap, { detail: 1, lumpy: 0 })
-    tube(b, [v(s * 0.1, 0.1, 0.0), v(s * 0.15, 0.06, 0.1), v(s * 0.13, 0.015, 0.16)], [0.05, 0.036, 0.03], { segments: 9, base: brown, tip: brown, random })
-    eye(s * 0.04, 0.485, 0.155, 0.012)
-    mass(v(s * 0.092, 0.47, 0.06), 0.027, [0.6, 1, 0.8], cream, cap, { detail: 1, lumpy: 0 })
-  }
-  mass(v(0, 0.435, 0.16), 0.036, [1, 0.8, 0.8], cream.clone().lerp(brown, 0.3), brown, { detail: 1, lumpy: 0 })
-  tube(b, cubic(v(0, 0.12, -0.14), v(0, 0.06, -0.4), v(0.18, 0.03, -0.46), v(0.22, 0.16, -0.36), 8), [0.04, 0.038, 0.034, 0.031, 0.029, 0.026, 0.024, 0.02, 0.012], { segments: 9, base: brown, tip: cap })
-  return model(b)
-}
-
 export function createSlothGeometry(seed = 12) {
   const { b, mass, eye, random } = kit(seed)
   const { fur, dark, face, mask, claw } = C.sloth
@@ -636,31 +607,6 @@ export function createAgoutiGeometry(seed = 15) {
   return model(b)
 }
 
-export function createArmadilloGeometry(seed = 16) {
-  const { b, mass, eye, leg, random, limb } = kit(seed)
-  const { shell, band, skin, claw } = C.arma
-  // a giant armadillo: a long domed back of overlapping bands, big front claws, a thick tapering tail
-  for (let i = 0; i < 9; i += 1) {
-    const t = i / 8
-    const z = 0.34 - t * 0.74
-    const r = 0.27 - Math.abs(t - 0.45) * 0.1
-    mass(v(0, 0.28 + (r - 0.2) * 0.6, z), r, [0.9, 0.85, 0.36], i % 2 ? band : shell, shell.clone().multiplyScalar(0.7), { detail: 1, lumpy: 0.012 })
-  }
-  for (const s of mirror) {
-    leg(v(s * 0.2, 0.2, 0.26), v(s * 0.22, 0.1, 0.3), v(s * 0.22, 0.015, 0.36), [0.075, 0.055, 0.045], skin, skin, skin, 0.05)
-    for (const k of [-1, 0, 1]) tube(limb(), [v(s * 0.22 + k * 0.03, 0.03, 0.4), v(s * 0.22 + k * 0.04, 0.012, 0.5)], [0.016, 0.004], { segments: 4, base: claw })
-    leg(v(s * 0.2, 0.2, -0.26), v(s * 0.22, 0.1, -0.28), v(s * 0.22, 0.015, -0.3), [0.07, 0.05, 0.04], skin, skin, skin, 0.05)
-  }
-  mass(v(0, 0.2, 0.52), 0.1, [0.75, 0.75, 1.3], skin, skin.clone().multiplyScalar(0.8), { detail: 2 })
-  tube(b, [v(0, 0.19, 0.6), v(0, 0.16, 0.7), v(0, 0.13, 0.76)], [0.045, 0.032, 0.014], { segments: 9, base: skin, tip: skin.clone().multiplyScalar(0.7) })
-  for (const s of mirror) {
-    eye(s * 0.06, 0.24, 0.5, 0.01)
-    mass(v(s * 0.07, 0.3, 0.44), 0.03, [0.6, 1, 0.8], shell, skin, { detail: 0, lumpy: 0 })
-  }
-  tube(b, bezier(v(0, 0.24, -0.38), v(0, 0.2, -0.7), v(0, 0.05, -0.92), 5), [0.1, 0.085, 0.07, 0.055, 0.04, 0.025], { segments: 9, base: shell, tip: skin, random, mottle: 0.08 })
-  return model(b)
-}
-
 export function createTarantulaGeometry(seed = 17) {
   const { b, mass, eye } = kit(seed)
   const { brown, dark, hair } = C.tarantula
@@ -744,12 +690,10 @@ export const AMAZON_FAUNA_BUILDERS = Object.freeze({
   tortoise: createTortoiseGeometry,
   frog: createFrogGeometry,
   morpho: createMorphoGeometry,
-  capuchin: createCapuchinGeometry,
   sloth: createSlothGeometry,
   macaw: createMacawGeometry,
   toucan: createToucanGeometry,
   agouti: createAgoutiGeometry,
-  armadillo: createArmadilloGeometry,
   tarantula: createTarantulaGeometry,
   howler: createHowlerGeometry,
   harpyEagle: createHarpyEagleGeometry,
