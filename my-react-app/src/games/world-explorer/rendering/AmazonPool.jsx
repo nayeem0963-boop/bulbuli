@@ -8,10 +8,28 @@
  */
 import { Suspense, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { CircleGeometry, LatheGeometry, MeshStandardMaterial, Vector2 } from 'three'
+import { CircleGeometry, Color, Float32BufferAttribute, LatheGeometry, MeshStandardMaterial, Vector2 } from 'three'
 import { makeMotion } from './amazonMotion.js'
-import { POOL_BANK, POOL_WATER_R, POOL_WATER_Y, RIPPLE_FRAGMENT_HEAD, RIPPLE_NORMAL, RIPPLE_VERTEX, swimAt } from './amazonPool.js'
+import { BANK_DRY, BANK_DRY_FROM, BANK_WET, BANK_WET_FROM, POOL_BANK, POOL_WATER_R, POOL_WATER_Y, RIPPLE_FRAGMENT_HEAD, RIPPLE_NORMAL, RIPPLE_VERTEX, swimAt } from './amazonPool.js'
 import AmazonModel from './AmazonModel.jsx'
+
+/** The bank, with its mud darker (wet) where the water laps it and drier further out (vertex colours by radius). */
+function makeBank() {
+  const geometry = new LatheGeometry(POOL_BANK.map(([r, y]) => new Vector2(r, y)), 40)
+  const wet = new Color(BANK_WET)
+  const dry = new Color(BANK_DRY)
+  const colour = new Color()
+  const position = geometry.attributes.position
+  const values = []
+  for (let i = 0; i < position.count; i += 1) {
+    const r = Math.hypot(position.getX(i), position.getZ(i))
+    const t = Math.min(1, Math.max(0, (r - BANK_WET_FROM) / (BANK_DRY_FROM - BANK_WET_FROM)))
+    colour.copy(wet).lerp(dry, t * t * (3 - 2 * t))
+    values.push(colour.r, colour.g, colour.b)
+  }
+  geometry.setAttribute('color', new Float32BufferAttribute(values, 3))
+  return geometry
+}
 
 const makeUniforms = () => ({ uT: { value: 0 }, uF0: { value: new Vector2(99, 99) }, uF1: { value: new Vector2(99, 99) }, uF2: { value: new Vector2(99, 99) } })
 
@@ -24,7 +42,7 @@ function makeWaterMaterial(uniforms) {
       .replace('void main() {', `${RIPPLE_FRAGMENT_HEAD}void main() {`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>\n${RIPPLE_NORMAL}`)
   }
-  material.customProgramCacheKey = () => 'wx-amazon-pool-ripples-v1'
+  material.customProgramCacheKey = () => 'wx-amazon-pool-ripples-v2'
   return material
 }
 
@@ -52,7 +70,7 @@ function Swimmer({ swimmer, kind, baseY, scale, index, uniformsRef }) {
 }
 
 export default function AmazonPool({ pool }) {
-  const [bank] = useState(() => new LatheGeometry(POOL_BANK.map(([r, y]) => new Vector2(r, y)), 40))
+  const [bank] = useState(makeBank)
   // the water disc is made lying flat once (its middle at the pool's, facing up), never turned afterwards
   const [surface] = useState(() => new CircleGeometry(POOL_WATER_R, 56).rotateX(-Math.PI / 2))
   const [bed] = useState(() => new CircleGeometry(1.5, 40).rotateX(-Math.PI / 2))
@@ -63,7 +81,7 @@ export default function AmazonPool({ pool }) {
   return (
     <group position={[pool.x, 0, pool.z]}>
       <mesh geometry={bank} receiveShadow>
-        <meshStandardMaterial color="#4a3b27" roughness={0.95} side={2} />
+        <meshStandardMaterial vertexColors roughness={0.95} side={2} />
       </mesh>
       <mesh position={[0, 0.03, 0]} geometry={bed}>
         <meshStandardMaterial color="#1c261f" roughness={1} />

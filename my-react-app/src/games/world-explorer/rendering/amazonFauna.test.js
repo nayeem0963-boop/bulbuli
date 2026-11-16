@@ -238,12 +238,17 @@ test('amazon pools: the fish and the dolphins swim in pools clear of the trees, 
 })
 
 test('amazon pools: the water ripples (a shader, with rings from each swimmer), the dolphins leap, and the numbers agree', async () => {
-  const { POOL_BANK, POOL_WATER_R, RIPPLE_NORMAL, RIPPLE_FRAGMENT_HEAD, swimAt } = await import('./amazonPool.js')
-  assert.ok(POOL_WATER_R > 1.22, 'bigger than the first pool')
+  const { POOL_BANK, POOL_WATER_R, POOL_WATER_Y, RIPPLE_NORMAL, RIPPLE_FRAGMENT_HEAD, swimAt } = await import('./amazonPool.js')
+  assert.ok(POOL_WATER_R > 1.7, 'the water runs on under the bank: no gap between water and mud')
+  // the bank's slope crosses the water level inside the disc, so the disc meets the mud all the way round
+  const crossing = (() => { for (let i = 0; i < POOL_BANK.length - 1; i += 1) { const [r0, y0] = POOL_BANK[i], [r1, y1] = POOL_BANK[i + 1]; if (y0 <= POOL_WATER_Y && y1 >= POOL_WATER_Y) return r0 + (r1 - r0) * (POOL_WATER_Y - y0) / (y1 - y0) } return Infinity })()
+  assert.ok(crossing < POOL_WATER_R - 0.05, `the water meets the bank at ${crossing.toFixed(2)} m, inside the disc (${POOL_WATER_R} m)`)
   assert.equal(Math.max(...POOL_BANK.map(([r]) => r)), 2.35, 'the low skirt ends at 2.35 m')
   assert.ok(POOL_BANK.find(([, y]) => y === 0.33)[0] <= 1.9, 'the crest is about where the solid collider (1.8 m) ends')
   assert.match(RIPPLE_NORMAL, /uF|ring\(vWaterXZ, uF0\)/)
   assert.match(RIPPLE_FRAGMENT_HEAD, /uniform float uT/)
+  assert.match(RIPPLE_NORMAL, /foam/, 'a lapping foam edge')
+  assert.match(RIPPLE_NORMAL, /smoothstep\(0\.4, 1\.75, wr\)/, 'tinted by depth')
   for (const pool of biome.pools) {
     const a = swimAt(pool.swimmers[0], 0), b = swimAt(pool.swimmers[0], 5)
     assert.ok(Math.hypot(a.x - b.x, a.z - b.z) > 0.2, `a ${pool.kind} moves`)
