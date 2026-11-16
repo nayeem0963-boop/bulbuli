@@ -8,7 +8,7 @@
  */
 import { Suspense, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { LatheGeometry, MeshStandardMaterial, Vector2 } from 'three'
+import { CircleGeometry, LatheGeometry, MeshStandardMaterial, Vector2 } from 'three'
 import { makeMotion } from './amazonMotion.js'
 import { FISH_SCALE, POOL_BANK, POOL_WATER_R, POOL_WATER_Y, RIPPLE_FRAGMENT_HEAD, RIPPLE_NORMAL, RIPPLE_VERTEX, fishAt } from './amazonPool.js'
 import AmazonModel from './AmazonModel.jsx'
@@ -53,6 +53,9 @@ function Fish({ fish, index, uniformsRef }) {
 
 export default function AmazonPool({ pool }) {
   const [bank] = useState(() => new LatheGeometry(POOL_BANK.map(([r, y]) => new Vector2(r, y)), 40))
+  // the water disc is made lying flat once (its middle at the pool's, facing up), never turned afterwards
+  const [surface] = useState(() => new CircleGeometry(POOL_WATER_R, 56).rotateX(-Math.PI / 2))
+  const [bed] = useState(() => new CircleGeometry(1.5, 40).rotateX(-Math.PI / 2))
   const [uniforms] = useState(makeUniforms)
   const [water] = useState(() => makeWaterMaterial(uniforms))
   const uniformsRef = useRef(uniforms)
@@ -62,13 +65,10 @@ export default function AmazonPool({ pool }) {
       <mesh geometry={bank} receiveShadow>
         <meshStandardMaterial color="#4a3b27" roughness={0.95} side={2} />
       </mesh>
-      <mesh position={[0, 0.03, 0]} rotation-x={-Math.PI / 2}>
-        <circleGeometry args={[1.5, 40]} />
+      <mesh position={[0, 0.03, 0]} geometry={bed}>
         <meshStandardMaterial color="#1c261f" roughness={1} />
       </mesh>
-      <mesh position={[0, POOL_WATER_Y, 0]} material={water} renderOrder={2}>
-        <circleGeometry args={[POOL_WATER_R, 56]} onUpdate={(g) => g.rotateX(-Math.PI / 2)} />
-      </mesh>
+      <mesh position={[0, POOL_WATER_Y, 0]} geometry={surface} material={water} renderOrder={2} />
       {pool.fish.map((fish, index) => <Fish key={index} fish={fish} index={index} uniformsRef={uniformsRef} />)}
     </group>
   )

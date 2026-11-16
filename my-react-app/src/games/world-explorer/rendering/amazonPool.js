@@ -9,7 +9,8 @@
  * slopes low enough to step over.
  */
 export const POOL_BANK = Object.freeze([[1.38, 0.03], [1.55, 0.22], [1.72, 0.33], [1.9, 0.33], [2.1, 0.17], [2.35, 0.02]])
-export const POOL_WATER_Y = 0.3
+/** The water's surface, a little under the bank's crest (0.33 m), so the lip stands clear of it all the way round. */
+export const POOL_WATER_Y = 0.28
 export const POOL_WATER_R = 1.6
 /** Fish are drawn this fraction of life size: a payara is a metre long, the pool is not. */
 export const FISH_SCALE = 0.75

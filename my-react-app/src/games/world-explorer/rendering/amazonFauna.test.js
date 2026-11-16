@@ -240,3 +240,9 @@ test('amazon pool: the water ripples (a shader, with rings from each fish) and t
   assert.ok(Math.hypot(a.x - b.x, a.z - b.z) > 0.2, 'a fish moves')
   for (let t = 0; t < 60; t += 0.5) for (const f of biome.pool.fish) assert.ok(Math.hypot(fishAt(f, t).x, fishAt(f, t).z) + 0.38 < 1.6, 'a fish never leaves the water')
 })
+
+test('amazon pool: the water disc is built lying flat once, not turned from a draw callback', () => {
+  const source = readFileSync(new URL('./AmazonPool.jsx', import.meta.url), 'utf8')
+  assert.match(source, /new CircleGeometry\(POOL_WATER_R, 56\)\.rotateX\(-Math\.PI \/ 2\)/)
+  assert.ok(!/onUpdate/.test(source), 'a draw callback runs more than once and would stand the water on its edge')
+})
