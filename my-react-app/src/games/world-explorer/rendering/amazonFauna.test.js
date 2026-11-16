@@ -71,7 +71,7 @@ test('amazon fauna: every animal stands on its ground, clear of the stations, th
 test('amazon fauna: the standing models stay put, the flyers circle, and each flight is a closed loop', () => {
   const files = ['./AmazonFauna.jsx'].map((file) => readFileSync(new URL(file, import.meta.url), 'utf8'))
   // only the flyer is moved, and only by its position and heading
-  assert.equal((files[0].match(/useFrame\(/g) ?? []).length, 2, 'the flyer and the roamer')
+  assert.equal((files[0].match(/useFrame\(/g) ?? []).length, 3, 'the flyer, the roamer and the fixed animal')
   assert.ok(!/requestAnimationFrame/.test(files[0]))
   assert.ok(fauna.every((animal) => animal.route === undefined && !(animal.roam && animal.fly)))
   for (const animal of fauna.filter((a) => a.fly)) {

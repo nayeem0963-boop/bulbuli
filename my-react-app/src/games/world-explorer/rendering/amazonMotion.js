@@ -38,11 +38,28 @@ export const HOP_MOTION = Object.freeze({
 /** Some models are baked with their body turned away from +z; this turns them back (rad, about y) so they face the way they walk. */
 export const MODEL_YAW = Object.freeze({ jaguar: 0.52 })
 
-export const hasMotion = (kind) => Boolean(LEG_MOTION[kind] || WING_MOTION[kind] || HOP_MOTION[kind])
+/**
+ * Idle motion for the animals that stand or perch where they are put (uniforms `uT` time, `uIdle` 0..1):
+ * `tail` a swish from `from` to `to` along the body (a jaguar's), `wave` a slither (an anaconda's),
+ * `head` a slow look about from above `neckY`, turning round z = `pz`, `ruffle` now and then the wings shake out.
+ * Roamers and flyers keep `uIdle` at 0, so they do none of it.
+ */
+export const IDLE_MOTION = Object.freeze({
+  jaguar: { tail: { from: -0.5, to: -0.8, amp: 0.09, rate: 2.0 } },
+  anaconda: { wave: { amp: 0.05, k: 6, rate: 2.2 } },
+  capuchin: { head: { neckY: 0.38, pz: 0.1, turn: 0.5 } },
+  harpyEagle: { head: { neckY: 0.72, pz: 0.12, turn: 0.45 }, ruffle: { x0: 0.1, lift: 0.5, flare: 0.6 } },
+  hoatzin: { head: { neckY: 0.5, pz: 0.3, turn: 0.5 }, ruffle: { x0: 0.14, lift: 0.4, flare: 0.3 } },
+})
+
+/** The uniform objects one animal's materials share; the game sets their `.value`s every frame. */
+export const makeMotion = () => ({ uPh: { value: 0 }, uAmp: { value: 0 }, uT: { value: 0 }, uIdle: { value: 0 } })
+
+export const hasMotion = (kind) => Boolean(LEG_MOTION[kind] || WING_MOTION[kind] || HOP_MOTION[kind] || IDLE_MOTION[kind])
 const f = (n) => Number(n).toFixed(4)
 
 /** The GLSL lines that go right after `begin_vertex` (they move `transformed`, never `position`). */
-export function motionGlsl(kind) {
+function moveGlsl(kind) {
   const leg = LEG_MOTION[kind]
   if (leg) {
     const yaw = leg.yaw ?? 0
@@ -77,11 +94,46 @@ export function motionGlsl(kind) {
   return ''
 }
 
+/** The idle lines (variables start with `i`, so they never clash with the others). */
+function idleGlsl(kind) {
+  const idle = IDLE_MOTION[kind]
+  if (!idle) return ''
+  let out = ''
+  if (idle.tail) {
+    const leg = LEG_MOTION[kind]
+    const yaw = leg.yaw ?? 0
+    out += `
+  vec2 iA = vec2(${f(Math.sin(yaw))}, ${f(Math.cos(yaw))});
+  float iU = dot(position.xz - vec2(${f(leg.cx)}, ${f(leg.cz)}), iA);
+  float iTail = smoothstep(${f(idle.tail.from)}, ${f(idle.tail.to)}, iU);
+  transformed.xz += vec2(iA.y, -iA.x) * ${f(idle.tail.amp)} * uIdle * iTail * sin(uT * ${f(idle.tail.rate)} + iU * 4.0);`
+  }
+  if (idle.wave) out += `
+  transformed.x += ${f(idle.wave.amp)} * uIdle * sin(position.z * ${f(idle.wave.k)} - uT * ${f(idle.wave.rate)});`
+  if (idle.head) {
+    out += `
+  float iW = smoothstep(${f(idle.head.neckY)}, ${f(idle.head.neckY + 0.08)}, position.y);
+  float iAng = iW * uIdle * ${f(idle.head.turn)} * sin(uT * 0.9) * (0.5 + 0.5 * sin(uT * 0.37));
+  vec2 iD = position.xz - vec2(0.0, ${f(idle.head.pz)});
+  transformed.xz += vec2(iD.x * cos(iAng) - iD.y * sin(iAng), iD.x * sin(iAng) + iD.y * cos(iAng)) - iD;`
+  }
+  if (idle.ruffle) out += `
+  float iRuf = uIdle * pow(0.5 + 0.5 * sin(uT * 1.1), 6.0);
+  float iWx = max(abs(position.x) - ${f(idle.ruffle.x0)}, 0.0);
+  transformed.y += ${f(idle.ruffle.lift)} * iRuf * iWx;
+  transformed.x += sign(position.x) * ${f(idle.ruffle.flare)} * iRuf * iWx;`
+  return out
+}
+
+/** The GLSL lines that go right after `begin_vertex`: the roaming or flying motion, then the idle motion. */
+export function motionGlsl(kind) {
+  return `${moveGlsl(kind)}${idleGlsl(kind)}`
+}
+
 /** Adds the uniforms and the motion to a standard material's shader (call from onBeforeCompile). */
 export function patchShader(shader, kind, uniforms) {
-  shader.uniforms.uPh = uniforms.uPh
-  shader.uniforms.uAmp = uniforms.uAmp
+  for (const name of ['uPh', 'uAmp', 'uT', 'uIdle']) shader.uniforms[name] = uniforms[name]
   shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nuniform float uPh;\nuniform float uAmp;')
+    .replace('#include <common>', '#include <common>\nuniform float uPh;\nuniform float uAmp;\nuniform float uT;\nuniform float uIdle;')
     .replace('#include <begin_vertex>', `#include <begin_vertex>${motionGlsl(kind)}`)
 }

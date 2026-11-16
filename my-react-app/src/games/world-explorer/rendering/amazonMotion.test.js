@@ -1,13 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { AMAZON_FAUNA } from './amazonFauna.js'
-import { LEG_MOTION, WING_MOTION, hasMotion, motionGlsl, patchShader } from './amazonMotion.js'
+import { LEG_MOTION, WING_MOTION, hasMotion, makeMotion, motionGlsl, patchShader } from './amazonMotion.js'
 
 test('every roaming gait and every flyer kind has limb motion; static ones have none', () => {
   for (const kind of ['jaguar', 'ocelot', 'armadillo', 'capuchin']) assert.ok(LEG_MOTION[kind] && AMAZON_FAUNA[kind], kind)
   for (const kind of ['macaw', 'blueMacaw', 'scarletMacaw', 'toucan', 'morpho']) assert.ok(WING_MOTION[kind] && AMAZON_FAUNA[kind], kind)
-  assert.equal(hasMotion('anaconda'), false)
-  assert.equal(motionGlsl('anaconda'), '')
+  assert.equal(hasMotion('fish'), false)
+  assert.equal(motionGlsl('fish'), '')
 })
 
 test('the patch adds the uniforms once and moves `transformed`, never `position`', () => {
@@ -25,4 +25,13 @@ test('the hoppers and the turned jaguar have their own motion', () => {
   assert.match(motionGlsl('harpyEagle'), /sign\(position\.x\)/)
   assert.match(motionGlsl('jaguar'), /transformed\.xz \+= mA/)
   assert.ok(Math.abs(LEG_MOTION.jaguar.yaw + 0.52) < 1e-9)
+})
+
+test('fixed animals have idle motion that only runs while `uIdle` is up', () => {
+  assert.match(motionGlsl('jaguar'), /iTail/)
+  assert.match(motionGlsl('anaconda'), /uIdle \* sin\(position\.z/)
+  assert.match(motionGlsl('capuchin'), /iAng/)
+  assert.match(motionGlsl('harpyEagle'), /iRuf/)
+  for (const kind of ['jaguar', 'anaconda', 'capuchin', 'harpyEagle', 'hoatzin']) assert.ok(hasMotion(kind), kind)
+  assert.equal(makeMotion().uIdle.value, 0, 'idle is off until a fixed animal turns it on')
 })

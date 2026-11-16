@@ -1,6 +1,6 @@
 /**
  * Draws the Amazon's animals (biomes/amazon.js `fauna`): every one is a model file
- * (AmazonModel.jsx). Some stand where they are put, still. The flyers circle slowly over the
+ * (AmazonModel.jsx). Some stand where they are put (breathing, tails swishing, heads turning). The flyers circle slowly over the
  * clearing, and the roamers walk loops across the forest floor, pausing to look about (a position, heading and a gait bob; the legs swing and the wings beat in the vertex shader,
  * amazonMotion.js).
  */
@@ -8,7 +8,7 @@ import { Suspense, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { DoubleSide } from 'three'
 import { AMAZON_FAUNA, GAITS, flightAt, roamAt } from './amazonFauna.js'
-import { WING_MOTION } from './amazonMotion.js'
+import { LEG_MOTION, WING_MOTION, makeMotion } from './amazonMotion.js'
 import { contactShadowTexture } from './amazonGroundShadow.js'
 import AmazonModel from './AmazonModel.jsx'
 
@@ -30,7 +30,7 @@ function GroundShadow({ type }) {
 
 function Flyer({ animal }) {
   const group = useRef(null)
-  const motion = useRef({ uPh: { value: 0 }, uAmp: { value: 1 } })
+  const motion = useRef(makeMotion())
   const wing = WING_MOTION[animal.type]
   useFrame(({ clock }) => {
     const g = group.current
@@ -40,6 +40,7 @@ function Flyer({ animal }) {
     // the wings beat; the body rises on each downstroke, pitches with it, and banks into the circle
     const beat = wing ? t * wing.rate + (animal.fly.phase ?? 0) * 7 : 0
     motion.current.uPh.value = beat
+    motion.current.uAmp.value = 1
     g.position.set(p.x, p.y + (wing ? Math.sin(beat) * wing.bob : 0), p.z)
     g.rotation.set(wing ? Math.cos(beat) * 0.07 : 0, p.heading, -0.12 * (animal.fly.dir ?? 1))
   })
@@ -55,7 +56,7 @@ function Roamer({ animal }) {
   const group = useRef(null)
   const body = useRef(null)
   const gait = GAITS[AMAZON_FAUNA[animal.type].gait ?? 'walk']
-  const motion = useRef({ uPh: { value: 0 }, uAmp: { value: 0 } })
+  const motion = useRef(makeMotion())
   useFrame(({ clock }) => {
     const g = group.current
     const b = body.current
@@ -92,15 +93,46 @@ function Roamer({ animal }) {
   )
 }
 
+/**
+ * An animal that stays where it is put (on the ground, or perched): it breathes and rocks a little, and
+ * its shader (amazonMotion.js IDLE_MOTION) swishes a jaguar's tail, slithers an anaconda, turns a
+ * head to look about and shakes out a bird's wings; a jaguar now and then shifts its paws.
+ */
+function Fixed({ animal }) {
+  const body = useRef(null)
+  const motion = useRef(makeMotion())
+  const type = animal.type
+  useFrame(({ clock }) => {
+    const b = body.current
+    if (!b) return
+    const t = clock.elapsedTime + (animal.seed ?? 0) * 1.7
+    const m = motion.current
+    m.uT.value = t
+    m.uIdle.value = 1
+    if (type !== 'anaconda') {
+      const breath = Math.sin(t * 1.7)
+      b.scale.set(1 + 0.01 * breath, 1 + 0.018 * breath, 1 + 0.01 * breath)
+      b.rotation.set(0, 0.03 * Math.sin(t * 0.4), 0.015 * Math.sin(t * 0.7))
+    }
+    if (LEG_MOTION[type]) {
+      m.uAmp.value = 0.25 * Math.max(0, Math.sin(t * 0.5)) ** 2
+      m.uPh.value = t * 2.5
+    }
+  })
+  return (
+    <group position={[animal.x, animal.y ?? 0, animal.z]} rotation-y={animal.rot ?? 0}>
+      <GroundShadow type={animal.type} />
+      <group ref={body}>
+        <Suspense fallback={null}><AmazonModel kind={animal.type} motionRef={motion} /></Suspense>
+      </group>
+    </group>
+  )
+}
+
 export default function AmazonFauna({ fauna }) {
   return fauna.map((animal, index) => (animal.fly
     ? <Flyer key={index} animal={animal} />
     : animal.roam
       ? <Roamer key={index} animal={animal} />
-      : (
-      <group key={index} position={[animal.x, animal.y ?? 0, animal.z]} rotation-y={animal.rot ?? 0}>
-        <GroundShadow type={animal.type} />
-        <Suspense fallback={null}><AmazonModel kind={animal.type} /></Suspense>
-      </group>
-    )))
+      : <Fixed key={index} animal={animal} />))
 }

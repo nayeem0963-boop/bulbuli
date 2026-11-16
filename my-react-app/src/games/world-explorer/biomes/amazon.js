@@ -74,9 +74,10 @@ const roam = (type, x, z, rx, rz, tilt, speed, phase, dir, seed) => ({
 /**
  * A roamer that stays put: the armadillo's baked pose is a tilted, curled-up ball that does not walk
  * convincingly, so it rests where it is (rotated by `rot`) and only breathes and snuffles. It keeps
- * its loop's data so the forest keeps the same clearing round it (amazonScatter.js).
+ * its loop's data so the forest keeps the same clearing round it (amazonScatter.js), or, with `keepTrees`,
+ * sits on ground that is already clear and leaves the forest exactly as it was.
  */
-const rest = (type, x, z, rx, rz, tilt, phase, rot, seed) => ({ ...roam(type, x, z, rx, rz, tilt, 0.5, phase, 1, seed), rot, rest: true })
+const rest = (type, x, z, rx, rz, tilt, phase, rot, seed, keepTrees = false) => ({ ...roam(type, x, z, rx, rz, tilt, 0.5, phase, 1, seed), rot, rest: true, ...(keepTrees ? { keepTrees: true } : {}) })
 const around = (centre, angle, radius) => ({ x: centre.x + Math.cos(angle) * radius, z: centre.z + Math.sin(angle) * radius })
 /** On a platform's edge at `angle`, turned to look in across it (`turn` swings it off the middle). */
 const perch = (type, centre, angle, radius, turn, seed) => {
@@ -125,6 +126,12 @@ const fauna = [
   fly('morpho', -8, -1, 1.8, 1.4, 0.6, 1.2, -1, 88),
   fly('morpho', 8, 5, 1.6, 1.2, 0.5, 3.3, 1, 89),
   fly('morpho', 2, -8, 1.3, 1.5, 0.6, 5.5, -1, 90),
+  // more armadillos, resting where a player will pass them (the expedition starts at 0, -9 facing +z); they
+  // go last so the other animals keep their numbers, and sit on ground the forest already keeps clear
+  rest('armadillo', 3.5, -8.0, 0.2, 0.15, 0.2, 1.1, 0.5, 66, true),
+  rest('armadillo', 7.3, -5.0, 0.2, 0.15, -0.3, 2.0, -0.6, 67, true),
+  rest('armadillo', -2.0, 6.0, 0.2, 0.15, 0.4, 3.0, 2.2, 68, true),
+  rest('armadillo', -7.0, 0.5, 0.2, 0.15, 0.1, 4.0, -1.1, 97, true),
 ]
 
 export const AMAZON_MAP = Object.freeze({
