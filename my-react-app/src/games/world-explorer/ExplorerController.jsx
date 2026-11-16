@@ -19,7 +19,7 @@ import { collidersFor } from './biomes/index.js'
 import { createColliderIndex } from './biomes/colliderIndex.js'
 import { createRecovery, markSafe, updateRecovery } from './recovery.js'
 import { nearestStation } from './proximity.js'
-import { readExplorerControls, rescueFromWater, stayOnDunes } from './drive.js'
+import { createCruise, readExplorerControls, rescueFromWater, stayOnDunes } from './drive.js'
 import { advanceCamera, cameraPose, cameraRigFor, createCameraState } from './cameraRig.js'
 import PlayerGlow from './PlayerGlow.jsx'
 
@@ -41,6 +41,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
   const recovery = useRef(createRecovery(biome))
   const carrying = useRef(false)
   const safety = useRef(null)
+  const cruise = useRef(createCruise()) // the way a latched flight is heading (drive.js)
   const lastJumps = useRef(null) // jump-press count already handled (set on the first frame)
   const camTarget = useMemo(() => new Vector3(), [])
   const camState = useRef(createCameraState()) // only used on maps with volumes to avoid
@@ -61,7 +62,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
       markSafe(recovery.current, [t.x, t.y, t.z])
       carrying.current = false
     }
-    const controls = readExplorerControls(inputRef.current, { active: activeRef.current, yaw: yaw.current, lastJumps: lastJumps.current, dt })
+    const controls = readExplorerControls(inputRef.current, { active: activeRef.current, yaw: yaw.current, lastJumps: lastJumps.current, dt, cruise: cruise.current, body: p })
     const manualTurn = Math.sign(controls.yaw - yaw.current) // the player's own Q / E this frame
     yaw.current = controls.yaw
     lastJumps.current = controls.lastJumps
@@ -74,6 +75,7 @@ export default function ExplorerController({ biome, inputRef, activeRef, telepor
     }
     const safe = updateRecovery(recovery.current, p, biome, dt, { colliders: nearby, events, flying: controls.step.flightHeld, reducedMotion })
     carrying.current = safe.carrying
+    if (safe.carrying) inputRef.current.touchFly = false // carried back: the cruise ends, so it does not fly straight out again
     const told = safe.carrying ? 'returning' : safe.note ? `returned:${safe.note.reason}` : safe.warning ? 'warning' : null
     if (told !== safety.current) {
       safety.current = told

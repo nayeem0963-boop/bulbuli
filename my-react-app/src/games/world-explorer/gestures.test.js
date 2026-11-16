@@ -50,33 +50,29 @@ test('gestures: a swipe on the right half turns the camera; the keyboard still t
   assert.equal(cameraTurn(input), -1, 'never more than a full turn')
 })
 
-test('gestures: a tap or a quick flick up on the right half jumps; a held flick keeps flying', () => {
-  const { input, g, taps } = rig()
+test('gestures: a tap or a flick up on the right half takes off and keeps flying; a flick down lands', () => {
+  const { input, g } = rig()
   g.down(3, 300, 300, 0)
-  g.up(3, 120)
-  assert.equal(input.jumpPresses, 1)
-  assert.equal(input.touchJump, true)
-  taps[0]() // the overlay lets go a moment later
-  assert.equal(input.touchJump, false)
-
+  g.up(3, 120) // a tap
+  assert.equal(input.touchFly, true, 'a tap latches the flight, even after the finger lifts')
   g.down(4, 300, 300, 1000)
-  g.move(4, 302, 240, 1100) // a flick up
-  assert.equal(input.jumpPresses, 2)
-  assert.equal(input.touchJump, true, 'held while the finger is down')
-  g.move(4, 302, 200, 1200)
-  assert.equal(input.jumpPresses, 2, 'one jump per flick')
-  g.up(4, 1400)
-  assert.equal(input.touchJump, false)
-  assert.equal(input.jumpPresses, 2)
-
-  // a slow drag, or a long press, is not a jump
+  g.move(4, 302, 360, 1100) // a flick down
+  g.up(4, 1200)
+  assert.equal(input.touchFly, false, 'a flick down lands')
   g.down(5, 300, 300, 2000)
-  g.move(5, 300, 220, 3000)
-  g.up(5, 3100)
-  assert.equal(input.jumpPresses, 2)
-  g.down(6, 300, 300, 4000)
-  g.up(6, 4900)
-  assert.equal(input.jumpPresses, 2)
+  g.move(5, 302, 240, 2100) // a flick up
+  g.up(5, 2300)
+  assert.equal(input.touchFly, true)
+  // a slow drag or a long press is neither
+  g.down(6, 300, 300, 3000)
+  g.move(6, 300, 360, 4000)
+  g.up(6, 4100)
+  assert.equal(input.touchFly, true, 'a slow drag down does not land')
+  g.down(7, 300, 300, 5000)
+  g.up(7, 5900)
+  assert.equal(input.touchFly, true)
+  g.cancel()
+  assert.equal(input.touchFly, false, 'a dialog opening ends it')
 })
 
 test('gestures: a thumb on each side works together; a third finger and a lost touch are handled', () => {
@@ -93,5 +89,47 @@ test('gestures: a thumb on each side works together; a third finger and a lost t
   assert.equal(input.touchY, 0)
   assert.ok(input.touchTurn > 0.9, 'the other thumb carries on')
   g.cancel()
-  assert.deepEqual([input.touchX, input.touchY, input.touchTurn, input.touchJump], [0, 0, 0, false])
+  assert.deepEqual([input.touchX, input.touchY, input.touchTurn, input.touchFly], [0, 0, 0, false])
+})
+
+test('cruise: once flying it climbs to its height, holds it, and keeps its heading when the finger lets go', async () => {
+  const { createPlayer, stepPlayer } = await import('../skyward-explorer/physics.js')
+  const { BIOMES } = await import('./biomes/index.js')
+  const { readExplorerControls, createCruise, CRUISE } = await import('./drive.js')
+  const p = createPlayer(BIOMES.amazon.spawn)
+  const input = createInputState()
+  const cruise = createCruise()
+  input.touchFly = true
+  let yaw = 0, last = null
+  const fly = (seconds) => {
+    for (let i = 0; i < seconds * 60; i++) {
+      const c = readExplorerControls(input, { active: true, yaw, lastJumps: last, dt: 1 / 60, cruise, body: p })
+      yaw = c.yaw; last = c.lastJumps
+      stepPlayer(p, c.step, 1 / 60, [])
+    }
+  }
+  fly(4)
+  assert.ok(Math.abs(p.pos[1] - CRUISE.ceiling) < 1, `holds its height (${p.pos[1]})`)
+  const before = [...p.pos]
+  fly(2) // nobody steering: it keeps going the way the camera looks
+  const ahead = [p.pos[0] - before[0], p.pos[2] - before[2]]
+  assert.ok(Math.hypot(...ahead) > 6, 'keeps flying with no input')
+  assert.ok(Math.abs(p.pos[1] - before[1]) < 0.5, 'and holds its height')
+  input.touchX = 1 // steer right: the heading changes
+  fly(1)
+  input.touchX = 0
+  const turned = [p.pos[0], p.pos[2]]
+  fly(2)
+  const after = [p.pos[0] - turned[0], p.pos[2] - turned[1]]
+  const cos = (ahead[0] * after[0] + ahead[1] * after[1]) / (Math.hypot(...ahead) * Math.hypot(...after))
+  assert.ok(cos < 0.95, 'it now heads the new way')
+  assert.ok(Math.hypot(...after) > 6, 'and keeps going that way')
+  // landing: a flick down ends it, and it comes down
+  input.touchFly = false
+  fly(8)
+  assert.ok(p.pos[1] < CRUISE.ceiling - 5, 'it comes down once the flight ends')
+  // and a dialog opening ends it
+  input.touchFly = true
+  readExplorerControls(input, { active: false, yaw, lastJumps: last, dt: 1 / 60, cruise, body: p })
+  assert.equal(input.touchFly, false)
 })

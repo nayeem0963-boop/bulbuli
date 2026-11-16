@@ -14,25 +14,50 @@ export const turnOf = (input) => Math.max(-1, Math.min(1, cameraTurn(input) + (i
 export const AVATAR_HEIGHT_OFFSET = 0.06
 
 /**
+ * Cruise flight (touch). A press or flick up (gestures.js, or the jump button) latches `input.touchFly`:
+ * Bulbuli takes off and keeps flying, climbing to CRUISE.ceiling and then cruising there, and keeps
+ * heading the way it was last steered (or the way the camera looks) when the finger lets go. Steering
+ * with the stick changes the heading; a flick down (or any dialog opening) ends it.
+ */
+export const CRUISE = Object.freeze({ ceiling: 13, lead: 0.35, speed: 0.85 })
+export const createCruise = () => ({ dir: null })
+
+/**
  * @param input  the input object itself (`inputRef.current`), never the ref
  * @param state  { active, yaw, lastJumps, dt }: lastJumps is the jump-press count already handled
  *               (null before the first frame, so a press made before the map opened is ignored)
  * @returns { yaw, lastJumps, step }  the new camera yaw and press count, and stepPlayer's input
  */
-export function readExplorerControls(input, { active, yaw, lastJumps, dt }) {
+export function readExplorerControls(input, { active, yaw, lastJumps, dt, cruise = null, body = null }) {
   if (!input || !(input.held instanceof Set)) {
     throw new TypeError('World Explorer controls need the input object (inputRef.current), not the ref or nothing')
   }
   const stick = active ? readStick(input) : { right: 0, forward: 0 }
   const nextYaw = yaw + (active ? turnOf(input) : 0) * TURN_SPEED * dt
-  const move = cameraRelative(stick.right, stick.forward, nextYaw)
+  let move = cameraRelative(stick.right, stick.forward, nextYaw)
+  if (!active && input.touchFly) input.touchFly = false // a dialog opened: the cruise ends
+  const cruising = Boolean(active && cruise && input.touchFly)
+  if (cruise && !cruising) cruise.dir = null
+  let lift = active && isFlightHeld(input)
+  if (cruising) {
+    const m = Math.hypot(move.moveX, move.moveZ)
+    if (m > 0.05) cruise.dir = [move.moveX / m, move.moveZ / m]
+    else {
+      // no steering: keep going the way it was heading (or the way the camera looks)
+      const ahead = cruise.dir ?? (() => { const f = cameraRelative(0, 1, nextYaw); return [f.moveX, f.moveZ] })()
+      cruise.dir = ahead
+      move = { moveX: ahead[0] * CRUISE.speed, moveZ: ahead[1] * CRUISE.speed }
+    }
+    // climb to the cruising height, then hold about there (thrust while below it, a glide above it)
+    lift = body ? body.pos[1] + body.vel[1] * CRUISE.lead < CRUISE.ceiling : true
+  }
   return {
     yaw: nextYaw,
     lastJumps: input.jumpPresses,
     step: {
       ...move,
-      jumpHeld: active && isJumpHeld(input),
-      flightHeld: active && isFlightHeld(input),
+      jumpHeld: active && (isJumpHeld(input) || cruising),
+      flightHeld: lift,
       avatarHeightOffset: AVATAR_HEIGHT_OFFSET,
       jumpPressed: active && lastJumps !== null && input.jumpPresses !== lastJumps,
     },
