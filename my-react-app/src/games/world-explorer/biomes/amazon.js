@@ -57,7 +57,7 @@ const props = [
 /**
  * Rainforest animals, all model files (rendering/AmazonModel.jsx): jaguars, ocelots, armadillos and
  * anacondas in clearings on the forest floor, capuchins, harpy eagles and hoatzins perched on the
- * branch and canopy platforms, and macaws, toucans and morpho butterflies flying round over the clearing. Each stands on bare
+ * branch and canopy platforms (and more of them roaming the floor), and macaws, toucans and morpho butterflies flying round over the clearing. Each stands on bare
  * ground, clear of the stations, the paths and the trees: the tree scatter keeps a clearing round
  * every ground animal (rendering/amazonScatter.js). `solid` is its collider (a cylinder); a flyer has
  * none and circles (`fly`). A roamer (`roam`) walks a loop on the forest floor and is not solid. The crimson fangback (a fish) is only in the Wildlife Gallery: the map has no water.
@@ -85,6 +85,11 @@ const fauna = [
   roam('armadillo', -6.8, -10.0, 1.3, 0.9, 0.6, 0.5, 0.5, -1, 64),
   roam('armadillo', 9.0, 6.8, 1.5, 1.0, -0.3, 0.5, 3.6, 1, 65),
   roam('jaguar', 4.0, 5.2, 1.8, 1.5, -0.4, 0.9, 1.7, -1, 91),
+  roam('hoatzin', 6, -10, 1.5, 1.0, 0, 0.6, 0.8, 1, 92),
+  roam('hoatzin', -3.5, 0.5, 1.4, 1.0, 0, 0.55, 3.0, -1, 93),
+  roam('harpyEagle', -11, 5.5, 1.3, 1.1, 0, 0.5, 1.9, 1, 94),
+  roam('harpyEagle', 10.5, -6.5, 1.3, 1.1, 0, 0.5, 4.2, -1, 95),
+  roam('capuchin', 5.5, 10.5, 1.3, 1.0, 0, 0.7, 0.4, -1, 96),
   roam('capuchin', -3.8, -5.8, 1.3, 1.0, 0.2, 0.7, 2.0, 1, 83),
   animal('anaconda', -12.2, 2.6, 0.3, 30),
   animal('anaconda', 3.2, -12.2, 2.0, 48),

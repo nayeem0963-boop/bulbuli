@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { BIOMES, collidersFor } from '../biomes/index.js'
 import { scatterAmazon } from './amazonScatter.js'
-import { AMAZON_FAUNA, AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS, flightAt, roamAt, roamLoop } from './amazonFauna.js'
+import { AMAZON_FAUNA, AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS, flightAt, roamAt, roamLoop, GAITS } from './amazonFauna.js'
 
 const biome = BIOMES.amazon
 const fauna = biome.fauna
@@ -94,8 +94,9 @@ test('amazon fauna: the roamers walk closed loops on the forest floor, clear of 
   const trees = scatterAmazon(biome).filter((item) => ['emergent', 'canopy', 'subcanopy'].includes(item.kind))
   const floor = biome.discs.find((d) => d.id === 'floor')
   const roamers = fauna.filter((a) => a.roam)
-  assert.ok(roamers.length >= 7, 'plenty roam')
-  assert.ok(new Set(roamers.map((a) => a.type)).size >= 4, 'of several kinds')
+  assert.ok(roamers.length >= 12, 'plenty roam')
+  assert.ok(new Set(roamers.map((a) => a.type)).size >= 6, 'of several kinds')
+  for (const a of roamers) assert.ok(GAITS[AMAZON_FAUNA[a.type].gait], `${a.type} has a gait`)
   assert.ok(fauna.filter((a) => a.fly).length >= 17, 'and plenty fly')
   for (const animal of roamers) {
     const { roam } = animal

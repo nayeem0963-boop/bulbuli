@@ -7,7 +7,7 @@
 import { Suspense, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { DoubleSide } from 'three'
-import { AMAZON_FAUNA, flightAt, roamAt } from './amazonFauna.js'
+import { AMAZON_FAUNA, GAITS, flightAt, roamAt } from './amazonFauna.js'
 import { contactShadowTexture } from './amazonGroundShadow.js'
 import AmazonModel from './AmazonModel.jsx'
 
@@ -47,6 +47,7 @@ function Flyer({ animal }) {
 function Roamer({ animal }) {
   const group = useRef(null)
   const body = useRef(null)
+  const gait = GAITS[AMAZON_FAUNA[animal.type].gait ?? 'walk']
   useFrame(({ clock }) => {
     const g = group.current
     const b = body.current
@@ -54,9 +55,9 @@ function Roamer({ animal }) {
     const p = roamAt(animal.roam, clock.elapsedTime)
     g.position.set(p.x, 0, p.z)
     g.rotation.set(0, p.heading, 0)
-    const step = Math.sin(p.gait)
-    b.position.y = Math.abs(step) * 0.035 * p.walk
-    b.rotation.set(Math.cos(p.gait * 0.5) * 0.025 * p.walk, 0, step * 0.04 * p.walk)
+    const step = Math.sin(p.gait * gait.steps)
+    b.position.y = Math.abs(step) * gait.bob * p.walk
+    b.rotation.set(Math.cos(p.gait * gait.steps * 0.5) * gait.nod * p.walk, 0, step * gait.sway * p.walk)
   })
   return (
     <group ref={group} position={[animal.x, 0, animal.z]}>

@@ -6,18 +6,26 @@
  *
  * `radius`/`top`: the cylinder the map makes solid (centred on the model's origin).
  * `length`: how long it is along z (its shadow). `perch`: sits on a branch or platform.
+ * `gait`: how it moves when it roams the floor (AmazonFauna.jsx): walk, trot (quick small steps), hop.
  * `gallery`: shown only in the Wildlife Gallery (the Amazon map has no water for the fish).
  *
  * Pure data, no THREE: tests and the gallery read it.
  */
+/** Each gait's bob (m), side sway and nod (rad), and steps per metre. */
+export const GAITS = Object.freeze({
+  walk: { bob: 0.035, sway: 0.04, nod: 0.025, steps: 1 },
+  trot: { bob: 0.02, sway: 0.05, nod: 0.02, steps: 1.8 },
+  hop: { bob: 0.09, sway: 0.03, nod: 0.07, steps: 0.8 },
+})
+
 export const AMAZON_FAUNA = Object.freeze({
-  jaguar: { radius: 0.65, top: 0.82, length: 1.5, perch: false },
-  ocelot: { radius: 0.42, top: 0.55, length: 0.95, perch: false },
-  armadillo: { radius: 0.5, top: 0.55, length: 0.93, perch: false },
+  jaguar: { radius: 0.65, top: 0.82, length: 1.5, perch: false, gait: 'walk' },
+  ocelot: { radius: 0.42, top: 0.55, length: 0.95, perch: false, gait: 'walk' },
+  armadillo: { radius: 0.5, top: 0.55, length: 0.93, perch: false, gait: 'trot' },
   anaconda: { radius: 1.0, top: 0.25, length: 1.9, perch: false },
-  capuchin: { radius: 0.3, top: 0.52, length: 0.52, perch: true },
-  harpyEagle: { radius: 0.3, top: 0.95, length: 0.69, perch: true },
-  hoatzin: { radius: 0.5, top: 0.7, length: 0.9, perch: true },
+  capuchin: { radius: 0.3, top: 0.52, length: 0.52, perch: true, gait: 'walk' },
+  harpyEagle: { radius: 0.3, top: 0.95, length: 0.69, perch: true, gait: 'hop' },
+  hoatzin: { radius: 0.5, top: 0.7, length: 0.9, perch: true, gait: 'hop' },
   // a flying macaw: it circles over the clearing and is not solid
   macaw: { radius: 0.3, top: 0.65, length: 0.52, perch: false },
   // more flyers: they circle over the clearing too (the morphos low, among the trees)
