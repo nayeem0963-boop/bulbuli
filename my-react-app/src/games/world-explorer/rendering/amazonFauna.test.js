@@ -108,7 +108,11 @@ test('amazon fauna: the roamers walk closed loops on the forest floor, clear of 
       assert.ok(Math.hypot(spot.x - floor.x, spot.z - floor.z) + r < floor.r - 1, `${name} stays well inside the floor`)
       for (const station of biome.stations) assert.ok(apart(spot, station) - r >= 1.2, `${name} crowds station ${station.n}`)
       assert.ok(apart(spot, { x: biome.spawn.position[0], z: biome.spawn.position[2] }) - r > 2.5, `${name} crowds the start`)
-      for (const tree of trees) assert.ok(apart(spot, tree) > r + 0.9 * tree.scale, `${name} walks into a ${tree.kind}`)
+      for (const tree of trees) {
+      // (a tucked armadillo rests against a trunk: it only keeps off the trunk itself)
+      const trunk = tree.kind === 'emergent' ? 0.28 : tree.kind === 'subcanopy' ? 0.16 : 0.2
+      assert.ok(apart(spot, tree) > (animal.tucked ? trunk * tree.scale + 0.45 : r + 0.9 * tree.scale), `${name} walks into a ${tree.kind}`)
+      }
       for (const prop of biome.props) if (prop.block) assert.ok(apart(spot, prop) > prop.block + r, `${name} walks into a ${prop.type}`)
       for (const [from, to] of biome.links) {
         const dx = to.x - from.x, dz = to.z - from.z

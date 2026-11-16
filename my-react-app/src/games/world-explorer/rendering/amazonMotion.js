@@ -35,8 +35,15 @@ export const HOP_MOTION = Object.freeze({
   hoatzin: { hip: 0.18, tuck: 0.7, x0: 0.14, lift: 0.7, flare: 0.25 },
 })
 
-/** Some models are baked with their body turned away from +z; this turns them back (rad, about y) so they face the way they walk. */
-export const MODEL_YAW = Object.freeze({ jaguar: 0.52 })
+/**
+ * Some models are baked with their body turned or tipped: this puts them upright, facing +z, with their
+ * feet on y = 0 (`yaw` and `roll` in rad, then `shift` in m). The jaguar's body is turned about 30 degrees
+ * from +z; the armadillo is tipped about 11 degrees on to its side and sits a little off its own centre.
+ */
+export const MODEL_FIX = Object.freeze({
+  jaguar: { yaw: 0.52 },
+  armadillo: { roll: -0.19, shift: [-0.055, -0.017, 0] },
+})
 
 /**
  * Idle motion for the animals that stand or perch where they are put (uniforms `uT` time, `uIdle` 0..1):
