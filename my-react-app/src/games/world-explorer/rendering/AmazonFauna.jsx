@@ -50,7 +50,7 @@ function Flyer({ animal }) {
   )
 }
 
-/** A ground animal walking its loop: its shadow stays on the floor while the body bobs and sways with each step. */
+/** A ground animal walking its loop (or, flagged `rest`, staying put and breathing): its shadow stays on the floor while the body bobs and sways with each step. */
 function Roamer({ animal }) {
   const group = useRef(null)
   const body = useRef(null)
@@ -60,6 +60,17 @@ function Roamer({ animal }) {
     const g = group.current
     const b = body.current
     if (!g || !b) return
+    if (animal.rest) {
+      // resting: it breathes, rocks a little, and now and then lowers its nose and snuffles the ground
+      const t = clock.elapsedTime + (animal.seed ?? 0) * 1.7
+      const breath = Math.sin(t * 1.7)
+      const snuffle = Math.max(0, Math.sin(t * 0.45)) ** 3
+      g.position.set(animal.x, 0, animal.z)
+      g.rotation.set(0, animal.rot ?? 0, 0)
+      b.scale.set(1 + 0.012 * breath, 1 + 0.022 * breath, 1 + 0.012 * breath)
+      b.rotation.set(0.05 * snuffle * (0.6 + 0.4 * Math.sin(t * 6)), 0.07 * Math.sin(t * 0.3), 0.025 * Math.sin(t * 0.8))
+      return
+    }
     const p = roamAt(animal.roam, clock.elapsedTime)
     g.position.set(p.x, 0, p.z)
     g.rotation.set(0, p.heading, 0)

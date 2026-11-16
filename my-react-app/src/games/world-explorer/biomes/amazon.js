@@ -71,6 +71,12 @@ const fly = (type, x, z, r, y, speed, phase, dir, seed) => ({ type, x: x + r, y,
 const roam = (type, x, z, rx, rz, tilt, speed, phase, dir, seed) => ({
   type, x, y: 0, z, rot: 0, seed, roam: { x, z, rx, rz, tilt, speed, phase, dir },
 })
+/**
+ * A roamer that stays put: the armadillo's baked pose is a tilted, curled-up ball that does not walk
+ * convincingly, so it rests where it is (rotated by `rot`) and only breathes and snuffles. It keeps
+ * its loop's data so the forest keeps the same clearing round it (amazonScatter.js).
+ */
+const rest = (type, x, z, rx, rz, tilt, phase, rot, seed) => ({ ...roam(type, x, z, rx, rz, tilt, 0.5, phase, 1, seed), rot, rest: true })
 const around = (centre, angle, radius) => ({ x: centre.x + Math.cos(angle) * radius, z: centre.z + Math.sin(angle) * radius })
 /** On a platform's edge at `angle`, turned to look in across it (`turn` swings it off the middle). */
 const perch = (type, centre, angle, radius, turn, seed) => {
@@ -82,8 +88,8 @@ const fauna = [
   animal('jaguar', 3.1, -3.4, 0.8, 42),
   roam('ocelot', -5.2, 6.6, 1.8, 1.2, 0.3, 0.8, 1.0, 1, 72),
   roam('ocelot', 8.2, 1.2, 2.0, 1.4, -0.5, 0.85, 2.4, -1, 73),
-  roam('armadillo', -6.8, -10.0, 1.3, 0.9, 0.6, 0.5, 0.5, -1, 64),
-  roam('armadillo', 9.0, 6.8, 1.5, 1.0, -0.3, 0.5, 3.6, 1, 65),
+  rest('armadillo', -6.8, -10.0, 1.3, 0.9, 0.6, 0.5, 0.7, 64),
+  rest('armadillo', 9.0, 6.8, 1.5, 1.0, -0.3, 3.6, -2.4, 65),
   roam('jaguar', 4.0, 5.2, 1.8, 1.5, -0.4, 0.9, 1.7, -1, 91),
   roam('hoatzin', 6, -10, 1.5, 1.0, 0, 0.6, 0.8, 1, 92),
   roam('hoatzin', -3.5, 0.5, 1.4, 1.0, 0, 0.55, 3.0, -1, 93),
