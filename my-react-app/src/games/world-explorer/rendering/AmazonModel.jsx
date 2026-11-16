@@ -13,7 +13,7 @@
  * forest is drawn while it arrives.
  */
 import { useLayoutEffect, useMemo } from 'react'
-import { hasMotion, patchShader } from './amazonMotion.js'
+import { MODEL_YAW, hasMotion, patchShader } from './amazonMotion.js'
 import { useLoader } from '@react-three/fiber'
 import { Color } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -118,5 +118,5 @@ export default function AmazonModel({ kind, motionRef }) {
     })
     return () => own.forEach((material) => material.dispose())
   }, [scene, kind, motionRef])
-  return <primitive object={scene} />
+  return <group rotation-y={MODEL_YAW[kind] ?? 0}><primitive object={scene} /></group>
 }

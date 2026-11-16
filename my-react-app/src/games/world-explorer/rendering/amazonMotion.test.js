@@ -16,6 +16,13 @@ test('the patch adds the uniforms once and moves `transformed`, never `position`
   patchShader(shader, 'jaguar', uniforms)
   assert.equal(shader.uniforms.uPh, uniforms.uPh)
   assert.equal(shader.vertexShader.match(/uniform float uPh/g).length, 1)
-  assert.match(shader.vertexShader, /transformed\.z \+=/)
+  assert.match(shader.vertexShader, /transformed\.xz \+=/)
   assert.doesNotMatch(shader.vertexShader, /position\.[xyz] \+=|position = /)
+})
+
+test('the hoppers and the turned jaguar have their own motion', () => {
+  assert.match(motionGlsl('hoatzin'), /mHop/)
+  assert.match(motionGlsl('harpyEagle'), /sign\(position\.x\)/)
+  assert.match(motionGlsl('jaguar'), /transformed\.xz \+= mA/)
+  assert.ok(Math.abs(LEG_MOTION.jaguar.yaw + 0.52) < 1e-9)
 })
