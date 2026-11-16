@@ -135,7 +135,7 @@ test('amazon LOD: every tree is still in the forest; each frame draws only what 
     const cost = layers.map((l) => triangles(build(seed, layer, l.level)))
     return { kind, cost, set: createLodSet(items.filter((i) => i.kind === kind), layers, { reach: 9, centre: 5 }) }
   })
-  assert.equal(sets.slice(0, 3).reduce((n, s) => n + s.set.items.length, 0), 904, 'all 904 near trees are placed (a clearing is kept round every animal)')
+  assert.equal(sets.slice(0, 3).reduce((n, s) => n + s.set.items.length, 0), 902, 'all 902 near trees are placed (a clearing is kept round every animal)')
   assert.equal(sets.slice(3).reduce((n, s) => n + s.set.items.length, 0), 1760, 'all 1,760 distant trees are placed, as before')
   const full = sets.reduce((n, s) => n + s.set.items.length * s.cost[0], 0)
   assert.ok(full > 12e6, 'drawn whole at full detail the forest is over 12 million triangles')
@@ -181,7 +181,7 @@ test('amazon LOD: every tree is still in the forest; each frame draws only what 
     frame({ x: sx, z: sz }, yaw)
     for (const { kind, set } of sets) for (let level = 0; level < set.layers.length; level += 1) for (let n = 0; n < set.counts[level]; n += 1) all.add(`${kind}:${set.picked[level][n]}`)
   }
-  assert.equal(all.size, 904 + 1760, 'looking all the way round draws every tree at least once')
+  assert.equal(all.size, 902 + 1760, 'looking all the way round draws every tree at least once')
   // an item behind the camera is not drawn, and its level is remembered for when it comes back
   const { set } = sets[0]
   selectVisible(set, { x: sx, z: sz }, () => false)
@@ -196,7 +196,7 @@ test('amazon LOD: the scenery draws shadows from the stand-in shape and dithers 
   assert.ok(/foliageFar/.test(source) && !/foliageFar[^\n]*onBeforeCompile/.test(source))
   assert.ok(source.includes('frustumCulled={false}') && source.includes('selectVisible'), 'visibility is decided per tree, each frame')
   // placement and colliders are untouched by this pass
-  assert.equal(scatterAmazon(BIOMES.amazon).filter((i) => ['emergent', 'canopy', 'subcanopy'].includes(i.kind)).length, 904)
+  assert.equal(scatterAmazon(BIOMES.amazon).filter((i) => ['emergent', 'canopy', 'subcanopy'].includes(i.kind)).length, 902)
 })
 
 test('amazon LOD: nothing that can be seen is ever left out (the whole forest footprint is kept)', () => {
@@ -223,7 +223,7 @@ test('amazon LOD: nothing that can be seen is ever left out (the whole forest fo
   // 2. the footprint is the original one: same counts, same extent, no empty sector
   const near = items.filter((i) => ['emergent', 'canopy', 'subcanopy'].includes(i.kind))
   const distant = items.filter((i) => i.kind.startsWith('distant'))
-  assert.equal(near.length, 904)
+  assert.equal(near.length, 902)
   assert.equal(distant.length, 1760)
   assert.ok(Math.max(...near.map((i) => Math.hypot(i.x, i.z))) > 30 && Math.max(...distant.map((i) => Math.hypot(i.x, i.z))) > 105)
   for (const group of [near, distant]) {

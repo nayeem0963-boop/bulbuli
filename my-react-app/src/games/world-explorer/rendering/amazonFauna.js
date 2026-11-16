@@ -41,6 +41,36 @@ export function flightAt(fly, t) {
   return { x, z, y: fly.y + Math.sin(t * 1.3 + (fly.phase ?? 0)) * 0.18, heading }
 }
 
+/** The point at angle `a` on a roamer's loop: an ellipse (rx by rz, turned by `tilt`) whose size breathes as it goes round. */
+function loopPoint(roam, a) {
+  const k = 1 + 0.1 * Math.sin(3 * a + (roam.phase ?? 0))
+  const ex = Math.cos(a) * roam.rx * k
+  const ez = Math.sin(a) * roam.rz * k
+  const c = Math.cos(roam.tilt ?? 0)
+  const s = Math.sin(roam.tilt ?? 0)
+  return { x: roam.x + ex * c - ez * s, z: roam.z + ex * s + ez * c }
+}
+
+/**
+ * Where a roaming ground animal is at time t. It walks a closed, lazily wobbling loop round (x, z) at
+ * about `speed` m/s, easing down twice a loop as if to look about. The model itself does not move,
+ * only its position, its heading (it faces +z) and a small gait bob: `walk` (0.26..1) is how briskly
+ * it is stepping, `gait` the step phase.
+ */
+export function roamAt(roam, t) {
+  const dir = roam.dir ?? 1
+  const u = (t * roam.speed) / ((roam.rx + roam.rz) / 2)
+  const a = (roam.phase ?? 0) + dir * (u + 0.17 * Math.sin(2 * u))
+  const p = loopPoint(roam, a)
+  const q = loopPoint(roam, a + 0.001 * dir)
+  return { x: p.x, z: p.z, heading: Math.atan2(q.x - p.x, q.z - p.z), walk: (1 + 0.34 * Math.cos(2 * u)) / 1.34, gait: u * 9 }
+}
+
+/** Points all round a roamer's loop, for keeping trees, stations and paths clear of it. */
+export function roamLoop(roam, count = 24) {
+  return Array.from({ length: count }, (_, i) => loopPoint(roam, (i / count) * Math.PI * 2))
+}
+
 const CC = 'CC BY 4.0'
 /**
  * The credit for each model file (CC BY 4.0 asks for the author, a link to the licence, and a note of
