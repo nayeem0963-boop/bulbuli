@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { BIOMES, collidersFor } from '../biomes/index.js'
 import { scatterAmazon } from './amazonScatter.js'
-import { AMAZON_FAUNA, AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS, flightAt } from './amazonFauna.js'
+import { AMAZON_FAUNA, AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS, flightAt, roamAt, roamLoop, GAITS } from './amazonFauna.js'
 
 const biome = BIOMES.amazon
 const fauna = biome.fauna
@@ -40,15 +40,15 @@ test('amazon fauna: every solid animal has a collider; the tiny ones have none',
 test('amazon fauna: every animal stands on its ground, clear of the stations, the paths, the props and the trees', () => {
   const trees = scatterAmazon(biome).filter((item) => ['emergent', 'canopy', 'subcanopy'].includes(item.kind))
   const floor = biome.discs.find((d) => d.id === 'floor')
-  const ground = fauna.filter((a) => a.y === 0)
-  assert.ok(ground.length >= 8)
-  for (const animal of fauna.filter((a) => !a.fly)) {
+  const ground = fauna.filter((a) => a.y === 0 && !a.roam)
+  assert.ok(ground.length >= 3)
+  for (const animal of fauna.filter((a) => !a.fly && !a.roam)) {
     const r = animal.solid?.r ?? 0.1
     const name = `${animal.type} at (${animal.x.toFixed(1)}, ${animal.z.toFixed(1)})`
     const disc = biome.discs.filter((d) => apart(animal, d) + r <= d.r && Math.abs(d.top - animal.y) < 1e-9)
     assert.ok(disc.length, `${name} stands on a disc, at its height`)
     for (const station of biome.stations) assert.ok(apart(animal, station) - r >= 1.2, `${name} crowds station ${station.n}`)
-    for (const other of fauna.filter((a) => !a.fly)) if (other !== animal && Math.abs(other.y - animal.y) < 1e-9) assert.ok(apart(animal, other) >= r + (other.solid?.r ?? 0.1) - 0.05 || !animal.solid || !other.solid, `${name} overlaps ${other.type}`)
+    for (const other of fauna.filter((a) => !a.fly && !a.roam)) if (other !== animal && Math.abs(other.y - animal.y) < 1e-9) assert.ok(apart(animal, other) >= r + (other.solid?.r ?? 0.1) - 0.05 || !animal.solid || !other.solid, `${name} overlaps ${other.type}`)
     if (animal.y === 0) {
       assert.ok(apart(animal, floor) + r < floor.r - 1 || disc[0].id !== 'floor', `${name} is not well inside the floor`)
       assert.ok(apart(animal, { x: biome.spawn.position[0], z: biome.spawn.position[2] }) - r > 2.5, `${name} crowds the start`)
@@ -68,12 +68,12 @@ test('amazon fauna: every animal stands on its ground, clear of the stations, th
   for (const animal of fauna.filter((a) => a.fly)) assert.ok(!animal.solid && animal.fly.y >= 1 && animal.fly.r >= 1.2)
 })
 
-test('amazon fauna: the models stand still, the macaws circle, and each flight is a closed loop', () => {
+test('amazon fauna: the standing models stay put, the flyers circle, and each flight is a closed loop', () => {
   const files = ['./AmazonFauna.jsx'].map((file) => readFileSync(new URL(file, import.meta.url), 'utf8'))
   // only the flyer is moved, and only by its position and heading
-  assert.equal((files[0].match(/useFrame\(/g) ?? []).length, 1)
+  assert.equal((files[0].match(/useFrame\(/g) ?? []).length, 2, 'the flyer and the roamer')
   assert.ok(!/requestAnimationFrame/.test(files[0]))
-  assert.ok(fauna.every((animal) => animal.roam === undefined && animal.route === undefined))
+  assert.ok(fauna.every((animal) => animal.route === undefined && !(animal.roam && animal.fly)))
   for (const animal of fauna.filter((a) => a.fly)) {
     const start = flightAt(animal.fly, 0)
     assert.ok(Math.abs(start.x - animal.x) < 1e-9 && Math.abs(start.z - animal.z) < 1e-9 || animal.fly.phase !== 0, 'starts on its circle')
@@ -87,6 +87,51 @@ test('amazon fauna: the models stand still, the macaws circle, and each flight i
       assert.ok(Math.abs(Math.sin(p.heading) * dz - Math.cos(p.heading) * dx) < 1e-3 * Math.hypot(dx, dz) * 100, 'faces the way it flies')
       assert.ok(Math.sin(p.heading) * dx + Math.cos(p.heading) * dz > 0, 'forwards')
     }
+  }
+})
+
+test('amazon fauna: the roamers walk closed loops on the forest floor, clear of everything, facing the way they go', () => {
+  const trees = scatterAmazon(biome).filter((item) => ['emergent', 'canopy', 'subcanopy'].includes(item.kind))
+  const floor = biome.discs.find((d) => d.id === 'floor')
+  const roamers = fauna.filter((a) => a.roam)
+  assert.ok(roamers.length >= 12, 'plenty roam')
+  assert.ok(new Set(roamers.map((a) => a.type)).size >= 6, 'of several kinds')
+  for (const a of roamers) assert.ok(GAITS[AMAZON_FAUNA[a.type].gait], `${a.type} has a gait`)
+  assert.ok(fauna.filter((a) => a.fly).length >= 17, 'and plenty fly')
+  for (const animal of roamers) {
+    const { roam } = animal
+    const r = AMAZON_FAUNA[animal.type].radius
+    const name = `${animal.type} roaming at (${roam.x}, ${roam.z})`
+    assert.ok(!animal.solid, `${name} is not solid (it walks on)`)
+    assert.ok(roam.speed > 0.3 && roam.speed < 1.5, `${name} walks, not runs`)
+    for (const spot of roamLoop(roam, 48)) {
+      assert.ok(Math.hypot(spot.x - floor.x, spot.z - floor.z) + r < floor.r - 1, `${name} stays well inside the floor`)
+      for (const station of biome.stations) assert.ok(apart(spot, station) - r >= 1.2, `${name} crowds station ${station.n}`)
+      assert.ok(apart(spot, { x: biome.spawn.position[0], z: biome.spawn.position[2] }) - r > 2.5, `${name} crowds the start`)
+      for (const tree of trees) assert.ok(apart(spot, tree) > r + 0.9 * tree.scale, `${name} walks into a ${tree.kind}`)
+      for (const prop of biome.props) if (prop.block) assert.ok(apart(spot, prop) > prop.block + r, `${name} walks into a ${prop.type}`)
+      for (const [from, to] of biome.links) {
+        const dx = to.x - from.x, dz = to.z - from.z
+        const t = Math.max(0, Math.min(1, ((spot.x - from.x) * dx + (spot.z - from.z) * dz) / (dx * dx + dz * dz || 1)))
+        assert.ok(Math.hypot(spot.x - from.x - dx * t, spot.z - from.z - dz * t) > r + 0.8, `${name} blocks a path`)
+      }
+      for (const other of fauna.filter((a) => !a.fly && !a.roam && a.y === 0)) assert.ok(apart(spot, other) > r + (other.solid?.r ?? 0.1) + 0.2, `${name} walks into a ${other.type}`)
+    }
+    // a closed loop, at a walking pace, facing the way it goes
+    const period = (2 * Math.PI * (roam.rx + roam.rz) / 2) / roam.speed
+    const a = roamAt(roam, 1.3), b = roamAt(roam, 1.3 + period)
+    assert.ok(Math.hypot(a.x - b.x, a.z - b.z) < 1e-6, `${name} comes back round`)
+    for (let t = 0; t < period; t += period / 40) {
+      const p = roamAt(roam, t), q = roamAt(roam, t + 0.01)
+      const dx = q.x - p.x, dz = q.z - p.z
+      assert.ok(Math.hypot(dx, dz) / 0.01 < roam.speed * 1.7, `${name} never lurches`)
+      assert.ok(Math.sin(p.heading) * dx + Math.cos(p.heading) * dz > 0, `${name} faces forwards`)
+      assert.ok(p.walk > 0.2 && p.walk <= 1.0001)
+    }
+  }
+  // and no two roamers share a stretch of floor
+  for (const [i, a] of roamers.entries()) for (const b of roamers.slice(i + 1)) {
+    for (const p of roamLoop(a.roam, 24)) for (const q of roamLoop(b.roam, 24)) assert.ok(apart(p, q) > 0.9, `${a.type} and ${b.type} cross paths`)
   }
 })
 

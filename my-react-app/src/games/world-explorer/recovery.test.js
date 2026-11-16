@@ -405,7 +405,7 @@ test('recovery: inside the map nothing changes: the same steps with and without 
       // a busy minute round the middle of the map: walking, turning, hopping and short flights
       for (let i = 0; i < 3600 && s.carries === 0 && s.fell === 0; i += 1) {
         s.input.held.clear()
-        s.input.held.add(['back', 'left', 'forward', 'right'][Math.floor(i / 70) % 4])
+        s.input.held.add(['back', 'left', 'forward', 'right'][Math.floor(i / 60) % 4])
         if (i % 500 > 380) s.input.held.add('jump')
         if (i % 130 === 0) s.input.jumpPresses += 1
         s.frame(i % 3 === 0 ? 30 : 60)

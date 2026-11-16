@@ -142,6 +142,22 @@
 .wx .wx-jump { width: 4rem; height: 4rem; border-radius: 999px; font-size: 1.6rem; }
 @media (pointer: coarse) { .wx-touch { display: flex; } }
 
+/* touch gestures (GestureControls.jsx, gestures.js): a transparent surface under the HUD */
+.wx-gestures, .wx-touch-switch { display: none; }
+@media (pointer: coarse) {
+  .wx-gestures { display: block; position: absolute; inset: 0; z-index: 1; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; overflow: hidden; }
+  .wx .wx-touch-switch {
+    display: block; position: absolute; z-index: 2; right: 0.8rem; bottom: 0.8rem; min-height: 2.4rem; padding: 0 0.9rem; border-radius: 999px; font-size: 0.8rem;
+    color: var(--hud-text) !important; background: var(--hud-bg) !important; border: 1px solid var(--hud-border) !important; backdrop-filter: blur(8px);
+  }
+}
+.wx-g-ring, .wx-g-knob { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; border-radius: 50%; transition: opacity 140ms ease; }
+.wx-g-ring { width: 112px; height: 112px; border: 2px solid rgba(255, 255, 255, 0.55); background: rgba(255, 255, 255, 0.12); }
+.wx-g-knob { width: 32px; height: 32px; background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+.wx-g-hint { position: absolute; left: 0; right: 0; bottom: 3.6rem; margin: 0; display: flex; justify-content: space-around; gap: 1rem; padding: 0 1rem; color: var(--hud-text); font: 800 0.8rem/1.2 var(--font-body); text-align: center; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); pointer-events: none; animation: wx-hint-out 6s ease forwards; }
+@keyframes wx-hint-out { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .wx-g-ring, .wx-g-knob { transition: none; } .wx-g-hint { animation-duration: 0.01s; animation-delay: 6s; } }
+
 /* Mission Log drawer */
 .wx-scrim { position: absolute; inset: 0; z-index: 3; background: rgba(4, 9, 20, 0.45); opacity: 0; pointer-events: none; transition: opacity 220ms ease; }
 .wx-scrim.is-open { opacity: 1; pointer-events: auto; }

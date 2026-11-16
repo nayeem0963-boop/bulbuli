@@ -57,16 +57,20 @@ const props = [
 /**
  * Rainforest animals, all model files (rendering/AmazonModel.jsx): jaguars, ocelots, armadillos and
  * anacondas in clearings on the forest floor, capuchins, harpy eagles and hoatzins perched on the
- * branch and canopy platforms, and macaws, toucans and morpho butterflies flying round over the clearing. Each stands on bare
+ * branch and canopy platforms (and more of them roaming the floor), and macaws, toucans and morpho butterflies flying round over the clearing. Each stands on bare
  * ground, clear of the stations, the paths and the trees: the tree scatter keeps a clearing round
  * every ground animal (rendering/amazonScatter.js). `solid` is its collider (a cylinder); a flyer has
- * none and circles (`fly`). The crimson fangback (a fish) is only in the Wildlife Gallery: the map has no water.
+ * none and circles (`fly`). A roamer (`roam`) walks a loop on the forest floor and is not solid. The crimson fangback (a fish) is only in the Wildlife Gallery: the map has no water.
  */
 const animal = (type, x, z, rot, seed, y = 0) => ({
   type, x, y, z, rot, seed, solid: { r: AMAZON_FAUNA[type].radius, top: AMAZON_FAUNA[type].top },
 })
 /** A flyer that circles (x, z) at radius r, height y, at speed m/s; dir turns it the other way round. */
 const fly = (type, x, z, r, y, speed, phase, dir, seed) => ({ type, x: x + r, y, z, rot: 0, seed, fly: { x, z, r, y, speed, phase, dir } })
+/** A ground animal that roams a loop round (x, z), rx by rz, turned by tilt; not solid (it walks on). */
+const roam = (type, x, z, rx, rz, tilt, speed, phase, dir, seed) => ({
+  type, x, y: 0, z, rot: 0, seed, roam: { x, z, rx, rz, tilt, speed, phase, dir },
+})
 const around = (centre, angle, radius) => ({ x: centre.x + Math.cos(angle) * radius, z: centre.z + Math.sin(angle) * radius })
 /** On a platform's edge at `angle`, turned to look in across it (`turn` swings it off the middle). */
 const perch = (type, centre, angle, radius, turn, seed) => {
@@ -74,12 +78,19 @@ const perch = (type, centre, angle, radius, turn, seed) => {
   return animal(type, at.x, at.z, Math.PI * 1.5 - angle + turn, seed, centre.top)
 }
 const fauna = [
-  animal('jaguar', 9.4, 2.7, -2.2, 24),
+  roam('jaguar', -9.2, -3.2, 2.2, 1.6, 0.4, 0.9, 0, 1, 24),
   animal('jaguar', 3.1, -3.4, 0.8, 42),
-  animal('ocelot', -4.5, 4.5, 0.9, 72),
-  animal('ocelot', 6.5, 2.5, -2.3, 73),
-  animal('armadillo', -7.3, -7.7, 1.3, 64),
-  animal('armadillo', 8.0, 6.5, -2.0, 65),
+  roam('ocelot', -5.2, 6.6, 1.8, 1.2, 0.3, 0.8, 1.0, 1, 72),
+  roam('ocelot', 8.2, 1.2, 2.0, 1.4, -0.5, 0.85, 2.4, -1, 73),
+  roam('armadillo', -6.8, -10.0, 1.3, 0.9, 0.6, 0.5, 0.5, -1, 64),
+  roam('armadillo', 9.0, 6.8, 1.5, 1.0, -0.3, 0.5, 3.6, 1, 65),
+  roam('jaguar', 4.0, 5.2, 1.8, 1.5, -0.4, 0.9, 1.7, -1, 91),
+  roam('hoatzin', 6, -10, 1.5, 1.0, 0, 0.6, 0.8, 1, 92),
+  roam('hoatzin', -3.5, 0.5, 1.4, 1.0, 0, 0.55, 3.0, -1, 93),
+  roam('harpyEagle', -11, 5.5, 1.3, 1.1, 0, 0.5, 1.9, 1, 94),
+  roam('harpyEagle', 10.5, -6.5, 1.3, 1.1, 0, 0.5, 4.2, -1, 95),
+  roam('capuchin', 5.5, 10.5, 1.3, 1.0, 0, 0.7, 0.4, -1, 96),
+  roam('capuchin', -3.8, -5.8, 1.3, 1.0, 0.2, 0.7, 2.0, 1, 83),
   animal('anaconda', -12.2, 2.6, 0.3, 30),
   animal('anaconda', 3.2, -12.2, 2.0, 48),
   // perched up in the trees
@@ -101,6 +112,13 @@ const fauna = [
   fly('morpho', -4, 3, 1.6, 1.3, 0.6, 0, 1, 80),
   fly('morpho', 5, -4, 2.0, 1.7, 0.7, 2.0, -1, 81),
   fly('morpho', 0, 4, 1.4, 1.1, 0.5, 4.0, 1, 82),
+  fly('macaw', 0, 9, 3.4, 4.8, 1.3, 2.6, -1, 84),
+  fly('blueMacaw', 8, -3, 2.6, 3.8, 1.2, 0.4, 1, 85),
+  fly('scarletMacaw', -8, -6, 3.0, 4.0, 1.4, 3.3, 1, 86),
+  fly('toucan', -7, 6, 2.8, 4.4, 1.3, 5.0, -1, 87),
+  fly('morpho', -8, -1, 1.8, 1.4, 0.6, 1.2, -1, 88),
+  fly('morpho', 8, 5, 1.6, 1.2, 0.5, 3.3, 1, 89),
+  fly('morpho', 2, -8, 1.3, 1.5, 0.6, 5.5, -1, 90),
 ]
 
 export const AMAZON_MAP = Object.freeze({

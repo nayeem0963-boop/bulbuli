@@ -117,6 +117,14 @@ export const WORLD_TEXT = {
     source: 'Source',
     stars: (n) => `${n} of 3 stars`,
     move: { forward: 'Move forward', back: 'Move back', left: 'Move left', right: 'Move right', jump: 'Jump' },
+    gestures: {
+      label: 'Touch controls: drag on the left to move, swipe on the right to turn, tap or flick up to jump',
+      left: 'Drag to move',
+      right: 'Swipe to turn · tap or flick up to jump',
+      useButtons: 'Buttons',
+      useGestures: 'Gestures',
+      switchTo: 'Switch the touch controls',
+    },
   },
   bn: {
     title: 'ওয়ার্ল্ড এক্সপ্লোরার থ্রিডি',
@@ -222,5 +230,13 @@ export const WORLD_TEXT = {
     source: 'উৎস',
     stars: (n) => `৩টির মধ্যে ${n}টি তারা`,
     move: { forward: 'সামনে চলো', back: 'পেছনে চলো', left: 'বাঁয়ে চলো', right: 'ডানে চলো', jump: 'লাফ দাও' },
+    gestures: {
+      label: 'স্পর্শ নিয়ন্ত্রণ: চলতে বাঁ দিকে টানো, ঘুরতে ডান দিকে সোয়াইপ করো, লাফাতে ট্যাপ করো বা ওপরে টানো',
+      left: 'চলতে টানো',
+      right: 'ঘুরতে সোয়াইপ · লাফাতে ট্যাপ বা ওপরে টানো',
+      useButtons: 'বোতাম',
+      useGestures: 'অঙ্গভঙ্গি',
+      switchTo: 'স্পর্শ নিয়ন্ত্রণ বদলাও',
+    },
   },
 }

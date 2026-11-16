@@ -6,18 +6,26 @@
  *
  * `radius`/`top`: the cylinder the map makes solid (centred on the model's origin).
  * `length`: how long it is along z (its shadow). `perch`: sits on a branch or platform.
+ * `gait`: how it moves when it roams the floor (AmazonFauna.jsx): walk, trot (quick small steps), hop.
  * `gallery`: shown only in the Wildlife Gallery (the Amazon map has no water for the fish).
  *
  * Pure data, no THREE: tests and the gallery read it.
  */
+/** Each gait's bob (m), side sway and nod (rad), and steps per metre. */
+export const GAITS = Object.freeze({
+  walk: { bob: 0.035, sway: 0.04, nod: 0.025, steps: 1 },
+  trot: { bob: 0.02, sway: 0.05, nod: 0.02, steps: 1.8 },
+  hop: { bob: 0.09, sway: 0.03, nod: 0.07, steps: 0.8 },
+})
+
 export const AMAZON_FAUNA = Object.freeze({
-  jaguar: { radius: 0.65, top: 0.82, length: 1.5, perch: false },
-  ocelot: { radius: 0.42, top: 0.55, length: 0.95, perch: false },
-  armadillo: { radius: 0.5, top: 0.55, length: 0.93, perch: false },
+  jaguar: { radius: 0.65, top: 0.82, length: 1.5, perch: false, gait: 'walk' },
+  ocelot: { radius: 0.42, top: 0.55, length: 0.95, perch: false, gait: 'walk' },
+  armadillo: { radius: 0.5, top: 0.55, length: 0.93, perch: false, gait: 'trot' },
   anaconda: { radius: 1.0, top: 0.25, length: 1.9, perch: false },
-  capuchin: { radius: 0.3, top: 0.52, length: 0.52, perch: true },
-  harpyEagle: { radius: 0.3, top: 0.95, length: 0.69, perch: true },
-  hoatzin: { radius: 0.5, top: 0.7, length: 0.9, perch: true },
+  capuchin: { radius: 0.3, top: 0.52, length: 0.52, perch: true, gait: 'walk' },
+  harpyEagle: { radius: 0.3, top: 0.95, length: 0.69, perch: true, gait: 'hop' },
+  hoatzin: { radius: 0.5, top: 0.7, length: 0.9, perch: true, gait: 'hop' },
   // a flying macaw: it circles over the clearing and is not solid
   macaw: { radius: 0.3, top: 0.65, length: 0.52, perch: false },
   // more flyers: they circle over the clearing too (the morphos low, among the trees)
@@ -39,6 +47,36 @@ export function flightAt(fly, t) {
   const z = fly.z + Math.sin(angle) * fly.r
   const heading = Math.atan2(-Math.sin(angle) * dir, Math.cos(angle) * dir)
   return { x, z, y: fly.y + Math.sin(t * 1.3 + (fly.phase ?? 0)) * 0.18, heading }
+}
+
+/** The point at angle `a` on a roamer's loop: an ellipse (rx by rz, turned by `tilt`) whose size breathes as it goes round. */
+function loopPoint(roam, a) {
+  const k = 1 + 0.1 * Math.sin(3 * a + (roam.phase ?? 0))
+  const ex = Math.cos(a) * roam.rx * k
+  const ez = Math.sin(a) * roam.rz * k
+  const c = Math.cos(roam.tilt ?? 0)
+  const s = Math.sin(roam.tilt ?? 0)
+  return { x: roam.x + ex * c - ez * s, z: roam.z + ex * s + ez * c }
+}
+
+/**
+ * Where a roaming ground animal is at time t. It walks a closed, lazily wobbling loop round (x, z) at
+ * about `speed` m/s, easing down twice a loop as if to look about. The model itself does not move,
+ * only its position, its heading (it faces +z) and a small gait bob: `walk` (0.26..1) is how briskly
+ * it is stepping, `gait` the step phase.
+ */
+export function roamAt(roam, t) {
+  const dir = roam.dir ?? 1
+  const u = (t * roam.speed) / ((roam.rx + roam.rz) / 2)
+  const a = (roam.phase ?? 0) + dir * (u + 0.17 * Math.sin(2 * u))
+  const p = loopPoint(roam, a)
+  const q = loopPoint(roam, a + 0.001 * dir)
+  return { x: p.x, z: p.z, heading: Math.atan2(q.x - p.x, q.z - p.z), walk: (1 + 0.34 * Math.cos(2 * u)) / 1.34, gait: u * 9 }
+}
+
+/** Points all round a roamer's loop, for keeping trees, stations and paths clear of it. */
+export function roamLoop(roam, count = 24) {
+  return Array.from({ length: count }, (_, i) => loopPoint(roam, (i / count) * Math.PI * 2))
 }
 
 const CC = 'CC BY 4.0'

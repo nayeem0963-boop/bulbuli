@@ -1,4 +1,5 @@
 import { mulberry32 } from '../../../core/rng.js'
+import { AMAZON_FAUNA, roamLoop } from './amazonFauna.js'
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z)
 
@@ -103,9 +104,13 @@ export function scatterAmazon(biome) {
   ]
   // Animals stand in clearings (biomes/amazon.js `fauna`): trees keep well off them, the small
   // plants only off the animal itself, so the undergrowth stays as thick as it was.
+  // A roaming animal keeps a clearing all round its loop.
   const standing = (biome.fauna ?? []).filter((animal) => animal.y === 0)
-  const treeClearings = standing.map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.1) + 1.4 }))
-  const plantClearings = standing.map((animal) => ({ x: animal.x, z: animal.z, radius: (animal.solid?.r ?? 0.1) + 0.5 }))
+  const spots = standing.flatMap((animal) => (animal.roam
+    ? roamLoop(animal.roam).map((point) => ({ ...point, r: AMAZON_FAUNA[animal.type].radius }))
+    : [{ x: animal.x, z: animal.z, r: animal.solid?.r ?? 0.1 }]))
+  const treeClearings = spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 1.4 }))
+  const plantClearings = spots.map((spot) => ({ x: spot.x, z: spot.z, radius: spot.r + 0.5 }))
   const placements = []
   const forestDisc = { ...floor, r: floor.r * 2.35 }
   const interiorDisc = { ...floor, r: floor.r * 1.08 }
