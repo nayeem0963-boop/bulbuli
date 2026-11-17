@@ -151,6 +151,7 @@ function readGlb(name) {
 // what each model file must say and be: its credit, its parts and its size
 const MODEL_FILES = {
   jaguar: { meshes: 2, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 },
+  tiger: { meshes: 2, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 }, // the jaguar's file
   ocelot: { meshes: 3, images: 3, maxBytes: 400 * 1024, maxTriangles: 4000 },
   armadillo: { meshes: 1, images: 1, maxBytes: 900 * 1024, maxTriangles: 20000 },
   capuchin: { meshes: 1, images: 1, maxBytes: 600 * 1024, maxTriangles: 15000 },
@@ -274,7 +275,7 @@ test('amazon pool: the water disc is built lying flat once, not turned from a dr
 })
 
 test('sundarbans flyers: a few macaws and morpho butterflies borrowed from the Amazon, all flying, none solid, clear of the walkers', () => {
-  const flyers = BIOMES.sundarbans.fauna
+  const flyers = BIOMES.sundarbans.fauna.filter((a) => a.type !== 'tiger')
   assert.deepEqual([...new Set(flyers.map((a) => a.type))].sort(), ['blueMacaw', 'macaw', 'morpho', 'scarletMacaw'])
   assert.ok(flyers.length >= 6)
   assert.ok(flyers.every((a) => a.fly && !a.solid && !a.roam), 'every one flies and none is solid')
@@ -291,4 +292,43 @@ test('sundarbans flyers: a few macaws and morpho butterflies borrowed from the A
   }
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'), 'the same renderer draws them')
+})
+
+test('sundarbans tigers: a Bengal tiger coat on the jaguar model, one pacing the home island and three resting on islands, all clear', async () => {
+  const { collidersFor: colliders } = await import('../biomes/index.js')
+  const { TIGER_AXIS } = await import('./amazonTigerCoat.js')
+  const sb = BIOMES.sundarbans
+  const tigers = sb.fauna.filter((a) => a.type === 'tiger')
+  assert.equal(tigers.length, 4)
+  assert.ok(tigers.filter((a) => a.roam).length === 1 && tigers.filter((a) => !a.roam && !a.fly).length === 3)
+  assert.ok(tigers.every((a) => !a.solid && !a.fly && a.y === 0), 'on the ground, not solid')
+  const cols = colliders(sb).filter((c) => c.r !== undefined && c.x !== undefined && c.bottom < 1 && c.top > 0 && !c.walkable)
+  const islands = sb.discs.filter((d) => ['home', 's1', 's2', 's3', 's4', 's5'].includes(d.id))
+  const spawn = { x: sb.spawn.position[0], z: sb.spawn.position[2] }
+  const R = AMAZON_FAUNA.tiger.radius
+  const segDist = (p, f, t) => { const dx = t.x - f.x, dz = t.z - f.z; const k = Math.max(0, Math.min(1, ((p.x - f.x) * dx + (p.z - f.z) * dz) / (dx * dx + dz * dz || 1))); return Math.hypot(p.x - f.x - dx * k, p.z - f.z - dz * k) }
+  for (const a of tigers) {
+    const spots = a.roam ? roamLoop(a.roam, 40) : [a]
+    for (const q of spots) {
+      assert.ok(islands.some((d) => apart(q, d) + R + 0.2 < d.r), `a tiger at (${q.x.toFixed(1)}, ${q.z.toFixed(1)}) is well inside an island`)
+      for (const st of sb.stations) assert.ok(apart(q, st) > 2.0 + R, `clear of station ${st.n}`)
+      assert.ok(apart(q, spawn) > 3.5, 'not on top of the start')
+      for (const c of cols) assert.ok(apart(q, c) > c.r + R + 0.1, `clear of ${c.id}`)
+      for (const [from, to] of sb.links) assert.ok(segDist(q, from, to) > 1.0 + R, 'off the boardwalks')
+    }
+  }
+  // the coat: its own copy of the materials, stripes, and the jaguar's turned body axis
+  const model = readFileSync(new URL('./AmazonModel.jsx', import.meta.url), 'utf8')
+  assert.ok(/tiger: \{ url: jaguarUrl, tune: tuneTiger, own: true \}/.test(model), 'the tiger works on copies, so the jaguars keep their own painting')
+  assert.ok(/applyTigerCoat\(object\.material\)/.test(model))
+  const coat = readFileSync(new URL('./amazonTigerCoat.js', import.meta.url), 'utf8')
+  for (const needle of ['stripes', 'belly', 'muzzle', 'tail']) assert.ok(coat.includes(needle), needle)
+  assert.equal(TIGER_AXIS.yaw, -0.52, 'the jaguar body axis (amazonMotion.js MODEL_FIX turns it back by +0.52)')
+  assert.ok(!/\bpatch\b\s+float|float\s+patch\b/.test(coat), '`patch` is a reserved word in GLSL')
+  const { MODEL_FIX, LEG_MOTION, IDLE_MOTION } = await import('./amazonMotion.js')
+  assert.equal(MODEL_FIX.tiger.yaw, MODEL_FIX.jaguar.yaw)
+  assert.deepEqual(LEG_MOTION.tiger, LEG_MOTION.jaguar)
+  assert.deepEqual(IDLE_MOTION.tiger, IDLE_MOTION.jaguar)
+  assert.equal(AMAZON_MODEL_CREDITS.tiger.where, 'Sundarbans')
+  assert.equal(AMAZON_MODEL_CREDITS.tiger.file, 'jaguar')
 })

@@ -98,7 +98,7 @@ export default function PreviewApp({ adapter, items, isReviewed, report, onStepS
               const c = AMAZON_MODEL_CREDITS[kind]
               return (
                 <p key={kind} className="pv-note" data-testid={kind === 'jaguar' ? 'pv-credits' : `pv-credits-${kind}`}>
-                  Amazon Rainforest {c.name.toLowerCase()}: <a href={c.source} target="_blank" rel="noreferrer">&ldquo;{c.title}&rdquo;</a> by <a href={c.authorUrl} target="_blank" rel="noreferrer">{c.author}</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">{c.license}</a>. Changes: {c.changes}.
+                  {c.where ?? 'Amazon Rainforest'} {c.name.toLowerCase()}: <a href={c.source} target="_blank" rel="noreferrer">&ldquo;{c.title}&rdquo;</a> by <a href={c.authorUrl} target="_blank" rel="noreferrer">{c.author}</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">{c.license}</a>. Changes: {c.changes}.
                 </p>
               )
             })}

@@ -17,6 +17,9 @@
 
 The original file was 8.8 MB; this one is under 1 MB.
 
+- The Sundarbans' tiger (`tiger` in rendering/amazonFauna.js) uses this same file, re-skinned as a Bengal tiger by a shader
+  (rendering/amazonTigerCoat.js): the jaguar's texture is not used there, and the eyes keep their own painting.
+
 ## Credit that must stay visible
 
 The review page (dev-preview/phase-2a/PreviewApp.jsx, "Credits") shows the credit. Any release of

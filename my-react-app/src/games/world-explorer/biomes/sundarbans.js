@@ -56,13 +56,23 @@ const props = [
 ]
 
 /**
- * Flyers borrowed from the Amazon (the same model files, credited on the review page), drawn by AmazonFauna like the
+ * Animals: tigers, and flyers borrowed from the Amazon (the same model files, credited on the review page), drawn by AmazonFauna like the
  * Amazon's own: macaws, as stand-ins for the parrots of the delta's forests, circling high over the islands and the
  * channels, and blue morpho butterflies flitting low over the mud and the roots. None is solid. Each circles (x, z) at
  * radius r, height y (m), speed (m/s); `dir` turns it the other way round.
  */
 const fly = (type, x, z, r, y, speed, phase, dir, seed) => ({ type, x: x + r, y, z, rot: 0, seed, fly: { x, z, r, y, speed, phase, dir } })
+/** A ground animal that stays where it is put (it breathes, its tail swishes, now and then it shifts its paws). Not solid. */
+const rest = (type, x, z, rot, seed) => ({ type, x, y: 0, z, rot, seed })
+/** A ground animal that paces a small loop round (x, z), rx by rz, turned by tilt. Not solid. */
+const pace = (type, x, z, rx, rz, tilt, speed, phase, dir, seed) => ({ type, x, y: 0, z, rot: 0, seed, roam: { x, z, rx, rz, tilt, speed, phase, dir } })
 const fauna = [
+  // Bengal tigers, the delta's own big cat (the jaguar's model with a tiger coat, rendering/amazonTigerCoat.js): one paces a
+  // small loop on the home island, off to the side of the start, and one rests on each of three more islands
+  pace('tiger', -0.5, 3.6, 0.9, 0.6, 0.3, 0.5, 0, 1, 210),
+  rest('tiger', 1.0, 15.0, -1.9, 211),
+  rest('tiger', -12.75, 7.25, 0.9, 212),
+  rest('tiger', -13.0, -2.25, 2.4, 213),
   fly('macaw', 6, 1, 4.2, 3.8, 1.5, 0, 1, 201),
   fly('scarletMacaw', 9, 3, 3.4, 3.6, 1.4, 2.4, -1, 202),
   fly('blueMacaw', 14, 7, 5.5, 4.8, 1.3, 4.0, 1, 203),

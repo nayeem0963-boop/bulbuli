@@ -19,6 +19,7 @@ import { Color } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { applyCapuchinCoat } from './amazonCapuchinCoat.js'
 import { applyOcelotCoat } from './amazonOcelotCoat.js'
+import { applyTigerCoat } from './amazonTigerCoat.js'
 import armadilloUrl from '../assets/armadillo.glb?url'
 import capuchinUrl from '../assets/capuchin.glb?url'
 import jaguarUrl from '../assets/jaguar.glb?url'
@@ -73,8 +74,24 @@ function tuneCapuchin(scene) {
   })
 }
 
+/** The Sundarbans' tiger: the jaguar's file with the tiger coat on its body (its eyes keep their own painting). */
+function tuneTiger(scene) {
+  scene.traverse((object) => {
+    if (!object.isMesh) return
+    object.castShadow = true
+    object.receiveShadow = true
+    if (object.geometry.attributes.position.count < 5000) return // the eyes
+    object.material.emissive = new Color('#2a1708')
+    object.material.emissiveIntensity = 0.1
+    applyTigerCoat(object.material)
+  })
+}
+
 const MODELS = Object.freeze({
   jaguar: { url: jaguarUrl, tune: tuneJaguar },
+  // the same file as the jaguar, as its own kind. `own`: the loader shares one set of materials between every user of a file,
+  // so the tiger works on copies of them and the jaguars keep their own painting
+  tiger: { url: jaguarUrl, tune: tuneTiger, own: true },
   ocelot: { url: ocelotUrl, tune: tuneOcelot },
   armadillo: { url: armadilloUrl, tune: tuneJaguar },
   capuchin: { url: capuchinUrl, tune: tuneCapuchin },
@@ -95,11 +112,15 @@ const MODELS = Object.freeze({
  * every material with swinging legs or beating wings (amazonMotion.js). Without it the model is static.
  */
 export default function AmazonModel({ kind, motionRef }) {
-  const { url, tune } = MODELS[kind]
+  const { url, tune, own } = MODELS[kind]
   const gltf = useLoader(GLTFLoader, url)
-  // each animal is a copy of the loaded scene; geometry and materials are shared
-  const scene = useMemo(() => gltf.scene.clone(true), [gltf])
-  useLayoutEffect(() => { tune(gltf.scene) }, [gltf, tune])
+  // each animal is a copy of the loaded scene; geometry and materials are shared (an `own` kind copies the materials too)
+  const scene = useMemo(() => {
+    const copy = gltf.scene.clone(true)
+    if (own) copy.traverse((object) => { if (object.isMesh) object.material = object.material.clone() })
+    return copy
+  }, [gltf, own])
+  useLayoutEffect(() => { tune(own ? scene : gltf.scene) }, [gltf, scene, tune, own])
   useLayoutEffect(() => {
     const motion = motionRef?.current
     if (!motion || !hasMotion(kind)) return undefined

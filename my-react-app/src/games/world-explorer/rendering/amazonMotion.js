@@ -10,8 +10,10 @@
  */
 
 /** Legs: `hip` the height the legs pivot at, `yaw` how far the model's own body axis is turned from +z (rad; the jaguar's is -0.52), `cx`/`cz` the middle between the left and right, front and back legs (the model's own pose is not always centred), `xw`/`zw` the half-width and half-length that tell left from right and front from back, `ang` the swing (rad), `lift` the foot lift (m). */
+const JAGUAR_LEGS = { hip: 0.46, yaw: -0.52, cx: -0.03, cz: 0.06, xw: 0.12, zw: 0.3, ang: 0.5, lift: 0.07 }
 export const LEG_MOTION = Object.freeze({
-  jaguar: { hip: 0.46, yaw: -0.52, cx: -0.03, cz: 0.06, xw: 0.12, zw: 0.3, ang: 0.5, lift: 0.07 },
+  jaguar: JAGUAR_LEGS,
+  tiger: JAGUAR_LEGS, // the same model
   ocelot: { hip: 0.3, cx: 0, cz: -0.04, xw: 0.05, zw: 0.15, ang: 0.55, lift: 0.045 },
   armadillo: { hip: 0.2, cx: -0.07, cz: -0.05, xw: 0.07, zw: 0.15, ang: 0.5, lift: 0.03 },
   capuchin: { hip: 0.26, cx: 0.02, cz: 0.1, xw: 0.07, zw: 0.07, ang: 0.5, lift: 0.045 },
@@ -44,6 +46,7 @@ export const HOP_MOTION = Object.freeze({
  */
 export const MODEL_FIX = Object.freeze({
   jaguar: { yaw: 0.52 },
+  tiger: { yaw: 0.52 },
   armadillo: { roll: -0.19, shift: [-0.055, -0.017, 0] },
 })
 
@@ -55,6 +58,7 @@ export const MODEL_FIX = Object.freeze({
  */
 export const IDLE_MOTION = Object.freeze({
   jaguar: { tail: { from: -0.5, to: -0.8, amp: 0.09, rate: 2.0 } },
+  tiger: { tail: { from: -0.5, to: -0.8, amp: 0.09, rate: 2.0 } },
   // the cat's tail starts about 0.2 m behind its middle and reaches 0.45 m
   cat: { tail: { from: -0.22, to: -0.42, amp: 0.045, rate: 3.2 } },
   anaconda: { wave: { amp: 0.05, k: 6, rate: 2.2 } },
