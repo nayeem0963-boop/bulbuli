@@ -1,4 +1,4 @@
-# Spinning cat model (World Explorer, Sundarbans)
+# Cat model (World Explorer, Sundarbans)
 
 - **Title:** "Oiiaioooooiai Cat"
 - **Author:** Zhuier (https://sketchfab.com/Zhuier)
@@ -19,8 +19,8 @@
   already life size: 0.24 m wide, 0.39 m tall, 0.72 m long with its tail).
 - The colour texture was reduced from a 4096 px PNG (7.6 MB) to a 1024 px JPEG; nothing else in the
   material was kept but the colour map.
-- In the game it is moved only by code: it spins on the spot and bobs, like the original animation
-  (rendering/SundarbansCat.jsx).
+- In the game it is moved only by code: it walks straight up and down a line on the island, turning round at each end, with its legs swung and its tail swished in the vertex shader
+  (rendering/SundarbansCat.jsx; the original animation was a spin with a bob, which the game no longer uses).
 
 ## Credit that must stay visible
 

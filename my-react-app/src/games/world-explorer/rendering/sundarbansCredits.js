@@ -6,20 +6,27 @@
 const CC = 'CC BY 4.0'
 
 export const SUNDARBANS_MODEL_CREDITS = Object.freeze({
-  spinningCat: {
+  cat: {
     file: 'oiiaioooooiai-cat',
-    name: 'Spinning cat',
+    name: 'Cat',
     title: 'Oiiaioooooiai Cat',
     author: 'Zhuier',
     authorUrl: 'https://sketchfab.com/Zhuier',
     source: 'https://sketchfab.com/3d-models/oiiaioooooiai-cat-30d27bf7fb224849b76e208a6eccdb36',
     license: CC,
-    changes: 'the neutral pose baked into a static model (animation and mouth morph removed), re-centred, colour texture reduced from a 4096 px PNG to a 1024 px JPEG; the game spins it on the spot',
+    changes: 'the neutral pose baked into a static model (animation and mouth morph removed), re-centred, colour texture reduced from a 4096 px PNG to a 1024 px JPEG; the game walks it up and down a straight line on the island',
   },
 })
 
-/** How the cat moves (rendering/SundarbansCat.jsx): turns per second, and how far it bobs (m). */
-export const SPINNING_CAT = Object.freeze({ turnsPerSecond: 1.4, bob: 0.035, bobTurns: 2 })
+/**
+ * How the cat walks (rendering/SundarbansCat.jsx, maths in sundarbansCat.js): straight up and down a line on the
+ * home island in front of where the expedition starts, turning round at each end. `speed` m/s on the ground,
+ * `stride` m travelled per full leg cycle, `turnSeconds` to turn right round, `turnSteps` m of stepping while it turns.
+ */
+export const WALKING_CAT = Object.freeze({ speed: 0.55, stride: 0.5, turnSeconds: 1.4, turnSteps: 0.3, bob: 0.012 })
 
-/** Where the cat spins in the Sundarbans map: on the home island, a few paces ahead of where the expedition starts, drawn 1.4 times life size so it is easy to spot. */
-export const SPINNING_CAT_PLACE = Object.freeze({ x: 3.4, z: -1.2, scale: 1.4 })
+/**
+ * The line the cat walks: x is fixed, z runs from `z0` to `z1` (metres, map coordinates), which keeps it on the home
+ * island (radius 6) and 3.4 m ahead of the start (0, -2) across the way the player faces. Drawn 1.4 times life size.
+ */
+export const WALKING_CAT_PATH = Object.freeze({ x: 3.4, z0: -3.8, z1: 2.4, scale: 1.4 })

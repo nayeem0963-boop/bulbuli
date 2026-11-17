@@ -259,7 +259,7 @@ function PropView({ prop }) {
         {[0, 1, 2, 3, 4].map((i) => <mesh key={i} position={[(i % 2) * 0.35, 0, i * 0.7]} rotation-x={-Math.PI / 2}><circleGeometry args={[0.14, 6]} /><meshStandardMaterial color="#3d2f22" /></mesh>)}
       </group>
     ); break
-    case 'spinCat': body = <SundarbansCat scale={scale} />; break
+    case 'walkingCat': body = <SundarbansCat scale={scale} />; break
     case 'leafLitter': body = <Flat color="#8a5a2b" w={2.2} d={2.2} />; break
     case 'quadrat': body = <Flat color="#f4efe6" w={1.6} d={1.6} opacity={0.45} />; break
     case 'pool': body = <OasisPool />; break

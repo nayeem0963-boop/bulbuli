@@ -15,6 +15,8 @@ export const LEG_MOTION = Object.freeze({
   ocelot: { hip: 0.3, cx: 0, cz: -0.04, xw: 0.05, zw: 0.15, ang: 0.55, lift: 0.045 },
   armadillo: { hip: 0.2, cx: -0.07, cz: -0.05, xw: 0.07, zw: 0.15, ang: 0.5, lift: 0.03 },
   capuchin: { hip: 0.26, cx: 0.02, cz: 0.1, xw: 0.07, zw: 0.07, ang: 0.5, lift: 0.045 },
+  // the Sundarbans' cat (rendering/SundarbansCat.jsx): front paws near z = 0.26, back paws near z = -0.06, legs about 0.16 m
+  cat: { hip: 0.16, cx: 0, cz: 0.1, xw: 0.07, zw: 0.15, ang: 0.55, lift: 0.03 },
 })
 
 /** Wings: `x0` the half-width of the body (nothing moves inside it), `ang` the beat (rad), `rate` flaps per second (rad/s), `bob` how much the body rises with each beat (m). */
@@ -53,6 +55,8 @@ export const MODEL_FIX = Object.freeze({
  */
 export const IDLE_MOTION = Object.freeze({
   jaguar: { tail: { from: -0.5, to: -0.8, amp: 0.09, rate: 2.0 } },
+  // the cat's tail starts about 0.2 m behind its middle and reaches 0.45 m
+  cat: { tail: { from: -0.22, to: -0.42, amp: 0.045, rate: 3.2 } },
   anaconda: { wave: { amp: 0.05, k: 6, rate: 2.2 } },
   // a fish beats its tail: the swing grows towards the tail (z < 0) and runs along the body
   fish: { wag: { amp: 0.09, k: 7, rate: 7 } },

@@ -4,7 +4,7 @@
  * Island, station and boardwalk positions live in sundarbansLayout.js (also read by the terrain).
  */
 import { boardwalk, disc, linksFrom, scatter } from './common.js'
-import { SPINNING_CAT_PLACE } from '../rendering/sundarbansCredits.js'
+import { WALKING_CAT_PATH } from '../rendering/sundarbansCredits.js'
 import { SUNDARBANS_ISLANDS, SUNDARBANS_SPAWN, SUNDARBANS_STATIONS, SUNDARBANS_VILLAGE, SUNDARBANS_WALKS } from './sundarbansLayout.js'
 
 const islands = SUNDARBANS_ISLANDS.map(([id, x, z, r, look]) => disc(id, x, z, r, 0, look))
@@ -50,8 +50,9 @@ const props = [
   { type: 'pawPrints', x: -17.5, y: 0.02, z: 8.6, rot: -0.7 },
   { type: 'waveTank', x: -12.6, y: 0, z: -2.6 },
   { type: 'village', x: SUNDARBANS_VILLAGE.x, y: 0, z: SUNDARBANS_VILLAGE.z },
-  // a spinning cat on the home island, a few paces ahead of the start (rendering/SundarbansCat.jsx); a decoration, not solid
-  { type: 'spinCat', x: SPINNING_CAT_PLACE.x, y: 0, z: SPINNING_CAT_PLACE.z, scale: SPINNING_CAT_PLACE.scale },
+  // a cat walking straight up and down a line on the home island, ahead of the start (rendering/SundarbansCat.jsx); a
+  // decoration, not solid. The prop stands at the middle of its line.
+  { type: 'walkingCat', x: WALKING_CAT_PATH.x, y: 0, z: (WALKING_CAT_PATH.z0 + WALKING_CAT_PATH.z1) / 2, scale: WALKING_CAT_PATH.scale },
 ]
 
 /**
