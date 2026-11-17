@@ -16,7 +16,8 @@ test('amazon fauna: twelve kinds in the forest and one in the gallery, all model
   assert.deepEqual([...new Set(fauna.map((a) => a.type))].sort(), inForest.sort(), 'every forest kind appears, and only those')
   for (const type of inForest) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
   assert.ok(fauna.length >= 25)
-  for (const id of ['sundarbans', 'sahara']) assert.equal(BIOMES[id].fauna, undefined)
+  assert.equal(BIOMES.sahara.fauna, undefined)
+  // (the Sundarbans borrows a few Amazon flyers: see the test below)
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'))
   // clean-up: nothing is built in code any more; the models are loaded only by AmazonModel.jsx
@@ -270,4 +271,24 @@ test('amazon pool: the water disc is built lying flat once, not turned from a dr
   const source = readFileSync(new URL('./AmazonPool.jsx', import.meta.url), 'utf8')
   assert.match(source, /new CircleGeometry\(POOL_WATER_R, 56\)\.rotateX\(-Math\.PI \/ 2\)/)
   assert.ok(!/onUpdate/.test(source), 'a draw callback runs more than once and would stand the water on its edge')
+})
+
+test('sundarbans flyers: a few macaws and morpho butterflies borrowed from the Amazon, all flying, none solid, clear of the walkers', () => {
+  const flyers = BIOMES.sundarbans.fauna
+  assert.deepEqual([...new Set(flyers.map((a) => a.type))].sort(), ['blueMacaw', 'macaw', 'morpho', 'scarletMacaw'])
+  assert.ok(flyers.length >= 6)
+  assert.ok(flyers.every((a) => a.fly && !a.solid && !a.roam), 'every one flies and none is solid')
+  assert.equal(collidersFor(BIOMES.sundarbans).filter((c) => c.id.startsWith('fauna-')).length, 0, 'no collider')
+  const mangroveTop = 3.1 // the tallest prop (biomes/common.js topByType)
+  for (const a of flyers) {
+    const { fly: f } = a
+    assert.ok(AMAZON_FAUNA[a.type] && !AMAZON_FAUNA[a.type].gallery, `${a.type} is a model the Amazon already draws`)
+    assert.ok(f.r > 0 && f.speed > 0.3 && f.speed < 2.5, `${a.type} flies at a flyer's pace`)
+    if (a.type !== 'morpho') assert.ok(f.y - 0.18 > mangroveTop, `${a.type} stays above the mangroves`)
+    else assert.ok(f.y > 0.8 && f.y < 2.2, 'the butterflies flit low')
+    const flight = Array.from({ length: 60 }, (_, i) => flightAt(f, i * 0.7))
+    assert.ok(flight.every((p) => Math.hypot(p.x - BIOMES.sundarbans.discs[0].x, p.z - BIOMES.sundarbans.discs[0].z) < 40), `${a.type} stays near the islands`)
+  }
+  const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
+  assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'), 'the same renderer draws them')
 })

@@ -10,6 +10,7 @@ import { OrbitControls } from '@react-three/drei'
 import AmazonModel from '../../src/games/world-explorer/rendering/AmazonModel.jsx'
 import { AMAZON_FAUNA_MODELS, AMAZON_MODEL_CREDITS } from '../../src/games/world-explorer/rendering/amazonFauna.js'
 import { AMAZON_MAP } from '../../src/games/world-explorer/biomes/amazon.js'
+import { SUNDARBANS_MAP } from '../../src/games/world-explorer/biomes/sundarbans.js'
 
 const GAP = 3.1
 const FLYERS = new Set(['macaw', 'blueMacaw', 'scarletMacaw', 'toucan', 'morpho'])
@@ -24,7 +25,9 @@ const placed = (kind) => {
   const pools = AMAZON_MAP.pools.filter((pool) => pool.kind === kind)
   if (!all.length && pools.length) return `${pools[0].swimmers.length} swim in a forest pool on the map${kind === 'dolphin' ? ' (on the open ground to the east)' : ' (at the foot of the giant tree)'}.`
   if (!all.length) return 'Not on the map: this one lives only here.'
-  if (all[0].fly) return `${all.length} fly round over the clearing${kind === 'morpho' ? ', low among the trees' : ''}.`
+  const delta = SUNDARBANS_MAP.fauna.filter((a) => a.type === kind).length
+  const alsoDelta = delta ? ` ${delta} more fly over the Sundarbans.` : ''
+  if (all[0].fly) return `${all.length} fly round over the clearing${kind === 'morpho' ? ', low among the trees' : ''}.${alsoDelta}`
   if (all[0].y > 0) return `${all.length} perched on the branch and canopy platforms.`
   return `${all.length} on the forest floor.`
 }

@@ -56,6 +56,22 @@ const props = [
 ]
 
 /**
+ * Flyers borrowed from the Amazon (the same model files, credited on the review page), drawn by AmazonFauna like the
+ * Amazon's own: macaws, as stand-ins for the parrots of the delta's forests, circling high over the islands and the
+ * channels, and blue morpho butterflies flitting low over the mud and the roots. None is solid. Each circles (x, z) at
+ * radius r, height y (m), speed (m/s); `dir` turns it the other way round.
+ */
+const fly = (type, x, z, r, y, speed, phase, dir, seed) => ({ type, x: x + r, y, z, rot: 0, seed, fly: { x, z, r, y, speed, phase, dir } })
+const fauna = [
+  fly('macaw', 6, 1, 4.2, 3.8, 1.5, 0, 1, 201),
+  fly('scarletMacaw', 9, 3, 3.4, 3.6, 1.4, 2.4, -1, 202),
+  fly('blueMacaw', 14, 7, 5.5, 4.8, 1.3, 4.0, 1, 203),
+  fly('morpho', 2, 2.5, 1.6, 1.3, 0.6, 0, 1, 204),
+  fly('morpho', -6, -3, 1.8, 1.5, 0.6, 2.0, -1, 205),
+  fly('morpho', 12, -2, 1.5, 1.2, 0.5, 4.0, 1, 206),
+]
+
+/**
  * Follow camera (cameraRig.js): further back, aimed higher and a little wider than the default, so
  * the mangrove canopy, the far bank and the sky are in frame instead of mostly mud. The village
  * houses are volumes the camera stays out of and does not look through: each is a box
@@ -82,5 +98,5 @@ export const SUNDARBANS_MAP = Object.freeze({
   },
   water: { y: -0.35, color: '#7da68a', dark: '#355c4f' },
   looks: { mud: '#79644e', mudflat: '#816f57', sandbar: '#927e5d', plank: '#997a54' },
-  discs, links, stations, spawn, props,
+  discs, links, stations, spawn, props, fauna,
 })
