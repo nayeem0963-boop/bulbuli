@@ -1,13 +1,14 @@
 /**
  * Draws the Amazon's animals (biomes/amazon.js `fauna`): every one is a model file
- * (AmazonModel.jsx). They stand where they are put, still, except the flyers (macaws, toucans and
- * butterflies), which sweep in loose loops high over the clearing: a position, heading, bank and pitch
- * only; the models themselves do not move.
+ * (AmazonModel.jsx). Some stand where they are put, still. The flyers (macaws, toucans and butterflies)
+ * sweep loose loops high over the clearing, with a bank and a pitch, and the roamers walk loops across
+ * the forest floor, pausing to look about (a position, heading and a little lean or gait bob only; the
+ * models themselves do not move).
  */
 import { Suspense, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { DoubleSide } from 'three'
-import { AMAZON_FAUNA, flightAt } from './amazonFauna.js'
+import { AMAZON_FAUNA, GAITS, flightAt, roamAt } from './amazonFauna.js'
 import { contactShadowTexture } from './amazonGroundShadow.js'
 import AmazonModel from './AmazonModel.jsx'
 
@@ -43,10 +44,38 @@ function Flyer({ animal }) {
   )
 }
 
+/** A ground animal walking its loop: its shadow stays on the floor while the body bobs and sways with each step. */
+function Roamer({ animal }) {
+  const group = useRef(null)
+  const body = useRef(null)
+  const gait = GAITS[AMAZON_FAUNA[animal.type].gait ?? 'walk']
+  useFrame(({ clock }) => {
+    const g = group.current
+    const b = body.current
+    if (!g || !b) return
+    const p = roamAt(animal.roam, clock.elapsedTime)
+    g.position.set(p.x, 0, p.z)
+    g.rotation.set(0, p.heading, 0)
+    const step = Math.sin(p.gait * gait.steps)
+    b.position.y = Math.abs(step) * gait.bob * p.walk
+    b.rotation.set(Math.cos(p.gait * gait.steps * 0.5) * gait.nod * p.walk, 0, step * gait.sway * p.walk)
+  })
+  return (
+    <group ref={group} position={[animal.x, 0, animal.z]}>
+      <GroundShadow type={animal.type} />
+      <group ref={body}>
+        <Suspense fallback={null}><AmazonModel kind={animal.type} /></Suspense>
+      </group>
+    </group>
+  )
+}
+
 export default function AmazonFauna({ fauna }) {
   return fauna.map((animal, index) => (animal.fly
     ? <Flyer key={index} animal={animal} />
-    : (
+    : animal.roam
+      ? <Roamer key={index} animal={animal} />
+      : (
       <group key={index} position={[animal.x, animal.y ?? 0, animal.z]} rotation-y={animal.rot ?? 0}>
         <GroundShadow type={animal.type} />
         <Suspense fallback={null}><AmazonModel kind={animal.type} /></Suspense>
