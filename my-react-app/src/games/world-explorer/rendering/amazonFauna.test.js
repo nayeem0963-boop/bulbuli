@@ -15,7 +15,7 @@ test('amazon fauna: twelve kinds in the forest and one in the gallery, all model
   const inForest = Object.keys(AMAZON_FAUNA).filter((type) => !AMAZON_FAUNA[type].gallery)
   assert.deepEqual([...new Set(fauna.map((a) => a.type))].sort(), inForest.sort(), 'every forest kind appears, and only those')
   for (const type of inForest) assert.ok(fauna.filter((a) => a.type === type).length >= 2, `more than one ${type}`)
-  assert.ok(fauna.length >= 25)
+  assert.ok(fauna.length >= 36)
   for (const id of ['sundarbans', 'sahara']) assert.equal(BIOMES[id].fauna, undefined)
   const canvas = readFileSync(new URL('../ExpeditionCanvas.jsx', import.meta.url), 'utf8')
   assert.ok(canvas.includes('{biome.fauna ? <AmazonFauna fauna={biome.fauna} /> : null}'))
@@ -65,29 +65,42 @@ test('amazon fauna: every animal stands on its ground, clear of the stations, th
   // perched animals keep off the way in: the stair lands on the near side of the platform
   for (const animal of fauna.filter((a) => a.y > 0 && !a.fly)) assert.ok(animal.solid && animal.y >= 3.4)
   // a flyer is not solid and is up in the air (the butterflies low, the birds high)
-  for (const animal of fauna.filter((a) => a.fly)) assert.ok(!animal.solid && animal.fly.y >= 1 && animal.fly.r >= 1.2)
+  for (const animal of fauna.filter((a) => a.fly)) assert.ok(!animal.solid && animal.fly.y >= 3 && animal.fly.r >= 3)
 })
 
-test('amazon fauna: the models stand still, the macaws circle, and each flight is a closed loop', () => {
+test('amazon fauna: the models stand still, the flyers sweep loose loops, higher and more of them', () => {
   const files = ['./AmazonFauna.jsx'].map((file) => readFileSync(new URL(file, import.meta.url), 'utf8'))
   // only the flyer is moved, and only by its position and heading
   assert.equal((files[0].match(/useFrame\(/g) ?? []).length, 1)
   assert.ok(!/requestAnimationFrame/.test(files[0]))
   assert.ok(fauna.every((animal) => animal.roam === undefined && animal.route === undefined))
   for (const animal of fauna.filter((a) => a.fly)) {
-    const start = flightAt(animal.fly, 0)
-    assert.ok(Math.abs(start.x - animal.x) < 1e-9 && Math.abs(start.z - animal.z) < 1e-9 || animal.fly.phase !== 0, 'starts on its circle')
-    for (let t = 0; t < 60; t += 3.7) {
-      const p = flightAt(animal.fly, t)
-      assert.ok(Math.abs(Math.hypot(p.x - animal.fly.x, p.z - animal.fly.z) - animal.fly.r) < 1e-9, 'stays on its circle')
-      assert.ok(Math.abs(p.y - animal.fly.y) <= 0.19)
-      // it heads along the circle: its heading is the direction of travel
-      const q = flightAt(animal.fly, t + 0.01)
-      const dx = q.x - p.x, dz = q.z - p.z
-      assert.ok(Math.abs(Math.sin(p.heading) * dz - Math.cos(p.heading) * dx) < 1e-3 * Math.hypot(dx, dz) * 100, 'faces the way it flies')
-      assert.ok(Math.sin(p.heading) * dx + Math.cos(p.heading) * dz > 0, 'forwards')
+    const f = animal.fly
+    const start = flightAt(f, 0)
+    assert.ok(Math.abs(start.x - animal.x) < 1e-9 && Math.abs(start.z - animal.z) < 1e-9 && Math.abs(start.y - animal.y) < 1e-9, 'starts where its path starts')
+    const wide = Math.max(1, f.squash ?? 1)
+    const narrow = Math.min(1, f.squash ?? 1)
+    let climbed = 0
+    for (let t = 0; t < 90; t += 0.9) {
+      const p = flightAt(f, t)
+      // a loose loop round its centre: near its radius, never far off it, its height within its bob
+      const away = Math.hypot(p.x - f.x, p.z - f.z)
+      assert.ok(away <= f.r * 1.16 * wide + 1e-9 && away >= f.r * 0.84 * narrow - 1e-9, `${animal.type} stays in its loop`)
+      assert.ok(Math.abs(p.y - f.y) <= (f.bob ?? 0.7) * 1.5 + 1e-9)
+      climbed = Math.max(climbed, Math.abs(p.pitch))
+      assert.ok(Math.abs(p.bank) <= 0.6 && Math.abs(p.pitch) <= 0.5, 'leans and tilts gently')
+      // it heads the way it moves (the model faces +z)
+      const q = flightAt(f, t + 0.01)
+      const dx = q.x - p.x
+      const dz = q.z - p.z
+      assert.ok(Math.sin(p.heading) * dx + Math.cos(p.heading) * dz > 0.99 * Math.hypot(dx, dz), 'faces the way it flies')
     }
+    assert.ok(climbed > 0.005, 'it climbs and dives')
   }
+  // higher: the birds clear the canopy platforms (6.5 m) and the butterflies the shrubs; and more of them
+  const flyers = (type) => fauna.filter((a) => a.type === type)
+  for (const type of ['macaw', 'blueMacaw', 'scarletMacaw', 'toucan']) assert.ok(flyers(type).length >= 4 && flyers(type).every((a) => a.fly.y - (a.fly.bob ?? 0.7) * 1.5 > 6.5 + 1), `${type}: four or more, flying above the platforms`)
+  assert.ok(flyers('morpho').length >= 8 && flyers('morpho').every((a) => a.fly.y - 0.6 >= 2.5))
 })
 
 /** The parts of a .glb the tests need: its JSON chunk and its size. */
@@ -111,7 +124,7 @@ const MODEL_FILES = {
   blueMacaw: { meshes: 1, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 16000 },
   scarletMacaw: { meshes: 1, images: 1, maxBytes: 300 * 1024, maxTriangles: 1500 },
   toucan: { meshes: 1, images: 1, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 18000 },
-  morpho: { meshes: 3, images: 3, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 23000 },
+  morpho: { meshes: 3, images: 3, maxBytes: 1.2 * 1024 * 1024, maxTriangles: 8000 },
   fish: { meshes: 1, images: 1, maxBytes: 800 * 1024, maxTriangles: 16000 },
 }
 

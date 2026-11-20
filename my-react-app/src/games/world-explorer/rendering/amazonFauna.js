@@ -31,14 +31,38 @@ export const AMAZON_FAUNA = Object.freeze({
 /** Every kind that is a model file, in the order the gallery shows them. */
 export const AMAZON_FAUNA_MODELS = Object.freeze(Object.keys(AMAZON_FAUNA))
 
-/** Where a flyer is at time t: its circle's point, and the way it is heading (the model faces +z). */
-export function flightAt(fly, t) {
-  const angle = (fly.phase ?? 0) + (t * fly.speed * (fly.dir ?? 1)) / fly.r
+/**
+ * Where a flyer is at time t, and how it holds itself. It does not fly a circle: its loop is an
+ * ellipse (`squash` narrows it, `tilt` turns it) whose size breathes, it speeds up and slows down, and
+ * it rises and sinks as it goes. `heading` is the way it is going (the model faces +z), `bank` leans it
+ * into the turn and `pitch` lifts its nose in a climb and drops it in a dive.
+ */
+const wobble = (fly, t) => {
   const dir = fly.dir ?? 1
-  const x = fly.x + Math.cos(angle) * fly.r
-  const z = fly.z + Math.sin(angle) * fly.r
-  const heading = Math.atan2(-Math.sin(angle) * dir, Math.cos(angle) * dir)
-  return { x, z, y: fly.y + Math.sin(t * 1.3 + (fly.phase ?? 0)) * 0.18, heading }
+  const phase = fly.phase ?? 0
+  const angle = phase + (dir * t * fly.speed) / fly.r + 0.22 * Math.sin(0.23 * t + phase * 2)
+  const radius = fly.r * (1 + 0.14 * Math.sin(0.37 * t + phase * 3))
+  const along = Math.cos(angle) * radius
+  const across = Math.sin(angle) * radius * (fly.squash ?? 1)
+  const tilt = fly.tilt ?? 0
+  const bob = fly.bob ?? 0.7
+  return {
+    x: fly.x + along * Math.cos(tilt) - across * Math.sin(tilt),
+    z: fly.z + along * Math.sin(tilt) + across * Math.cos(tilt),
+    y: fly.y + bob * Math.sin((fly.flap ?? 0.5) * t + phase) + 0.5 * bob * Math.sin(0.19 * t + phase * 2),
+  }
+}
+export function flightAt(fly, t) {
+  const here = wobble(fly, t)
+  const before = wobble(fly, t - 0.05)
+  const after = wobble(fly, t + 0.05)
+  const vx = after.x - before.x
+  const vz = after.z - before.z
+  const vy = after.y - before.y
+  const ahead = Math.hypot(vx, vz) || 1
+  const heading = Math.atan2(vx, vz)
+  const turn = (Math.atan2(after.x - here.x, after.z - here.z) - Math.atan2(here.x - before.x, here.z - before.z) + Math.PI * 3) % (Math.PI * 2) - Math.PI
+  return { ...here, heading, bank: -Math.max(-0.6, Math.min(0.6, turn * 9)), pitch: -Math.max(-0.5, Math.min(0.5, Math.atan2(vy, ahead))) }
 }
 
 const CC = 'CC BY 4.0'

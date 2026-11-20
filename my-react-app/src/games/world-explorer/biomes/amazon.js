@@ -3,7 +3,7 @@
  * canopy platform, an understory platform off the stair, and a logged patch beside the forest.
  */
 import { disc, linksFrom, scatter } from './common.js'
-import { AMAZON_FAUNA } from '../rendering/amazonFauna.js'
+import { AMAZON_FAUNA, flightAt } from '../rendering/amazonFauna.js'
 
 const TRUNK = { x: 0, z: 12 }
 const STAIR_R = 3.2
@@ -57,7 +57,7 @@ const props = [
 /**
  * Rainforest animals, all model files (rendering/AmazonModel.jsx): jaguars, ocelots, armadillos and
  * anacondas in clearings on the forest floor, capuchins, harpy eagles and hoatzins perched on the
- * branch and canopy platforms, and macaws, toucans and morpho butterflies flying round over the clearing. Each stands on bare
+ * branch and canopy platforms, and macaws, toucans and morpho butterflies sweeping loose loops high over the clearing. Each stands on bare
  * ground, clear of the stations, the paths and the trees: the tree scatter keeps a clearing round
  * every ground animal (rendering/amazonScatter.js). `solid` is its collider (a cylinder); a flyer has
  * none and circles (`fly`). The crimson fangback (a fish) is only in the Wildlife Gallery: the map has no water.
@@ -65,8 +65,17 @@ const props = [
 const animal = (type, x, z, rot, seed, y = 0) => ({
   type, x, y, z, rot, seed, solid: { r: AMAZON_FAUNA[type].radius, top: AMAZON_FAUNA[type].top },
 })
-/** A flyer that circles (x, z) at radius r, height y, at speed m/s; dir turns it the other way round. */
-const fly = (type, x, z, r, y, speed, phase, dir, seed) => ({ type, x: x + r, y, z, rot: 0, seed, fly: { x, z, r, y, speed, phase, dir } })
+/** A flyer that sweeps a loose loop round (x, z) at about radius r, height y, at speed m/s; dir turns it the other way round. */
+const fly = (type, x, z, r, y, speed, phase, dir, seed, extra = {}) => {
+  const path = { x, z, r, y, speed, phase, dir, ...extra }
+  const start = flightAt(path, 0)
+  return { type, x: start.x, y: start.y, z: start.z, rot: 0, seed, fly: path }
+}
+/** n flyers of one kind, their loops centred round a ring (radius `ring`) and stepped up in height, none alike. */
+const flock = (type, n, { ring, r, y, speed, bob = 0.7, flap = 0.5, seed }) => Array.from({ length: n }, (_, i) => {
+  const a = (i * 2 * Math.PI) / n + seed * 0.7
+  return fly(type, Math.cos(a) * ring, Math.sin(a) * ring, r + (i % 2) * 1.6, y + (i % 3) * 1.5, speed * (0.9 + 0.07 * i), i * 1.7 + seed, i % 2 ? -1 : 1, seed * 10 + i, { squash: 0.6 + 0.1 * (i % 3), tilt: i * 0.9, bob, flap })
+})
 const around = (centre, angle, radius) => ({ x: centre.x + Math.cos(angle) * radius, z: centre.z + Math.sin(angle) * radius })
 /** On a platform's edge at `angle`, turned to look in across it (`turn` swings it off the middle). */
 const perch = (type, centre, angle, radius, turn, seed) => {
@@ -89,18 +98,13 @@ const fauna = [
   perch('harpyEagle', s2, lastAng - 2.4, 2.4, 0.4, 71),
   perch('hoatzin', s4, thirdAng + 1.7, 1.9, 0.4, 38),
   perch('hoatzin', s2, lastAng + 0.8, 2.4, -0.3, 61),
-  // flying over the clearing
-  fly('macaw', -3, -2, 3.2, 3.4, 1.4, 0, 1, 37),
-  fly('macaw', 4, 5, 2.6, 4.2, 1.2, 3.1, -1, 59),
-  fly('blueMacaw', 1, -6, 3.6, 3.9, 1.3, 1.5, 1, 74),
-  fly('blueMacaw', -6, 1, 2.8, 4.6, 1.1, 4.4, -1, 75),
-  fly('scarletMacaw', 6, -2, 3.0, 3.6, 1.5, 0.8, -1, 76),
-  fly('scarletMacaw', -2, 7, 2.4, 4.4, 1.3, 5.2, 1, 77),
-  fly('toucan', -1, 1, 4.0, 3.3, 1.6, 2.2, 1, 78),
-  fly('toucan', 7, 6, 2.2, 4.0, 1.4, 0.2, -1, 79),
-  fly('morpho', -4, 3, 1.6, 1.3, 0.6, 0, 1, 80),
-  fly('morpho', 5, -4, 2.0, 1.7, 0.7, 2.0, -1, 81),
-  fly('morpho', 0, 4, 1.4, 1.1, 0.5, 4.0, 1, 82),
+  // flying high over the clearing and the canopy
+  ...flock('macaw', 4, { ring: 7, r: 7, y: 9, speed: 3.0, seed: 1 }),
+  ...flock('blueMacaw', 4, { ring: 8, r: 6.5, y: 11, speed: 3.2, seed: 2 }),
+  ...flock('scarletMacaw', 4, { ring: 6, r: 8, y: 9.2, speed: 2.8, seed: 3 }),
+  ...flock('toucan', 4, { ring: 5.5, r: 5.5, y: 10, speed: 2.4, seed: 4 }),
+  // butterflies drift lower, in little loops that flutter up and down
+  ...flock('morpho', 8, { ring: 6, r: 3, y: 3.2, speed: 0.9, bob: 0.4, flap: 2.2, seed: 5 }),
 ]
 
 export const AMAZON_MAP = Object.freeze({

@@ -1,7 +1,8 @@
 /**
  * Draws the Amazon's animals (biomes/amazon.js `fauna`): every one is a model file
- * (AmazonModel.jsx). They stand where they are put, still, except the flying macaws, which circle
- * slowly over the clearing (a position and heading only; the model itself does not move).
+ * (AmazonModel.jsx). They stand where they are put, still, except the flyers (macaws, toucans and
+ * butterflies), which sweep in loose loops high over the clearing: a position, heading, bank and pitch
+ * only; the models themselves do not move.
  */
 import { Suspense, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
@@ -33,7 +34,7 @@ function Flyer({ animal }) {
     if (!g) return
     const p = flightAt(animal.fly, clock.elapsedTime)
     g.position.set(p.x, p.y, p.z)
-    g.rotation.set(0, p.heading, -0.12 * (animal.fly.dir ?? 1))
+    g.rotation.set(p.pitch, p.heading, p.bank, 'YXZ')
   })
   return (
     <group ref={group} position={[animal.x, animal.y, animal.z]} rotation-y={animal.rot ?? 0}>
